@@ -36,7 +36,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "production": "yarn run build && node server.js"
+    "production": "npm run build && node server.js"
   },
   "eslintConfig": {
     "extends": "react-app"
