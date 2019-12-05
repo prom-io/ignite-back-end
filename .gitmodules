@@ -1,0 +1,3 @@
+[submodule "encryptor"]
+	path = encryptor
+	url = https://github.com/Prometeus-Network/encryptor.git
