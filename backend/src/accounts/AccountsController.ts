@@ -1,13 +1,23 @@
 import {Controller, Get, Post, Body, Param} from "@nestjs/common";
 import {AccountsService} from "./AccountsService";
 import {CreateDataOwnerRequest, CreateDataValidatorRequest} from "../model/api/request";
-import {BalanceResponse, BalancesResponse, DataOwnersOfDataValidatorResponse} from "../model/api/response";
+import {
+    AccountResponse,
+    BalanceResponse,
+    BalancesResponse,
+    DataOwnersOfDataValidatorResponse
+} from "../model/api/response";
 
 @Controller("api/v3/accounts")
 export class AccountsController {
     constructor(private readonly accountsService: AccountsService) {}
 
-    @Post("data-validators")
+    @Get()
+    public getAllAccounts(): Promise<AccountResponse[]> {
+        return this.accountsService.getAllAccounts();
+    }
+
+    @Post()
     public createDataValidator(@Body() createDataValidatorRequest: CreateDataValidatorRequest): Promise<void> {
         return this.accountsService.createDataValidatorAccount(createDataValidatorRequest);
     }
@@ -27,7 +37,7 @@ export class AccountsController {
         return this.accountsService.getBalanceOfAccount(address);
     }
 
-    @Get()
+    @Get("balances")
     public getBalancesOfAllAccounts(): Promise<BalancesResponse> {
         return this.accountsService.getBalancesOfAllAccounts();
     }

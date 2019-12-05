@@ -12,4 +12,7 @@ export class EnvConfig {
 
     @Env({required: true, type: "string"})
     STORAGE_DIRECTORY: string;
+
+    @Env({required: true, type: "string"})
+    SERVICE_NODE_ACCOUNT_ADDRESS: string;
 }

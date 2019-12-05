@@ -39,7 +39,7 @@ export class ServiceNodeApiClient {
     }
 
     public getDataOwnersOfDataValidator(dataValidatorAddress: string): AxiosPromise<DataOwnersOfDataValidatorResponse> {
-        return this.axios.get(`/api/v1/data-validators/${dataValidatorAddress}/data-owners`);
+        return this.axios.get(`/api/v1/accounts/data-validators/${dataValidatorAddress}/data-owners`);
     }
 
     public getFileInfo(fileId: string): AxiosPromise<DdsFileResponse> {

@@ -34,15 +34,7 @@ export class CreateServiceNodeFileRequest implements ICreateServiceNodeFileReque
     @IsInt({message: "File size must be integer number which represents size in bytes"})
     public size: number;
 
-    @IsNotEmpty({message: "Data owner address must be specified"})
-    @IsString({message: "Data owner address must be string"})
-    @Matches(
-        new RegExp("^0x[a-fA-F0-9]{40}$"),
-        {
-            message: "Service node address must be valid Ethereum address"
-        }
-    )
-    public serviceNodeAddress: string;
+    public serviceNodeAddress?: string;
 
     @IsNotEmpty({message: "Data owner address must be specified"})
     @IsString({message: "Data owner address must be string"})

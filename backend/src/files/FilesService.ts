@@ -1,6 +1,7 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import {AxiosError} from "axios";
 import {FilesRepository} from "./FilesRepository";
+import {config} from "../config";
 import {ServiceNodeApiClient} from "../service-node-api";
 import {ICreateServiceNodeFileRequest, IUploadChunkRequest} from "../model/api/request";
 import {CheckFileUploadStatusResponse, ServiceNodeFileResponse} from "../model/api/response";
@@ -12,8 +13,12 @@ export class FilesService {
                 private readonly serviceNodeClient: ServiceNodeApiClient) {}
 
     public async createServiceNodeFile(createServiceNodeFileRequest: ICreateServiceNodeFileRequest): Promise<ServiceNodeFileResponse> {
+        const createFileRequest = {
+            ...createServiceNodeFileRequest,
+            serviceNodeAddress: config.SERVICE_NODE_ACCOUNT_ADDRESS
+        };
         try {
-            return (await this.serviceNodeClient.createServiceNodeFile(createServiceNodeFileRequest)).data;
+            return (await this.serviceNodeClient.createServiceNodeFile(createFileRequest)).data;
         } catch (error) {
             this.handleServiceNodeError(error);
         }
@@ -58,6 +63,14 @@ export class FilesService {
     public async uploadFileToDds(serviceNodeFileId: string): Promise<{success: boolean}> {
         try {
             return (await this.serviceNodeClient.uploadFileToDds(serviceNodeFileId)).data;
+        } catch (error) {
+            this.handleServiceNodeError(error);
+        }
+    }
+
+    public async deleteServiceNodeFile(serviceNodeFileId: string): Promise<{success: boolean}> {
+        try {
+            return (await this.serviceNodeClient.deleteServiceNodeFile(serviceNodeFileId)).data;
         } catch (error) {
             this.handleServiceNodeError(error);
         }
