@@ -1,0 +1,10 @@
+export const FILES = "api/v3/files";
+export const SERVICE_NODE = "service-node";
+export const STATUS = "status";
+export const CHUNK = "chunk";
+export const ACCOUNTS = "api/v3/accounts";
+export const BALANCE = "balance";
+export const BALANCES = "balances";
+export const TO_DDS = "to-dds";
+export const DATA_VALIDATORS = "data-validators";
+export const DATA_OWNERS = "data-owners";

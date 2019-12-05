@@ -1,0 +1,15 @@
+{
+  "short_name": "Service node client",
+  "name": "Service node client",
+  "icons": [
+    {
+      "src": "logo500.png",
+      "type": "image/png",
+      "sizes": "500x500"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
