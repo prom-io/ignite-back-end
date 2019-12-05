@@ -1,0 +1,10 @@
+FROM rust
+
+WORKDIR /var/www/encryptor
+
+COPY ./encryptor .
+
+RUN cargo build
+
+EXPOSE 3030
+CMD ["cargo", "run"]

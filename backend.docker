@@ -1,0 +1,8 @@
+FROM node:10
+WORKDIR /var/www/api
+
+RUN apt-get install g++ make python
+
+RUN npm install
+EXPOSE 3004
+CMD ["npm", "run", "start"]
