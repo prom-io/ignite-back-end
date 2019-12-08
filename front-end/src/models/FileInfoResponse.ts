@@ -1,3 +1,5 @@
+import {FileMetadata} from "./FileMetadata";
+
 export interface FileInfoResponse {
     id: string,
     dataValidator: string,
@@ -5,5 +7,8 @@ export interface FileInfoResponse {
     extension: string,
     mimeType: string,
     size: number,
-    name: string
+    name: string,
+    metadata: FileMetadata,
+    createdAt: number,
+    storingUntil: number
 }

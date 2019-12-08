@@ -33,7 +33,7 @@ export class DataOwnersAccountsStore {
                 .then(({data}) => {
                     this.dataOwners = {
                         ...this.dataOwners,
-                        [dataValidator]: [...data.dataOwners]
+                        [dataValidator]: data.dataOwners.map(dataOwner => dataOwner.address)
                     };
                 })
                 .catch(_ => {})

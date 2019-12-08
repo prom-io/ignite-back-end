@@ -1,6 +1,6 @@
 import {action, reaction, computed, observable} from "mobx";
 import {DataOwnersAccountsStore} from "../../Account";
-import {SettingsStore} from "../../Settings/stores";
+import {SettingsStore} from "../../Settings";
 
 export class DataOwnerSelectStore {
     private readonly dataOwnersAccounts: DataOwnersAccountsStore;

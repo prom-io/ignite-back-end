@@ -22,8 +22,13 @@ export class CreateDataOwnerRequest implements ICreateDataOwnerRequest {
     )
     public dataValidatorAddress: string;
 
-    constructor(address: string, dataValidatorAddress: string) {
+    @IsString({message: "Private key must be string"})
+    @IsNotEmpty({message: "Private key must not be empty"})
+    public privateKey: string;
+
+    constructor(address: string, dataValidatorAddress: string, privateKey: string) {
         this.address = address;
         this.dataValidatorAddress = dataValidatorAddress;
+        this.privateKey = privateKey;
     }
 }

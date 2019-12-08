@@ -1,16 +1,17 @@
-import {observable, action} from "mobx";
+import {observable, action, reaction} from "mobx";
 import {FormErrors} from "../../utils";
 import {validateMetaDataKey, validateMetaDataValue} from "../validation";
+import {FileMetadata} from "../../models";
 
 export class AddMetadataDialogStore {
     @observable
     dialogOpen: boolean = false;
 
     @observable
-    key?: string = undefined;
+    key: keyof FileMetadata = "briefDescription";
 
     @observable
-    value?: string = undefined;
+    value?: string | string[];
 
     @observable
     errors: FormErrors<{key: string, value: string}> = {
@@ -18,24 +19,31 @@ export class AddMetadataDialogStore {
         value: undefined
     };
 
+    constructor() {
+        reaction(
+            () => this.key,
+            () => this.value = undefined
+        )
+    }
+
     @action
     setDialogOpen = (dialogOpen: boolean): void => {
         this.dialogOpen = dialogOpen;
     };
 
     @action
-    setKey = (key: string): void => {
+    setKey = (key: keyof FileMetadata): void => {
         this.key = key;
     };
 
     @action
-    setValue = (value: string): void => {
+    setValue = (value: string | string[]): void => {
         this.value = value;
     };
 
     @action
     clear = (): void => {
-        this.key = undefined;
+        this.key = "briefDescription";
         this.value = undefined;
     };
 

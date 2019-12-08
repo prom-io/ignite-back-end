@@ -2,7 +2,13 @@ import {action, computed, observable, reaction} from "mobx";
 import {addMonths} from "date-fns";
 import {validateAttachedFile, validateFileName} from "../validation";
 import {ApiError, DataUploadService} from "../../api";
-import {GenerateRsaKeyPairResponse, LocalFileRecordResponse, UploadDataRequest, UploadDataResponse} from "../../models";
+import {
+    FileMetadata,
+    GenerateRsaKeyPairResponse,
+    LocalFileRecordResponse,
+    UploadDataRequest,
+    UploadDataResponse
+} from "../../models";
 import {
     convertToBase64,
     FormErrors,
@@ -15,7 +21,7 @@ import {SettingsStore} from "../../Settings";
 
 const UPLOAD_DATA_FORM_INITIAL_STATE =  {
     data: "",
-    additional: new Map<string, string>(),
+    additional: {},
     dataOwnerAddress: undefined,
     name: undefined,
     keepUntil: addMonths(new Date(), 1)
@@ -94,7 +100,7 @@ export class UploadDataStore {
     }
 
     @action
-    setField = (key: keyof UploadDataRequest, value: string | number | Map<string, string> | Date): void => {
+    setField = (key: keyof UploadDataRequest, value: string | number | FileMetadata | Date): void => {
         this.uploadDataForm = {
             ...this.uploadDataForm,
             [key]: value
@@ -102,13 +108,16 @@ export class UploadDataStore {
     };
 
     @action
-    setAdditionalField = (additionalFieldName: string, value: string): void => {
-        this.uploadDataForm.additional!.set(additionalFieldName, value);
+    setAdditionalField = (additionalFieldName: keyof FileMetadata, value: string | string[]): void => {
+        this.uploadDataForm.additional = {
+            ...this.uploadDataForm.additional,
+            [additionalFieldName]: value
+        };
     };
 
     @action
-    removeAdditionalField = (additionalFieldName: string): void => {
-        this.uploadDataForm.additional!.delete(additionalFieldName);
+    removeAdditionalField = (additionalFieldName: keyof FileMetadata): void => {
+        delete this.uploadDataForm.additional![additionalFieldName];
     };
 
     @action

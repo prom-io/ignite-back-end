@@ -6,7 +6,7 @@ import {EditableMetadataTable} from "./EditableMetadataTable";
 import {FileInput} from "./FileInput";
 import {DataOwnerSelect} from "./DataOwnerSelect";
 import {UploadedFileDescriptor} from "./UploadedFileDescriptor";
-import {UploadDataRequest, UploadDataResponse} from "../../models";
+import {FileMetadata, UploadDataRequest, UploadDataResponse} from "../../models";
 import {FormErrors} from "../../utils";
 import {ApiError, SERVICE_NODE_API_UNREACHABLE_CODE} from "../../api";
 import {IAppState} from "../../store";
@@ -17,8 +17,8 @@ interface UploadDataFormProps {
     pending: boolean,
     uploadData: () => void,
     reset: () => void,
-    setFormValue: (key: keyof UploadDataRequest, value: string | number | Map<string, string> | Date) => void,
-    setAdditionalMetaField: (fieldName: string, fieldValue: string) => void,
+    setFormValue: (key: keyof UploadDataRequest, value: string | number | FileMetadata | Date) => void,
+    setAdditionalMetaField: (fieldName: keyof FileMetadata, fieldValue: string | string[]) => void,
     submissionError?: ApiError,
     setAttachedFileName: (fileName: string) => void,
     fileName?: string,
@@ -79,7 +79,7 @@ const _UploadDataForm: React.FC<UploadDataFormProps> = ({
                     />
                     <DataOwnerSelect/>
                     <KeyboardDatePicker value={uploadDataForm.keepUntil}
-                                        onChange={date => setFormValue("keepUntil", date as Date)}
+                                        onChange={date => setFormValue('keepUntil', date as Date)}
                                         disablePast
                                         autoOk
                                         format="dd/MM/yyyy"

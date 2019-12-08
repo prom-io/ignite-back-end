@@ -15,7 +15,16 @@ export class FilesService {
     public async createServiceNodeFile(createServiceNodeFileRequest: ICreateServiceNodeFileRequest): Promise<ServiceNodeFileResponse> {
         const createFileRequest = {
             ...createServiceNodeFileRequest,
-            serviceNodeAddress: config.SERVICE_NODE_ACCOUNT_ADDRESS
+            serviceNodeAddress: config.SERVICE_NODE_ACCOUNT_ADDRESS,
+            metadata: {
+                mimeType: createServiceNodeFileRequest.mimeType,
+                extension: createServiceNodeFileRequest.extension,
+                name: createServiceNodeFileRequest.name,
+                dataValidator: createServiceNodeFileRequest.dataValidatorAddress,
+                dataOwner: createServiceNodeFileRequest.dataOwnerAddress,
+                keepUntil: createServiceNodeFileRequest.keepUntil,
+                serviceNode: config.SERVICE_NODE_ACCOUNT_ADDRESS,
+            }
         };
         try {
             return (await this.serviceNodeClient.createServiceNodeFile(createFileRequest)).data;
@@ -41,16 +50,15 @@ export class FilesService {
                     .then(({data}) => this.filesRepository.save({
                         id: data.id,
                         _type: EntityType.FILE,
-                        mimeType: data.mimeType,
-                        extension: data.extension,
-                        name: data.name,
-                        dataValidator: data.dataValidator,
-                        dataOwner: data.dataOwner,
-                        keepUntil: data.keepUntil,
-                        metadata: data.metadata,
-                        price: data.price,
-                        serviceNode: data.serviceNode,
-                        size: data.size
+                        mimeType: data.attributes.additional.mimeType,
+                        extension: data.attributes.additional.extension,
+                        name: data.attributes.additional.name,
+                        dataValidator: data.attributes.additional.dataValidator,
+                        dataOwner: data.attributes.additional.dataOwner,
+                        keepUntil: data.attributes.additional.keepUntil,
+                        metadata: data.attributes.additional,
+                        serviceNode: data.attributes.additional.serviceNode,
+                        size: Number(data.attributes.additional.size)
                     }))
             }
 

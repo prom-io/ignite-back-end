@@ -26,8 +26,8 @@ export const validateMetaDataKey = (key?: string): string | undefined => {
     }
 };
 
-export const validateMetaDataValue = (value?: string): string | undefined => {
-    if (isStringEmpty(value)) {
+export const validateMetaDataValue = (value?: string | string[]): string | undefined => {
+    if (typeof value === "string" && isStringEmpty(value)) {
         return "Metadata value is required";
     }
 };

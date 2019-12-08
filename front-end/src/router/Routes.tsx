@@ -13,7 +13,7 @@ export const Routes = {
         component: <NotFoundPage/>
     }),
     dataUpload: new Route({
-        path: '//data-upload',
+        path: '/data-upload',
         component: <DataUploadPage/>
     }),
     registration: new Route({

@@ -1,8 +1,10 @@
+import {FileMetadata} from "./FileMetadata";
+
 export interface UploadDataRequest {
     name: string,
     dataOwnerAddress: string,
     dataValidatorAddress: string,
-    additional: Map<string, string>,
+    additional: FileMetadata,
     keepUntil: Date,
     mimeType: string,
     extension: string,

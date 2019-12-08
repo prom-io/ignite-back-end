@@ -15,12 +15,29 @@ import RemoveIcon from "@material-ui/icons/Remove";
 import {OpenAddFileMetadataDialogButton} from "./OpenAddFileMetadataDialogButton";
 import {AddFileMetadataDialog} from "./AddFileMetadataDialog";
 import {IAppState} from "../../store";
+import {FileMetadata} from "../../models";
+import {getMetadataKeyLabel} from "../../utils";
 
 interface EditableMetaDataTableProps {
-    entries: Map<string, string>,
-    addEntry: (key: string, value: string) => void,
-    removeEntry: (key: string) => void
+    entries: FileMetadata,
+    addEntry: (key: keyof FileMetadata, value: string | string[]) => void,
+    removeEntry: (key: keyof FileMetadata) => void
 }
+
+const getLabelForMetadataEntry = (entry: string | string[] | undefined): string => {
+    if (entry) {
+        if (typeof entry === "string") {
+            return entry;
+        } else {
+            const tags = entry as string[];
+            let label = "";
+            tags.forEach(tag => label = `${label} ${tag};`);
+            return label;
+        }
+    } else {
+        return "";
+    }
+};
 
 const _EditableMetadataTable: React.FC<EditableMetaDataTableProps> = ({
     addEntry,
@@ -29,13 +46,15 @@ const _EditableMetadataTable: React.FC<EditableMetaDataTableProps> = ({
 }) => {
     const rows: React.ReactNode[] = [];
 
-    entries.forEach((value, key) => rows.push(
+    Object.keys(entries).forEach(key => rows.push(
         <TableRow key={key}>
-            <TableCell>{key}</TableCell>
-            <TableCell>{value}</TableCell>
+            <TableCell>{getMetadataKeyLabel(key as keyof FileMetadata)}</TableCell>
+            <TableCell>
+                {getLabelForMetadataEntry(entries[key as keyof FileMetadata])}
+            </TableCell>
             <TableCell size="small">
                 <Tooltip title="Remove">
-                    <IconButton onClick={() => removeEntry(key)}
+                    <IconButton onClick={() => removeEntry(key as keyof FileMetadata)}
                                 size="small"
                     >
                         <RemoveIcon/>
@@ -53,7 +72,7 @@ const _EditableMetadataTable: React.FC<EditableMetaDataTableProps> = ({
                 </Typography>
             </Grid>
             <Grid item xs={12}>
-                {entries.size === 0
+                {Object.keys(entries).length === 0
                     ? (
                         <div>
                             <Typography variant="body2">
@@ -78,7 +97,7 @@ const _EditableMetadataTable: React.FC<EditableMetaDataTableProps> = ({
                     )
                 }
             </Grid>
-            {entries.size !== 0 && (
+            {Object.keys(entries).length !== 0 && (
                 <Grid item xs={12}>
                     <div style={{marginLeft: '50%'}}>
                         <OpenAddFileMetadataDialogButton/>

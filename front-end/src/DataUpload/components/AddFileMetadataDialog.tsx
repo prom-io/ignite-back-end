@@ -7,13 +7,17 @@ import {
     DialogActions,
     Button,
     TextField,
-    withMobileDialog
+    InputLabel,
+    withMobileDialog,
 } from "@material-ui/core";
+import {HashTagsInput} from "./HashTagsInput";
+import {MetadataKeySelect} from "./MetadataKeySelect";
 import {IAppState} from "../../store";
+import {FileMetadata} from "../../models";
 
 interface AddFileMetaDataDialogMobxProps {
-    metaDataKey?: string,
-    metaDataValue?: string,
+    metaDataKey?: keyof FileMetadata,
+    metaDataValue?: string | string[],
     errors: {
         key?: string,
         value?: string
@@ -22,8 +26,8 @@ interface AddFileMetaDataDialogMobxProps {
     setOpen: (open: boolean) => void,
     clear: () => void,
     isFormValid: () => boolean,
-    setKey: (key: string) => void,
-    setValue: (value: string) => void
+    setKey: (key: keyof FileMetadata) => void,
+    setValue: (value: string | string[]) => void
 }
 
 interface AddFileMetaDataDialogInjectedPros {
@@ -31,7 +35,7 @@ interface AddFileMetaDataDialogInjectedPros {
 }
 
 interface AddFileMetaDataDialogOwnProps {
-    onAdd: (key: string, value: string) => void,
+    onAdd: (key: keyof FileMetadata, value: string | string[]) => void,
 }
 
 type AddFileMetaDataDialogProps = AddFileMetaDataDialogMobxProps
@@ -73,22 +77,40 @@ const _AddFileMetaDataDialog: React.FC<AddFileMetaDataDialogProps> = ({
                 Add metadata
             </DialogTitle>
             <DialogContent>
-                <TextField label="Metadata key"
-                           value={metaDataKey || ""}
-                           onChange={event => setKey(event.target.value)}
-                           fullWidth
-                           margin="dense"
-                           error={Boolean(errors.key)}
-                           helperText={errors.key && errors.key}
+                <MetadataKeySelect selectedKey={metaDataKey}
+                                   onSelect={setKey}
                 />
-                <TextField label="Metadata value"
-                           value={metaDataValue || ""}
-                           onChange={event => setValue(event.target.value)}
-                           fullWidth
-                           margin="dense"
-                           error={Boolean(errors.value)}
-                           helperText={errors.value && errors.value}
-                />
+                {metaDataKey === "hashTags"
+                    ? (
+                        <HashTagsInput tags={
+                            typeof metaDataValue === "string"
+                                ? []
+                                : metaDataValue as string[]
+                        }
+                                       onHashTagAdded={hashTag => {
+                                           if (metaDataValue === undefined) {
+                                               setValue([hashTag]);
+                                           } else {
+                                               setValue([...metaDataValue as string[], hashTag])
+                                           }
+                                       }}
+                                       onHashTagRemoved={index => {
+                                           const newValue = metaDataValue as string[];
+                                           setValue(newValue.filter((_, itemIndex) => index !== itemIndex));
+                                       }}
+                        />
+                    )
+                    : (
+                        <TextField label="Metadata value"
+                                   value={metaDataValue || ""}
+                                   onChange={event => setValue(event.target.value)}
+                                   fullWidth
+                                   margin="dense"
+                                   error={Boolean(errors.value)}
+                                   helperText={errors.value && errors.value}
+                        />
+                    )
+                }
             </DialogContent>
             <DialogActions>
                 <Button variant="contained"
