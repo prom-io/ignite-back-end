@@ -1,4 +1,4 @@
-import {FileMetadata} from "../../entity";
+import {ExtendedFileMetadata} from "./ExtendedFileMetadata";
 
 export interface DdsFileResponse {
     id: string,
@@ -6,6 +6,6 @@ export interface DdsFileResponse {
         name: string,
         price: number,
         duration: number,
-        additional: FileMetadata
+        additional: ExtendedFileMetadata
     }
 }

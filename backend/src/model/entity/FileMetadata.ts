@@ -1,3 +1,7 @@
 export interface FileMetadata {
-    [key: string]: string
+    briefDescription?: string,
+    fullDescription?: string,
+    hashTags?: string[],
+    author?: string,
+    userComment?: string
 }

@@ -8,5 +8,6 @@ export interface CreateLocalFileRecordRequest {
     keepUntil: Date,
     mimeType: string,
     extension: string,
-    size: number
+    size: number,
+    price: number
 }

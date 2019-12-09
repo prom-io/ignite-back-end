@@ -2,13 +2,13 @@ import * as React from "react";
 import {inject, observer} from "mobx-react";
 import {Grid} from "@material-ui/core";
 import {DataValidatorAccountsList} from "../../Account";
-import {AccountBalanceMapping, AccountResponse} from "../../models";
+import {AccountBalanceMapping, AccountResponse, DataOwnerResponse} from "../../models";
 import {IAppState} from "../../store";
 
 interface DataValidatorAccountSettingsMobxProps {
     accounts: AccountResponse[],
     balances: AccountBalanceMapping,
-    dataOwners: {[dataValidatorAddress: string]: string[]}
+    dataOwners: {[dataValidatorAddress: string]: DataOwnerResponse[]}
     selectedAccount?: string,
     selectAccount: (address: string) => void
 }

@@ -1,6 +1,9 @@
-export interface DataOwner {
-    createdAt: string,
-    storeUntil: string,
+import {File} from "./File";
+import {IBaseEntity} from "./IBaseEntity";
+
+export interface DataOwner extends IBaseEntity {
     address: string,
-    dataValidatorAddress: string
+    dataValidatorAddress: string,
+    file?: File,
+    privateKey: string
 }

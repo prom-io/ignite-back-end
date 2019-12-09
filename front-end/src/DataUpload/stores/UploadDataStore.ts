@@ -24,7 +24,8 @@ const UPLOAD_DATA_FORM_INITIAL_STATE =  {
     additional: {},
     dataOwnerAddress: undefined,
     name: undefined,
-    keepUntil: addMonths(new Date(), 1)
+    keepUntil: addMonths(new Date(), 1),
+    price: 1
 };
 
 const UPLOAD_DATA_FORM_ERRORS_INITIAL_STATE = {
@@ -38,7 +39,8 @@ const UPLOAD_DATA_FORM_ERRORS_INITIAL_STATE = {
     size: undefined,
     dataValidatorAddress: undefined,
     serviceNodeAddress: undefined,
-    attachedFile: undefined
+    attachedFile: undefined,
+    price: undefined
 };
 
 const CHUNK_SIZE = 5242878;
@@ -199,7 +201,8 @@ export class UploadDataStore {
             size: this.attachedFile!.size,
             mimeType,
             extension: getFileExtensionFromName(this.attachedFile!.name),
-            dataValidatorAddress: this.dataValidatorAccount!
+            dataValidatorAddress: this.dataValidatorAccount!,
+            price: this.uploadDataForm.price!
         })).data;
     };
 
@@ -237,7 +240,8 @@ export class UploadDataStore {
             mimeType: undefined,
             size: undefined,
             dataValidatorAddress: undefined,
-            attachedFile: validateAttachedFile(this.attachedFile)
+            attachedFile: validateAttachedFile(this.attachedFile),
+            price: undefined
         };
 
         return !Boolean(this.errors.name || this.errors.dataOwnerAddress || this.errors.attachedFile);

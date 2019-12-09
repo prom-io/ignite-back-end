@@ -9,6 +9,6 @@ export interface FileInfoResponse {
     size: number,
     name: string,
     metadata: FileMetadata,
-    createdAt: number,
-    storingUntil: number
+    createdAt: string,
+    keepUntil: string
 }

@@ -15,4 +15,7 @@ export class EnvConfig {
 
     @Env({required: true, type: "string"})
     SERVICE_NODE_ACCOUNT_ADDRESS: string;
+
+    @Env({required: true, type: "string"})
+    ENCRYPTOR_SERVICE_URL: string;
 }

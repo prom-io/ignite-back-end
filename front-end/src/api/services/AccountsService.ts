@@ -2,13 +2,14 @@ import {AxiosPromise} from "axios";
 import {axiosInstance} from "../api-client";
 import {ACCOUNTS, BALANCE, BALANCES, DATA_OWNERS, DATA_VALIDATORS} from "../endpoints";
 import {
+    AccountBalanceMapping,
     AccountResponse,
+    BalanceResponse,
+    DataOwnerResponse,
+    DataOwnersResponse,
     RegisterAccountRequest,
     RegisterAccountResponse,
-    BalanceResponse,
-    AccountBalanceMapping,
-    RegisterDataOwnerRequest,
-    DataOwnersResponse
+    RegisterDataOwnerRequest
 } from "../../models";
 
 export class AccountsService {
@@ -28,7 +29,7 @@ export class AccountsService {
         return axiosInstance.get(`/${ACCOUNTS}/${BALANCES}`);
     }
 
-    public static registerDataOwner(registerDataOwnerRequest: RegisterDataOwnerRequest): AxiosPromise<DataOwnersResponse> {
+    public static registerDataOwner(registerDataOwnerRequest: RegisterDataOwnerRequest): AxiosPromise<DataOwnerResponse> {
         return axiosInstance.post(`/${ACCOUNTS}/${DATA_OWNERS}`, registerDataOwnerRequest);
     }
 

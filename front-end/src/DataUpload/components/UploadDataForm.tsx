@@ -1,10 +1,9 @@
 import * as React from "react";
 import {inject, observer} from "mobx-react";
-import {Button, Card, CardContent, CardHeader, CircularProgress, Grid, TextField, Typography} from "@material-ui/core";
+import {CircularProgress, Grid, TextField, Typography} from "@material-ui/core";
 import {KeyboardDatePicker} from "@material-ui/pickers";
 import {EditableMetadataTable} from "./EditableMetadataTable";
 import {FileInput} from "./FileInput";
-import {DataOwnerSelect} from "./DataOwnerSelect";
 import {UploadedFileDescriptor} from "./UploadedFileDescriptor";
 import {FileMetadata, UploadDataRequest, UploadDataResponse} from "../../models";
 import {FormErrors} from "../../utils";
@@ -59,16 +58,6 @@ const _UploadDataForm: React.FC<UploadDataFormProps> = ({
         : (
             <Grid container spacing={2}>
                 <Grid item xs={12}>
-                    <Typography variant="body1" noWrap>
-                        Selected data validator account is {dataValidatorAccount}.
-                    </Typography>
-                </Grid>
-                <Grid item xs={12}>
-                    <Typography variant="body1">
-                        You can change it at home page.
-                    </Typography>
-                </Grid>
-                <Grid item xs={12}>
                     <TextField value={uploadDataForm.name || ""}
                                onChange={event => setFormValue('name', event.target.value)}
                                error={Boolean(errors.name)}
@@ -77,7 +66,6 @@ const _UploadDataForm: React.FC<UploadDataFormProps> = ({
                                margin="dense"
                                fullWidth
                     />
-                    <DataOwnerSelect/>
                     <KeyboardDatePicker value={uploadDataForm.keepUntil}
                                         onChange={date => setFormValue('keepUntil', date as Date)}
                                         disablePast
@@ -102,30 +90,19 @@ const _UploadDataForm: React.FC<UploadDataFormProps> = ({
                     )}
                 </Grid>
                 <Grid item xs={12}>
-                    <Button variant="contained"
-                            color="primary"
-                            disabled={pending}
-                            onClick={uploadData}
-                            aria-busy={"true"}
-                    >
-                        Upload
-                    </Button>
+                    {submissionError && (
+                        <Typography style={{color: 'red'}} variant="body1">
+                            {getMessageFromError(submissionError)}
+                        </Typography>
+                    )}
                     {pending && <CircularProgress size={25} color="primary"/>}
-                    {submissionError && <Typography style={{color: 'red'}} variant="body1">
-                        {getMessageFromError(submissionError)}
-                    </Typography>}
                 </Grid>
             </Grid>
         );
 
     return (
         <React.Fragment>
-            <Card>
-                <CardHeader title="Upload data"/>
-                <CardContent>
-                    {content}
-                </CardContent>
-            </Card>
+            {content}
         </React.Fragment>
     )
 };

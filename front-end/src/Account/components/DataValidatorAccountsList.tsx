@@ -1,12 +1,12 @@
 import * as React from "react";
 import {Grid, Typography} from "@material-ui/core";
 import {DataValidatorAccountCard} from "./DataValidatorAccountCard";
-import {AccountBalanceMapping, AccountResponse} from "../../models";
+import {AccountBalanceMapping, AccountResponse, DataOwnerResponse} from "../../models";
 
 interface DataValidatorAccountsListProps {
     accounts: AccountResponse[],
     balances: AccountBalanceMapping,
-    dataOwners: {[dataValidatorAddress: string]: string[]}
+    dataOwners: {[dataValidatorAddress: string]: DataOwnerResponse[]}
     defaultAccount?: string,
     onDefaultAccountSelected: (address: string) => void,
 }

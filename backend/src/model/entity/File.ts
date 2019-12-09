@@ -7,9 +7,11 @@ export interface File extends IBaseEntity {
     dataValidator: string,
     dataOwner: string,
     serviceNode: string,
+    createdAt: string,
     keepUntil: string,
     extension: string,
     mimeType: string,
     size: number,
-    name: string
+    name: string,
+    price: number
 }

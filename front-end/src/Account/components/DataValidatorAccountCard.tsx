@@ -21,10 +21,12 @@ import {
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import {CreateDataOwnerButton} from "./CreateDataOwnerButton";
 import {getBalanceLabel} from "../utils";
+import {DataOwnersTable} from "./DataOwnersTable";
+import {DataOwnerResponse} from "../../models";
 
 interface DataValidatorAccountCardProps {
     address: string,
-    dataOwners: string[],
+    dataOwners: DataOwnerResponse[],
     balance: number,
     selectedAsDefault: boolean,
     onSelect: (address: string) => void
@@ -132,17 +134,7 @@ export const DataValidatorAccountCard: FunctionComponent<DataValidatorAccountCar
                     <Typography variant="body1">
                         Data owners:
                     </Typography>
-                    <List>
-                        {dataOwners.map(dataOwnerAddress => (
-                            <ListItem key={dataOwnerAddress}>
-                                <ListItemText disableTypography>
-                                    <Typography variant="body1" noWrap>
-                                        {dataOwnerAddress}
-                                    </Typography>
-                                </ListItemText>
-                            </ListItem>
-                        ))}
-                    </List>
+                    <DataOwnersTable dataOwners={dataOwners}/>
                 </CardContent>
             </Collapse>
         </Card>

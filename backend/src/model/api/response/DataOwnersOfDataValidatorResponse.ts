@@ -1,3 +1,5 @@
+import {DataOwnerResponse} from "./DataOwnerResponse";
+
 export interface DataOwnersOfDataValidatorResponse {
-    dataOwners: string[]
+    dataOwners: DataOwnerResponse[]
 }
