@@ -8,6 +8,7 @@ import {AccountsModule} from "../accounts";
 @Module({
     controllers: [FilesController],
     providers: [FilesRepository, FilesService],
-    imports: [ServiceNodeApiClientModule, AccountsModule]
+    imports: [ServiceNodeApiClientModule, AccountsModule],
+    exports: [FilesService]
 })
 export class FilesModule {}

@@ -1,9 +1,11 @@
-import {TransactionResponse, BillingTransactionResponse, FileResponse} from "../model/api/response";
+import {TransactionResponse, BillingTransactionResponse, FileResponse, DataOwnerResponse} from "../model/api/response";
 
-export const billingTransactionToTransactionResponse = (billingTransaction: BillingTransactionResponse, file: FileResponse, dataOwner: string): TransactionResponse => ({
+// tslint:disable-next-line:max-line-length
+export const billingTransactionToTransactionResponse = (billingTransaction: BillingTransactionResponse, file: FileResponse, dataOwner: DataOwnerResponse): TransactionResponse => ({
     dataMart: billingTransaction.from,
     dataOwner,
     file,
     hash: billingTransaction.hash,
-    sum: billingTransaction.sum
+    sum: billingTransaction.value,
+    createdAt: billingTransaction.createdAt
 });

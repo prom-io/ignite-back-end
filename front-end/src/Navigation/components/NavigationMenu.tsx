@@ -41,7 +41,7 @@ const _NavigationMenu: FunctionComponent<NavigationMenuProps> = ({store, onItemC
             </MenuItem>
         </Link>
         <Link store={store}
-              view={Routes.dataUpload}
+              view={Routes.transactions}
               style={{
                   textDecoration: 'none',
                   color: 'inherit'
@@ -51,7 +51,7 @@ const _NavigationMenu: FunctionComponent<NavigationMenuProps> = ({store, onItemC
                 <ListItemIcon>
                     <UploadIcon/>
                 </ListItemIcon>
-                <ListItemText>Upload data</ListItemText>
+                <ListItemText>Data sales</ListItemText>
             </MenuItem>
         </Link>
         <Link store={store}

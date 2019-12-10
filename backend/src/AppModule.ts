@@ -3,7 +3,7 @@ import {LoggerModule} from "./logging";
 import {NedbModule} from "./nedb";
 import {FilesModule} from "./files";
 import {AccountsModule} from "./accounts";
-import {EncryptorServiceClient} from "./encryptor";
+import {TransactionsModule} from "./transactions";
 
 @Module({
     imports: [
@@ -11,7 +11,7 @@ import {EncryptorServiceClient} from "./encryptor";
         NedbModule,
         FilesModule,
         AccountsModule,
-        EncryptorServiceClient
+        TransactionsModule
     ]
 })
 export class AppModule {}

@@ -1,9 +1,11 @@
 import {FileResponse} from "./FileResponse";
+import {DataOwnerResponse} from "./DataOwnerResponse";
 
 export interface TransactionResponse {
     dataMart: string,
     sum: number,
-    dataOwner: string,
+    dataOwner: DataOwnerResponse,
     file: FileResponse,
-    hash: string
+    hash: string,
+    createdAt: string
 }

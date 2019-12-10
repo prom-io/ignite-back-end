@@ -1,18 +1,15 @@
-import {Injectable, Inject} from "@nestjs/common";
+import {Inject, Injectable} from "@nestjs/common";
 import {AxiosInstance, AxiosPromise} from "axios";
 import {
     BalanceResponse,
+    BillingTransactionResponse,
     CheckFileUploadStatusResponse,
     DataOwnersOfDataValidatorResponse,
     DdsFileResponse,
-    ServiceNodeFileResponse
+    ServiceNodeFileResponse,
+    TransactionType
 } from "../model/api/response";
-import {
-    IUploadChunkRequest,
-    ICreateServiceNodeFileRequest,
-    ICreateAccountRequest,
-    ICreateDataOwnerRequest
-} from "../model/api/request";
+import {ICreateAccountRequest, ICreateDataOwnerRequest, ICreateServiceNodeFileRequest, IUploadChunkRequest} from "../model/api/request";
 
 @Injectable()
 export class ServiceNodeApiClient {

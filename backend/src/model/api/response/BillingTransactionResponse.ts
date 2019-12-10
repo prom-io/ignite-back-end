@@ -2,13 +2,12 @@ import {TransactionType} from "./TransactionType";
 
 export interface BillingTransactionResponse {
     id: string,
-    uuid: string,
     hash: string,
-    txType: TransactionType,
+    value: number,
     from: string,
     to: string,
-    serviceNode: string,
-    value: string,
     status: boolean,
-    sum: number
+    serviceNode: string,
+    type: TransactionType,
+    createdAt: string
 }

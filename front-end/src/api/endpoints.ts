@@ -8,3 +8,4 @@ export const BALANCES = "balances";
 export const TO_DDS = "to-dds";
 export const DATA_VALIDATORS = "data-validators";
 export const DATA_OWNERS = "data-owners";
+export const TRANSACTIONS = "api/v3/transactions";

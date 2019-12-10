@@ -1,12 +1,11 @@
-import {TransactionType} from "./TransactionType";
+import {DataOwnerResponse} from "./DataOwnerResponse";
+import {FileInfoResponse} from "./FileInfoResponse";
 
 export interface TransactionResponse {
-    id: string,
-    value: number,
-    from: string,
-    to: string,
-    serviceNode: string,
-    type: TransactionType,
-    status: boolean,
-    hash: string
+    dataMart: string,
+    sum: number,
+    dataOwner: DataOwnerResponse,
+    file: FileInfoResponse,
+    hash: string,
+    createdAt: string
 }

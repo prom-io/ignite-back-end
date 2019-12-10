@@ -10,6 +10,7 @@ import {AddMetadataDialogStore, EditMetadataDialogStore, UploadDataStore} from "
 import {DrawerStore} from "../AppBar";
 import {SettingsStore} from "../Settings";
 import {AccountType} from "../models";
+import {TransactionsStore} from "../Transaction";
 
 const accounts = new AccountsStore();
 const balances = new AccountsBalanceStore(accounts);
@@ -19,6 +20,7 @@ const registration = new AccountRegistrationStore(accounts, AccountType.DATA_VAL
 const dataValidatorRegistration = new AccountRegistrationStore(accounts, AccountType.DATA_VALIDATOR);
 const dataOwners = new DataOwnersAccountsStore(accounts);
 const createDataOwner = new CreateDataOwnerStore(settings, dataOwners, dataUpload);
+const transactions = new TransactionsStore(settings);
 
 export const store: IAppState = {
     dataUpload,
@@ -32,4 +34,5 @@ export const store: IAppState = {
     dataOwners,
     createDataOwner,
     dataValidatorRegistration,
+    transactions
 };
