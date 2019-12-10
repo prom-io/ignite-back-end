@@ -1,8 +1,9 @@
-import {Module} from "@nestjs/common";
+import {Module, Global} from "@nestjs/common";
 import Axios from "axios";
 import {ServiceNodeApiClient} from "./ServiceNodeApiClient";
 import {config} from "../config";
 
+@Global()
 @Module({
     providers: [
         {

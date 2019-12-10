@@ -10,9 +10,6 @@ import {
     createStyles,
     Hidden,
     IconButton,
-    List,
-    ListItem,
-    ListItemText,
     makeStyles,
     Theme,
     Tooltip,
@@ -21,10 +18,12 @@ import {
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import {CreateDataOwnerButton} from "./CreateDataOwnerButton";
 import {getBalanceLabel} from "../utils";
+import {DataOwnersTable} from "./DataOwnersTable";
+import {DataOwnerResponse} from "../../models";
 
 interface DataValidatorAccountCardProps {
     address: string,
-    dataOwners: string[],
+    dataOwners: DataOwnerResponse[],
     balance: number,
     selectedAsDefault: boolean,
     onSelect: (address: string) => void
@@ -86,7 +85,10 @@ export const DataValidatorAccountCard: FunctionComponent<DataValidatorAccountCar
     return (
         <Card elevation={selectedAsDefault ? 3 : 1}
               onClick={() => !selectedAsDefault && onSelect(address)}
-              style={{cursor}}
+              style={{
+                  cursor,
+                  overflowX: 'auto'
+              }}
         >
             <CardHeader title={(
                 <Fragment>
@@ -112,13 +114,6 @@ export const DataValidatorAccountCard: FunctionComponent<DataValidatorAccountCar
                             </Hidden>
                         )}
             />
-            {selectedAsDefault && (
-                <CardContent>
-                    <Typography variant="h6" color="textSecondary">
-                        Selected as default
-                    </Typography>
-                </CardContent>
-            )}
             <Hidden mdUp>
                 <CardActions style={{float: 'right'}}>
                     {actions}
@@ -132,17 +127,7 @@ export const DataValidatorAccountCard: FunctionComponent<DataValidatorAccountCar
                     <Typography variant="body1">
                         Data owners:
                     </Typography>
-                    <List>
-                        {dataOwners.map(dataOwnerAddress => (
-                            <ListItem key={dataOwnerAddress}>
-                                <ListItemText disableTypography>
-                                    <Typography variant="body1" noWrap>
-                                        {dataOwnerAddress}
-                                    </Typography>
-                                </ListItemText>
-                            </ListItem>
-                        ))}
-                    </List>
+                    <DataOwnersTable dataOwners={dataOwners}/>
                 </CardContent>
             </Collapse>
         </Card>

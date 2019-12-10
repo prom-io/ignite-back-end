@@ -1,24 +1,25 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import {AxiosError} from "axios";
 import {FilesRepository} from "./FilesRepository";
-import {config} from "../config";
 import {ServiceNodeApiClient} from "../service-node-api";
 import {ICreateServiceNodeFileRequest, IUploadChunkRequest} from "../model/api/request";
 import {CheckFileUploadStatusResponse, ServiceNodeFileResponse} from "../model/api/response";
 import {EntityType} from "../model/entity";
+import {DataOwnersRepository} from "../accounts/DataOwnersRepository";
+import {config} from "../config";
 
 @Injectable()
 export class FilesService {
     constructor(private readonly filesRepository: FilesRepository,
+                private readonly dataOwnersRepository: DataOwnersRepository,
                 private readonly serviceNodeClient: ServiceNodeApiClient) {}
 
     public async createServiceNodeFile(createServiceNodeFileRequest: ICreateServiceNodeFileRequest): Promise<ServiceNodeFileResponse> {
-        const createFileRequest = {
-            ...createServiceNodeFileRequest,
-            serviceNodeAddress: config.SERVICE_NODE_ACCOUNT_ADDRESS
-        };
         try {
-            return (await this.serviceNodeClient.createServiceNodeFile(createFileRequest)).data;
+            return (await this.serviceNodeClient.createServiceNodeFile({
+                ...createServiceNodeFileRequest,
+                serviceNodeAddress: config.SERVICE_NODE_ACCOUNT_ADDRESS
+            })).data;
         } catch (error) {
             this.handleServiceNodeError(error);
         }
@@ -48,10 +49,17 @@ export class FilesService {
                         dataOwner: data.dataOwner,
                         keepUntil: data.keepUntil,
                         metadata: data.metadata,
-                        price: data.price,
                         serviceNode: data.serviceNode,
-                        size: data.size
+                        size: Number(data.size),
+                        createdAt: new Date().toISOString(),
+                        price: data.price
                     }))
+                    .then(file => {
+                        this.dataOwnersRepository.findByAddress(file.dataOwner).then(dataOwner => this.dataOwnersRepository.save({
+                            ...dataOwner,
+                            file
+                        }))
+                    })
             }
 
             return uploadStatus;
@@ -80,7 +88,10 @@ export class FilesService {
         if (error.response) {
             error = error as AxiosError;
             // tslint:disable-next-line:max-line-length
-            throw new HttpException(`Could not create Service node file. Service node responded with ${error.response.status} status`, HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new HttpException(
+                `Could not create Service node file. Service node responded with ${error.response.status} status`,
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
         } else {
             throw new HttpException("Service node is unreachable", HttpStatus.INTERNAL_SERVER_ERROR);
         }

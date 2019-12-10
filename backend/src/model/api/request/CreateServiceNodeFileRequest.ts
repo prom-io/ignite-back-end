@@ -1,6 +1,6 @@
-import {IsNotEmpty, IsString, Matches, IsInt, IsDateString} from "class-validator";
+import {IsNotEmpty, IsString, Matches, IsInt, IsDateString, ValidateNested, IsNumber, IsPositive} from "class-validator";
 import {ICreateServiceNodeFileRequest} from "./ICreateServiceNodeFileRequest";
-import {FileMetadata} from "../../entity";
+import {CreateFileMetadataRequest} from "./CreateFileMetadataRequest";
 
 export class CreateServiceNodeFileRequest implements ICreateServiceNodeFileRequest {
     @IsNotEmpty({message: "Keep until date must be specified"})
@@ -10,7 +10,9 @@ export class CreateServiceNodeFileRequest implements ICreateServiceNodeFileReque
     @IsNotEmpty({message: "Name must be specified"})
     @IsString({message: "Name must be string"})
     public name: string;
-    public additional: FileMetadata;
+
+    @ValidateNested()
+    public additional: CreateFileMetadataRequest;
 
     @IsNotEmpty({message: "Data owner address must be specified"})
     @IsString({message: "Data owner address must be string"})
@@ -32,6 +34,7 @@ export class CreateServiceNodeFileRequest implements ICreateServiceNodeFileReque
 
     @IsNotEmpty({message: "File size must be present"})
     @IsInt({message: "File size must be integer number which represents size in bytes"})
+    @IsPositive({message: "Size must be positive"})
     public size: number;
 
     public serviceNodeAddress?: string;
@@ -46,16 +49,13 @@ export class CreateServiceNodeFileRequest implements ICreateServiceNodeFileReque
     )
     public dataValidatorAddress: string;
 
-    constructor(keepUntil: string,
-                name: string,
-                additional: FileMetadata,
-                dataOwnerAddress: string,
-                extension: string,
-                mimeType: string,
-                size: number,
-                serviceNodeAddress: string,
-                dataValidatorAddress: string
-    ) {
+    @IsNotEmpty({message: "File price must be present"})
+    @IsNumber({allowInfinity: false, allowNaN: false}, {message: "File price must be integer number which represents size in bytes"})
+    @IsPositive({message: "Price must be positive"})
+    public price: number;
+
+    // tslint:disable-next-line:max-line-length
+    constructor(keepUntil: string, name: string, additional: CreateFileMetadataRequest, dataOwnerAddress: string, extension: string, mimeType: string, size: number, serviceNodeAddress: string, dataValidatorAddress: string) {
         this.keepUntil = keepUntil;
         this.name = name;
         this.additional = additional;

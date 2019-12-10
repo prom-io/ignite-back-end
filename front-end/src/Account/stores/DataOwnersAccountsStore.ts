@@ -1,12 +1,13 @@
 import {action, computed, observable, reaction} from "mobx";
 import {AccountsStore} from "./AccountsStore";
 import {AccountsService} from "../../api";
+import {DataOwnerResponse} from "../../models";
 
 export class DataOwnersAccountsStore {
     private readonly accountStore: AccountsStore;
 
     @observable
-    dataOwners: {[dataValidatorAddress: string]: string[]} = {};
+    dataOwners: {[dataValidatorAddress: string]: DataOwnerResponse[]} = {};
 
     @observable
     pending: boolean = false;
@@ -33,7 +34,7 @@ export class DataOwnersAccountsStore {
                 .then(({data}) => {
                     this.dataOwners = {
                         ...this.dataOwners,
-                        [dataValidator]: [...data.dataOwners]
+                        [dataValidator]: data.dataOwners
                     };
                 })
                 .catch(_ => {})
@@ -41,10 +42,10 @@ export class DataOwnersAccountsStore {
     };
 
     @action
-    addDataOwner = (address: string, dataValidatorAddress: string): void => {
+    addDataOwner = (dataOwner: DataOwnerResponse): void => {
         this.dataOwners = {
             ...this.dataOwners,
-            [dataValidatorAddress]: [...this.dataOwners[dataValidatorAddress], address]
+            [dataOwner.dataValidatorAddress]: [...this.dataOwners[dataOwner.dataValidatorAddress], dataOwner]
         };
     };
 }

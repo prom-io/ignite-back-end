@@ -9,9 +9,8 @@ import {IAppState} from "../../store";
 interface CreateDataOwnerButtonMobxProps {
     showSnackbar: boolean,
     setShowSnackbar: (showSnackbar: boolean) => void,
-    createDataOwner: () => void,
+    setDialogOpen: (dialogOpen: boolean) => void,
     error?: ApiError,
-    pending: boolean
 }
 
 type CreateDataOwnerButtonInjectedProps = WithSnackbarProps;
@@ -21,10 +20,9 @@ type CreateDataOwnerButtonProps = CreateDataOwnerButtonMobxProps & CreateDataOwn
 const _CreateDataOwnerButton: React.FC<CreateDataOwnerButtonProps> = ({
     showSnackbar,
     error,
-    pending,
     setShowSnackbar,
     enqueueSnackbar,
-    createDataOwner
+    setDialogOpen
 }) => {
     if (showSnackbar) {
         if (error) {
@@ -40,13 +38,11 @@ const _CreateDataOwnerButton: React.FC<CreateDataOwnerButtonProps> = ({
 
     return (
         <React.Fragment>
-            {pending && <CircularProgress size={15} color="primary"/>}
             <Tooltip title="Create data owner">
                 <IconButton onClick={event => {
                     event.stopPropagation();
-                    createDataOwner();
+                    setDialogOpen(true);
                 }}
-                            disabled={pending}
                 >
                     <AddIcon/>
                 </IconButton>
@@ -58,9 +54,8 @@ const _CreateDataOwnerButton: React.FC<CreateDataOwnerButtonProps> = ({
 const mapMobxToProps = (state: IAppState): CreateDataOwnerButtonMobxProps => ({
     setShowSnackbar: state.createDataOwner.setShowSnackbar,
     showSnackbar: state.createDataOwner.showSnackbar,
-    pending: state.createDataOwner.pending,
     error: state.createDataOwner.error,
-    createDataOwner: state.createDataOwner.createNewDataOwner
+    setDialogOpen: state.createDataOwner.setDialogOpen
 });
 
 export const CreateDataOwnerButton = withSnackbar(

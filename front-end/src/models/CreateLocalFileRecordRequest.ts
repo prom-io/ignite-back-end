@@ -1,10 +1,13 @@
+import {FileMetadata} from "./FileMetadata";
+
 export interface CreateLocalFileRecordRequest {
     name: string,
     dataOwnerAddress: string,
     dataValidatorAddress: string,
-    additional: Map<string, string>,
+    additional: FileMetadata,
     keepUntil: Date,
     mimeType: string,
     extension: string,
-    size: number
+    size: number,
+    price: number
 }

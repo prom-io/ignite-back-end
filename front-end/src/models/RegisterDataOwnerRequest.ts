@@ -1,4 +1,5 @@
 export interface RegisterDataOwnerRequest {
     address: string,
-    dataValidatorAddress: string
+    dataValidatorAddress: string,
+    privateKey: string
 }

@@ -6,7 +6,7 @@ import {
     CreateDataOwnerStore,
     DataOwnersAccountsStore
 } from "../Account";
-import {AddMetadataDialogStore, DataOwnerSelectStore, EditMetadataDialogStore, UploadDataStore} from "../DataUpload";
+import {AddMetadataDialogStore, EditMetadataDialogStore, UploadDataStore} from "../DataUpload";
 import {DrawerStore} from "../AppBar";
 import {SettingsStore} from "../Settings";
 import {AccountType} from "../models";
@@ -18,8 +18,7 @@ const dataUpload = new UploadDataStore(settings);
 const registration = new AccountRegistrationStore(accounts, AccountType.DATA_VALIDATOR);
 const dataValidatorRegistration = new AccountRegistrationStore(accounts, AccountType.DATA_VALIDATOR);
 const dataOwners = new DataOwnersAccountsStore(accounts);
-const dataOwnerSelect = new DataOwnerSelectStore(dataOwners, settings);
-const createDataOwner = new CreateDataOwnerStore(settings, dataOwners);
+const createDataOwner = new CreateDataOwnerStore(settings, dataOwners, dataUpload);
 
 export const store: IAppState = {
     dataUpload,
@@ -31,7 +30,6 @@ export const store: IAppState = {
     accounts,
     balances,
     dataOwners,
-    dataOwnerSelect,
     createDataOwner,
-    dataValidatorRegistration
+    dataValidatorRegistration,
 };

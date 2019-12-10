@@ -1,8 +1,14 @@
 import {action, computed, observable, reaction} from "mobx";
 import {addMonths} from "date-fns";
-import {validateAttachedFile, validateFileName} from "../validation";
+import {validateAttachedFile, validateFileName, validatePrice} from "../validation";
 import {ApiError, DataUploadService} from "../../api";
-import {GenerateRsaKeyPairResponse, LocalFileRecordResponse, UploadDataRequest, UploadDataResponse} from "../../models";
+import {
+    FileMetadata,
+    GenerateRsaKeyPairResponse,
+    LocalFileRecordResponse,
+    UploadDataRequest,
+    UploadDataResponse
+} from "../../models";
 import {
     convertToBase64,
     FormErrors,
@@ -15,10 +21,11 @@ import {SettingsStore} from "../../Settings";
 
 const UPLOAD_DATA_FORM_INITIAL_STATE =  {
     data: "",
-    additional: new Map<string, string>(),
+    additional: {},
     dataOwnerAddress: undefined,
     name: undefined,
-    keepUntil: addMonths(new Date(), 1)
+    keepUntil: addMonths(new Date(), 1),
+    price: 1
 };
 
 const UPLOAD_DATA_FORM_ERRORS_INITIAL_STATE = {
@@ -32,7 +39,8 @@ const UPLOAD_DATA_FORM_ERRORS_INITIAL_STATE = {
     size: undefined,
     dataValidatorAddress: undefined,
     serviceNodeAddress: undefined,
-    attachedFile: undefined
+    attachedFile: undefined,
+    price: undefined
 };
 
 const CHUNK_SIZE = 5242878;
@@ -91,10 +99,15 @@ export class UploadDataStore {
             () => this.uploadDataForm.dataOwnerAddress,
             address => this.errors.dataOwnerAddress = validateEthereumAddress(address)
         );
+
+        reaction(
+            () => this.uploadDataForm.price,
+            price => this.errors.price = validatePrice(price)
+        )
     }
 
     @action
-    setField = (key: keyof UploadDataRequest, value: string | number | Map<string, string> | Date): void => {
+    setField = (key: keyof UploadDataRequest, value: string | number | FileMetadata | Date): void => {
         this.uploadDataForm = {
             ...this.uploadDataForm,
             [key]: value
@@ -102,13 +115,16 @@ export class UploadDataStore {
     };
 
     @action
-    setAdditionalField = (additionalFieldName: string, value: string): void => {
-        this.uploadDataForm.additional!.set(additionalFieldName, value);
+    setAdditionalField = (additionalFieldName: keyof FileMetadata, value: string | string[]): void => {
+        this.uploadDataForm.additional = {
+            ...this.uploadDataForm.additional,
+            [additionalFieldName]: value
+        };
     };
 
     @action
-    removeAdditionalField = (additionalFieldName: string): void => {
-        this.uploadDataForm.additional!.delete(additionalFieldName);
+    removeAdditionalField = (additionalFieldName: keyof FileMetadata): void => {
+        delete this.uploadDataForm.additional![additionalFieldName];
     };
 
     @action
@@ -119,6 +135,7 @@ export class UploadDataStore {
     @action
     setAttachedFile = (file: File): void => {
         this.attachedFile = file;
+        this.uploadDataForm.name = file.name;
     };
 
     @action
@@ -190,7 +207,8 @@ export class UploadDataStore {
             size: this.attachedFile!.size,
             mimeType,
             extension: getFileExtensionFromName(this.attachedFile!.name),
-            dataValidatorAddress: this.dataValidatorAccount!
+            dataValidatorAddress: this.dataValidatorAccount!,
+            price: this.uploadDataForm.price!
         })).data;
     };
 
@@ -218,10 +236,13 @@ export class UploadDataStore {
 
     @action
     isFormValid = (): boolean => {
-        const {dataOwnerAddress, name} = this.uploadDataForm;
+        const {dataOwnerAddress, name, price} = this.uploadDataForm;
+        console.log(validateFileName(name));
+        console.log(validateAttachedFile(this.attachedFile));
         this.errors = {
             name: validateFileName(name),
-            dataOwnerAddress: validateEthereumAddress(dataOwnerAddress),
+            dataOwnerAddress: undefined,
+            price: validatePrice(price),
             additional: undefined,
             keepUntil: undefined,
             extension: undefined,

@@ -1,11 +1,13 @@
-import {FileMetadata} from "../../entity";
+import {CreateFileMetadataRequest} from "./CreateFileMetadataRequest";
 
 export interface ICreateServiceNodeFileRequest {
     keepUntil: string,
     name: string,
-    additional: FileMetadata,
+    additional: CreateFileMetadataRequest,
     dataOwnerAddress: string,
     size: number,
     dataValidatorAddress: string,
-    serviceNodeAddress?: string
+    serviceNodeAddress?: string,
+    mimeType: string,
+    extension: string,
 }

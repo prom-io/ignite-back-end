@@ -29,13 +29,5 @@ export const UploadedFileDescriptor: FunctionComponent<UploadedFileDescriptorPro
                 Storage price is {storagePrice} PROM
             </Typography>
         </Grid>
-        <Grid item xs={12}>
-            <Button variant="text"
-                    color="primary"
-                    onClick={reset}
-            >
-                Upload another file
-            </Button>
-        </Grid>
     </Grid>
 );

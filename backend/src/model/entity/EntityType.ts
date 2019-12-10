@@ -1,4 +1,5 @@
 export enum EntityType {
     FILE = "file",
-    ACCOUNT = "account"
+    ACCOUNT = "account",
+    DATA_OWNER = "string",
 }

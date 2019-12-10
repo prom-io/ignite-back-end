@@ -1,11 +1,11 @@
 import {
-    AccountsStore,
-    AccountsBalanceStore,
     AccountRegistrationStore,
-    DataOwnersAccountsStore,
-    CreateDataOwnerStore
+    AccountsBalanceStore,
+    AccountsStore,
+    CreateDataOwnerStore,
+    DataOwnersAccountsStore
 } from "../Account";
-import {UploadDataStore, AddMetadataDialogStore, EditMetadataDialogStore, DataOwnerSelectStore} from "../DataUpload";
+import {AddMetadataDialogStore, EditMetadataDialogStore, UploadDataStore} from "../DataUpload";
 import {DrawerStore} from "../AppBar";
 import {SettingsStore} from "../Settings";
 
@@ -20,7 +20,6 @@ export interface IAppState {
     accounts: AccountsStore,
     balances: AccountsBalanceStore,
     dataOwners: DataOwnersAccountsStore,
-    dataOwnerSelect: DataOwnerSelectStore,
     createDataOwner: CreateDataOwnerStore,
     dataValidatorRegistration: AccountRegistrationStore,
 }
