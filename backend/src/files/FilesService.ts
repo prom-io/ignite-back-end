@@ -6,6 +6,7 @@ import {ICreateServiceNodeFileRequest, IUploadChunkRequest} from "../model/api/r
 import {CheckFileUploadStatusResponse, ServiceNodeFileResponse} from "../model/api/response";
 import {EntityType} from "../model/entity";
 import {DataOwnersRepository} from "../accounts/DataOwnersRepository";
+import {config} from "../config";
 
 @Injectable()
 export class FilesService {
@@ -15,7 +16,10 @@ export class FilesService {
 
     public async createServiceNodeFile(createServiceNodeFileRequest: ICreateServiceNodeFileRequest): Promise<ServiceNodeFileResponse> {
         try {
-            return (await this.serviceNodeClient.createServiceNodeFile(createServiceNodeFileRequest)).data;
+            return (await this.serviceNodeClient.createServiceNodeFile({
+                ...createServiceNodeFileRequest,
+                serviceNodeAddress: config.SERVICE_NODE_ACCOUNT_ADDRESS
+            })).data;
         } catch (error) {
             this.handleServiceNodeError(error);
         }
@@ -38,17 +42,17 @@ export class FilesService {
                     .then(({data}) => this.filesRepository.save({
                         id: data.id,
                         _type: EntityType.FILE,
-                        mimeType: data.attributes.additional.mimeType,
-                        extension: data.attributes.additional.extension,
-                        name: data.attributes.additional.name,
-                        dataValidator: data.attributes.additional.dataValidator,
-                        dataOwner: data.attributes.additional.dataOwner,
-                        keepUntil: data.attributes.additional.keepUntil,
-                        metadata: data.attributes.additional,
-                        serviceNode: data.attributes.additional.serviceNode,
-                        size: Number(data.attributes.additional.size),
+                        mimeType: data.mimeType,
+                        extension: data.extension,
+                        name: data.name,
+                        dataValidator: data.dataValidator,
+                        dataOwner: data.dataOwner,
+                        keepUntil: data.keepUntil,
+                        metadata: data.metadata,
+                        serviceNode: data.serviceNode,
+                        size: Number(data.size),
                         createdAt: new Date().toISOString(),
-                        price: data.attributes.price
+                        price: data.price
                     }))
                     .then(file => {
                         this.dataOwnersRepository.findByAddress(file.dataOwner).then(dataOwner => this.dataOwnersRepository.save({

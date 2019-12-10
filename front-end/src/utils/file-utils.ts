@@ -13,7 +13,7 @@ export const removeBase64Header = (base64String: string): string => base64String
 
 export const getFileExtensionFromName = (fileName: string): string => getExtension(fileName) as string;
 
-export const getMetadataKeyLabel = (key: keyof FileMetadata): string => {
+export const getMetadataKeyLabel = (key: keyof FileMetadata | string): string => {
     switch (key) {
         case "briefDescription":
             return "Brief description";
@@ -24,6 +24,6 @@ export const getMetadataKeyLabel = (key: keyof FileMetadata): string => {
         case "hashTags":
             return "Hash tags";
         default:
-            return "Brief description";
+            return key;
     }
 };

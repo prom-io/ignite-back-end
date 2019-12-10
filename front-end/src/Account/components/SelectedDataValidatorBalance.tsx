@@ -17,7 +17,7 @@ const _SelectedDataValidatorBalance: FunctionComponent<SelectedDataValidatorBala
     ...rest
 }) => {
     return selectedDataValidator
-        ? <AccountBalance balance={balance} {...rest}/>
+        ? <AccountBalance address={selectedDataValidator} balance={balance} {...rest}/>
         : null;
 };
 

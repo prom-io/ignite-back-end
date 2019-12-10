@@ -38,7 +38,6 @@ const _CreateDataOwnerButton: React.FC<CreateDataOwnerButtonProps> = ({
 
     return (
         <React.Fragment>
-            {pending && <CircularProgress size={15} color="primary"/>}
             <Tooltip title="Create data owner">
                 <IconButton onClick={event => {
                     event.stopPropagation();

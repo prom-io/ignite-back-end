@@ -1,6 +1,7 @@
 import * as React from "react";
-import {Grid, Typography} from "@material-ui/core";
+import {Grid} from "@material-ui/core";
 import {DataValidatorAccountCard} from "./DataValidatorAccountCard";
+import {CreateDataOwnerDialog} from "./CreateDataOwnersDialog";
 import {AccountBalanceMapping, AccountResponse, DataOwnerResponse} from "../../models";
 
 interface DataValidatorAccountsListProps {
@@ -19,11 +20,6 @@ export const DataValidatorAccountsList: React.FC<DataValidatorAccountsListProps>
     dataOwners
 }) => (
     <Grid container spacing={2}>
-        <Grid item xs={12}>
-            <Typography variant="subtitle1">
-                Your accounts
-            </Typography>
-        </Grid>
         {accounts.map(account => (
             <Grid item xs={12} key={account.address}>
                 <DataValidatorAccountCard address={account.address}
@@ -34,5 +30,6 @@ export const DataValidatorAccountsList: React.FC<DataValidatorAccountsListProps>
                 />
             </Grid>
         ))}
+        <CreateDataOwnerDialog/>
     </Grid>
 );

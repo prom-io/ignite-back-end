@@ -1,6 +1,6 @@
 import {action, computed, observable, reaction} from "mobx";
 import {addMonths} from "date-fns";
-import {validateAttachedFile, validateFileName} from "../validation";
+import {validateAttachedFile, validateFileName, validatePrice} from "../validation";
 import {ApiError, DataUploadService} from "../../api";
 import {
     FileMetadata,
@@ -99,6 +99,11 @@ export class UploadDataStore {
             () => this.uploadDataForm.dataOwnerAddress,
             address => this.errors.dataOwnerAddress = validateEthereumAddress(address)
         );
+
+        reaction(
+            () => this.uploadDataForm.price,
+            price => this.errors.price = validatePrice(price)
+        )
     }
 
     @action
@@ -130,6 +135,7 @@ export class UploadDataStore {
     @action
     setAttachedFile = (file: File): void => {
         this.attachedFile = file;
+        this.uploadDataForm.name = file.name;
     };
 
     @action
@@ -230,18 +236,20 @@ export class UploadDataStore {
 
     @action
     isFormValid = (): boolean => {
-        const {dataOwnerAddress, name} = this.uploadDataForm;
+        const {dataOwnerAddress, name, price} = this.uploadDataForm;
+        console.log(validateFileName(name));
+        console.log(validateAttachedFile(this.attachedFile));
         this.errors = {
             name: validateFileName(name),
-            dataOwnerAddress: validateEthereumAddress(dataOwnerAddress),
+            dataOwnerAddress: undefined,
+            price: validatePrice(price),
             additional: undefined,
             keepUntil: undefined,
             extension: undefined,
             mimeType: undefined,
             size: undefined,
             dataValidatorAddress: undefined,
-            attachedFile: validateAttachedFile(this.attachedFile),
-            price: undefined
+            attachedFile: validateAttachedFile(this.attachedFile)
         };
 
         return !Boolean(this.errors.name || this.errors.dataOwnerAddress || this.errors.attachedFile);

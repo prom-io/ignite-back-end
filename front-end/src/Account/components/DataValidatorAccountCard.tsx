@@ -10,9 +10,6 @@ import {
     createStyles,
     Hidden,
     IconButton,
-    List,
-    ListItem,
-    ListItemText,
     makeStyles,
     Theme,
     Tooltip,
@@ -88,7 +85,10 @@ export const DataValidatorAccountCard: FunctionComponent<DataValidatorAccountCar
     return (
         <Card elevation={selectedAsDefault ? 3 : 1}
               onClick={() => !selectedAsDefault && onSelect(address)}
-              style={{cursor}}
+              style={{
+                  cursor,
+                  overflowX: 'auto'
+              }}
         >
             <CardHeader title={(
                 <Fragment>
@@ -114,13 +114,6 @@ export const DataValidatorAccountCard: FunctionComponent<DataValidatorAccountCar
                             </Hidden>
                         )}
             />
-            {selectedAsDefault && (
-                <CardContent>
-                    <Typography variant="h6" color="textSecondary">
-                        Selected as default
-                    </Typography>
-                </CardContent>
-            )}
             <Hidden mdUp>
                 <CardActions style={{float: 'right'}}>
                     {actions}

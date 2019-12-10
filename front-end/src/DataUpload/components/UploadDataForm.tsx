@@ -9,6 +9,7 @@ import {FileMetadata, UploadDataRequest, UploadDataResponse} from "../../models"
 import {FormErrors} from "../../utils";
 import {ApiError, SERVICE_NODE_API_UNREACHABLE_CODE} from "../../api";
 import {IAppState} from "../../store";
+import {format} from "date-fns";
 
 interface UploadDataFormProps {
     uploadDataForm: Partial<UploadDataRequest>,
@@ -58,22 +59,24 @@ const _UploadDataForm: React.FC<UploadDataFormProps> = ({
         : (
             <Grid container spacing={2}>
                 <Grid item xs={12}>
-                    <TextField value={uploadDataForm.name || ""}
-                               onChange={event => setFormValue('name', event.target.value)}
-                               error={Boolean(errors.name)}
-                               helperText={errors.name && errors.name}
-                               label="Name"
-                               margin="dense"
-                               fullWidth
-                    />
+                    <Typography variant="body1">
+                        Creation date {format(new Date(), "dd/MM/yyyy")}
+                    </Typography>
                     <KeyboardDatePicker value={uploadDataForm.keepUntil}
                                         onChange={date => setFormValue('keepUntil', date as Date)}
                                         disablePast
                                         autoOk
                                         format="dd/MM/yyyy"
-                                        label="Keep until"
+                                        label="Must be stored until"
                                         fullWidth
                                         margin="dense"
+                    />
+                    <TextField onChange={event => setFormValue('price', Number(event.target.value))}
+                               label="Price"
+                               fullWidth
+                               margin="dense"
+                               error={Boolean(errors.price)}
+                               helperText={errors.price && errors.price}
                     />
                 </Grid>
                 <Grid item xs={12}>
@@ -95,7 +98,6 @@ const _UploadDataForm: React.FC<UploadDataFormProps> = ({
                             {getMessageFromError(submissionError)}
                         </Typography>
                     )}
-                    {pending && <CircularProgress size={25} color="primary"/>}
                 </Grid>
             </Grid>
         );

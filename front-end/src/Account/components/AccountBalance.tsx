@@ -1,10 +1,11 @@
 import React, {FunctionComponent} from "react";
+import {Hidden} from "@material-ui/core";
 import Typography, {TypographyProps} from "@material-ui/core/Typography";
 
-export type AccountBalanceProps = TypographyProps & {balance: number};
+export type AccountBalanceProps = TypographyProps & {balance: number, address: string};
 
-export const AccountBalance: FunctionComponent<AccountBalanceProps> = ({balance, ...rest}) => (
+export const AccountBalance: FunctionComponent<AccountBalanceProps> = ({balance, address, ...rest}) => (
     <Typography {...rest}>
-        {balance} PROM
+        <Hidden smDown>Wallet ID {address}</Hidden> {balance} PROM
     </Typography>
 );

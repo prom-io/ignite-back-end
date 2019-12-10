@@ -31,5 +31,5 @@ export const store: IAppState = {
     balances,
     dataOwners,
     createDataOwner,
-    dataValidatorRegistration
+    dataValidatorRegistration,
 };

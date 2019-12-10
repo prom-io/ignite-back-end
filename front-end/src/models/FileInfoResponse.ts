@@ -8,7 +8,7 @@ export interface FileInfoResponse {
     mimeType: string,
     size: number,
     name: string,
-    metadata: FileMetadata,
+    fileMetadata: FileMetadata,
     createdAt: string,
     keepUntil: string
 }

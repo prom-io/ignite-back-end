@@ -1,11 +1,15 @@
-import {ExtendedFileMetadata} from "./ExtendedFileMetadata";
+import {FileMetadata} from "../../entity";
 
 export interface DdsFileResponse {
     id: string,
-    attributes: {
-        name: string,
-        price: number,
-        duration: number,
-        additional: ExtendedFileMetadata
-    }
+    metadata: FileMetadata,
+    dataValidator: string,
+    dataOwner: string,
+    serviceNode: string,
+    keepUntil: string,
+    extension: string,
+    mimeType: string,
+    size: number,
+    price: number,
+    name: string
 }

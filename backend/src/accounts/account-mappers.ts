@@ -10,7 +10,7 @@ export const accountToAccountResponse = (account: Account): AccountResponse => (
 export const dataOwnerToDataOwnerResponse = (dataOwner: DataOwner): DataOwnerResponse => ({
     address: dataOwner.address,
     dataValidatorAddress: dataOwner.dataValidatorAddress,
-    file: fileToFileResponse(dataOwner.file),
+    file: dataOwner.file ? fileToFileResponse(dataOwner.file) : undefined,
     privateKey: dataOwner.privateKey
 });
 
