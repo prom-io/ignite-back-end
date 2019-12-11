@@ -63,6 +63,14 @@ const _EditableMetadataTable: React.FC<EditableMetaDataTableProps> = ({
             </TableCell>
         </TableRow>
     ));
+    rows.push(
+        <TableRow>
+            <TableCell></TableCell>
+            <TableCell>
+                <OpenAddFileMetadataDialogButton/>
+            </TableCell>
+        </TableRow>
+    );
 
     return (
         <Grid container spacing={1}>
@@ -97,13 +105,6 @@ const _EditableMetadataTable: React.FC<EditableMetaDataTableProps> = ({
                     )
                 }
             </Grid>
-            {Object.keys(entries).length !== 0 && (
-                <Grid item xs={12}>
-                    <div style={{marginLeft: '50%'}}>
-                        <OpenAddFileMetadataDialogButton/>
-                    </div>
-                </Grid>
-            )}
             <AddFileMetadataDialog onAdd={(key, value) => addEntry(key, value)}/>
         </Grid>
     )
