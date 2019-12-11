@@ -20,7 +20,7 @@ const registration = new AccountRegistrationStore(accounts, AccountType.DATA_VAL
 const dataValidatorRegistration = new AccountRegistrationStore(accounts, AccountType.DATA_VALIDATOR);
 const dataOwners = new DataOwnersAccountsStore(accounts);
 const createDataOwner = new CreateDataOwnerStore(settings, dataOwners, dataUpload);
-const transactions = new TransactionsStore(settings);
+const transactions = new TransactionsStore(settings, accounts);
 
 export const store: IAppState = {
     dataUpload,

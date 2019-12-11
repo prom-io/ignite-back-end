@@ -113,17 +113,17 @@ const _AddFileMetaDataDialog: React.FC<AddFileMetaDataDialogProps> = ({
                 }
             </DialogContent>
             <DialogActions>
-                <Button variant="contained"
-                        color="primary"
-                        onClick={handleAdd}
-                >
-                    Add metadata
-                </Button>
                 <Button variant="outlined"
                         color="secondary"
                         onClick={handleClose}
                 >
                     Cancel
+                </Button>
+                <Button variant="contained"
+                        color="primary"
+                        onClick={handleAdd}
+                >
+                    Add metadata
                 </Button>
             </DialogActions>
         </Dialog>

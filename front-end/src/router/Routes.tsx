@@ -24,7 +24,7 @@ export const Routes = {
     transactions: new Route({
         path: '/transactions',
         component: <TransactionsPage/>,
-        beforeEnter: () => store.transactions.fetchTransactions(),
+        beforeEnter: () => store.accounts.fetchAccounts(),
         onExit: () => store.transactions.reset()
     })
 };

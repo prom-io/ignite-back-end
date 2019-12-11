@@ -23,3 +23,4 @@ export * from "./TransactionType";
 export * from "./FileMetadata";
 export * from "./DataOwnerResponse";
 export * from "./CreateDataOwnerResponse";
+export * from "./TransactionsByAddresses";

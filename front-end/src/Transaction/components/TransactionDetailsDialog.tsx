@@ -13,6 +13,7 @@ import {
     TableBody
 } from "@material-ui/core";
 import withMobileDialog, {WithMobileDialog} from "@material-ui/core/withMobileDialog";
+import {parse, format} from "date-fns";
 import {FileMetadata, TransactionResponse} from "../../models";
 import {getMetadataKeyLabel} from "../../utils";
 
@@ -42,15 +43,15 @@ const _TransactionsDetailsDialog: FunctionComponent<TransactionDetailDialogProps
                 <DialogContent>
                     <Typography variant="body1">Data Mart: {transaction?.dataMart}</Typography>
                     <Typography variant="body1">Sum: {transaction?.sum}</Typography>
-                    <Typography variant="body1">Sale date: {transaction?.createdAt}</Typography>
+                    <Typography variant="body1">Sale date: {format(parse(transaction?.createdAt, "yyyy-MM-dd", new Date()), "dd/MM/yyyy")}</Typography>
                     <Typography variant="body1">Trx Id: {transaction?.hash}</Typography>
                     <Typography variant="body1">Data owner: {transaction?.dataOwner.address}</Typography>
                     <Typography variant="body1">Private key: {transaction?.dataOwner.privateKey}</Typography>
-                    <Typography variant="body1">Creation date: {transaction?.dataOwner.file.createdAt}</Typography>
+                    <Typography variant="body1">Creation date: {format(new Date(transaction?.dataOwner.file.createdAt), "dd/MM/yyyy")}</Typography>
                     {transaction?.dataOwner.file.fileMetadata && (
                         <Fragment>
                             <Typography variant="body1">
-                                Metadata
+                                File metadata
                             </Typography>
                             <Table>
                                 <TableHead>
@@ -72,17 +73,17 @@ const _TransactionsDetailsDialog: FunctionComponent<TransactionDetailDialogProps
                     )}
                 </DialogContent>
                 <DialogActions>
-                    <Button variant="contained"
-                            color="primary"
-                            onClick={onClose}
-                    >
-                        Prolong the term
-                    </Button>
                     <Button variant="outlined"
                             color="secondary"
                             onClick={onClose}
                     >
                         Close
+                    </Button>
+                    <Button variant="contained"
+                            color="primary"
+                            onClick={onClose}
+                    >
+                        Prolong the term
                     </Button>
                 </DialogActions>
             </Dialog>

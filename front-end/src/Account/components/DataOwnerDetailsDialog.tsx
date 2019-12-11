@@ -34,6 +34,8 @@ const _DataOwnerDetailsDialog: FunctionComponent<DataOwnerDetailsDialogProps> = 
             <Dialog open
                     fullScreen={fullScreen}
                     onClose={onClose}
+                    fullWidth
+                    maxWidth="lg"
             >
                 <DialogTitle>Data owner</DialogTitle>
                 <DialogContent>
@@ -44,7 +46,7 @@ const _DataOwnerDetailsDialog: FunctionComponent<DataOwnerDetailsDialogProps> = 
                     {dataOwner?.file && dataOwner.file.fileMetadata && (
                         <Fragment>
                             <Typography variant="body1">
-                                Metadata
+                                File metadata
                             </Typography>
                             <Table>
                                 <TableHead>
@@ -66,16 +68,16 @@ const _DataOwnerDetailsDialog: FunctionComponent<DataOwnerDetailsDialogProps> = 
                     )}
                 </DialogContent>
                 <DialogActions>
-                    <Button variant="contained"
-                            color="primary"
-                    >
-                        Prolong the term
-                    </Button>
                     <Button variant="outlined"
                             color="secondary"
                             onClick={onClose}
                     >
                         Close
+                    </Button>
+                    <Button variant="contained"
+                            color="primary"
+                    >
+                        Prolong the term
                     </Button>
                 </DialogActions>
             </Dialog>

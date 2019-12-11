@@ -6,6 +6,6 @@ export type AccountBalanceProps = TypographyProps & {balance: number, address: s
 
 export const AccountBalance: FunctionComponent<AccountBalanceProps> = ({balance, address, ...rest}) => (
     <Typography {...rest}>
-        <Hidden smDown>Wallet ID {address}</Hidden> {balance} PROM
+        <Hidden smDown><span style={{paddingRight: 30}}>Wallet ID {address}</span></Hidden> {balance} PROM
     </Typography>
 );

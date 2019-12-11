@@ -37,6 +37,15 @@ const _CreateDataOwnerDialog: FunctionComponent<CreateDataOwnersDialogProps> = (
             <UploadDataForm/>
         </DialogContent>
         <DialogActions>
+            <Button variant="outlined"
+                    color="secondary"
+                    onClick={() => {
+                        setDialogOpen(false);
+                        resetDataUpload();
+                    }}
+            >
+                Close
+            </Button>
             {uploadDataResponse
                 ? (
                     <Button onClick={resetDataUpload}
@@ -48,7 +57,6 @@ const _CreateDataOwnerDialog: FunctionComponent<CreateDataOwnersDialogProps> = (
                 )
                 : (
                     <Fragment>
-                        {pending && <CircularProgress size={20} color="primary"/>}
                         <Button onClick={createDataOwner}
                                 color="primary"
                                 variant="contained"
@@ -56,18 +64,10 @@ const _CreateDataOwnerDialog: FunctionComponent<CreateDataOwnersDialogProps> = (
                         >
                             Create data owner
                         </Button>
+                        {pending && <CircularProgress size={20} color="primary"/>}
                     </Fragment>
                 )
             }
-            <Button variant="outlined"
-                    color="secondary"
-                    onClick={() => {
-                        setDialogOpen(false);
-                        resetDataUpload();
-                    }}
-            >
-                Close
-            </Button>
         </DialogActions>
     </Dialog>
 );

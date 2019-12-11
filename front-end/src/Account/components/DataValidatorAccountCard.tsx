@@ -1,5 +1,4 @@
-import * as React from "react";
-import {Fragment, FunctionComponent, ReactNode, useState} from "react";
+import React, {Fragment, FunctionComponent, ReactChildren, ReactNode, ReactElement, useState} from "react";
 import getClassName from "clsx";
 import {
     Card,
@@ -18,15 +17,16 @@ import {
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import {CreateDataOwnerButton} from "./CreateDataOwnerButton";
 import {getBalanceLabel} from "../utils";
-import {DataOwnersTable} from "./DataOwnersTable";
-import {DataOwnerResponse} from "../../models";
 
 interface DataValidatorAccountCardProps {
     address: string,
-    dataOwners: DataOwnerResponse[],
     balance: number,
     selectedAsDefault: boolean,
-    onSelect: (address: string) => void
+    onSelect: (address: string) => void,
+    children: ReactElement,
+    numberOfDataOwners: number,
+    onExpand?: () => void,
+    hideDataOwnerCreationButton?: boolean
 }
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
@@ -44,15 +44,22 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 
 export const DataValidatorAccountCard: FunctionComponent<DataValidatorAccountCardProps> = ({
     address,
-    dataOwners,
     balance,
     selectedAsDefault,
-    onSelect
+    onSelect,
+    children,
+    numberOfDataOwners,
+    onExpand,
+    hideDataOwnerCreationButton = false
 }) => {
     const [expanded, setExpanded] = useState(false);
     const classes = useStyles();
 
     const handleExpandClick = (): void => {
+        if (onExpand) {
+            onExpand();
+        }
+
         setExpanded(!expanded);
     };
 
@@ -60,7 +67,7 @@ export const DataValidatorAccountCard: FunctionComponent<DataValidatorAccountCar
 
     const actions: ReactNode = (
         <Fragment>
-            {selectedAsDefault && <CreateDataOwnerButton/>}
+            {selectedAsDefault && !hideDataOwnerCreationButton && <CreateDataOwnerButton/>}
             <Tooltip title={expanded
                 ? "Hide data owners"
                 : "Show data owners"
@@ -105,7 +112,7 @@ export const DataValidatorAccountCard: FunctionComponent<DataValidatorAccountCar
                         subheader={(
                             <Fragment>
                                 <div>{getBalanceLabel(balance)}</div>
-                                <div>Number of data owners: {dataOwners.length}</div>
+                                <div>Number of data owners: {numberOfDataOwners}</div>
                             </Fragment>
                         )}
                         action={(
@@ -124,10 +131,7 @@ export const DataValidatorAccountCard: FunctionComponent<DataValidatorAccountCar
                       unmountOnExit
             >
                 <CardContent>
-                    <Typography variant="body1">
-                        Data owners:
-                    </Typography>
-                    <DataOwnersTable dataOwners={dataOwners}/>
+                    {children}
                 </CardContent>
             </Collapse>
         </Card>

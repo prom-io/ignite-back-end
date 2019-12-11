@@ -4,7 +4,7 @@ import {AppBar} from "../AppBar";
 import {Footer} from "../Footer";
 import {Layout} from "../Layout";
 import {NavigationMenu} from "../Navigation";
-import {TransactionsTable} from "../Transaction";
+import {DataValidatorAccountCardListWithTransactionsTable} from "../Transaction";
 import {SelectedDataValidatorBalance} from "../Account";
 
 export const TransactionsPage: FunctionComponent<{}> = () => (
@@ -19,7 +19,7 @@ export const TransactionsPage: FunctionComponent<{}> = () => (
         </Hidden>
         <Grid item xs={12} lg={10}>
             <Layout>
-                <TransactionsTable/>
+                <DataValidatorAccountCardListWithTransactionsTable/>
             </Layout>
         </Grid>
         <Grid item xs={12}>

@@ -16,7 +16,7 @@ export const dataOwnerToDataOwnerResponse = (dataOwner: DataOwner): DataOwnerRes
 
 export const createDataOwnerRequestToDataOwner = (createDataOwnerRequest: CreateDataOwnerRequest): DataOwner => ({
     address: createDataOwnerRequest.address,
-    privateKey: createDataOwnerRequest.address,
+    privateKey: createDataOwnerRequest.privateKey,
     dataValidatorAddress: createDataOwnerRequest.dataValidatorAddress,
     _type: EntityType.DATA_OWNER,
 });

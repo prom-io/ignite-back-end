@@ -3,6 +3,7 @@ import {Grid} from "@material-ui/core";
 import {DataValidatorAccountCard} from "./DataValidatorAccountCard";
 import {CreateDataOwnerDialog} from "./CreateDataOwnersDialog";
 import {AccountBalanceMapping, AccountResponse, DataOwnerResponse} from "../../models";
+import {DataOwnersTable} from "./DataOwnersTable";
 
 interface DataValidatorAccountsListProps {
     accounts: AccountResponse[],
@@ -12,7 +13,7 @@ interface DataValidatorAccountsListProps {
     onDefaultAccountSelected: (address: string) => void,
 }
 
-export const DataValidatorAccountsList: React.FC<DataValidatorAccountsListProps> = ({
+export const DataValidatorAccountsWithDataOwnersTableList: React.FC<DataValidatorAccountsListProps> = ({
     balances,
     accounts,
     defaultAccount,
@@ -23,11 +24,13 @@ export const DataValidatorAccountsList: React.FC<DataValidatorAccountsListProps>
         {accounts.map(account => (
             <Grid item xs={12} key={account.address}>
                 <DataValidatorAccountCard address={account.address}
-                                          dataOwners={dataOwners[account.address] || []}
+                                          numberOfDataOwners={dataOwners[account.address] ? dataOwners[account.address].length : 0}
                                           balance={balances[account.address]}
                                           selectedAsDefault={defaultAccount === account.address}
                                           onSelect={onDefaultAccountSelected}
-                />
+                >
+                    <DataOwnersTable dataOwners={dataOwners[account.address] || []}/>
+                </DataValidatorAccountCard>
             </Grid>
         ))}
         <CreateDataOwnerDialog/>

@@ -1,7 +1,7 @@
 import * as React from "react";
 import {inject, observer} from "mobx-react";
 import {Grid} from "@material-ui/core";
-import {DataValidatorAccountsList} from "../../Account";
+import {DataValidatorAccountsWithDataOwnersTableList} from "../../Account";
 import {AccountBalanceMapping, AccountResponse, DataOwnerResponse} from "../../models";
 import {IAppState} from "../../store";
 
@@ -22,11 +22,11 @@ const _DataValidatorAccountSettings: React.FC<DataValidatorAccountSettingsMobxPr
 }) => (
     <Grid container spacing={2}>
         <Grid item xs={12}>
-            <DataValidatorAccountsList accounts={accounts}
-                                       balances={balances}
-                                       defaultAccount={selectedAccount}
-                                       onDefaultAccountSelected={selectAccount}
-                                       dataOwners={dataOwners}
+            <DataValidatorAccountsWithDataOwnersTableList accounts={accounts}
+                                                          balances={balances}
+                                                          defaultAccount={selectedAccount}
+                                                          onDefaultAccountSelected={selectAccount}
+                                                          dataOwners={dataOwners}
             />
         </Grid>
     </Grid>

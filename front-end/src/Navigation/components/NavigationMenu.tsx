@@ -7,8 +7,8 @@ import {
     ListItemText
 } from "@material-ui/core";
 import HomeIcon from "@material-ui/icons/Home";
-import UploadIcon from "@material-ui/icons/CloudUpload"
 import AccountIcon from "@material-ui/icons/AccountCircle"
+import MonetizationIcon from "@material-ui/icons/MonetizationOn";
 import {Routes} from "../../router";
 import {IAppState} from "../../store";
 
@@ -49,7 +49,7 @@ const _NavigationMenu: FunctionComponent<NavigationMenuProps> = ({store, onItemC
         >
             <MenuItem onClick={() => onItemClick && onItemClick()}>
                 <ListItemIcon>
-                    <UploadIcon/>
+                    <MonetizationIcon/>
                 </ListItemIcon>
                 <ListItemText>Data sales</ListItemText>
             </MenuItem>

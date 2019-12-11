@@ -31,19 +31,16 @@ export const DataOwnersTable: FunctionComponent<DataOwnersTableProps> = ({
                 <TableBody>
                     {dataOwners.map(dataOwner => (
                         <TableRow>
-                            <TableCell>
-                                <Typography variant="body1"
-                                            style={{cursor: 'pointer'}}
-                                            onClick={() => setSelectedDataOwner(dataOwner)}
-                                >
-                                    <u>{dataOwner.address}</u>
-                                </Typography>
-                            </TableCell>
+                            <TableCell>{dataOwner.address}</TableCell>
                             <TableCell>{dataOwner.file && format(new Date(dataOwner.file.createdAt), "dd/MM/yyyy")}</TableCell>
                             <TableCell>{dataOwner.file && format(new Date(dataOwner.file.keepUntil), "dd/MM/yyyy")}</TableCell>
                             <TableCell>{dataOwner.file && dataOwner.file.price}</TableCell>
                             <TableCell>{dataOwner.file &&  dataOwner.file.id}</TableCell>
-                            <Typography><u>prolong</u></Typography>
+                            <Typography variant="body1"
+                                        style={{cursor: 'pointer'}}
+                                        onClick={() => setSelectedDataOwner(dataOwner)}>
+                                <u>prolong</u>
+                            </Typography>
                         </TableRow>
                     ))}
                 </TableBody>

@@ -5,7 +5,7 @@ import {TRANSACTIONS} from "../endpoints";
 
 export class TransactionsService {
 
-    public static findTransactionsByAddress(address: string): AxiosPromise<TransactionResponse[]> {
-        return axiosInstance.get(`/${TRANSACTIONS}?address=${address}`);
+    public static findTransactionsByAddress(address: string, page: number): AxiosPromise<TransactionResponse[]> {
+        return axiosInstance.get(`/${TRANSACTIONS}?address=${address}&page=${page}`);
     }
 }

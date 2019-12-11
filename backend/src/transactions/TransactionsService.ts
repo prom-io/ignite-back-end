@@ -84,6 +84,8 @@ export class TransactionsService {
             Promise.all(transactions.map(async transaction => {
                 const dataOwner = (await this.dataOwnersService.findAllDataOwners())
                     // tslint:disable-next-line:no-shadowed-variable
+                    .filter(dataOwner => dataOwner.file !== undefined)
+                    // tslint:disable-next-line:no-shadowed-variable
                     .filter(dataOwner => dataOwner.file.id === transaction.id)
                     // tslint:disable-next-line:no-shadowed-variable
                     .reduce(dataOwner => dataOwner);
