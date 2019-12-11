@@ -30,6 +30,9 @@ const _TransactionsDetailsDialog: FunctionComponent<TransactionDetailDialogProps
     onClose
 }) => {
     if (transaction) {
+        const storageDate = new Date(transaction.file.keepUntil);
+        const storageExpired = new Date().getTime() - storageDate.getTime() > 0;
+
         return (
             <Dialog open={Boolean(transaction)}
                     fullScreen={fullScreen}
@@ -48,6 +51,7 @@ const _TransactionsDetailsDialog: FunctionComponent<TransactionDetailDialogProps
                     <Typography variant="body1">Data owner: {transaction?.dataOwner.address}</Typography>
                     <Typography variant="body1">Private key: {transaction?.dataOwner.privateKey}</Typography>
                     <Typography variant="body1">Creation date: {format(new Date(transaction?.dataOwner.file.createdAt), "dd/MM/yyyy")}</Typography>
+                    <Typography variant="body1">Must be stored until: <b>{format(storageDate , "dd/MM/yyyy")}</b></Typography>
                     {transaction?.dataOwner.file.fileMetadata && (
                         <Fragment>
                             <Typography variant="body1">
@@ -79,12 +83,14 @@ const _TransactionsDetailsDialog: FunctionComponent<TransactionDetailDialogProps
                     >
                         Close
                     </Button>
-                    <Button variant="contained"
-                            color="primary"
-                            onClick={onClose}
-                    >
-                        Prolong the term
-                    </Button>
+                    {!storageExpired && (
+                        <Button variant="contained"
+                                color="primary"
+                                onClick={onClose}
+                        >
+                            Prolong the term
+                        </Button>
+                    )}
                 </DialogActions>
             </Dialog>
         )

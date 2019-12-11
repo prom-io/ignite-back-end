@@ -30,6 +30,9 @@ const _DataOwnerDetailsDialog: FunctionComponent<DataOwnerDetailsDialogProps> = 
     fullScreen
 }) => {
     if (dataOwner) {
+        const storageDate = new Date(dataOwner.file.keepUntil);
+        const storageExpired = new Date().getTime() - storageDate.getTime() > 0;
+
         return (
             <Dialog open
                     fullScreen={fullScreen}
@@ -42,7 +45,7 @@ const _DataOwnerDetailsDialog: FunctionComponent<DataOwnerDetailsDialogProps> = 
                     <Typography variant="body1">Wallet ID: {dataOwner.address}</Typography>
                     <Typography variant="body1">Private key: {dataOwner.privateKey}</Typography>
                     {dataOwner.file && <Typography variant="body1">Creation date: {format(new Date(dataOwner.file.createdAt), "dd/MM/yyyy")}</Typography>}
-                    {dataOwner?.file && <Typography variant="body1">Store until: {format(new Date(dataOwner?.file.keepUntil), "dd/MM/yyyy")}</Typography>}
+                    {dataOwner?.file && <Typography variant="body1">Must be stored until: <b>{format(new Date(storageDate), "dd/MM/yyyy")}</b></Typography>}
                     {dataOwner?.file && dataOwner.file.fileMetadata && (
                         <Fragment>
                             <Typography variant="body1">
@@ -74,11 +77,13 @@ const _DataOwnerDetailsDialog: FunctionComponent<DataOwnerDetailsDialogProps> = 
                     >
                         Close
                     </Button>
-                    <Button variant="contained"
-                            color="primary"
-                    >
-                        Prolong the term
-                    </Button>
+                    {!storageExpired && (
+                        <Button variant="contained"
+                                color="primary"
+                        >
+                            Prolong the term
+                        </Button>
+                    )}
                 </DialogActions>
             </Dialog>
         )
