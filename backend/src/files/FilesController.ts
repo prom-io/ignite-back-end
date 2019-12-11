@@ -28,7 +28,7 @@ export class FilesController {
         return this.filesService.checkServiceFileUploadStatusAndSaveFileIfItHasBeenUploaded(serviceNodeFileId);
     }
 
-    @Delete("serviceNode/:serviceNodeFileId")
+    @Delete("service-node/:serviceNodeFileId")
     public deleteServiceNodeFile(@Param("serviceNodeFileId") serviceNodeFileId: string): Promise<{success: boolean}> {
         return this.filesService.deleteServiceNodeFile(serviceNodeFileId);
     }
