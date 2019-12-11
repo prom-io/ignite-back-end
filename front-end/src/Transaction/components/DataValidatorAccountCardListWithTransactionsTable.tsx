@@ -1,11 +1,10 @@
 import React, {FunctionComponent} from "react";
 import {inject, observer} from "mobx-react";
 import {Grid} from "@material-ui/core";
+import {TransactionsTable} from "./TransactionsTable";
 import {DataValidatorAccountCard} from "../../Account";
 import {IAppState} from "../../store";
 import {AccountBalanceMapping, AccountResponse, DataOwnerResponse, TransactionsByAddresses} from "../../models";
-import {TransactionsTable} from "./TransactionsTable";
-import {toJS} from "mobx";
 
 interface DataValidatorAccountCardListWithTransactionsTableMobxProps {
     accounts: AccountResponse[],
@@ -42,7 +41,7 @@ const _DataValdiatorAccountCardListWithTransactionsTable: FunctionComponent<Data
                                               balance={balances[account.address]}
                                               selectedAsDefault={defaultAccount === account.address}
                                               onSelect={handleSelect}
-                                              numberOfDataOwners={dataOwners[account.address].length}
+                                              numberOfDataOwners={dataOwners[account.address] ? dataOwners[account.address].length : 0}
                                               onExpand={() => handleFetchTransactionsRequest(account.address)}
                                               hideDataOwnerCreationButton
                     >

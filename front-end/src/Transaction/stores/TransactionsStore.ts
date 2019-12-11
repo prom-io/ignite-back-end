@@ -1,5 +1,6 @@
 import {observable, action, computed, reaction, toJS} from "mobx";
 import {AxiosError} from "axios";
+import uniqBy from "lodash.uniqby";
 import {ApiError, createErrorFromResponse, TransactionsService} from "../../api";
 import {TransactionsByAddresses} from "../../models";
 import {normalize} from "../../utils";
@@ -55,7 +56,7 @@ export class TransactionsStore {
                         const transactions = normalize(data, "hash");
                         console.log(toJS(transactions));
                         this.transactions[address].transactions.push(...data);
-                        console.log(toJS(this.transactions));
+                        this.transactions[address].transactions = uniqBy(this.transactions[address].transactions, "hash");
                         if (data.length === PAGE_SIZE) {
                             this.transactions[address].pagination.page +=1;
                         }
