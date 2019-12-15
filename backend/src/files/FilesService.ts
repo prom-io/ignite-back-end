@@ -94,7 +94,10 @@ export class FilesService {
 
             if (file) {
                 file.keepUntil = extendFileStorageDurationRequest.keepUntil;
+                const dataOwner = await this.dataOwnersRepository.findByFileId(fileId);
+                dataOwner.file = file;
                 await this.filesRepository.save(file);
+                await this.dataOwnersRepository.save(dataOwner);
             }
 
             return {success: true}

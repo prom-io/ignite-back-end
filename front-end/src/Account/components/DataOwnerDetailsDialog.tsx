@@ -71,7 +71,10 @@ const _DataOwnerDetailsDialog: FunctionComponent<DataOwnerDetailsDialogProps> = 
                                         {Object.keys(dataOwner?.file.fileMetadata).map(key => (
                                             <TableRow>
                                                 <TableCell>{getMetadataKeyLabel(key)}</TableCell>
-                                                <TableCell>{dataOwner?.file.fileMetadata[key as keyof FileMetadata] as string}</TableCell>
+                                                <TableCell>{typeof dataOwner?.file.fileMetadata[key as keyof FileMetadata] === "string"
+                                                    ? dataOwner?.file.fileMetadata[key as keyof FileMetadata] as string
+                                                    : (dataOwner?.file.fileMetadata[key as keyof FileMetadata] as string[]).map(tag => `${tag}; `)
+                                                }</TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>

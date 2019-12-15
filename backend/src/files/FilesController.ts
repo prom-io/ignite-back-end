@@ -34,7 +34,7 @@ export class FilesController {
     }
 
     @Patch(":fileId")
-    public extendFileStorageDuration(@Param(":fileId") fileId: string,
+    public extendFileStorageDuration(@Param("fileId") fileId: string,
                                      @Body() extendFileStorageDurationRequest: ExtendFileStorageDurationRequest): Promise<{success: boolean}> {
         return this.filesService.extendFileStorageDuration(fileId, extendFileStorageDurationRequest);
     }

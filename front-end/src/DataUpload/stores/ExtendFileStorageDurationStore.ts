@@ -1,10 +1,10 @@
-import {observable, action, reaction} from "mobx";
-import {createErrorFromResponse, ApiError, DataUploadService} from "../../api";
-import {ExtendFileStorageDurationRequest, FileInfoResponse} from "../../models";
+import {action, observable, reaction} from "mobx";
+import {ApiError, createErrorFromResponse, DataUploadService} from "../../api";
+import {FileInfoResponse} from "../../models";
 import {DataOwnersAccountsStore} from "../../Account/stores";
 import {SettingsStore} from "../../Settings/stores";
 import {AxiosError} from "axios";
-import {parse} from "date-fns";
+import {format} from "date-fns";
 
 export class ExtendFileStorageDurationStore {
     private readonly dataOwnersAccountsStore: DataOwnersAccountsStore;
@@ -64,7 +64,14 @@ export class ExtendFileStorageDurationStore {
             this.error = undefined;
 
             DataUploadService.extendFileStorageDuration(this.file.id, {keepUntil: this.keepUntil})
-                .then(({data}) => this.response = data)
+                .then(({data}) => {
+                    this.response = data;
+                    this.dataOwnersAccountsStore.updateFileStorageDuration(
+                        this.settingsStore.selectedDataValidatorAccount!,
+                        this.file!.id,
+                        this.keepUntil!.toISOString()
+                    )
+                })
                 .catch((error: AxiosError) => this.error = createErrorFromResponse(error))
                 .finally(() => {
                     this.pending = false;

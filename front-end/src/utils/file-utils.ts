@@ -23,6 +23,8 @@ export const getMetadataKeyLabel = (key: keyof FileMetadata | string): string =>
             return "Comment";
         case "hashTags":
             return "Hash tags";
+        case "author":
+            return "Author"
         default:
             return key;
     }

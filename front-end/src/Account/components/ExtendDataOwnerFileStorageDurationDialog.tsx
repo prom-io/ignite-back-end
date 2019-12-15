@@ -69,7 +69,12 @@ const _ExtendDataOwnerFileStorageDurationDialog: FunctionComponent<ExtendDataOwn
                     />
                 </DialogContent>
                 <DialogActions>
-                    {pending && <CircularProgress size={15} color="primary"/>}
+                    <Button variant="outlined"
+                            color="secondary"
+                            onClick={onClose}
+                    >
+                        Close
+                    </Button>
                     <Button variant="contained"
                             color="primary"
                             onClick={extendFileStorageDuration}
@@ -77,12 +82,7 @@ const _ExtendDataOwnerFileStorageDurationDialog: FunctionComponent<ExtendDataOwn
                     >
                         Prolong the term
                     </Button>
-                    <Button variant="outlined"
-                            color="secondary"
-                            onClick={onClose}
-                    >
-                        Close
-                    </Button>
+                    {pending && <CircularProgress size={15} color="primary"/>}
                 </DialogActions>
             </Dialog>
         )

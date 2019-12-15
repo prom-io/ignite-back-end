@@ -40,4 +40,13 @@ export class DataOwnersRepository {
             (_, documents) => resolve(documents))
         );
     }
+
+    public findByFileId(fileId: string): Promise<DataOwner | undefined> {
+        return new Promise<DataOwner | undefined>(resolve => {
+            this.dataStore.findOne<DataOwner>({
+                "_type": EntityType.DATA_OWNER,
+                "file.id": fileId
+            }, (_, document) => resolve(document))
+        })
+    }
 }

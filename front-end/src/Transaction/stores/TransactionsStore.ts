@@ -36,7 +36,7 @@ export class TransactionsStore {
             accounts => {
                 accounts.forEach(account => this.transactions[account.address] = {
                     pending: false,
-                    pagination: {page: 0},
+                    pagination: {page: 1},
                     transactions: []
                 })
             }
