@@ -7,3 +7,4 @@ export * from "./DataValidatorAccountRegistrationForm";
 export * from "./DataValidatorAccountsWithDataOwnersTableList";
 export * from "./GenericAccountRegistrationForm";
 export * from "./SelectedDataValidatorBalance";
+export * from "./ExtendDataOwnerFileStorageDurationDialog";

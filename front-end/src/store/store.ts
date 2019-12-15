@@ -26,7 +26,7 @@ const dataValidatorRegistration = new AccountRegistrationStore(accounts, Account
 const dataOwners = new DataOwnersAccountsStore(accounts);
 const createDataOwner = new CreateDataOwnerStore(settings, dataOwners, dataUpload);
 const transactions = new TransactionsStore(settings, accounts);
-const fileStorageDurationExtension = new ExtendFileStorageDurationStore(dataOwners, settings);
+const fileStorageDurationExtension = new ExtendFileStorageDurationStore(dataOwners, settings, transactions);
 
 export const store: IAppState = {
     dataUpload,

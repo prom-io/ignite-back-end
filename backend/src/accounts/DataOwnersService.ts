@@ -33,4 +33,8 @@ export class DataOwnersService {
             throw error;
         }
     }
+
+    public async findByAddress(dataOwnerAddress: string): Promise<DataOwnerResponse> {
+        return dataOwnerToDataOwnerResponse(await this.dataOwnersRepository.findByAddress(dataOwnerAddress));
+    }
 }

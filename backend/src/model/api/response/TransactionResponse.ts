@@ -1,5 +1,6 @@
 import {FileResponse} from "./FileResponse";
 import {DataOwnerResponse} from "./DataOwnerResponse";
+import {TransactionType} from "./TransactionType";
 
 export interface TransactionResponse {
     dataMart: string,
@@ -7,5 +8,6 @@ export interface TransactionResponse {
     dataOwner: DataOwnerResponse,
     file: FileResponse,
     hash: string,
-    createdAt: string
+    createdAt: string,
+    type: TransactionType
 }

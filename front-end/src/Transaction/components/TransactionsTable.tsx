@@ -32,7 +32,7 @@ export const TransactionsTable: FunctionComponent<TransactionsTableProps> = ({
                                 <TableCell>Sum</TableCell>
                                 <TableCell>Date</TableCell>
                                 <TableCell>Data owner</TableCell>
-                                <TableCell>Trx</TableCell>
+                                <TableCell>Txn Hash</TableCell>
                                 <TableCell>File ID</TableCell>
                             </TableRow>
                         </TableHead>

@@ -4,11 +4,12 @@ import {FileInfoResponse} from "../../models";
 import {DataOwnersAccountsStore} from "../../Account/stores";
 import {SettingsStore} from "../../Settings/stores";
 import {AxiosError} from "axios";
-import {format} from "date-fns";
+import {TransactionsStore} from "../../Transaction/stores";
 
 export class ExtendFileStorageDurationStore {
     private readonly dataOwnersAccountsStore: DataOwnersAccountsStore;
     private readonly settingsStore: SettingsStore;
+    private readonly transactionsStore: TransactionsStore;
 
     @observable
     keepUntil?: Date = undefined;
@@ -28,9 +29,10 @@ export class ExtendFileStorageDurationStore {
     @observable
     response?: {success: boolean} = undefined;
 
-    constructor(dataOwnersAccountsStore: DataOwnersAccountsStore, settingsStore: SettingsStore) {
+    constructor(dataOwnersAccountsStore: DataOwnersAccountsStore, settingsStore: SettingsStore, transactionsStore: TransactionsStore) {
         this.dataOwnersAccountsStore = dataOwnersAccountsStore;
         this.settingsStore = settingsStore;
+        this.transactionsStore = transactionsStore;
 
         reaction(
             () => this.file,

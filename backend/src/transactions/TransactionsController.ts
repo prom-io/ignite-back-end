@@ -12,7 +12,7 @@ export class TransactionsController {
     public findTransactionsByAddress(@Query("address") address: string,
                                      @Query("page") page?: number,
                                      @Query("size") size?: number): Promise<TransactionResponse[]> {
-        page = getValidPage(page);
+        page = getValidPage(page, 0, true);
         size = getValidPageSize(size);
         return this.transactionsService.getTransactionsByAddress(address, page, size);
     }

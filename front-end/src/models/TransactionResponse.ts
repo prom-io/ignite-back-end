@@ -7,5 +7,6 @@ export interface TransactionResponse {
     dataOwner: DataOwnerResponse,
     file: FileInfoResponse,
     hash: string,
-    createdAt: string
+    createdAt: string,
+    type: "dataUpload" | "dataPurchase"
 }

@@ -36,7 +36,7 @@ export class TransactionsStore {
             accounts => {
                 accounts.forEach(account => this.transactions[account.address] = {
                     pending: false,
-                    pagination: {page: 1},
+                    pagination: {page: 0},
                     transactions: []
                 })
             }
@@ -46,12 +46,12 @@ export class TransactionsStore {
     @action
     fetchTransactions = (address: string): void => {
         if (this.transactions[address]) {
-            //this.transactions[address].pending = true;
+            this.transactions[address].pending = true;
             const page = this.transactions[address].pagination.page;
 
             TransactionsService.findTransactionsByAddress(address, page)
                 .then(({data}) => {
-                    console.log(data);
+                    data = data.filter(transaction => transaction.type === "dataPurchase");
                     if (data.length !== 0) {
                         const transactions = normalize(data, "hash");
                         console.log(toJS(transactions));
@@ -91,5 +91,15 @@ export class TransactionsStore {
     reset = (): void => {
         this.pending = false;
         this.error = undefined;
+    };
+
+    @action
+    updateFileStorageDuration = (dataValidatorAddress: string, fileId: string, keepUntil: string): void => {
+        this.transactions[dataValidatorAddress].transactions.map(transaction => {
+            if (transaction.file && transaction.file.id === fileId) {
+                transaction.file.keepUntil = keepUntil;
+            }
+            return transaction;
+        })
     }
 }
