@@ -96,7 +96,9 @@ export class TransactionsStore {
     @action
     updateFileStorageDuration = (dataValidatorAddress: string, fileId: string, keepUntil: string): void => {
         this.transactions[dataValidatorAddress].transactions.map(transaction => {
+            console.log(toJS(transaction));
             if (transaction.file && transaction.file.id === fileId) {
+                console.log("Transaction found");
                 transaction.file.keepUntil = keepUntil;
             }
             return transaction;

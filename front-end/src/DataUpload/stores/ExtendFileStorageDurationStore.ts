@@ -72,6 +72,11 @@ export class ExtendFileStorageDurationStore {
                         this.settingsStore.selectedDataValidatorAccount!,
                         this.file!.id,
                         this.keepUntil!.toISOString()
+                    );
+                    this.transactionsStore.updateFileStorageDuration(
+                        this.settingsStore.selectedDataValidatorAccount!,
+                        this.file!.id,
+                        this.keepUntil!.toISOString()
                     )
                 })
                 .catch((error: AxiosError) => this.error = createErrorFromResponse(error))

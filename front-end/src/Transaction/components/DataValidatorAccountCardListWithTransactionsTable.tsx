@@ -1,6 +1,6 @@
 import React, {FunctionComponent} from "react";
 import {inject, observer} from "mobx-react";
-import {Grid} from "@material-ui/core";
+import {Grid, CircularProgress} from "@material-ui/core";
 import {TransactionsTable} from "./TransactionsTable";
 import {DataValidatorAccountCard} from "../../Account";
 import {IAppState} from "../../store";
@@ -45,11 +45,11 @@ const _DataValdiatorAccountCardListWithTransactionsTable: FunctionComponent<Data
                                               onExpand={() => handleFetchTransactionsRequest(account.address)}
                                               hideDataOwnerCreationButton
                     >
-                        {transactions[account.address].pending
-                            ? <div>Loading...</div>
-                            :  <TransactionsTable pending={transactions[account.address].pending}
-                                                  transactions={transactions[account.address].transactions}
-                                                  onFetchMoreRequest={() => handleFetchTransactionsRequest(account.address)}
+                        {transactions[account.address].pending && (!transactions[account.address].transactions || transactions[account.address].transactions.length === 0)
+                            ? <CircularProgress size={25} color="primary"/>
+                            : <TransactionsTable pending={transactions[account.address].pending}
+                                                 transactions={transactions[account.address].transactions}
+                                                 onFetchMoreRequest={() => handleFetchTransactionsRequest(account.address)}
                             />
                         }
                     </DataValidatorAccountCard>

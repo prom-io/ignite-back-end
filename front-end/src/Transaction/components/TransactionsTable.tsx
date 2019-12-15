@@ -1,10 +1,9 @@
 import React, {Fragment, FunctionComponent, useState} from "react";
-import {Button, Table, TableBody, TableCell, TableHead, TableRow, Typography, Grid} from "@material-ui/core";
+import {Button, Grid, Table, TableBody, TableCell, TableHead, TableRow, Typography, CircularProgress} from "@material-ui/core";
 import {format, parse} from "date-fns";
 import {TransactionDetailsDialog} from "./TransactionDetailsDialog";
 import {TransactionResponse} from "../../models";
 import {shortenString} from "../../utils";
-import {toJS} from "mobx";
 
 interface TransactionsTableProps {
     pending: boolean,
@@ -18,8 +17,6 @@ export const TransactionsTable: FunctionComponent<TransactionsTableProps> = ({
     onFetchMoreRequest
 }) => {
     const [selectedTransaction, setSelectedTransaction] = useState<TransactionResponse | undefined>(undefined);
-
-    console.log(toJS(transactions));
 
     return (
         <Fragment>
@@ -58,6 +55,7 @@ export const TransactionsTable: FunctionComponent<TransactionsTableProps> = ({
                     </Table>
                 </Grid>
                 <Grid item xs={12}>
+                    {pending && <CircularProgress size={15} color="primary"/>}
                     <Button variant="outlined"
                             color="primary"
                             onClick={onFetchMoreRequest}
