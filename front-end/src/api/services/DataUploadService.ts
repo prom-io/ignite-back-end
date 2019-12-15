@@ -2,7 +2,7 @@ import {AxiosPromise} from "axios";
 import {axiosInstance} from "../api-client";
 import {
     CreateLocalFileRecordRequest,
-    DdsFileUploadCheckResponse,
+    DdsFileUploadCheckResponse, ExtendFileStorageDurationRequest,
     LocalFileRecordResponse,
     UploadFileChunkRequest
 } from "../../models";
@@ -27,5 +27,9 @@ export class DataUploadService {
 
     public static deleteLocalFile(localFileId: string): AxiosPromise<void> {
         return axiosInstance.delete(`/${FILES}/${SERVICE_NODE}/${localFileId}`);
+    }
+
+    public static extendFileStorageDuration(fileId: string, extendFileStorageDurationRequest: ExtendFileStorageDurationRequest): AxiosPromise<{success: boolean}> {
+        return axiosInstance.patch(`/${FILES}/${fileId}`, extendFileStorageDurationRequest);
     }
 }

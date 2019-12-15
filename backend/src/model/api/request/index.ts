@@ -11,3 +11,4 @@ export * from "./EncryptorServiceRequest";
 export * from "./EncryptorServiceMethod";
 export * from "./RsaDecryptRequest";
 export * from "./RsaEncryptRequest";
+export * from "./ExtendFileStorageDurationRequest";

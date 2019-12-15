@@ -1,6 +1,6 @@
-import {Controller, Body, Param, Post, Get, Delete} from "@nestjs/common";
+import {Controller, Body, Param, Post, Get, Delete, Patch} from "@nestjs/common";
 import {FilesService} from "./FilesService";
-import {CreateServiceNodeFileRequest, UploadChunkRequest} from "../model/api/request";
+import {CreateServiceNodeFileRequest, ExtendFileStorageDurationRequest, UploadChunkRequest} from "../model/api/request";
 import {CheckFileUploadStatusResponse, ServiceNodeFileResponse} from "../model/api/response";
 
 @Controller("api/v3/files")
@@ -31,5 +31,11 @@ export class FilesController {
     @Delete("service-node/:serviceNodeFileId")
     public deleteServiceNodeFile(@Param("serviceNodeFileId") serviceNodeFileId: string): Promise<{success: boolean}> {
         return this.filesService.deleteServiceNodeFile(serviceNodeFileId);
+    }
+
+    @Patch(":fileId")
+    public extendFileStorageDuration(@Param(":fileId") fileId: string,
+                                     @Body() extendFileStorageDurationRequest: ExtendFileStorageDurationRequest): Promise<{success: boolean}> {
+        return this.filesService.extendFileStorageDuration(fileId, extendFileStorageDurationRequest);
     }
 }

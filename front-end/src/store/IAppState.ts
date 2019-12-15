@@ -5,7 +5,7 @@ import {
     CreateDataOwnerStore,
     DataOwnersAccountsStore
 } from "../Account";
-import {AddMetadataDialogStore, EditMetadataDialogStore, UploadDataStore} from "../DataUpload";
+import {AddMetadataDialogStore, EditMetadataDialogStore, UploadDataStore, ExtendFileStorageDurationStore} from "../DataUpload";
 import {DrawerStore} from "../AppBar";
 import {SettingsStore} from "../Settings";
 import {TransactionsStore} from "../Transaction";
@@ -23,5 +23,6 @@ export interface IAppState {
     dataOwners: DataOwnersAccountsStore,
     createDataOwner: CreateDataOwnerStore,
     dataValidatorRegistration: AccountRegistrationStore,
-    transactions: TransactionsStore
+    transactions: TransactionsStore,
+    fileStorageDurationExtension: ExtendFileStorageDurationStore
 }

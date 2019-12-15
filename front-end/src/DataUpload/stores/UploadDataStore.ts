@@ -154,6 +154,7 @@ export class UploadDataStore {
                     let failed = false;
                     let price: number | undefined;
                     let ddsFileId: string | undefined;
+                    let storagePrice: number | undefined;
 
                     while (!fileFullyUploaded && !failed) {
                         await sleep(3000);
@@ -162,6 +163,7 @@ export class UploadDataStore {
                         fileFullyUploaded = fileUploadingCheckingResponse.data.fullyUploaded;
                         price = fileUploadingCheckingResponse.data.price;
                         ddsFileId = fileUploadingCheckingResponse.data.ddsFileId;
+                        storagePrice = fileUploadingCheckingResponse.data.storagePrice;
                     }
 
                     this.pending = false;
@@ -176,7 +178,8 @@ export class UploadDataStore {
                             additional: {},
                             duration: 0,
                             id: ddsFileId!,
-                            price: price!
+                            price: price!,
+                            storagePrice: storagePrice!
                         }
                     }
 

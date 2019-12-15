@@ -1,6 +1,7 @@
 import {Controller, Query, Get} from "@nestjs/common";
 import {TransactionsService} from "./TransactionsService";
 import {TransactionResponse} from "../model/api/response";
+import {getValidPage, getValidPageSize} from "../utils/pagination";
 
 @Controller("api/v3/transactions")
 export class TransactionsController {
@@ -8,7 +9,11 @@ export class TransactionsController {
     }
 
     @Get()
-    public findTransactionsByAddress(@Query("address") address: string): Promise<TransactionResponse[]> {
-        return this.transactionsService.getTransactionsByAddress(address);
+    public findTransactionsByAddress(@Query("address") address: string,
+                                     @Query("page") page?: number,
+                                     @Query("size") size?: number): Promise<TransactionResponse[]> {
+        page = getValidPage(page);
+        size = getValidPageSize(size);
+        return this.transactionsService.getTransactionsByAddress(address, page, size);
     }
 }

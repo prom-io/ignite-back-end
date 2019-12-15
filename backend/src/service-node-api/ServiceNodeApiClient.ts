@@ -2,14 +2,19 @@ import {Inject, Injectable} from "@nestjs/common";
 import {AxiosInstance, AxiosPromise} from "axios";
 import {
     BalanceResponse,
-    BillingTransactionResponse,
     CheckFileUploadStatusResponse,
     DataOwnersOfDataValidatorResponse,
     DdsFileResponse,
     ServiceNodeFileResponse,
-    TransactionType
+    ServiceNodeTransactionResponse
 } from "../model/api/response";
-import {ICreateAccountRequest, ICreateDataOwnerRequest, ICreateServiceNodeFileRequest, IUploadChunkRequest} from "../model/api/request";
+import {
+    ExtendFileStorageDurationRequest,
+    ICreateAccountRequest,
+    ICreateDataOwnerRequest,
+    ICreateServiceNodeFileRequest,
+    IUploadChunkRequest
+} from "../model/api/request";
 
 @Injectable()
 export class ServiceNodeApiClient {
@@ -53,5 +58,13 @@ export class ServiceNodeApiClient {
 
     public registerDataOwner(createDataOwnerRequest: ICreateDataOwnerRequest): AxiosPromise<DataOwnersOfDataValidatorResponse> {
         return this.axios.post("/api/v1/accounts/data-owners", createDataOwnerRequest);
+    }
+
+    public getTransactionsOfAddress(address: string, page: number, size: number): AxiosPromise<ServiceNodeTransactionResponse[]> {
+        return this.axios.get(`/api/v1/transactions/${address}?page=${page}&size=${size}`);
+    }
+
+    public extendFileStorageDuration(fileId: string, extendFileStorageDurationRequest: ExtendFileStorageDurationRequest): AxiosPromise<void> {
+        return this.axios.patch(`/api/v1/files/${fileId}`, extendFileStorageDurationRequest);
     }
 }

@@ -2,7 +2,7 @@ import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import {AxiosError} from "axios";
 import {FilesRepository} from "./FilesRepository";
 import {ServiceNodeApiClient} from "../service-node-api";
-import {ICreateServiceNodeFileRequest, IUploadChunkRequest} from "../model/api/request";
+import {ExtendFileStorageDurationRequest, ICreateServiceNodeFileRequest, IUploadChunkRequest} from "../model/api/request";
 import {CheckFileUploadStatusResponse, ServiceNodeFileResponse} from "../model/api/response";
 import {EntityType} from "../model/entity";
 import {DataOwnersRepository} from "../accounts/DataOwnersRepository";
@@ -81,6 +81,39 @@ export class FilesService {
             return (await this.serviceNodeClient.deleteServiceNodeFile(serviceNodeFileId)).data;
         } catch (error) {
             this.handleServiceNodeError(error);
+        }
+    }
+
+    public async extendFileStorageDuration(
+        fileId: string,
+        extendFileStorageDurationRequest: ExtendFileStorageDurationRequest
+    ): Promise<{success: boolean}> {
+        try {
+            const file = await this.filesRepository.findById(fileId);
+            await this.serviceNodeClient.extendFileStorageDuration(fileId, extendFileStorageDurationRequest);
+
+            if (file) {
+                file.keepUntil = extendFileStorageDurationRequest.keepUntil;
+                await this.filesRepository.save(file);
+            }
+
+            return {success: true}
+        } catch (error) {
+            if (error.response) {
+                if (error.response.status === 404) {
+                    throw new HttpException(`Could not find file with id ${fileId}`, HttpStatus.NOT_FOUND);
+                } else {
+                    throw new HttpException(
+                        `Could not extend file storage duration, service node responded with ${error.response.status} status`,
+                        HttpStatus.INTERNAL_SERVER_ERROR
+                    )
+                }
+            } else {
+                throw new HttpException(
+                    "Service node is unreachable",
+                    HttpStatus.INTERNAL_SERVER_ERROR
+                )
+            }
         }
     }
 

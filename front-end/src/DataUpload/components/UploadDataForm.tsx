@@ -52,7 +52,7 @@ const _UploadDataForm: React.FC<UploadDataFormProps> = ({
     const content = response
         ? (
             <UploadedFileDescriptor fileId={response.id}
-                                    storagePrice={response.price}
+                                    storagePrice={response.storagePrice}
                                     reset={reset}
             />
         )

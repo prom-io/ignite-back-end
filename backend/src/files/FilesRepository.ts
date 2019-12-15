@@ -20,7 +20,13 @@ export class FilesRepository {
 
     public findAll(): Promise<File[]> {
         return new Promise<File[]>(resolve => {
-            this.dataStore.find<File>({_type: EntityType.ACCOUNT}, (_, documents) => resolve(documents));
+            this.dataStore.find<File>({_type: EntityType.FILE}, (_, documents) => resolve(documents));
+        })
+    }
+
+    public findById(id: string): Promise<File | undefined> {
+        return new Promise<File | undefined>(resolve => {
+            this.dataStore.findOne<File | undefined>({_type: EntityType.FILE. id}, (_, document) => resolve(document))
         })
     }
 }

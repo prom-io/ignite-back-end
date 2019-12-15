@@ -12,5 +12,5 @@ export * from "./RsaEncryptResponse";
 export * from "./GenerateRsaKeyPairResponse";
 export * from "./EncryptorServiceResponse";
 export * from "./TransactionType";
-export * from "./BillingTransactionResponse";
 export * from "./TransactionResponse";
+export * from "./ServiceNodeTransactionResponse"

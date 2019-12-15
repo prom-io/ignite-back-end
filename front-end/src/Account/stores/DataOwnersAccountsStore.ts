@@ -48,4 +48,14 @@ export class DataOwnersAccountsStore {
             [dataOwner.dataValidatorAddress]: [...this.dataOwners[dataOwner.dataValidatorAddress], dataOwner]
         };
     };
+
+    @action
+    updateFileStorageDuration = (dataValidatorAddress: string, fileId: string, keepUntil: string): void => {
+        this.dataOwners[dataValidatorAddress].map(dataOwner => {
+            if (dataOwner.file && dataOwner.file.id === fileId) {
+                dataOwner.file.keepUntil = keepUntil;
+            }
+            return dataOwner;
+        })
+    }
 }
