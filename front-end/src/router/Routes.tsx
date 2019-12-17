@@ -1,5 +1,5 @@
 import * as React from "react";
-import {DataUploadPage, DataValidatorRegistrationPage, HomePage, NotFoundPage, TransactionsPage} from "../pages";
+import {DataUploadPage, DataValidatorRegistrationPage, HomePage, NotFoundPage, DataSalesPage} from "../pages";
 import {store} from "../store";
 
 const Route = require("mobx-router").Route;
@@ -22,9 +22,9 @@ export const Routes = {
         component: <DataValidatorRegistrationPage/>
     }),
     transactions: new Route({
-        path: '/transactions',
-        component: <TransactionsPage/>,
-        beforeEnter: () => store.accounts.fetchAccounts(),
+        path: '/data-sales',
+        component: <DataSalesPage/>,
+        beforeEnter: () => store.transactions.fetchTransactions(),
         onExit: () => store.transactions.reset()
     })
 };

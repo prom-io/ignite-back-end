@@ -1,105 +1,87 @@
-import {observable, action, computed, reaction, toJS} from "mobx";
-import {AxiosError} from "axios";
+import {action, computed, observable, reaction} from "mobx";
 import uniqBy from "lodash.uniqby";
 import {ApiError, createErrorFromResponse, TransactionsService} from "../../api";
-import {TransactionsByAddresses} from "../../models";
-import {normalize} from "../../utils";
-import {SettingsStore} from "../../Settings";
+import {TransactionResponse, TransactionType} from "../../models";
 import {AccountsStore} from "../../Account";
+import {SettingsStore} from "../../Settings/stores";
+import {AxiosError} from "axios";
 
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 50;
 
 export class TransactionsStore {
     private readonly settingsStore: SettingsStore;
     private readonly accountsStore: AccountsStore;
 
-    @computed
-    get dataValidatorAddress(): string | undefined {
-        return this.settingsStore.selectedDataValidatorAccount;
-    }
+    @observable
+    transactions: TransactionResponse[] = [];
+
+    @observable
+    selectedAccount: string | undefined = undefined;
+
+    @observable
+    page: number = 0;
 
     @observable
     pending: boolean = false;
 
     @observable
-    transactions: TransactionsByAddresses = {};
-
-    @observable
     error?: ApiError = undefined;
+
+    @computed
+    get defaultDataValidatorAccount(): string | undefined {
+        return this.settingsStore.selectedDataValidatorAccount;
+    }
+
+    @computed
+    get accounts(): string[] {
+        return this.accountsStore.accounts.map(account => account.address);
+    }
 
     constructor(settingsStore: SettingsStore, accountsStore: AccountsStore) {
         this.settingsStore = settingsStore;
         this.accountsStore = accountsStore;
+        this.selectedAccount = this.defaultDataValidatorAccount;
 
         reaction(
-            () => this.accountsStore.accounts,
-            accounts => {
-                accounts.forEach(account => this.transactions[account.address] = {
-                    pending: false,
-                    pagination: {page: 0},
-                    transactions: []
-                })
+            () => this.selectedAccount,
+            () => {
+                this.page = 0;
+                this.fetchTransactions();
             }
         )
     }
 
     @action
-    fetchTransactions = (address: string): void => {
-        if (this.transactions[address]) {
-            this.transactions[address].pending = true;
-            const page = this.transactions[address].pagination.page;
+    fetchTransactions = (): void => {
+        if (this.selectedAccount) {
+            this.pending = true;
+            this.error = undefined;
 
-            TransactionsService.findTransactionsByAddress(address, page)
+            TransactionsService.getTransactionsByAddressAndType(this.selectedAccount, TransactionType.DATA_PURCHASE,this.page, PAGE_SIZE)
                 .then(({data}) => {
-                    data = data.filter(transaction => transaction.type === "dataPurchase");
-                    if (data.length !== 0) {
-                        const transactions = normalize(data, "hash");
-                        console.log(toJS(transactions));
-                        this.transactions[address].transactions.push(...data);
-                        this.transactions[address].transactions = uniqBy(this.transactions[address].transactions, "hash");
+                    if (data.length !==0) {
+                        this.transactions.push(...data);
+                        this.transactions = uniqBy(this.transactions, "hash");
+
                         if (data.length === PAGE_SIZE) {
-                            this.transactions[address].pagination.page +=1;
+                            this.page = this.page + 1;
                         }
                     }
                 })
                 .catch((error: AxiosError) => this.error = createErrorFromResponse(error))
-                .finally(() => this.transactions[address].pending = false);
-        } else {
-            this.transactions[address] = {
-                pagination: {
-                    page: 0
-                },
-                pending: true,
-                transactions: []
-            };
-
-            TransactionsService.findTransactionsByAddress(address, 1)
-                .then(({data}) => {
-                    if (data.length !== 0) {
-                        this.transactions[address].transactions = this.transactions[address].transactions.concat(data);
-                        if (data.length === PAGE_SIZE) {
-                            this.transactions[address].pagination.page +=1;
-                        }
-                    }
-                })
-                .catch((error: AxiosError) => this.error = createErrorFromResponse(error))
-                .finally(() => this.transactions[address].pending = false);
+                .finally(() => this.pending = false);
         }
     };
 
     @action
-    reset = (): void => {
-        this.pending = false;
-        this.error = undefined;
+    setSelectedAccount = (account: string): void => {
+        this.selectedAccount = account;
     };
 
     @action
-    updateFileStorageDuration = (dataValidatorAddress: string, fileId: string, keepUntil: string): void => {
-        this.transactions[dataValidatorAddress].transactions.map(transaction => {
-            if (transaction.file && transaction.file.id === fileId) {
-                transaction.file.keepUntil = keepUntil;
-            }
-            return transaction;
-        })
+    reset = (): void => {
+        this.transactions = [];
+        this.page = 0;
+        this.error = undefined;
     }
 }

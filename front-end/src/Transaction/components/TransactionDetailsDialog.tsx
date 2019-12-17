@@ -47,40 +47,72 @@ const _TransactionsDetailsDialog: FunctionComponent<TransactionDetailDialogProps
                         fullScreen={fullScreen}
                         onClose={onClose}
                         fullWidth
-                        maxWidth="lg"
+                        maxWidth="md"
                 >
                     <DialogTitle>
                         Data Point Sale Info
                     </DialogTitle>
-                    <DialogContent>
-                        <Typography variant="body1">Data Mart: {transaction?.dataMart}</Typography>
-                        <Typography variant="body1">Sum: {transaction?.sum}</Typography>
-                        <Typography variant="body1">Sale date: {format(parse(transaction?.createdAt, "yyyy-MM-dd", new Date()), "dd/MM/yyyy")}</Typography>
-                        <Typography variant="body1">Trx Id: {transaction?.hash}</Typography>
-                        <Typography variant="body1">Data owner: {transaction?.dataOwner.address}</Typography>
-                        <Typography variant="body1">Private key: {transaction?.dataOwner.privateKey}</Typography>
-                        <Typography variant="body1">Creation date: {format(new Date(transaction?.dataOwner.file.createdAt), "dd/MM/yyyy")}</Typography>
-                        <Typography variant="body1">Must be stored until: <b>{format(storageDate , "dd/MM/yyyy")}</b></Typography>
+                    <DialogContent style={{marginBottom: 30}}>
+                        <Table>
+                            <TableBody>
+                                <TableRow>
+                                    <TableCell>Data mart</TableCell>
+                                    <TableCell>{transaction?.dataMart}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>Sum</TableCell>
+                                    <TableCell>{transaction?.sum}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>Sale date</TableCell>
+                                    <TableCell>{format(parse(transaction?.createdAt, "yyyy-MM-dd", new Date()), "dd/MM/yyyy")}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>Txn Hash</TableCell>
+                                    <TableCell>{transaction?.hash}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>Data owner</TableCell>
+                                    <TableCell>{transaction?.dataOwner.address}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>Private key</TableCell>
+                                    <TableCell>{transaction?.dataOwner.privateKey}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>Creation date</TableCell>
+                                    <TableCell>{format(new Date(transaction?.dataOwner.file.createdAt), "dd/MM/yyyy")}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>Must be stored until</TableCell>
+                                    <TableCell><b>{format(storageDate , "dd/MM/yyyy")}</b></TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
                         {transaction?.dataOwner.file.fileMetadata && (
                             <Fragment>
+                                <br/>
                                 <Typography variant="body1">
                                     File metadata
                                 </Typography>
                                 <Table>
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell>Metadata key</TableCell>
-                                            <TableCell>Metadata value</TableCell>
+                                            <TableCell><b>Metadata key</b></TableCell>
+                                            <TableCell><b>Metadata value</b></TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {Object.keys(transaction.file.fileMetadata).map(key => (
+                                        {Object.keys(transaction.file.fileMetadata).map((key) => (
                                             <TableRow>
                                                 <TableCell>{getMetadataKeyLabel(key)}</TableCell>
-                                                <TableCell>{typeof transaction?.file.fileMetadata[key as keyof FileMetadata] === "string"
-                                                    ? transaction?.file.fileMetadata[key as keyof FileMetadata] as string
-                                                    : (transaction?.file.fileMetadata[key as keyof FileMetadata] as string[]).map(tag => `${tag}; `)
-                                                }</TableCell>
+                                                <TableCell>
+                                                    {
+                                                        typeof transaction?.file.fileMetadata[key as keyof FileMetadata] === "string"
+                                                            ? transaction?.file.fileMetadata[key as keyof FileMetadata] as string
+                                                            : (transaction?.file.fileMetadata[key as keyof FileMetadata] as string[]).map(tag => `${tag}; `)
+                                                    }
+                                                </TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>

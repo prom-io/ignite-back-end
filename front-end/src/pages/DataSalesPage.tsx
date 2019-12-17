@@ -1,13 +1,13 @@
 import React, {FunctionComponent} from "react";
-import {Grid, Hidden, Typography} from "@material-ui/core";
+import {Grid, Hidden} from "@material-ui/core";
 import {AppBar} from "../AppBar";
 import {Footer} from "../Footer";
 import {Layout} from "../Layout";
 import {NavigationMenu} from "../Navigation";
-import {DataValidatorAccountCardListWithTransactionsTable} from "../Transaction";
+import {DataSalesHistoryContainer} from "../Transaction";
 import {SelectedDataValidatorBalance} from "../Account";
 
-export const TransactionsPage: FunctionComponent<{}> = () => (
+export const DataSalesPage: FunctionComponent<{}> = () => (
     <Grid container>
         <Grid item xs={12}>
             <AppBar sideBarItem={<SelectedDataValidatorBalance/>}/>
@@ -19,7 +19,7 @@ export const TransactionsPage: FunctionComponent<{}> = () => (
         </Hidden>
         <Grid item xs={12} lg={10}>
             <Layout>
-                <DataValidatorAccountCardListWithTransactionsTable/>
+                <DataSalesHistoryContainer/>
             </Layout>
         </Grid>
         <Grid item xs={12}>

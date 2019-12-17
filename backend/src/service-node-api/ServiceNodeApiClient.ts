@@ -6,7 +6,7 @@ import {
     DataOwnersOfDataValidatorResponse,
     DdsFileResponse,
     ServiceNodeFileResponse,
-    ServiceNodeTransactionResponse
+    ServiceNodeTransactionResponse, TransactionType
 } from "../model/api/response";
 import {
     ExtendFileStorageDurationRequest,
@@ -62,6 +62,11 @@ export class ServiceNodeApiClient {
 
     public getTransactionsOfAddress(address: string, page: number, size: number): AxiosPromise<ServiceNodeTransactionResponse[]> {
         return this.axios.get(`/api/v1/transactions/${address}?page=${page}&size=${size}`);
+    }
+
+    // tslint:disable-next-line:max-line-length
+    public getTransactionsOfAddressByType(address: string, type: TransactionType, page: number, size: number): AxiosPromise<ServiceNodeTransactionResponse[]> {
+        return this.axios.get(`/api/v1/transactions/${address}?type=${type}&page=${page}&size=${size}`);
     }
 
     public extendFileStorageDuration(fileId: string, extendFileStorageDurationRequest: ExtendFileStorageDurationRequest): AxiosPromise<void> {

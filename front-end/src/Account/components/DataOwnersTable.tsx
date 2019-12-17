@@ -19,28 +19,28 @@ export const DataOwnersTable: FunctionComponent<DataOwnersTableProps> = ({
                 <TableHead>
                     <TableRow>
                         <TableCell>
-                            <Typography variant="body1">Data owner</Typography>
-                            <Typography variant="body1">(Wallet ID)</Typography>
+                            <Typography variant="body1"><b>Data owner</b></Typography>
+                            <Typography variant="body1"><b>(Wallet ID)</b></Typography>
                         </TableCell>
-                        <TableCell>Created</TableCell>
-                        <TableCell>Storing until</TableCell>
-                        <TableCell>Price (PROM)</TableCell>
-                        <TableCell>File ID</TableCell>
+                        <TableCell><b>Created</b></TableCell>
+                        <TableCell><b>Storing until</b></TableCell>
+                        <TableCell><b>Price (PROM)</b></TableCell>
+                        <TableCell><b>File ID</b></TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
                     {dataOwners.map(dataOwner => (
                         <TableRow>
-                            <TableCell>{dataOwner.address}</TableCell>
+                            <TableCell>
+                                <div style={{cursor: 'pointer'}}
+                                     onClick={() => setSelectedDataOwner(dataOwner)}>
+                                    <u>{dataOwner.address}</u>
+                                </div>
+                            </TableCell>
                             <TableCell>{dataOwner.file && format(new Date(dataOwner.file.createdAt), "dd/MM/yyyy")}</TableCell>
                             <TableCell>{dataOwner.file && format(new Date(dataOwner.file.keepUntil), "dd/MM/yyyy")}</TableCell>
                             <TableCell>{dataOwner.file && dataOwner.file.price}</TableCell>
-                            <TableCell>{dataOwner.file &&  dataOwner.file.id}</TableCell>
-                            <Typography variant="body1"
-                                        style={{cursor: 'pointer'}}
-                                        onClick={() => setSelectedDataOwner(dataOwner)}>
-                                <u>prolong</u>
-                            </Typography>
+                            <TableCell>{dataOwner.file && dataOwner.file.id}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>

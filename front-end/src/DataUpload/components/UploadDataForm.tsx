@@ -25,7 +25,8 @@ interface UploadDataFormProps {
     response?: UploadDataResponse,
     dataValidatorAccount?: string,
     attachFile: (file: File) => void,
-    file?: File
+    file?: File,
+    dataOwnerAddress?: string
 }
 
 const getMessageFromError = (apiError: ApiError): string => {
@@ -47,13 +48,14 @@ const _UploadDataForm: React.FC<UploadDataFormProps> = ({
     uploadData,
     attachFile,
     setFormValue,
-    reset
+    reset,
+    dataOwnerAddress
 }) => {
     const content = response
         ? (
             <UploadedFileDescriptor fileId={response.id}
                                     storagePrice={response.storagePrice}
-                                    reset={reset}
+                                    dataOwnerAddress={dataOwnerAddress!}
             />
         )
         : (
@@ -126,7 +128,8 @@ const mapMobxToProps = (store: IAppState): UploadDataFormProps => {
         reset: dataUpload.reset,
         dataValidatorAccount: dataUpload.dataValidatorAccount,
         attachFile: dataUpload.setAttachedFile,
-        file: dataUpload.attachedFile
+        file: dataUpload.attachedFile,
+        dataOwnerAddress: store.dataUpload.uploadDataForm.dataOwnerAddress
     }
 };
 

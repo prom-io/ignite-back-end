@@ -3,7 +3,7 @@ import {Button, Grid, Table, TableBody, TableCell, TableHead, TableRow, Typograp
 import {format, parse} from "date-fns";
 import {TransactionDetailsDialog} from "./TransactionDetailsDialog";
 import {TransactionResponse} from "../../models";
-import {shortenString} from "../../utils";
+import {makePreciseNumberString, shortenString} from "../../utils";
 
 interface TransactionsTableProps {
     pending: boolean,
@@ -37,7 +37,7 @@ export const TransactionsTable: FunctionComponent<TransactionsTableProps> = ({
                             {transactions.map(transaction => (
                                 transaction && <TableRow key={transaction.hash}>
                                     <TableCell>{transaction.dataMart}</TableCell>
-                                    <TableCell>{transaction.sum}</TableCell>
+                                    <TableCell>{makePreciseNumberString(transaction.sum)}</TableCell>
                                     <TableCell>{format(parse(transaction?.createdAt, "yyyy-MM-dd", new Date()), "dd/MM/yyyy")}</TableCell>
                                     <TableCell>{transaction.dataOwner.address}</TableCell>
                                     <TableCell>

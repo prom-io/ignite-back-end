@@ -47,24 +47,45 @@ const _DataOwnerDetailsDialog: FunctionComponent<DataOwnerDetailsDialogProps> = 
                         fullScreen={fullScreen}
                         onClose={onClose}
                         fullWidth
-                        maxWidth="lg"
+                        maxWidth="md"
                 >
-                    <DialogTitle>Data owner</DialogTitle>
-                    <DialogContent>
-                        <Typography variant="body1">Wallet ID: {dataOwner.address}</Typography>
-                        <Typography variant="body1">Private key: {dataOwner.privateKey}</Typography>
-                        {dataOwner.file && <Typography variant="body1">Creation date: {format(new Date(dataOwner.file.createdAt), "dd/MM/yyyy")}</Typography>}
-                        {dataOwner?.file && storageDate && <Typography variant="body1">Must be stored until: <b>{format(new Date(storageDate), "dd/MM/yyyy")}</b></Typography>}
+                    <DialogTitle>Data owner info</DialogTitle>
+                    <DialogContent style={{marginBottom: 25}}>
+                        <Table>
+                            <TableBody>
+                                <TableRow>
+                                    <TableCell>Wallet ID</TableCell>
+                                    <TableCell>{dataOwner?.address}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>Private key</TableCell>
+                                    <TableCell>{dataOwner?.privateKey}</TableCell>
+                                </TableRow>
+                                {dataOwner?.file && storageDate && (
+                                    <Fragment>
+                                        <TableRow>
+                                            <TableCell>Creation date</TableCell>
+                                            <TableCell>{format(new Date(dataOwner.file.createdAt), "dd/MM/yyyy")}</TableCell>
+                                        </TableRow>
+                                        <TableRow>
+                                            <TableCell>Must be stored until</TableCell>
+                                            <TableCell><b>{format(new Date(storageDate), "dd/MM/yyyy")}</b></TableCell>
+                                        </TableRow>
+                                    </Fragment>
+                                )}
+                            </TableBody>
+                        </Table>
                         {dataOwner?.file && dataOwner.file.fileMetadata && (
                             <Fragment>
+                                <br/>
                                 <Typography variant="body1">
                                     File metadata
                                 </Typography>
                                 <Table>
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell>Metadata key</TableCell>
-                                            <TableCell>Metadata value</TableCell>
+                                            <TableCell><b>Metadata key</b></TableCell>
+                                            <TableCell><b>Metadata value</b></TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>

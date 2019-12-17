@@ -1,17 +1,18 @@
 import React, {FunctionComponent} from "react";
-import {Button, Grid, Typography} from "@material-ui/core";
+import {Grid, Typography} from "@material-ui/core";
+import {makePreciseNumberString} from "../../utils";
 import {CopyToClipboardButton} from "../../CopyToClipboardButton";
 
 interface UploadedFileDescriptorProps {
     fileId: string,
     storagePrice: number,
-    reset: () => void
+    dataOwnerAddress: string,
 }
 
 export const UploadedFileDescriptor: FunctionComponent<UploadedFileDescriptorProps> = ({
     fileId,
     storagePrice,
-    reset
+    dataOwnerAddress,
 }) => (
     <Grid container spacing={2}>
         <Grid item xs={12}>
@@ -26,7 +27,12 @@ export const UploadedFileDescriptor: FunctionComponent<UploadedFileDescriptorPro
         </Grid>
         <Grid item xs={12}>
             <Typography variant="body1">
-                Storage price is {storagePrice} PROM
+                Created data owner address is {dataOwnerAddress}
+            </Typography>
+        </Grid>
+        <Grid item xs={12}>
+            <Typography variant="body1">
+                Storage price is {makePreciseNumberString(storagePrice)} PROM
             </Typography>
         </Grid>
     </Grid>

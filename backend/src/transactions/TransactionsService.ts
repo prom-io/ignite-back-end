@@ -1,5 +1,5 @@
 import {Injectable} from "@nestjs/common";
-import {DataOwnerResponse, ServiceNodeTransactionResponse, TransactionResponse} from "../model/api/response";
+import {DataOwnerResponse, ServiceNodeTransactionResponse, TransactionResponse, TransactionType} from "../model/api/response";
 import {DataOwnersService} from "../accounts/DataOwnersService";
 import {FilesService} from "../files/FilesService";
 import {ServiceNodeApiClient} from "../service-node-api";
@@ -11,19 +11,37 @@ export class TransactionsService {
                 private readonly serviceNodeApiClient: ServiceNodeApiClient) {
     }
 
+    // tslint:disable-next-line:max-line-length
+    public async getTransactionsByAddressAndType(address: string, type: TransactionType, page: number, pageSize: number): Promise<TransactionResponse[]> {
+        return new Promise<TransactionResponse[]>(async resolve => {
+            const transactions: ServiceNodeTransactionResponse[] = (await this.serviceNodeApiClient.getTransactionsOfAddressByType(
+                address,
+                type,
+                page,
+                pageSize
+            )).data;
+
+            resolve(this.mapTransactionsAndDataOwners(transactions));
+        })
+    }
+
     public async getTransactionsByAddress(address: string, page: number, size: number): Promise<TransactionResponse[]> {
         return new Promise<TransactionResponse[]>(async resolve => {
-            let transactions: ServiceNodeTransactionResponse[] = (await this.serviceNodeApiClient.getTransactionsOfAddress(
+            const transactions: ServiceNodeTransactionResponse[] = (await this.serviceNodeApiClient.getTransactionsOfAddress(
                 address,
                 page,
                 size
             )).data;
 
-            transactions = transactions.filter(transaction => transaction.dataOwner !== "0x5D55d7B86057F1681BC78F1d3A10F300774374d8");
+            resolve(this.mapTransactionsAndDataOwners(transactions));
+        })
+    }
 
-            const result: TransactionResponse[] = [];
+    private async mapTransactionsAndDataOwners(transactions: ServiceNodeTransactionResponse[]): Promise<TransactionResponse[]> {
+        const result: TransactionResponse[] = [];
 
-            for (const transaction of transactions) {
+        for (const transaction of transactions) {
+            if (await this.dataOwnersService.existsByAddress(transaction.dataOwner)) {
                 const dataOwner: DataOwnerResponse = await this.dataOwnersService.findByAddress(transaction.dataOwner);
                 result.push({
                     file: dataOwner.file,
@@ -35,8 +53,8 @@ export class TransactionsService {
                     type: transaction.type
                 })
             }
+        }
 
-            resolve(result);
-        })
+        return result;
     }
 }

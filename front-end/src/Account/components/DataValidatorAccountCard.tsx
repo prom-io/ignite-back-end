@@ -1,4 +1,4 @@
-import React, {Fragment, FunctionComponent, ReactChildren, ReactNode, ReactElement, useState} from "react";
+import React, {Fragment, FunctionComponent, ReactElement, ReactNode, useState} from "react";
 import getClassName from "clsx";
 import {
     Card,
@@ -52,7 +52,7 @@ export const DataValidatorAccountCard: FunctionComponent<DataValidatorAccountCar
     onExpand,
     hideDataOwnerCreationButton = false
 }) => {
-    const [expanded, setExpanded] = useState(false);
+    const [expanded, setExpanded] = useState(selectedAsDefault);
     const classes = useStyles();
 
     const handleExpandClick = (): void => {

@@ -16,6 +16,9 @@ export class CreateDataOwnerStore {
     dataOwnerCreationPending: boolean = false;
 
     @observable
+    createdDataOwnerAddress?: string = undefined;
+
+    @observable
     error?: ApiError = undefined;
 
     @observable
@@ -59,7 +62,6 @@ export class CreateDataOwnerStore {
                 this.showSnackbar = true;
             })
                 .catch((error: AxiosError) => {
-                    console.log(error);
                     this.error = createErrorFromResponse(error);
                     this.showSnackbar = true;
                 })

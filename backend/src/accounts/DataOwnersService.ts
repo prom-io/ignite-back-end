@@ -35,6 +35,11 @@ export class DataOwnersService {
     }
 
     public async findByAddress(dataOwnerAddress: string): Promise<DataOwnerResponse> {
-        return dataOwnerToDataOwnerResponse(await this.dataOwnersRepository.findByAddress(dataOwnerAddress));
+        return dataOwnerToDataOwnerResponse((await this.dataOwnersRepository.findByAddress(dataOwnerAddress))!);
+    }
+
+    public async existsByAddress(dataOwnerAddress: string): Promise<boolean> {
+        const dataOwner = await this.dataOwnersRepository.findByAddress(dataOwnerAddress);
+        return dataOwner !== null;
     }
 }

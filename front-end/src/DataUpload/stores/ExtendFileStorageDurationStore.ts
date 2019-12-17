@@ -1,10 +1,11 @@
 import {action, observable, reaction} from "mobx";
+import {addMonths} from "date-fns";
+import {AxiosError} from "axios";
 import {ApiError, createErrorFromResponse, DataUploadService} from "../../api";
 import {FileInfoResponse} from "../../models";
-import {DataOwnersAccountsStore} from "../../Account/stores";
-import {SettingsStore} from "../../Settings/stores";
-import {AxiosError} from "axios";
-import {TransactionsStore} from "../../Transaction/stores";
+import {DataOwnersAccountsStore} from "../../Account";
+import {SettingsStore} from "../../Settings";
+import {TransactionsStore} from "../../Transaction";
 
 export class ExtendFileStorageDurationStore {
     private readonly dataOwnersAccountsStore: DataOwnersAccountsStore;
@@ -38,7 +39,7 @@ export class ExtendFileStorageDurationStore {
             () => this.file,
             () => {
                 if (this.file) {
-                    this.keepUntil = new Date(this.file.keepUntil)
+                    this.keepUntil = addMonths(new Date(this.file.keepUntil), 1)
                 }
             }
         )
@@ -73,11 +74,6 @@ export class ExtendFileStorageDurationStore {
                         this.file!.id,
                         this.keepUntil!.toISOString()
                     );
-                    this.transactionsStore.updateFileStorageDuration(
-                        this.settingsStore.selectedDataValidatorAccount!,
-                        this.file!.id,
-                        this.keepUntil!.toISOString()
-                    )
                 })
                 .catch((error: AxiosError) => this.error = createErrorFromResponse(error))
                 .finally(() => {

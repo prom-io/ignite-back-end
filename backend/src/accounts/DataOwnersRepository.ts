@@ -16,7 +16,7 @@ export class DataOwnersRepository {
         });
     }
 
-    public findByAddress(address: string): Promise<DataOwner> {
+    public findByAddress(address: string): Promise<DataOwner | null> {
         return new Promise<DataOwner>(resolve => {
             this.dataStore.findOne<DataOwner>({
                 _type: EntityType.DATA_OWNER,

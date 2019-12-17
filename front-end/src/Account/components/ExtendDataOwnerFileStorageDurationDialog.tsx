@@ -1,6 +1,6 @@
 import React, {FunctionComponent} from "react";
 import {inject, observer} from "mobx-react";
-import {Dialog, DialogActions, DialogTitle, DialogContent, Button, CircularProgress, Grid} from "@material-ui/core";
+import {Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle} from "@material-ui/core";
 import {KeyboardDatePicker} from "@material-ui/pickers";
 import {withSnackbar, WithSnackbarProps} from "notistack";
 import {FileInfoResponse} from "../../models";
@@ -57,7 +57,7 @@ const _ExtendDataOwnerFileStorageDurationDialog: FunctionComponent<ExtendDataOwn
                 <DialogTitle>
                     Prolong the term
                 </DialogTitle>
-                <DialogContent>
+                <DialogContent style={{marginBottom: 30}}>
                     <KeyboardDatePicker value={newStorageDurationDate!}
                                         onChange={date => setKeepUntil(date as Date)}
                                         disablePast

@@ -1,6 +1,6 @@
 {
   "name": "data-validator-node-client",
-  "version": "0.1.0",
+  "version": "0.9.3",
   "private": true,
   "dependencies": {
     "@date-io/date-fns": "^1.3.12",
@@ -25,11 +25,12 @@
     "mobx-react": "^6.1.4",
     "mobx-router": "^0.0.20",
     "notistack": "^0.9.7",
+    "pretty-num": "^0.3.0",
     "react": "^16.12.0",
     "react-copy-to-clipboard": "^5.0.2",
     "react-dom": "^16.12.0",
     "react-headroom": "^3.0.0",
-    "react-scripts": "3.2.0",
+    "react-scripts": "^3.3.0",
     "typescript": "3.7.2",
     "web3": "^1.2.4"
   },
