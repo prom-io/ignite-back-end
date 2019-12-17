@@ -155,15 +155,19 @@ export class UploadDataStore {
                     let price: number | undefined;
                     let ddsFileId: string | undefined;
                     let storagePrice: number | undefined;
+                    let dataOwner: string | undefined;
+                    let privateKey: string | undefined;
 
                     while (!fileFullyUploaded && !failed) {
-                        await sleep(3000);
+                        await sleep(30000);
                         const fileUploadingCheckingResponse = await DataUploadService.checkIfLocalFileUploadToDds(localFileRecord.id);
                         failed = fileUploadingCheckingResponse.data.failed;
                         fileFullyUploaded = fileUploadingCheckingResponse.data.fullyUploaded;
                         price = fileUploadingCheckingResponse.data.price;
                         ddsFileId = fileUploadingCheckingResponse.data.ddsFileId;
                         storagePrice = fileUploadingCheckingResponse.data.storagePrice;
+                        dataOwner = fileUploadingCheckingResponse.data.dataOwner;
+                        privateKey = fileUploadingCheckingResponse.data.privateKey;
                     }
 
                     this.pending = false;

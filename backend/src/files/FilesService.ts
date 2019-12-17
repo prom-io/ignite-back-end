@@ -55,10 +55,13 @@ export class FilesService {
                         price: data.price
                     }))
                     .then(file => {
-                        this.dataOwnersRepository.findByAddress(file.dataOwner).then(dataOwner => this.dataOwnersRepository.save({
-                            ...dataOwner,
-                            file
-                        }))
+                        this.dataOwnersRepository.save({
+                            file,
+                            _type: EntityType.DATA_OWNER,
+                            dataValidatorAddress: file.dataValidator,
+                            privateKey: uploadStatus.privateKey!,
+                            address: uploadStatus.dataOwner
+                        });
                     })
             }
 

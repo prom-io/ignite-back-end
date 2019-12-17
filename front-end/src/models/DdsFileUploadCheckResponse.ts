@@ -3,5 +3,7 @@ export interface DdsFileUploadCheckResponse {
     failed: boolean,
     ddsFileId?: string,
     price?: number,
-    storagePrice?: number
+    storagePrice?: number,
+    dataOwner?: string,
+    privateKey?: string
 }

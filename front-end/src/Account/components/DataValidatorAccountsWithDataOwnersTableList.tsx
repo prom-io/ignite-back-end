@@ -1,7 +1,7 @@
 import * as React from "react";
 import {Grid} from "@material-ui/core";
 import {DataValidatorAccountCard} from "./DataValidatorAccountCard";
-import {CreateDataOwnerDialog} from "./CreateDataOwnersDialog";
+import {CreateDataOwnerDialog} from "./CreateDataOwnerDialog";
 import {AccountBalanceMapping, AccountResponse, DataOwnerResponse} from "../../models";
 import {DataOwnersTable} from "./DataOwnersTable";
 

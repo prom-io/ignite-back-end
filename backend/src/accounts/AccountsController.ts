@@ -1,8 +1,8 @@
 import {Body, Controller, Get, Param, Post} from "@nestjs/common";
 import {AccountsService} from "./AccountsService";
 import {DataOwnersService} from "./DataOwnersService";
-import {CreateDataOwnerRequest, CreateDataValidatorRequest} from "../model/api/request";
-import {AccountResponse, BalanceResponse, BalancesResponse, DataOwnerResponse, DataOwnersOfDataValidatorResponse} from "../model/api/response";
+import {CreateDataValidatorRequest} from "../model/api/request";
+import {AccountResponse, BalanceResponse, BalancesResponse, DataOwnersOfDataValidatorResponse} from "../model/api/response";
 
 @Controller("api/v3/accounts")
 export class AccountsController {
@@ -17,11 +17,6 @@ export class AccountsController {
     @Post()
     public createDataValidator(@Body() createDataValidatorRequest: CreateDataValidatorRequest): Promise<void> {
         return this.accountsService.createDataValidatorAccount(createDataValidatorRequest);
-    }
-
-    @Post("data-owners")
-    public createDataOwner(@Body() createDataOwnerRequest: CreateDataOwnerRequest): Promise<DataOwnerResponse> {
-        return this.dataOwnersService.createDataOwner(createDataOwnerRequest);
     }
 
     @Get("data-validators/:address/data-owners")

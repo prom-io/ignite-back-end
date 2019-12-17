@@ -1,8 +1,6 @@
-import {AxiosError} from "axios";
 import {action, computed, observable} from "mobx";
-import Web3 from "web3";
 import {DataOwnersAccountsStore} from "./DataOwnersAccountsStore";
-import {AccountsService, ApiError, createErrorFromResponse} from "../../api";
+import {ApiError} from "../../api";
 import {UploadDataStore} from "../../DataUpload";
 import {SettingsStore} from "../../Settings";
 
@@ -10,7 +8,6 @@ export class CreateDataOwnerStore {
     private readonly settingsStore: SettingsStore;
     private readonly dataOwnersStore: DataOwnersAccountsStore;
     public readonly dataUpload: UploadDataStore;
-    private readonly web3: Web3;
 
     @observable
     dataOwnerCreationPending: boolean = false;
@@ -41,31 +38,19 @@ export class CreateDataOwnerStore {
         this.settingsStore = settingsStore;
         this.dataOwnersStore = dataOwnersStore;
         this.dataUpload = dataUpload;
-        this.web3 = new Web3(new Web3.providers.HttpProvider(process.env.REACT_APP_WEB3_HTTP_PROVIDER as string));
     }
 
     @action
-    createNewDataOwner = (): Promise<void> => {
+    createNewDataOwner = async (): Promise<void> => {
         if (this.dataValidator && this.dataUpload.isFormValid()) {
             this.dataOwnerCreationPending = true;
-            const account = this.web3.eth.accounts.create();
-            const address = account.address;
 
-            return AccountsService.registerDataOwner({
-                address,
-                dataValidatorAddress: this.dataValidator,
-                privateKey: account.privateKey
-            }).then(async ({data}) => {
-                this.dataUpload.setField("dataOwnerAddress", data.address);
-                await this.dataUpload.uploadData();
-                this.dataOwnersStore.fetchDataOwners();
-                this.showSnackbar = true;
-            })
-                .catch((error: AxiosError) => {
-                    this.error = createErrorFromResponse(error);
+            this.dataUpload.uploadData()
+                .then(() => {
+                    this.error = this.dataUpload.submissionError;
                     this.showSnackbar = true;
+                    this.dataOwnerCreationPending = false;
                 })
-                .finally(() => this.dataOwnerCreationPending = false);
         } else return new Promise<void>(resolve => resolve())
     };
 
