@@ -1,10 +1,11 @@
-import * as React from "react";
+import React, {Fragment} from "react";
 import {inject, observer} from "mobx-react";
-import {CircularProgress, IconButton, Tooltip} from "@material-ui/core";
+import {CircularProgress, IconButton, Tooltip, Button} from "@material-ui/core";
 import AddIcon from "@material-ui/icons/Add";
 import {withSnackbar, WithSnackbarProps} from "notistack";
 import {ApiError} from "../../api";
 import {IAppState} from "../../store";
+import {CreateDataOwnerDialog} from "./CreateDataOwnerDialog";
 
 interface CreateDataOwnerButtonMobxProps {
     showSnackbar: boolean,
@@ -37,17 +38,15 @@ const _CreateDataOwnerButton: React.FC<CreateDataOwnerButtonProps> = ({
     }
 
     return (
-        <React.Fragment>
-            <Tooltip title="Create data owner">
-                <IconButton onClick={event => {
-                    event.stopPropagation();
-                    setDialogOpen(true);
-                }}
-                >
-                    <AddIcon/>
-                </IconButton>
-            </Tooltip>
-        </React.Fragment>
+        <Fragment>
+            <Button variant="text"
+                    color="primary"
+                    onClick={() => setDialogOpen(true)}
+            >
+                Create new data owner
+            </Button>
+            <CreateDataOwnerDialog/>
+        </Fragment>
     )
 };
 

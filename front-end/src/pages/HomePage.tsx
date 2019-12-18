@@ -6,6 +6,7 @@ import {NavigationMenu} from "../Navigation";
 import {Footer} from "../Footer";
 import {DataValidatorAccountSettings} from "../Settings";
 import {SelectedDataValidatorBalance} from "../Account";
+import {DataOwnersTableContainer} from "../Account";
 
 export const HomePage: FunctionComponent<{}> = () => (
     <Grid container>
@@ -19,7 +20,7 @@ export const HomePage: FunctionComponent<{}> = () => (
         </Hidden>
         <Grid item xs={12} lg={10}>
             <Layout>
-                <DataValidatorAccountSettings/>
+                <DataOwnersTableContainer/>
             </Layout>
         </Grid>
         <Grid item xs={12}>

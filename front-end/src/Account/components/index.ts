@@ -9,3 +9,4 @@ export * from "./GenericAccountRegistrationForm";
 export * from "./SelectedDataValidatorBalance";
 export * from "./ExtendDataOwnerFileStorageDurationDialog";
 export * from "./DataValidatorAccountSelect";
+export * from "./DataOwnersTableContainer";

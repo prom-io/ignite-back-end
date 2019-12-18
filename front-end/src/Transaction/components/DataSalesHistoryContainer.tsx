@@ -1,10 +1,10 @@
-import React, {FunctionComponent, Fragment} from "react";
+import React, {FunctionComponent} from "react";
 import {inject, observer} from "mobx-react";
-import {Card, CardHeader, CardContent, Grid, CircularProgress, Typography} from "@material-ui/core";
+import {Card, CardContent, CardHeader, Grid, Typography} from "@material-ui/core";
 import {TransactionsTable} from "./TransactionsTable";
 import {DataValidatorAccountSelect} from "../../Account";
 import {ApiError} from "../../api";
-import {AccountResponse, TransactionResponse} from "../../models";
+import {TransactionResponse} from "../../models";
 import {IAppState} from "../../store";
 
 interface DataSalesHistoryContainerMobxProps {
@@ -35,7 +35,7 @@ const _DataSalesHistoryContainer: FunctionComponent<DataSalesHistoryContainerMob
         </Grid>
         <Grid item xs={12}>
             {transactions.length === 0 && error && (
-                <Typography variant="h1">
+                <Typography variant="body1">
                     Error occurred when tried to fetch transactions
                 </Typography>
             )}

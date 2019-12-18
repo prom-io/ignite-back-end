@@ -25,12 +25,12 @@ export const TransactionsTable: FunctionComponent<TransactionsTableProps> = ({
                     <Table>
                         <TableHead>
                             <TableRow>
-                                <TableCell>Data Mart (Wallet ID)</TableCell>
-                                <TableCell>Sum</TableCell>
-                                <TableCell>Date</TableCell>
-                                <TableCell>Data owner</TableCell>
-                                <TableCell>Txn Hash</TableCell>
-                                <TableCell>File ID</TableCell>
+                                <TableCell><b>Data Mart (Wallet ID)</b></TableCell>
+                                <TableCell><b>Sum</b></TableCell>
+                                <TableCell><b>Date</b></TableCell>
+                                <TableCell><b>Data owner</b></TableCell>
+                                <TableCell><b>Txn Hash</b></TableCell>
+                                <TableCell><b>File ID</b></TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>

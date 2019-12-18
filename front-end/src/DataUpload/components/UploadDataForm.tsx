@@ -79,6 +79,7 @@ const _UploadDataForm: React.FC<UploadDataFormProps> = ({
                                margin="dense"
                                error={Boolean(errors.price)}
                                helperText={errors.price && errors.price}
+                               defaultValue="1"
                     />
                 </Grid>
                 <Grid item xs={12}>
