@@ -5,7 +5,7 @@ import {ServiceNodeApiClient} from "../service-node-api";
 import {ExtendFileStorageDurationRequest, ICreateServiceNodeFileRequest, IUploadChunkRequest} from "../model/api/request";
 import {CheckFileUploadStatusResponse, ServiceNodeFileResponse} from "../model/api/response";
 import {EntityType} from "../model/entity";
-import {DataOwnersRepository} from "../accounts/DataOwnersRepository";
+import {DataOwnersRepository} from "../accounts";
 import {config} from "../config";
 
 @Injectable()

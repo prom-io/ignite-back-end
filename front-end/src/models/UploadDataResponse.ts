@@ -5,5 +5,6 @@ export interface UploadDataResponse {
     duration: number,
     additional: {
         [key: string]: string
-    }
+    },
+    dataOwner: string
 }

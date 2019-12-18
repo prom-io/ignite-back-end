@@ -7,7 +7,7 @@ import {SettingsStore} from "../../Settings";
 export class CreateDataOwnerStore {
     private readonly settingsStore: SettingsStore;
     private readonly dataOwnersStore: DataOwnersAccountsStore;
-    public readonly dataUpload: UploadDataStore;
+    private readonly dataUpload: UploadDataStore;
 
     @observable
     dataOwnerCreationPending: boolean = false;
@@ -50,6 +50,7 @@ export class CreateDataOwnerStore {
                     this.error = this.dataUpload.submissionError;
                     this.showSnackbar = true;
                     this.dataOwnerCreationPending = false;
+                    this.dataOwnersStore.fetchDataOwners();
                 })
         } else return new Promise<void>(resolve => resolve())
     };

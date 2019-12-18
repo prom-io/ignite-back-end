@@ -183,7 +183,8 @@ export class UploadDataStore {
                             duration: 0,
                             id: ddsFileId!,
                             price: price!,
-                            storagePrice: storagePrice!
+                            storagePrice: storagePrice!,
+                            dataOwner: dataOwner!
                         }
                     }
 
@@ -244,8 +245,6 @@ export class UploadDataStore {
     @action
     isFormValid = (): boolean => {
         const {dataOwnerAddress, name, price} = this.uploadDataForm;
-        console.log(validateFileName(name));
-        console.log(validateAttachedFile(this.attachedFile));
         this.errors = {
             name: validateFileName(name),
             dataOwnerAddress: undefined,

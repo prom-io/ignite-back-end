@@ -129,7 +129,7 @@ const mapMobxToProps = (store: IAppState): UploadDataFormProps => {
         dataValidatorAccount: dataUpload.dataValidatorAccount,
         attachFile: dataUpload.setAttachedFile,
         file: dataUpload.attachedFile,
-        dataOwnerAddress: store.dataUpload.uploadDataForm.dataOwnerAddress
+        dataOwnerAddress: store.dataUpload.response?.dataOwner
     }
 };
 
