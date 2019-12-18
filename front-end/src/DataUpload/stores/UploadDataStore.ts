@@ -159,7 +159,7 @@ export class UploadDataStore {
                     let privateKey: string | undefined;
 
                     while (!fileFullyUploaded && !failed) {
-                        await sleep(30000);
+                        await sleep(5000);
                         const fileUploadingCheckingResponse = await DataUploadService.checkIfLocalFileUploadToDds(localFileRecord.id);
                         failed = fileUploadingCheckingResponse.data.failed;
                         fileFullyUploaded = fileUploadingCheckingResponse.data.fullyUploaded;
