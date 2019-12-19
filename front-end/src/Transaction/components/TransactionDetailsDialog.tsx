@@ -17,7 +17,7 @@ import withMobileDialog, {WithMobileDialog} from "@material-ui/core/withMobileDi
 import {parse, format} from "date-fns";
 import {ExtendDataOwnerFileStorageDurationDialog} from "../../Account";
 import {FileInfoResponse, FileMetadata, TransactionResponse} from "../../models";
-import {getMetadataKeyLabel} from "../../utils";
+import {getMetadataKeyLabel, makePreciseNumberString} from "../../utils";
 import {IAppState} from "../../store";
 
 interface TransactionDetailDialogOwnProps {
@@ -61,7 +61,7 @@ const _TransactionsDetailsDialog: FunctionComponent<TransactionDetailDialogProps
                                 </TableRow>
                                 <TableRow>
                                     <TableCell>Sum</TableCell>
-                                    <TableCell>{transaction?.sum}</TableCell>
+                                    <TableCell>{makePreciseNumberString(transaction?.sum)}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell>Sale date</TableCell>

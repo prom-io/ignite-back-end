@@ -3,6 +3,7 @@ import {Table, TableBody, TableCell, TableHead, TableRow, Typography} from "@mat
 import {DataOwnerDetailsDialog} from "./DataOwnerDetailsDialog";
 import {DataOwnerResponse} from "../../models";
 import {format} from "date-fns";
+import {makePreciseNumberString} from "../../utils";
 
 interface DataOwnersTableProps {
     dataOwners: DataOwnerResponse[]
@@ -39,7 +40,7 @@ export const DataOwnersTable: FunctionComponent<DataOwnersTableProps> = ({
                             </TableCell>
                             <TableCell>{dataOwner.file && format(new Date(dataOwner.file.createdAt), "dd/MM/yyyy")}</TableCell>
                             <TableCell>{dataOwner.file && format(new Date(dataOwner.file.keepUntil), "dd/MM/yyyy")}</TableCell>
-                            <TableCell>{dataOwner.file && dataOwner.file.price}</TableCell>
+                            <TableCell>{dataOwner.file && makePreciseNumberString(dataOwner.file.price)}</TableCell>
                             <TableCell>{dataOwner.file && dataOwner.file.id}</TableCell>
                         </TableRow>
                     ))}
