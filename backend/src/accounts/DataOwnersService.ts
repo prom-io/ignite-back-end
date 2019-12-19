@@ -17,7 +17,9 @@ export class DataOwnersService {
 
     public async findAllDataOwnersByDataValidator(dataValidatorAddress: string): Promise<DataOwnerResponse[]> {
         return (await this.dataOwnersRepository.findByDataValidatorAddress(dataValidatorAddress))
-            .map(dataOwner => dataOwnerToDataOwnerResponse(dataOwner));
+            .map(dataOwner => dataOwnerToDataOwnerResponse(dataOwner))
+            .filter(dataOwner => dataOwner.file !== undefined)
+            .sort((first, second) => new Date(second.file.createdAt).getTime() - new Date(first.file.createdAt).getTime());
     }
 
     public async createDataOwner(createDataOwnerRequest: CreateDataOwnerRequest): Promise<DataOwnerResponse> {
