@@ -3,6 +3,7 @@
 ## Table of contents
 
 - [Description](#description)
+- [How to test](#how-to-test)
 - [License](#license)
 - [How it works](#how-it-works)
 - [How to run](#how-to-run)
@@ -13,7 +14,6 @@
     - [Environmental variables](#environmental-variables)
         - [Bakcend](#backend)
         - [Front-end](#front-end)
-- [How to test](#how-to-test)
 - [Stages of project](#stages-of-project)
     - [What Data Mart node can do now](#what-data-validator-node-can-do-now)
     - [What Data mart node will do in the future](#what-data-validator-node-will-do-in-the-future)
@@ -30,6 +30,9 @@ The payment for the storage of that data is charged at the moment of upload
 via the smart contract. Besides that, Data Validator Node makes initial 
 encryption of uploaded data using the Data Owner's public key.
 
+## How to test
+
+Demo client application can be found [here](http://178.128.240.29/)
 
 ## License
 
@@ -113,11 +116,6 @@ If you want to run Data Mart node outside Docker, you will need to to the follow
 |---------------------------------------|------------------------------------------------------------------|
 | REACT_APP_DATA_VALIDATOR_NODE_API_BASE_URL | URL of backend API                                               |
 | REACT_APP_PRODUCTION_PORT             | Port which will be used by client application in production mode |
-
-
-## How to test
-
-Demo client application can be found [here](http://178.128.240.29/)
 
 ## Stages of project
 
