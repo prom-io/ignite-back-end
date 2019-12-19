@@ -6,7 +6,7 @@ import {
     ListItemIcon,
     ListItemText
 } from "@material-ui/core";
-import HomeIcon from "@material-ui/icons/Home";
+import ContactMailIcon from '@material-ui/icons/ContactMail';
 import AccountIcon from "@material-ui/icons/AccountCircle"
 import MonetizationIcon from "@material-ui/icons/MonetizationOn";
 import {Routes} from "../../router";
@@ -35,9 +35,9 @@ const _NavigationMenu: FunctionComponent<NavigationMenuProps> = ({store, onItemC
         >
             <MenuItem onClick={() => onItemClick && onItemClick()}>
                 <ListItemIcon>
-                    <HomeIcon/>
+                    <ContactMailIcon/>
                 </ListItemIcon>
-                <ListItemText>Home</ListItemText>
+                <ListItemText>Data Owners</ListItemText>
             </MenuItem>
         </Link>
         <Link store={store}
