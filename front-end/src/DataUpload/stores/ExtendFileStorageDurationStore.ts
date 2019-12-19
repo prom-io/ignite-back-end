@@ -74,6 +74,11 @@ export class ExtendFileStorageDurationStore {
                         this.file!.id,
                         this.keepUntil!.toISOString()
                     );
+                    this.transactionsStore.updateStorageDuration(
+                        this.file!.id,
+                        this.keepUntil!.toISOString()
+                    );
+                    this.file = undefined;
                 })
                 .catch((error: AxiosError) => this.error = createErrorFromResponse(error))
                 .finally(() => {

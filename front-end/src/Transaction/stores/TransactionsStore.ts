@@ -45,6 +45,7 @@ export class TransactionsStore {
         reaction(
             () => this.selectedAccount,
             () => {
+                this.transactions = [];
                 this.page = 0;
                 this.fetchTransactions();
             }
@@ -83,5 +84,16 @@ export class TransactionsStore {
         this.transactions = [];
         this.page = 0;
         this.error = undefined;
+    };
+
+    @action
+    updateStorageDuration = (fileId: string, storageDuration: string): void => {
+        this.transactions = this.transactions.map(transaction => {
+            if (transaction.file.id === fileId) {
+                transaction.file.keepUntil = storageDuration;
+            }
+
+            return transaction;
+        })
     }
 }

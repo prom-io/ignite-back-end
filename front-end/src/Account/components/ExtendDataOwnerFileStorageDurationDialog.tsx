@@ -40,15 +40,16 @@ const _ExtendDataOwnerFileStorageDurationDialog: FunctionComponent<ExtendDataOwn
     newStorageDurationDate,
     enqueueSnackbar
 }) => {
-    if (file) {
-        if (showSnackbar) {
-            if (response) {
-                enqueueSnackbar("Storage duration has been extended");
-            } else if (error) {
-                enqueueSnackbar("Error occurred when tried to extend storage duration", {variant: "error"});
-            }
-            setShowSnackbar(false);
+    if (showSnackbar) {
+        if (response) {
+            enqueueSnackbar("Storage duration has been extended");
+        } else if (error) {
+            enqueueSnackbar("Error occurred when tried to extend storage duration", {variant: "error"});
         }
+        setShowSnackbar(false);
+    }
+
+    if (file) {
 
         return (
             <Dialog open={Boolean(file)}
