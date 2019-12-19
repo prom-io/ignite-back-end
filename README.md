@@ -32,7 +32,15 @@ encryption of uploaded data using the Data Owner's public key.
 
 ## How to test
 
-Demo client application can be found [here](http://178.128.240.29/)
+[Here](http://178.128.240.29/) is an instance of app, which is alreay deployed at the stage environent for the demo purposes. 
+So you can test all the essence features of the application using UI: 
+- upload Data Owners' files with their metadata;
+- browse uploaded Data Owners' files list;
+- browse the sales trancastions list;
+- select PROM wallet as the default for the uploads;
+- browse the sales trancastions list.
+
+Here is a [manual](https://github.com/Prometeus-Network/data-validator-node/blob/master/test.md) with screenshots: testing guideline for the operations listed above.
 
 ## License
 
