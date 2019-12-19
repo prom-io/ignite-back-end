@@ -16,7 +16,7 @@ export const DataValidatorAccountSelect: FunctionComponent<DataValidatorAccountS
         <InputLabel htmlFor="dataValidatorSelect">
             Wallet
         </InputLabel>
-        <Select value={selectedAccount}
+        <Select value={selectedAccount || ""}
                 onChange={event => onSelect(event.target.value as string)}
         >
             {accounts.map(account => (

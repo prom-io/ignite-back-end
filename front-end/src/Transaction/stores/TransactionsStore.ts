@@ -16,9 +16,6 @@ export class TransactionsStore {
     transactions: TransactionResponse[] = [];
 
     @observable
-    selectedAccount: string | undefined = undefined;
-
-    @observable
     page: number = 0;
 
     @observable
@@ -28,7 +25,7 @@ export class TransactionsStore {
     error?: ApiError = undefined;
 
     @computed
-    get defaultDataValidatorAccount(): string | undefined {
+    get selectedAccount(): string | undefined {
         return this.settingsStore.selectedDataValidatorAccount;
     }
 
@@ -40,7 +37,6 @@ export class TransactionsStore {
     constructor(settingsStore: SettingsStore, accountsStore: AccountsStore) {
         this.settingsStore = settingsStore;
         this.accountsStore = accountsStore;
-        this.selectedAccount = this.defaultDataValidatorAccount;
 
         reaction(
             () => this.selectedAccount,
@@ -76,7 +72,7 @@ export class TransactionsStore {
 
     @action
     setSelectedAccount = (account: string): void => {
-        this.selectedAccount = account;
+        this.settingsStore.selectDataValidatorAccount(account);
     };
 
     @action
