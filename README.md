@@ -65,7 +65,7 @@ In order to run Data Mart node, you have to install:
 
 Firstly, you need to clone this repository with the following command:
 
-```https://github.com/Prometeus-Network/data-validator-node.git```
+```git clone https://github.com/Prometeus-Network/data-validator-node.git```
 
 After repository is cloned, you need to initialize submodules with the following commands:
 
