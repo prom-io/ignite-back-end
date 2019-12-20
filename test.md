@@ -32,6 +32,18 @@ Then you'll be able to add some metadata for the file. We strongly recommend to 
 
 <img src="https://github.com/Prometeus-Network/prometeus/blob/master/docs/upload2.png" alt="Metadata">
 
+You can also add a few tags, which will facilitate data browsing on the Data Mart's side. Please press plus button on the right side of the input field to add each tag.
+
+<img src="https://github.com/Prometeus-Network/prometeus/blob/master/docs/upload3.png" alt="Tags">
+
+You can see the list of the successfuly added tags.
+
+<img src="https://github.com/Prometeus-Network/prometeus/blob/master/docs/upload4.png" alt="Tags">
+
+
+
+# How to prolong the storage term
+
 
 
 
