@@ -40,6 +40,16 @@ You can see the list of the successfuly added tags.
 
 <img src="https://github.com/Prometeus-Network/prometeus/blob/master/docs/upload4.png" alt="Tags">
 
+When you entered all the neccesary metadata, please attach the file you'd like to upload and click on 'CREATE DATA OWNER' button.
+
+<img src="https://github.com/Prometeus-Network/prometeus/blob/master/docs/upload5.png" alt="Attach the file">
+
+NOTE: It can take up to few minutes ti complete the Data owner creation due to the specificities of the testnet.
+You will see the screen below once the task is complete. Cloase iy or create a new Data Owner if you want.
+
+<img src="https://github.com/Prometeus-Network/prometeus/blob/master/docs/upload6.png" alt="Data Owner created">
+
+
 
 
 # How to prolong the storage term
