@@ -45,15 +45,18 @@ When you entered all the neccesary metadata, please attach the file you'd like t
 <img src="https://github.com/Prometeus-Network/prometeus/blob/master/docs/upload5.png" alt="Attach the file">
 
 NOTE: It can take up to few minutes ti complete the Data owner creation due to the specificities of the testnet.
-You will see the screen below once the task is complete. Cloase iy or create a new Data Owner if you want.
+You will see the screen below once the task is complete. Close it or create a new Data Owner if you want. You can see the storage price here (amount of PROM tokens were billed for storing the file in the Distributed Data Storage), which is written off from your balance.
 
 <img src="https://github.com/Prometeus-Network/prometeus/blob/master/docs/upload6.png" alt="Data Owner created">
 
-
-
-
 # How to prolong the storage term
 
+When the Data owner's storage date is about to end, you would like to extend the storage time, because after that date the file will be automatically deleted from the System and cannot be recovered (only way to return the file to the System is to upload it again).
+Select the desired date and press 'PROLONG THE TERM'. Storage price will be written off from your balance.
+
+<img src="https://github.com/Prometeus-Network/prometeus/blob/master/docs/prolong1.png" alt="Prolong">
+
+NOTE: It can take up to few minutes to complete due to the specificities of the testnet.
 
 
 
