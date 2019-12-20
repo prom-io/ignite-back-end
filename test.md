@@ -18,9 +18,20 @@ Here you can find the [sequence diagram](https://github.com/Prometeus-Network/pr
 
 ## Data owners browsing
 
-The home screen of Data Validdator is the list of Data Owners, previously created by the Data Validator with default wallet (see the default wallet and it's balance in the header). You can change the default wallet with dropdown control above the Data Owners' grid.
+The home screen of Data Validdator is the list of Data Owners, previously created by the Data Validator with default wallet (see the default wallet and it's balance in the header). You can choose another default wallet (see list of [registered wallets](#wallet-registration)) with the dropdown control above the Data Owners' grid - to see the the list of Data Owners, asscoiated with that wallet .
 
 <img src="https://github.com/Prometeus-Network/prometeus/blob/master/docs/upload1.png" alt="1. Data owners browsing">
 
 ## Data owner creation
+
+Press 'CREATE NEW DATA OWNER' button in the upper right corner to create new Data Owner asscoiated with the default wallet. First of all, you will must to choose date until which the Data Owner's file will be stored in the System and it's asking price.
+
+<img src="https://github.com/Prometeus-Network/prometeus/blob/master/docs/upload1a.png" alt="2. Data owners creation">
+
+Then you'll be able to add some metadata for the file. We strongly recommend to fill at least 'Brief Description' to make sense for the prospective buyers what this file is about.
+
+<img src="https://github.com/Prometeus-Network/prometeus/blob/master/docs/upload2.png" alt="Metadata">
+
+
+
 
