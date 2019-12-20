@@ -68,7 +68,7 @@ Here you can see any sales concerning the Data Owners, associated with the curre
 
 <img src="https://github.com/Prometeus-Network/prometeus/blob/master/docs/sales1.png" alt="Sales">
 
-To see any of the files you have created in the previous steps, you need to go to the [Data Mart UI](http://178.62.207.53:3008), select and purchase any of Data Owner's files (see [testing manual](https://github.com/Prometeus-Network/data-mart-node/blob/master/test.md)). You can select it to th see the transaction details.
+To see any of the files you have created in the previous steps, you need to go to the [Data Mart UI](http://178.62.207.53:3008), select and purchase any of Data Owner's files (see [testing manual](https://github.com/Prometeus-Network/data-mart-node/blob/master/test.md)). You can select it to see the transaction details or to prolong the storage term for the Data Owner's file.
 
 <img src="https://github.com/Prometeus-Network/prometeus/blob/master/docs/sales2.png" alt="Sales">
 
