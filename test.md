@@ -18,7 +18,7 @@ Here you can find the [sequence diagram](https://github.com/Prometeus-Network/pr
 
 ## Data owners browsing
 
-The home screen of Data Validdator is the list of Data Owners, previously created by the Data Validator with default wallet (see the default wallet and it's balance in the header). You can choose another default wallet (see list of [registered wallets](#wallet-registration)) with the dropdown control above the Data Owners' grid - to see the the list of Data Owners, asscoiated with that wallet .
+The home screen of Data Validator is the list of Data Owners, previously created by the Data Validator with default wallet (see the default wallet and it's balance in the header). You can choose another default wallet (see list of [registered wallets](#wallet-registration)) with the dropdown control above the Data Owners' grid - to see the the list of Data Owners, asscoiated with that wallet .
 
 <img src="https://github.com/Prometeus-Network/prometeus/blob/master/docs/upload1.png" alt="1. Data owners browsing">
 
