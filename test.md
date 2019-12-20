@@ -64,7 +64,7 @@ NOTE: It can take up to few minutes to complete due to the specificities of the 
 
 ## Data Sales Browsing
 
-Here you can see any sales concerning the Data Owners, associated with the current default wallet.
+Here you can see any sales (i.e. completed data purchase transactions previosule performed by Data Marts) concerning the Data Owners, which are associated with the default wallet.
 
 <img src="https://github.com/Prometeus-Network/prometeus/blob/master/docs/sales1.png" alt="Sales">
 
