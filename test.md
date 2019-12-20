@@ -66,12 +66,17 @@ NOTE: It can take up to few minutes to complete due to the specificities of the 
 
 Here you can see any sales concerning the Data Owners, associated with the current default wallet.
 
-<img src="https://github.com/Prometeus-Network/prometeus/blob/master/docs/sales1.png" alt="">
+<img src="https://github.com/Prometeus-Network/prometeus/blob/master/docs/sales1.png" alt="Sales">
 
-To see any of the files you have created in the previous steps, you need to go to the [Data Mart UI](http://178.62.207.53:3008), select and purchase any of Data Owner's files (see [testing manual](https://github.com/Prometeus-Network/data-mart-node/blob/master/test.md)). You can select it 
+To see any of the files you have created in the previous steps, you need to go to the [Data Mart UI](http://178.62.207.53:3008), select and purchase any of Data Owner's files (see [testing manual](https://github.com/Prometeus-Network/data-mart-node/blob/master/test.md)). You can select it to th see the transaction details.
 
+<img src="https://github.com/Prometeus-Network/prometeus/blob/master/docs/sales2.png" alt="Sales">
 
+The transaction is also viewable in [Prom Blockchain explorer](http://178.62.211.224/).
 
+<img src="https://github.com/Prometeus-Network/prometeus/blob/master/docs/transaction2.png" alt="Transaction">
 
+## Wallet registration
 
-
+Please register the wallet on the 'Register' page to asscoiate it with the this instance of Validator Node.
+You could chooose it as a default wallet later and use to create new Data Owners and earn commission.
