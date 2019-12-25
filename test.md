@@ -83,4 +83,4 @@ The transaction is also viewable in [Prom Blockchain explorer](http://178.62.211
 ## Wallet registration
 
 Please register the wallet on the 'Register' page to asscoiate it with the this instance of Validator Node.
-You could chooose it as a default wallet later and use to create new Data Owners and earn commission.
+You could choose it as a default wallet later and use to create new Data Owners and earn commission.
