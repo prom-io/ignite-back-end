@@ -60,7 +60,7 @@ const _DataSalesHistoryContainer: FunctionComponent<DataSalesHistoryContainerMob
             </Grid>
         </Grid>
     );
-}
+};
 
 const mapMobxToProps = (state: IAppState): DataSalesHistoryContainerMobxProps => ({
     accounts: state.accounts.accounts.map(account => account.address),

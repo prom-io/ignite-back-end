@@ -1,28 +1,22 @@
-import * as React from "react";
-import {
-    Grid,
-    createStyles,
-    withStyles
-} from "@material-ui/core";
+import React, {FunctionComponent} from "react";
+import {createStyles, Grid, makeStyles} from "@material-ui/core";
 
-const styles = createStyles({
-    standardLayout: {
-        paddingLeft: '2.08333333334%',
-        paddingRight: '2.08333333334%',
+const useStyles = makeStyles(() => createStyles({
+    layout: {
+        paddingLeft: "2.08333333334%",
+        paddingRight: "2.08333333334%",
         marginTop: 16
     }
-});
+}));
 
-interface LayoutProps {
-    classes: any
-}
+export const Layout: FunctionComponent = ({children}) => {
+    const classes = useStyles();
 
-const _Layout: React.FC<LayoutProps> = ({classes, children}) => (
-    <Grid container className={classes.standardLayout}>
-        <Grid item xs={12}>
-            {children}
+    return (
+        <Grid container className={classes.layout}>
+            <Grid item xs={12}>
+                {children}
+            </Grid>
         </Grid>
-    </Grid>
-);
-
-export const Layout = withStyles(styles)(_Layout);
+    )
+};

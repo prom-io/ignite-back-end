@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, {FunctionComponent} from "react";
 import {Typography, createStyles, makeStyles} from "@material-ui/core";
 const {version} = require("../../../package.json");
 
@@ -12,7 +12,7 @@ const useStyles = makeStyles(() => createStyles({
     }
 }));
 
-export const Footer: React.FC<{}> = () => {
+export const Footer: FunctionComponent = () => {
     const classes = useStyles();
 
     return (

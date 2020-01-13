@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, {FunctionComponent} from "react";
 import {inject, observer} from "mobx-react";
 import {SwipeableDrawer} from "@material-ui/core";
 import {NavigationMenu} from "../../Navigation";
@@ -9,7 +9,7 @@ interface NavigationalDrawerProps {
     setDrawerOpen: (open: boolean) => void
 }
 
-const _NavigationalDrawer: React.FC<NavigationalDrawerProps> = ({
+const _NavigationalDrawer: FunctionComponent<NavigationalDrawerProps> = ({
     drawerOpen,
     setDrawerOpen
 }) => (
@@ -26,4 +26,4 @@ const mapMobxToProps = (state: IAppState): NavigationalDrawerProps => ({
     drawerOpen: state.drawer.open
 });
 
-export const NavigationalDrawer = inject(mapMobxToProps)(observer(_NavigationalDrawer)) as React.FC<any>;
+export const NavigationalDrawer = inject(mapMobxToProps)(observer(_NavigationalDrawer) as FunctionComponent<{}>);
