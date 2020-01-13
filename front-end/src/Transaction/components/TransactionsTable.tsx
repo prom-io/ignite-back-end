@@ -36,10 +36,10 @@ export const TransactionsTable: FunctionComponent<TransactionsTableProps> = ({
                         <TableBody>
                             {transactions.map(transaction => (
                                 transaction && <TableRow key={transaction.hash}>
-                                    <TableCell>{transaction.dataMart}</TableCell>
+                                    <TableCell>{shortenString(transaction.dataMart, 16)}</TableCell>
                                     <TableCell>{makePreciseNumberString(transaction.sum)}</TableCell>
                                     <TableCell>{format(parse(transaction?.createdAt, "yyyy-MM-dd", new Date()), "dd/MM/yyyy")}</TableCell>
-                                    <TableCell>{transaction.dataOwner.address}</TableCell>
+                                    <TableCell>{shortenString(transaction.dataOwner.address, 16)}</TableCell>
                                     <TableCell>
                                         <Typography variant="body1"
                                                     style={{cursor: 'pointer'}}
@@ -48,7 +48,7 @@ export const TransactionsTable: FunctionComponent<TransactionsTableProps> = ({
                                             <u>{shortenString(transaction.hash, 16)}</u>
                                         </Typography>
                                     </TableCell>
-                                    <TableCell>{transaction.dataOwner.file.id}</TableCell>
+                                    <TableCell>{shortenString(transaction.dataOwner.file.id, 16)}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>

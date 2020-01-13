@@ -1,6 +1,6 @@
 import React, {FunctionComponent} from "react";
 import {inject, observer} from "mobx-react";
-import {Card, CardContent, CardHeader, Grid, Typography} from "@material-ui/core";
+import {Card, CardContent, CardHeader, Grid, Typography, createStyles, makeStyles} from "@material-ui/core";
 import {TransactionsTable} from "./TransactionsTable";
 import {DataValidatorAccountSelect} from "../../Account";
 import {ApiError} from "../../api";
@@ -17,6 +17,12 @@ interface DataSalesHistoryContainerMobxProps {
     fetchTransactions: () => void
 }
 
+const useStyles = makeStyles(() => createStyles({
+    dataSalesCard: {
+        overflowX: "auto"
+    }
+}));
+
 const _DataSalesHistoryContainer: FunctionComponent<DataSalesHistoryContainerMobxProps> = ({
     selectedAccount,
     accounts,
@@ -25,32 +31,36 @@ const _DataSalesHistoryContainer: FunctionComponent<DataSalesHistoryContainerMob
     transactions,
     selectAccount,
     fetchTransactions
-}) => (
-    <Grid container spacing={2}>
-        <Grid item xs={12}>
-            <DataValidatorAccountSelect accounts={accounts}
-                                        onSelect={selectAccount}
-                                        selectedAccount={selectedAccount}
-            />
+}) => {
+    const classes = useStyles();
+
+    return (
+        <Grid container spacing={2}>
+            <Grid item xs={12}>
+                <DataValidatorAccountSelect accounts={accounts}
+                                            onSelect={selectAccount}
+                                            selectedAccount={selectedAccount}
+                />
+            </Grid>
+            <Grid item xs={12}>
+                {transactions.length === 0 && error && (
+                    <Typography variant="body1">
+                        Error occurred when tried to fetch transactions
+                    </Typography>
+                )}
+                <Card className={classes.dataSalesCard}>
+                    <CardHeader title="Data Sales"/>
+                    <CardContent>
+                        <TransactionsTable transactions={transactions}
+                                           pending={pending}
+                                           onFetchMoreRequest={fetchTransactions}
+                        />
+                    </CardContent>
+                </Card>
+            </Grid>
         </Grid>
-        <Grid item xs={12}>
-            {transactions.length === 0 && error && (
-                <Typography variant="body1">
-                    Error occurred when tried to fetch transactions
-                </Typography>
-            )}
-            <Card>
-                <CardHeader title="Data Sales"/>
-                <CardContent>
-                    <TransactionsTable transactions={transactions}
-                                       pending={pending}
-                                       onFetchMoreRequest={fetchTransactions}
-                    />
-                </CardContent>
-            </Card>
-        </Grid>
-    </Grid>
-);
+    );
+}
 
 const mapMobxToProps = (state: IAppState): DataSalesHistoryContainerMobxProps => ({
     accounts: state.accounts.accounts.map(account => account.address),
