@@ -1,13 +1,12 @@
-import * as React from "react";
+import React, {FunctionComponent} from "react";
 import {inject, observer} from "mobx-react";
 import {
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
     Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
     TextField,
-    InputLabel,
     withMobileDialog,
 } from "@material-ui/core";
 import {HashTagsInput} from "./HashTagsInput";
@@ -42,7 +41,7 @@ type AddFileMetaDataDialogProps = AddFileMetaDataDialogMobxProps
     & AddFileMetaDataDialogInjectedPros
     & AddFileMetaDataDialogOwnProps;
 
-const _AddFileMetaDataDialog: React.FC<AddFileMetaDataDialogProps> = ({
+const _AddFileMetaDataDialog: FunctionComponent<AddFileMetaDataDialogProps> = ({
     metaDataKey,
     metaDataValue,
     errors,
@@ -142,4 +141,4 @@ const mapMobxToProps = (state: IAppState): AddFileMetaDataDialogMobxProps => ({
     isFormValid: state.metadataAdding.isFormValid
 });
 
-export const AddFileMetadataDialog = withMobileDialog()(inject(mapMobxToProps)(observer(_AddFileMetaDataDialog))) as React.FC<AddFileMetaDataDialogOwnProps>;
+export const AddFileMetadataDialog = withMobileDialog()(inject(mapMobxToProps)(observer(_AddFileMetaDataDialog))) as FunctionComponent<AddFileMetaDataDialogOwnProps>;

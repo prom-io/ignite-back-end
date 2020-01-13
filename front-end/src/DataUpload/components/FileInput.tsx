@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, {FunctionComponent, Fragment} from "react";
 import {Button, Typography} from "@material-ui/core";
 import AttachIcon from "@material-ui/icons/AttachFileRounded";
 
@@ -7,7 +7,7 @@ interface FileInputProps {
     file?: File
 }
 
-export const FileInput: React.FC<FileInputProps> = ({onFileAttached, file}) => {
+export const FileInput: FunctionComponent<FileInputProps> = ({onFileAttached, file}) => {
     const handleAttachment = (file?: File) => {
         if (file) {
             onFileAttached(file);
@@ -15,7 +15,7 @@ export const FileInput: React.FC<FileInputProps> = ({onFileAttached, file}) => {
     };
 
     return (
-        <React.Fragment>
+        <Fragment>
             <Button variant="contained"
                     component="label"
             >
@@ -31,6 +31,6 @@ export const FileInput: React.FC<FileInputProps> = ({onFileAttached, file}) => {
                 />
             </Button>
             {file && <Typography variant="body1" display="inline">{file.name}</Typography>}
-        </React.Fragment>
+        </Fragment>
     )
 };

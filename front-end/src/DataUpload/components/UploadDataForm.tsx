@@ -1,6 +1,6 @@
-import * as React from "react";
+import React, {Fragment, FunctionComponent} from "react";
 import {inject, observer} from "mobx-react";
-import {CircularProgress, Grid, TextField, Typography} from "@material-ui/core";
+import {Grid, TextField, Typography} from "@material-ui/core";
 import {KeyboardDatePicker} from "@material-ui/pickers";
 import {EditableMetadataTable} from "./EditableMetadataTable";
 import {FileInput} from "./FileInput";
@@ -37,7 +37,7 @@ const getMessageFromError = (apiError: ApiError): string => {
     return "Unknown error occurred when tried to upload file";
 };
 
-const _UploadDataForm: React.FC<UploadDataFormProps> = ({
+const _UploadDataForm: FunctionComponent<UploadDataFormProps> = ({
     uploadDataForm,
     pending,
     errors,
@@ -106,9 +106,9 @@ const _UploadDataForm: React.FC<UploadDataFormProps> = ({
         );
 
     return (
-        <React.Fragment>
+        <Fragment>
             {content}
-        </React.Fragment>
+        </Fragment>
     )
 };
 
@@ -134,4 +134,4 @@ const mapMobxToProps = (store: IAppState): UploadDataFormProps => {
     }
 };
 
-export const UploadDataForm = observer(inject(mapMobxToProps)(_UploadDataForm)) as React.FC<any>;
+export const UploadDataForm = inject(mapMobxToProps)(observer(_UploadDataForm) as FunctionComponent);

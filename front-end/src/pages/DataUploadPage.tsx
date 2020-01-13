@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, {FunctionComponent} from "react";
 import {inject, observer} from "mobx-react";
 import {Grid, Hidden, Typography} from "@material-ui/core";
 import {AppBar} from "../AppBar";
@@ -17,7 +17,7 @@ interface DataUploadPageMobxProps {
     store?: any
 }
 
-const _DataUploadPage: React.FC<DataUploadPageMobxProps> = ({selectedDataValidatorAccount, store}) => {
+const _DataUploadPage: FunctionComponent<DataUploadPageMobxProps> = ({selectedDataValidatorAccount, store}) => {
     let content: React.ReactNode;
 
     if (!selectedDataValidatorAccount) {
@@ -58,4 +58,4 @@ const mapMobxToProps = (state: IAppState): DataUploadPageMobxProps => ({
     selectedDataValidatorAccount: state.settings.selectedDataValidatorAccount
 });
 
-export const DataUploadPage = inject(mapMobxToProps)(observer(_DataUploadPage)) as React.FC<any>;
+export const DataUploadPage = inject(mapMobxToProps)(observer(_DataUploadPage) as FunctionComponent);

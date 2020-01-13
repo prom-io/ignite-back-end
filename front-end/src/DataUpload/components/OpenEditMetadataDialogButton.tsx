@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, {FunctionComponent} from "react";
 import {observer, inject} from "mobx-react";
 import {IconButton, Tooltip} from "@material-ui/core";
 import EditIcon from "@material-ui/icons/Edit";
@@ -14,7 +14,7 @@ interface OpenEditMetadataDialogButtonMobxProps {
 
 type OpenEditMetadataDialogButtonProps = OpenEditMetadataDialogButtonOwnProps & OpenEditMetadataDialogButtonMobxProps;
 
-const _OpenEditMetadataDialogButton: React.FC<OpenEditMetadataDialogButtonProps> = ({
+const _OpenEditMetadataDialogButton: FunctionComponent<OpenEditMetadataDialogButtonProps> = ({
     metadataKey,
     setMetadataKey
 }) => (
@@ -31,4 +31,4 @@ const mapMobxToProps = (state: IAppState): OpenEditMetadataDialogButtonMobxProps
     setMetadataKey: state.metadataEdit.setEditedMetadataKey,
 });
 
-export const OpenEditMetadataDialogButton = inject(mapMobxToProps)(observer(_OpenEditMetadataDialogButton));
+export const OpenEditMetadataDialogButton = inject(mapMobxToProps)(observer(_OpenEditMetadataDialogButton) as FunctionComponent);

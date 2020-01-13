@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, {FunctionComponent} from "react";
 import {inject, observer} from "mobx-react";
 import {
     Grid,
@@ -39,7 +39,7 @@ const getLabelForMetadataEntry = (entry: string | string[] | undefined): string 
     }
 };
 
-const _EditableMetadataTable: React.FC<EditableMetaDataTableProps> = ({
+const _EditableMetadataTable: FunctionComponent<EditableMetaDataTableProps> = ({
     addEntry,
     removeEntry,
     entries
@@ -116,4 +116,4 @@ const mapMobxToProps = (state: IAppState): EditableMetaDataTableProps => ({
     entries: state.dataUpload.uploadDataForm.additional!
 });
 
-export const EditableMetadataTable = inject(mapMobxToProps)(observer(_EditableMetadataTable)) as React.FC<any>;
+export const EditableMetadataTable = inject(mapMobxToProps)(observer(_EditableMetadataTable) as FunctionComponent);

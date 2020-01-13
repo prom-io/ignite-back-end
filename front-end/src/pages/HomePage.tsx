@@ -4,9 +4,7 @@ import {AppBar} from "../AppBar";
 import {Layout} from "../Layout";
 import {NavigationMenu} from "../Navigation";
 import {Footer} from "../Footer";
-import {DataValidatorAccountSettings} from "../Settings";
-import {SelectedDataValidatorBalance} from "../Account";
-import {DataOwnersTableContainer} from "../Account";
+import {DataOwnersTableContainer, SelectedDataValidatorBalance} from "../Account";
 
 export const HomePage: FunctionComponent<{}> = () => (
     <Grid container>

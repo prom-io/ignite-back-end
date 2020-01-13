@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, {FunctionComponent} from "react";
 import {inject, observer} from "mobx-react";
 import {Grid} from "@material-ui/core";
 import {DataValidatorAccountsWithDataOwnersTableList} from "../../Account";
@@ -13,7 +13,7 @@ interface DataValidatorAccountSettingsMobxProps {
     selectAccount: (address: string) => void
 }
 
-const _DataValidatorAccountSettings: React.FC<DataValidatorAccountSettingsMobxProps> = ({
+const _DataValidatorAccountSettings: FunctionComponent<DataValidatorAccountSettingsMobxProps> = ({
     balances,
     accounts,
     selectedAccount,
@@ -40,4 +40,4 @@ const mapMobxToProps = (state: IAppState): DataValidatorAccountSettingsMobxProps
     dataOwners: state.dataOwners.dataOwners
 });
 
-export const DataValidatorAccountSettings = inject(mapMobxToProps)(observer(_DataValidatorAccountSettings)) as React.FC<any>;
+export const DataValidatorAccountSettings = inject(mapMobxToProps)(observer(_DataValidatorAccountSettings) as FunctionComponent);
