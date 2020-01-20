@@ -1,7 +1,7 @@
 import {action, observable} from "mobx";
+import {AxiosError} from "axios";
 import {AccountResponse} from "../../models";
 import {AccountsService, ApiError, createErrorFromResponse} from "../../api";
-import {AxiosError} from "axios";
 
 export class AccountsStore {
     @observable
