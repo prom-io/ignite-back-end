@@ -34,6 +34,9 @@ export class TransactionsStore {
         return this.accountsStore.accounts.map(account => account.address);
     }
 
+    @observable
+    refreshOnAccountChange: boolean = false;
+
     constructor(settingsStore: SettingsStore, accountsStore: AccountsStore) {
         this.settingsStore = settingsStore;
         this.accountsStore = accountsStore;
@@ -41,12 +44,19 @@ export class TransactionsStore {
         reaction(
             () => this.selectedAccount,
             () => {
-                this.transactions = [];
-                this.page = 0;
-                this.fetchTransactions();
+               if (this.refreshOnAccountChange) {
+                   this.transactions = [];
+                   this.page = 0;
+                   this.fetchTransactions();
+               }
             }
         )
     }
+
+    @action
+    setRefreshOnAccountChange = (refreshOnAccountChange: boolean): void => {
+        this.refreshOnAccountChange = refreshOnAccountChange;
+    };
 
     @action
     fetchTransactions = (): void => {

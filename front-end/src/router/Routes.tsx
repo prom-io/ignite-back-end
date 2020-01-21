@@ -24,7 +24,13 @@ export const Routes = {
     transactions: new Route({
         path: '/data-sales',
         component: <DataSalesPage/>,
-        beforeEnter: () => store.transactions.fetchTransactions(),
-        onExit: () => store.transactions.reset()
+        beforeEnter: () => {
+            store.transactions.fetchTransactions();
+            store.transactions.setRefreshOnAccountChange(true);
+        },
+        onExit: () => {
+            store.transactions.reset();
+            store.transactions.setRefreshOnAccountChange(false);
+        }
     })
 };
