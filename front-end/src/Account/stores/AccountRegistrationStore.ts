@@ -100,11 +100,15 @@ export class AccountRegistrationStore {
 
     @action
     isFormValid = (): boolean => {
-        this.formErrors = {
-            address: validateEthereumAddress(this.registrationForm.address),
-            type: validateAccountType(this.registrationForm.type),
-            privateKey: undefined
-        };
+        this.formErrors.address = validateEthereumAddress(this.registrationForm.address);
+
+        if (!this.formErrors.address) {
+            this.formErrors = {
+                address: this.formErrors.address,
+                type: validateAccountType(this.registrationForm.type),
+                privateKey: validatePrivateKey(this.registrationForm.address!, this.web3, this.registrationForm.privateKey)
+            }
+        }
 
         return !(Boolean(this.formErrors.address || this.formErrors.type))
     };
