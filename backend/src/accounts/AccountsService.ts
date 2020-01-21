@@ -24,7 +24,11 @@ export class AccountsService {
                 address: createDataValidatorAccountRequest.address,
                 type: AccountType.DATA_VALIDATOR
             });
-            await this.accountsRepository.save({address: createDataValidatorAccountRequest.address, _type: EntityType.ACCOUNT});
+            await this.accountsRepository.save({
+                address: createDataValidatorAccountRequest.address,
+                privateKey: createDataValidatorAccountRequest.privateKey,
+                _type: EntityType.ACCOUNT
+            });
         } catch (error) {
             if (error.response) {
                 if (error.response.status === 400) {

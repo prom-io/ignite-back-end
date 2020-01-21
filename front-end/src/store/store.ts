@@ -1,3 +1,4 @@
+import Web3 from "web3";
 import {IAppState} from "./IAppState";
 import {
     AccountRegistrationStore,
@@ -21,8 +22,7 @@ const accounts = new AccountsStore();
 const balances = new AccountsBalanceStore(accounts);
 const settings = new SettingsStore(accounts);
 const dataUpload = new UploadDataStore(settings);
-const registration = new AccountRegistrationStore(accounts, AccountType.DATA_VALIDATOR);
-const dataValidatorRegistration = new AccountRegistrationStore(accounts, AccountType.DATA_VALIDATOR);
+const registration = new AccountRegistrationStore(accounts, AccountType.DATA_VALIDATOR, new Web3());
 const dataOwners = new DataOwnersAccountsStore(accounts);
 const createDataOwner = new CreateDataOwnerStore(settings, dataOwners, dataUpload);
 const transactions = new TransactionsStore(settings, accounts);
@@ -39,7 +39,6 @@ export const store: IAppState = {
     balances,
     dataOwners,
     createDataOwner,
-    dataValidatorRegistration,
     transactions,
     fileStorageDurationExtension
 };

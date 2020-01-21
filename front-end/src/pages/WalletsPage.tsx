@@ -4,9 +4,14 @@ import {AppBar} from "../AppBar";
 import {Layout} from "../Layout";
 import {Footer} from "../Footer";
 import {NavigationMenu} from "../Navigation";
-import {DataValidatorAccountRegistrationForm, SelectedDataValidatorBalance} from "../Account";
+import {
+    AccountsTable,
+    OpenAccountRegistrationDialogButton,
+    RegisterAccountDialog,
+    SelectedDataValidatorBalance
+} from "../Account";
 
-export const DataValidatorRegistrationPage: FunctionComponent<{}> = () => (
+export const WalletsPage: FunctionComponent<{}> = () => (
     <Grid container>
         <Grid item xs={12}>
             <AppBar sideBarItem={<SelectedDataValidatorBalance/>}/>
@@ -18,7 +23,13 @@ export const DataValidatorRegistrationPage: FunctionComponent<{}> = () => (
         </Hidden>
         <Grid item xs={12} lg={10}>
             <Layout>
-                <DataValidatorAccountRegistrationForm/>
+                <Grid item xs={12}>
+                    <OpenAccountRegistrationDialogButton/>
+                </Grid>
+                <Grid item xs={12}>
+                    <AccountsTable/>
+                </Grid>
+                <RegisterAccountDialog/>
             </Layout>
         </Grid>
         <Grid item xs={12}>

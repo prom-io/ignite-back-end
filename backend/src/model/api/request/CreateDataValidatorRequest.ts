@@ -1,4 +1,5 @@
 import {IsString, IsNotEmpty, Matches} from "class-validator";
+import {IsValidEthereumPrivateKey} from "../../../utils/validation";
 
 export class CreateDataValidatorRequest {
     @IsString({message: "Address must be string"})
@@ -11,7 +12,13 @@ export class CreateDataValidatorRequest {
     )
     public address: string;
 
-    constructor(address: string) {
+    @IsString({message: "Private key must be string"})
+    @IsNotEmpty({message: "Private key must not be empty"})
+    @IsValidEthereumPrivateKey("address")
+    public privateKey: string;
+
+    constructor(address: string, privateKey: string) {
         this.address = address;
+        this.privateKey = privateKey;
     }
 }

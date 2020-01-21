@@ -2,8 +2,8 @@ import React, {FunctionComponent} from "react";
 import {inject} from "mobx-react";
 import {createStyles, List, ListItemIcon, ListItemText, makeStyles, MenuItem} from "@material-ui/core";
 import ContactMailIcon from '@material-ui/icons/ContactMail';
-import AccountIcon from "@material-ui/icons/AccountCircle"
 import MonetizationIcon from "@material-ui/icons/MonetizationOn";
+import AccountBalanceWalletIcon from "@material-ui/icons/AccountBalanceWallet";
 import {Routes} from "../../router";
 import {IAppState} from "../../store";
 
@@ -54,15 +54,15 @@ const _NavigationMenu: FunctionComponent<NavigationMenuProps> = ({store, onItemC
                 </MenuItem>
             </Link>
             <Link store={store}
-                  view={Routes.registration}
+                  view={Routes.wallets}
                   className={classes.undecoratedLink}
             >
                 <MenuItem onClick={() => onItemClick && onItemClick()}>
                     <ListItemIcon>
-                        <AccountIcon/>
+                        <AccountBalanceWalletIcon/>
                     </ListItemIcon>
                     <ListItemText>
-                        Register
+                        Wallets
                     </ListItemText>
                 </MenuItem>
             </Link>
