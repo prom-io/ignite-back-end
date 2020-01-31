@@ -1,4 +1,4 @@
-import {AccountType} from "../../../model/entity";
+import {AccountType} from "../AccountType";
 
 export interface CreateAccountRequest {
     address: string,

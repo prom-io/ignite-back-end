@@ -1,5 +1,6 @@
 import {Injectable} from "@nestjs/common";
-import {DataOwnerResponse, ServiceNodeTransactionResponse, TransactionResponse, TransactionType} from "../model/api/response";
+import {ServiceNodeTransactionResponse, TransactionResponse, TransactionType} from "./types/response";
+import {DataOwnerResponse} from "../accounts/types/response";
 import {DataOwnersService} from "../accounts/DataOwnersService";
 import {FilesService} from "../files/FilesService";
 import {ServiceNodeApiClient} from "../service-node-api";

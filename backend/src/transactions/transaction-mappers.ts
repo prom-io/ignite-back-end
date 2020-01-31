@@ -1,4 +1,6 @@
-import {DataOwnerResponse, FileResponse, ServiceNodeTransactionResponse, TransactionResponse} from "../model/api/response";
+import {TransactionResponse, ServiceNodeTransactionResponse} from "./types/response";
+import {FileResponse} from "../files/types/response";
+import {DataOwnerResponse} from "../accounts/types/response";
 
 // tslint:disable-next-line:max-line-length
 export const serviceNodeTransactionToTransactionResponse = (serviceNodeTransaction: ServiceNodeTransactionResponse, file: FileResponse, dataOwner: DataOwnerResponse): TransactionResponse => ({

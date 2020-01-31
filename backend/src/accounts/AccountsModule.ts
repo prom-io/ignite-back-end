@@ -10,6 +10,6 @@ import {ServiceNodeApiClientModule} from "../service-node-api";
     controllers: [AccountsController],
     providers: [AccountsService, AccountsRepository, DataOwnersService, DataOwnersRepository],
     imports: [ServiceNodeApiClientModule],
-    exports: [DataOwnersService, DataOwnersRepository]
+    exports: [DataOwnersService, DataOwnersRepository, AccountsRepository]
 })
 export class AccountsModule {}

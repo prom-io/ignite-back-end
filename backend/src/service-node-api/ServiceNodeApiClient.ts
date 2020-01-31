@@ -4,9 +4,9 @@ import {BalanceResponse, DataOwnersOfDataValidatorResponse} from "../accounts/ty
 import {CheckFileUploadStatusResponse, DdsFileResponse, ServiceNodeFileResponse} from "../files/types/response";
 import {ExtendFileStorageDurationRequest, ICreateServiceNodeFileRequest, IUploadChunkRequest} from "../files/types/request"
 import {CreateAccountRequest, ICreateDataOwnerRequest} from "../accounts/types/request";
-import {ServiceNodeTransactionResponse,} from "../transactions/types/response";
+import {ServiceNodeTransactionResponse, TransactionType} from "../transactions/types/response";
 import {RoundRobinLoadBalancerClient} from "../discovery";
-import {ISignedRequest, Signature} from "./ISignedRequest";
+import {ISignedRequest} from "./ISignedRequest";
 
 @Injectable()
 export class ServiceNodeApiClient {

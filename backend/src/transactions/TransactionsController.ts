@@ -1,6 +1,6 @@
 import {Controller, Get, Query} from "@nestjs/common";
 import {TransactionsService} from "./TransactionsService";
-import {TransactionResponse, TransactionType} from "../model/api/response";
+import {TransactionResponse, TransactionType} from "./types/response";
 import {getValidPage, getValidPageSize} from "../utils/pagination";
 
 @Controller("api/v3/transactions")
