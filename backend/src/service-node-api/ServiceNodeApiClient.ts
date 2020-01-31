@@ -1,20 +1,10 @@
 import {Inject, Injectable} from "@nestjs/common";
 import {AxiosInstance, AxiosPromise} from "axios";
-import {
-    BalanceResponse,
-    CheckFileUploadStatusResponse,
-    DataOwnersOfDataValidatorResponse,
-    DdsFileResponse,
-    ServiceNodeFileResponse,
-    ServiceNodeTransactionResponse, TransactionType
-} from "../model/api/response";
-import {
-    ExtendFileStorageDurationRequest,
-    ICreateAccountRequest,
-    ICreateDataOwnerRequest,
-    ICreateServiceNodeFileRequest,
-    IUploadChunkRequest
-} from "../model/api/request";
+import {BalanceResponse, DataOwnersOfDataValidatorResponse} from "../accounts/types/response";
+import {CheckFileUploadStatusResponse, DdsFileResponse, ServiceNodeFileResponse} from "../files/types/response";
+import {ExtendFileStorageDurationRequest, ICreateServiceNodeFileRequest, IUploadChunkRequest} from "../files/types/request"
+import {CreateAccountRequest, ICreateDataOwnerRequest} from "../accounts/types/request";
+import {ServiceNodeTransactionResponse,} from "../transactions/types/response";
 import {RoundRobinLoadBalancerClient} from "../discovery";
 
 @Injectable()
@@ -54,7 +44,7 @@ export class ServiceNodeApiClient {
         return this.axios.get(`${this.getUrl()}/api/v1/accounts/${address}/balance`);
     }
 
-    public registerAccount(createAccountRequest: ICreateAccountRequest): AxiosPromise<void> {
+    public registerAccount(createAccountRequest: CreateAccountRequest): AxiosPromise<void> {
         return this.axios.post(`${this.getUrl()}/api/v1/accounts`, createAccountRequest);
     }
 

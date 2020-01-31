@@ -1,15 +1,10 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import {AccountsRepository} from "./AccountsRepository";
 import {accountToAccountResponse} from "./account-mappers";
+import {AccountResponse, BalanceResponse, BalancesResponse, DataOwnersOfDataValidatorResponse} from "./types/response";
+import {CreateDataValidatorRequest, ICreateDataOwnerRequest} from "./types/request";
 import {ServiceNodeApiClient} from "../service-node-api";
 import {AccountType, EntityType} from "../model/entity";
-import {
-    AccountResponse,
-    BalanceResponse,
-    BalancesResponse,
-    DataOwnersOfDataValidatorResponse
-} from "../model/api/response";
-import {ICreateDataOwnerRequest, CreateDataValidatorRequest} from "../model/api/request";
 
 @Injectable()
 export class AccountsService {

@@ -1,4 +1,4 @@
-import {FileMetadata} from "../../entity";
+import {FileMetadata} from "../../../model/entity";
 
 export interface ServiceNodeFileResponse {
     id: string,

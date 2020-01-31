@@ -1,7 +1,7 @@
 import {Inject, Injectable} from "@nestjs/common";
 import {AxiosInstance, AxiosPromise} from "axios";
-import {EncryptorServiceResponse, GenerateRsaKeyPairResponse, RsaEncryptResponse} from "../model/api/response";
-import {EncryptorServiceMethod, EncryptorServiceRequest, RsaDecryptRequest, RsaEncryptRequest} from "../model/api/request";
+import {EncryptorServiceResponse, GenerateRsaKeyPairResponse, RsaEncryptResponse} from "./types/response";
+import {EncryptorServiceMethod, EncryptorServiceRequest, RsaDecryptRequest, RsaEncryptRequest} from "./types/request";
 
 // @Injectable()
 export class EncryptorServiceClient {

@@ -1,10 +1,10 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import {AxiosError} from "axios";
+import {ExtendFileStorageDurationRequest, ICreateServiceNodeFileRequest, IUploadChunkRequest} from "./types/request";
+import {CheckFileUploadStatusResponse, ServiceNodeFileResponse} from "./types/response";
 import {FilesRepository} from "./FilesRepository";
 import {ServiceNodeApiClient} from "../service-node-api";
-import {ExtendFileStorageDurationRequest, ICreateServiceNodeFileRequest, IUploadChunkRequest} from "../model/api/request";
-import {CheckFileUploadStatusResponse, ServiceNodeFileResponse} from "../model/api/response";
-import {EntityType} from "../model/entity";
+import {EntityType} from "../nedb/entity";
 import {DataOwnersRepository} from "../accounts";
 import {config} from "../config";
 

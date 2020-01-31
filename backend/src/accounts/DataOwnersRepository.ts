@@ -1,6 +1,7 @@
 import {Injectable} from "@nestjs/common";
 import DataStore from "nedb";
-import {DataOwner, EntityType} from "../model/entity";
+import {DataOwner} from "./types/entity";
+import {EntityType} from "../nedb/entity";
 
 @Injectable()
 export class DataOwnersRepository {

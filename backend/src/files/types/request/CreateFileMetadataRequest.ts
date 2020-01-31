@@ -19,7 +19,7 @@ export class CreateFileMetadataRequest {
 
     @IsString({message: "User comment must be a string"})
     @MaxLength(120, {message: "User comment can include up to 120 characters"})
-    public userComment?: string
+    public userComment?: string;
 
     constructor(briefDescription: string, fullDescription: string, hashTags: string[], author: string, userComment: string) {
         this.briefDescription = briefDescription;

@@ -1,6 +1,6 @@
 import {Account, DataOwner, EntityType} from "../model/entity";
-import {CreateDataOwnerRequest} from "../model/api/request";
-import {AccountResponse, DataOwnerResponse} from "../model/api/response";
+import {CreateDataOwnerRequest} from "./types/request";
+import {AccountResponse, DataOwnerResponse} from "./types/response";
 import {fileToFileResponse} from "../files/file-mappers";
 
 export const accountToAccountResponse = (account: Account): AccountResponse => ({

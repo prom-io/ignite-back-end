@@ -1,5 +1,5 @@
-import {File} from "./File";
-import {IBaseEntity} from "./IBaseEntity";
+import {File} from "../../../files/types/entity/File";
+import {IBaseEntity} from "../../../nedb/entity";
 
 export interface DataOwner extends IBaseEntity {
     address: string,

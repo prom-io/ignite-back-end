@@ -1,7 +1,7 @@
 import {Controller, Body, Param, Post, Get, Delete, Patch} from "@nestjs/common";
 import {FilesService} from "./FilesService";
-import {CreateServiceNodeFileRequest, ExtendFileStorageDurationRequest, UploadChunkRequest} from "../model/api/request";
-import {CheckFileUploadStatusResponse, ServiceNodeFileResponse} from "../model/api/response";
+import {CreateServiceNodeFileRequest, ExtendFileStorageDurationRequest, UploadChunkRequest} from "./types/request";
+import {CheckFileUploadStatusResponse, ServiceNodeFileResponse} from "./types/response";
 
 @Controller("api/v3/files")
 export class FilesController {

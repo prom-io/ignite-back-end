@@ -1,5 +1,5 @@
-import {File} from "../model/entity";
-import {FileResponse} from "../model/api/response";
+import {File} from "./types/entity";
+import {FileResponse} from "./types/response";
 
 export const fileToFileResponse = (file: File): FileResponse => ({
     id: file.id,

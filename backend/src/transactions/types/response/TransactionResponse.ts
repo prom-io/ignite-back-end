@@ -1,6 +1,6 @@
-import {FileResponse} from "./FileResponse";
-import {DataOwnerResponse} from "./DataOwnerResponse";
 import {TransactionType} from "./TransactionType";
+import {FileResponse} from "../../../files/types/response";
+import {DataOwnerResponse} from "../../../accounts/types/response";
 
 export interface TransactionResponse {
     dataMart: string,

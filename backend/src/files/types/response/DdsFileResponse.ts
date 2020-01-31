@@ -1,17 +1,15 @@
-import {FileMetadata} from "./FileMetadata";
-import {IBaseEntity} from "./IBaseEntity";
+import {FileMetadata} from "../../../model/entity";
 
-export interface File extends IBaseEntity {
+export interface DdsFileResponse {
     id: string,
     metadata: FileMetadata,
     dataValidator: string,
     dataOwner: string,
     serviceNode: string,
-    createdAt: string,
     keepUntil: string,
     extension: string,
     mimeType: string,
     size: number,
-    name: string,
-    price: number
+    price: number,
+    name: string
 }

@@ -1,4 +1,4 @@
-import {FileResponse} from "./FileResponse";
+import {FileResponse} from "../../../files/types/response/FileResponse";
 
 export interface DataOwnerResponse {
     address: string,

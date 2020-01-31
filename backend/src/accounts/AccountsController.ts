@@ -1,8 +1,8 @@
 import {Body, Controller, Get, Param, Post} from "@nestjs/common";
 import {AccountsService} from "./AccountsService";
 import {DataOwnersService} from "./DataOwnersService";
-import {CreateDataValidatorRequest} from "../model/api/request";
-import {AccountResponse, BalanceResponse, BalancesResponse, DataOwnersOfDataValidatorResponse} from "../model/api/response";
+import {CreateDataValidatorRequest} from "./types/request";
+import {AccountResponse, BalanceResponse, BalancesResponse, DataOwnersOfDataValidatorResponse} from "./types/response";
 
 @Controller("api/v3/accounts")
 export class AccountsController {
