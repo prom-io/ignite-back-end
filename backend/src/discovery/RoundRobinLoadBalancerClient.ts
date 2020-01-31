@@ -30,6 +30,21 @@ export class RoundRobinLoadBalancerClient extends NestSchedule {
         }
     }
 
+    public async getServiceNodesByAddressAndType(address: string, type: NodeType): Promise<RegisteredNodeInstance[]> {
+        const nodes = this.nodeInstances
+            .filter(node => node.type === type)
+            .filter(node => node.addresses.includes(address));
+
+        if (nodes.length !== 0) {
+            return nodes;
+        } else {
+            await this.refreshInstances();
+            return this.nodeInstances
+                .filter(node => node.type === type)
+                .filter(node => node.addresses.includes(address))
+        }
+    }
+
     @Cron("*/10 * * * *", {
         immediate: true,
         waiting: true
