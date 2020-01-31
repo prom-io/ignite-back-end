@@ -1,4 +1,4 @@
-import {Account, DataOwner} from ".types/entity";
+import {Account, DataOwner} from "./types/entity";
 import {CreateDataOwnerRequest} from "./types/request";
 import {AccountResponse, DataOwnerResponse} from "./types/response";
 import {fileToFileResponse} from "../files/file-mappers";
