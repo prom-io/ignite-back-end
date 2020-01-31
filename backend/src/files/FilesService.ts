@@ -7,19 +7,34 @@ import {ServiceNodeApiClient} from "../service-node-api";
 import {EntityType} from "../nedb/entity";
 import {DataOwnersRepository} from "../accounts";
 import {config} from "../config";
+import {ServiceNodeTemporaryFile} from "./types/entity";
+import {AccountsRepository} from "../accounts/AccountsRepository";
+import {Web3Wrapper} from "../web3";
+import {ServiceNodeTemporaryFilesRepository} from "./ServiceNodeTemporaryFilesRepository";
 
 @Injectable()
 export class FilesService {
     constructor(private readonly filesRepository: FilesRepository,
                 private readonly dataOwnersRepository: DataOwnersRepository,
-                private readonly serviceNodeClient: ServiceNodeApiClient) {}
+                private readonly serviceNodeTemporaryFilesRepository: ServiceNodeTemporaryFilesRepository,
+                private readonly accountsRepository: AccountsRepository,
+                private readonly serviceNodeClient: ServiceNodeApiClient,
+                private readonly web3Wrapper: Web3Wrapper) {}
 
     public async createServiceNodeFile(createServiceNodeFileRequest: ICreateServiceNodeFileRequest): Promise<ServiceNodeFileResponse> {
         try {
-            return (await this.serviceNodeClient.createServiceNodeFile({
+            const serviceNodeResponse = (await this.serviceNodeClient.createServiceNodeFile({
                 ...createServiceNodeFileRequest,
                 serviceNodeAddress: config.SERVICE_NODE_ACCOUNT_ADDRESS
             })).data;
+            const serviceNodeFile: ServiceNodeTemporaryFile = {
+                _type: EntityType.SERVICE_NODE_TEMPORARY_FILE,
+                dataValidatorAddress: createServiceNodeFileRequest.dataValidatorAddress,
+                ddsFileId: undefined,
+                id: serviceNodeResponse.id
+            };
+            await this.serviceNodeTemporaryFilesRepository.save(serviceNodeFile);
+            return serviceNodeResponse;
         } catch (error) {
             this.handleServiceNodeError(error);
         }
@@ -73,7 +88,14 @@ export class FilesService {
 
     public async uploadFileToDds(serviceNodeFileId: string): Promise<{success: boolean}> {
         try {
-            return (await this.serviceNodeClient.uploadFileToDds(serviceNodeFileId)).data;
+            const serviceNodeFile = await this.serviceNodeTemporaryFilesRepository.findById(serviceNodeFileId);
+            const account = await this.accountsRepository.findByAddress(serviceNodeFile.dataValidatorAddress);
+            const dataToSing = {serviceNodeFileId};
+            const signedData = this.web3Wrapper.signData(dataToSing, account.privateKey);
+            return (await this.serviceNodeClient.uploadFileToDds(
+                serviceNodeFileId,
+                {signature: signedData}
+            )).data;
         } catch (error) {
             this.handleServiceNodeError(error);
         }

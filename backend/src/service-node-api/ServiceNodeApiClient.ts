@@ -6,6 +6,7 @@ import {ExtendFileStorageDurationRequest, ICreateServiceNodeFileRequest, IUpload
 import {CreateAccountRequest, ICreateDataOwnerRequest} from "../accounts/types/request";
 import {ServiceNodeTransactionResponse,} from "../transactions/types/response";
 import {RoundRobinLoadBalancerClient} from "../discovery";
+import {ISignedRequest, Signature} from "./ISignedRequest";
 
 @Injectable()
 export class ServiceNodeApiClient {
@@ -20,7 +21,7 @@ export class ServiceNodeApiClient {
         return this.axios.post(`${this.getUrl()}/api/v1/files/local/${serviceNodeFileId}/chunk`, uploadFileChunkRequest);
     }
 
-    public uploadFileToDds(serviceNodeFileId: string): AxiosPromise<{success: boolean}> {
+    public uploadFileToDds(serviceNodeFileId: string, uploadRequest: ISignedRequest): AxiosPromise<{success: boolean}> {
         return this.axios.post(`${this.getUrl()}/api/v1/files/local/${serviceNodeFileId}/to-dds`);
     }
 
