@@ -18,4 +18,7 @@ export class EnvConfig {
 
     @Env({required: true, type: "string"})
     ENCRYPTOR_SERVICE_URL: string;
+
+    @Env({required: true, type: "string"})
+    INITIAL_ACCOUNT_PRIVATE_KEY: string;
 }
