@@ -1,7 +1,6 @@
 import React, {Fragment} from "react";
 import {inject, observer} from "mobx-react";
-import {CircularProgress, IconButton, Tooltip, Button} from "@material-ui/core";
-import AddIcon from "@material-ui/icons/Add";
+import {Button} from "@material-ui/core";
 import {withSnackbar, WithSnackbarProps} from "notistack";
 import {ApiError} from "../../api";
 import {IAppState} from "../../store";
