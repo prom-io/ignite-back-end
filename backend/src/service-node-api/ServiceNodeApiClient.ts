@@ -1,17 +1,20 @@
 import {Inject, Injectable} from "@nestjs/common";
 import {AxiosInstance, AxiosPromise} from "axios";
+import {LoggerService} from "nest-logger";
+import {RegisterAccountRequest, SignedRequest} from "./types/request";
+import {AccountRegistrationStatusResponse} from "./types/response";
 import {BalanceResponse, DataOwnersOfDataValidatorResponse} from "../accounts/types/response";
 import {CheckFileUploadStatusResponse, DdsFileResponse, ServiceNodeFileResponse} from "../files/types/response";
 import {ExtendFileStorageDurationRequest, ICreateServiceNodeFileRequest, IUploadChunkRequest} from "../files/types/request"
-import {CreateAccountRequest, ICreateDataOwnerRequest} from "../accounts/types/request";
+import {ICreateDataOwnerRequest} from "../accounts/types/request";
 import {ServiceNodeTransactionResponse, TransactionType} from "../transactions/types/response";
 import {RoundRobinLoadBalancerClient} from "../discovery";
-import {ISignedRequest} from "./ISignedRequest";
 
 @Injectable()
 export class ServiceNodeApiClient {
     constructor(@Inject("serviceNodeApiAxios") private readonly axios: AxiosInstance,
-                private readonly loadBalancerClient: RoundRobinLoadBalancerClient) {};
+                private readonly loadBalancerClient: RoundRobinLoadBalancerClient,
+                private readonly log: LoggerService) {};
 
     public createServiceNodeFile(createServiceNodeFileRequest: ICreateServiceNodeFileRequest): AxiosPromise<ServiceNodeFileResponse> {
         return this.axios.post(`${this.getUrl()}/api/v1/files/local`, createServiceNodeFileRequest);
@@ -21,7 +24,7 @@ export class ServiceNodeApiClient {
         return this.axios.post(`${this.getUrl()}/api/v1/files/local/${serviceNodeFileId}/chunk`, uploadFileChunkRequest);
     }
 
-    public uploadFileToDds(serviceNodeFileId: string, uploadRequest: ISignedRequest): AxiosPromise<{success: boolean}> {
+    public uploadFileToDds(serviceNodeFileId: string, uploadRequest: SignedRequest): AxiosPromise<{success: boolean}> {
         return this.axios.post(`${this.getUrl()}/api/v1/files/local/${serviceNodeFileId}/to-dds`);
     }
 
@@ -45,8 +48,12 @@ export class ServiceNodeApiClient {
         return this.axios.get(`${this.getUrl()}/api/v1/accounts/${address}/balance`);
     }
 
-    public registerAccount(createAccountRequest: CreateAccountRequest): AxiosPromise<void> {
-        return this.axios.post(`${this.getUrl()}/api/v1/accounts`, createAccountRequest);
+    public registerAccount(registerAccountRequest: RegisterAccountRequest): AxiosPromise<void> {
+        return this.axios.post(`${this.getUrl()}/api/v1/accounts`, registerAccountRequest);
+    }
+
+    public isAccountRegistered(address: string): AxiosPromise<AccountRegistrationStatusResponse> {
+        return this.axios.get(`${this.getUrl()}/api/v1/accounts/${address}/is-registered`);
     }
 
     public registerDataOwner(createDataOwnerRequest: ICreateDataOwnerRequest): AxiosPromise<DataOwnersOfDataValidatorResponse> {
@@ -68,6 +75,8 @@ export class ServiceNodeApiClient {
 
     private getUrl(): string {
         const serviceNodeInstance = this.loadBalancerClient.getServiceNodeInstance();
-        return `http://${serviceNodeInstance.ipAddress}:${serviceNodeInstance.port}`;
+        this.log.debug(`Chosen Service node instance IP: ${serviceNodeInstance.ipAddress}`);
+        // return `http://${serviceNodeInstance.ipAddress}:${serviceNodeInstance.port}`;
+        return "http://localhost:2000"
     }
 }

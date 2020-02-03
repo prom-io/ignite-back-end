@@ -1,3 +1,3 @@
 export * from "./ServiceNodeApiClient";
 export * from "./ServiceNodeApiClientModule";
-export * from "./ISignedRequest";
+export * from "./types/request/";

@@ -4,28 +4,57 @@ import {accountToAccountResponse} from "./account-mappers";
 import {AccountType} from "./types";
 import {AccountResponse, BalanceResponse, BalancesResponse, DataOwnersOfDataValidatorResponse} from "./types/response";
 import {CreateDataValidatorRequest, ICreateDataOwnerRequest} from "./types/request";
-import {ServiceNodeApiClient} from "../service-node-api";
+import {RegisterAccountRequest, ServiceNodeApiClient} from "../service-node-api";
 import {EntityType} from "../nedb/entity";
+import {Web3Wrapper} from "../web3";
+import {AccountRegistrationStatusResponse} from "../service-node-api/types/response";
 
 @Injectable()
 export class AccountsService {
     constructor(private readonly accountsRepository: AccountsRepository,
-                private readonly serviceNodeClient: ServiceNodeApiClient) {
-
+                private readonly serviceNodeClient: ServiceNodeApiClient,
+                private readonly web3Wrapper: Web3Wrapper) {
     }
 
     public async createDataValidatorAccount(createDataValidatorAccountRequest: CreateDataValidatorRequest): Promise<void> {
         try {
-            await this.serviceNodeClient.registerAccount({
+            const accountRegistrationStatusResponse: AccountRegistrationStatusResponse = (
+                await this.serviceNodeClient.isAccountRegistered(createDataValidatorAccountRequest.address)
+            ).data;
+
+            if (accountRegistrationStatusResponse.registered) {
+                if (accountRegistrationStatusResponse.role === AccountType.DATA_VALIDATOR) {
+                    await this.accountsRepository.save({
+                        address: createDataValidatorAccountRequest.address,
+                        privateKey: createDataValidatorAccountRequest.privateKey,
+                        _type: EntityType.ACCOUNT
+                    });
+                    return;
+                } else {
+                    throw new HttpException(
+                        `Account with ${createDataValidatorAccountRequest.address} has already been registered and it's not data validator`,
+                        HttpStatus.CONFLICT
+                    );
+                }
+            }
+
+            const registerAccountRequest: RegisterAccountRequest = {
                 address: createDataValidatorAccountRequest.address,
-                type: AccountType.DATA_VALIDATOR
-            });
+                type: AccountType.DATA_VALIDATOR,
+                signature: null
+            };
+            registerAccountRequest.signature = this.web3Wrapper.signData(registerAccountRequest, createDataValidatorAccountRequest.privateKey);
+            await this.serviceNodeClient.registerAccount(registerAccountRequest);
             await this.accountsRepository.save({
                 address: createDataValidatorAccountRequest.address,
                 privateKey: createDataValidatorAccountRequest.privateKey,
                 _type: EntityType.ACCOUNT
             });
         } catch (error) {
+            if (error instanceof HttpException) {
+                throw error;
+            }
+
             if (error.response) {
                 if (error.response.status === 400) {
                     throw new HttpException(
