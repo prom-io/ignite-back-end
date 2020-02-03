@@ -20,18 +20,18 @@ import {FileInfoResponse, FileMetadata, TransactionResponse} from "../../models"
 import {getMetadataKeyLabel, makePreciseNumberString} from "../../utils";
 import {IAppState} from "../../store";
 
-interface TransactionDetailDialogOwnProps {
+interface DataSaleDetailsDialogOwnProps {
     transaction?: TransactionResponse,
     onClose: () => void
 }
 
-interface TransactionDetailsDialogMobxProps {
+interface DataSaleDetailsDialogMobxProps {
     setExtendFileStorageDurationFile: (file?: FileInfoResponse) => void
 }
 
-type TransactionDetailDialogProps = TransactionDetailDialogOwnProps & TransactionDetailsDialogMobxProps & WithMobileDialog;
+type DataSaleDetailDialogProps = DataSaleDetailsDialogOwnProps & DataSaleDetailsDialogMobxProps & WithMobileDialog;
 
-const _TransactionsDetailsDialog: FunctionComponent<TransactionDetailDialogProps> = ({
+const _DataSaleDetailsDialog: FunctionComponent<DataSaleDetailDialogProps> = ({
     transaction,
     fullScreen,
     onClose,
@@ -145,8 +145,8 @@ const _TransactionsDetailsDialog: FunctionComponent<TransactionDetailDialogProps
     }
 };
 
-const mapMobxToProps = (state: IAppState): TransactionDetailsDialogMobxProps => ({
+const mapMobxToProps = (state: IAppState): DataSaleDetailsDialogMobxProps => ({
     setExtendFileStorageDurationFile: state.fileStorageDurationExtension.setFile
 });
 
-export const TransactionDetailsDialog = withMobileDialog()(inject(mapMobxToProps)(observer(_TransactionsDetailsDialog))) as FunctionComponent<TransactionDetailDialogOwnProps>;
+export const DataSaleDetailsDialog = withMobileDialog()(inject(mapMobxToProps)(observer(_DataSaleDetailsDialog))) as FunctionComponent<DataSaleDetailsDialogOwnProps>;

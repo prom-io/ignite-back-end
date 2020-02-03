@@ -10,8 +10,9 @@ import {
     RegisterAccountDialog,
     SelectedDataValidatorBalance
 } from "../Account";
+import {TransactionsHistoryContainer} from "../Transaction/components";
 
-export const WalletsPage: FunctionComponent<{}> = () => (
+export const WalletsPage: FunctionComponent = () => (
     <Grid container>
         <Grid item xs={12}>
             <AppBar sideBarItem={<SelectedDataValidatorBalance/>}/>
@@ -23,11 +24,16 @@ export const WalletsPage: FunctionComponent<{}> = () => (
         </Hidden>
         <Grid item xs={12} lg={10}>
             <Layout>
-                <Grid item xs={12}>
-                    <OpenAccountRegistrationDialogButton/>
-                </Grid>
-                <Grid item xs={12}>
-                    <AccountsTable/>
+                <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                        <OpenAccountRegistrationDialogButton/>
+                    </Grid>
+                    <Grid item xs={12}>
+                        <AccountsTable/>
+                    </Grid>
+                    <Grid item xs={12}>
+                        <TransactionsHistoryContainer hideAccountSelect/>
+                    </Grid>
                 </Grid>
                 <RegisterAccountDialog/>
             </Layout>

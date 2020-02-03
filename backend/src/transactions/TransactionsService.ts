@@ -51,7 +51,8 @@ export class TransactionsService {
                     createdAt: transaction.created_at,
                     dataOwner,
                     dataMart: transaction.dataMart,
-                    type: transaction.type
+                    type: transaction.type,
+                    serviceNode: transaction.serviceNode
                 })
             }
         }

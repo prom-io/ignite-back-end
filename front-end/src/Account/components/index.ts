@@ -7,3 +7,4 @@ export * from "./DataOwnersTableContainer";
 export * from "./RegisterAccountDialog";
 export * from "./AccountsTable";
 export * from "./OpenAccountRegistrationDialogButton";
+export * from "./DataOwnerDetailsDialog";

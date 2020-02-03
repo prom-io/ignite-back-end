@@ -9,5 +9,6 @@ export interface TransactionResponse {
     file: FileResponse,
     hash: string,
     createdAt: string,
-    type: TransactionType
+    type: TransactionType,
+    serviceNode: string
 }

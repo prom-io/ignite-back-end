@@ -1,10 +1,10 @@
 import {action, computed, observable, reaction} from "mobx";
+import {AxiosError, AxiosPromise} from "axios";
 import uniqBy from "lodash.uniqby";
 import {ApiError, createErrorFromResponse, TransactionsService} from "../../api";
 import {TransactionResponse, TransactionType} from "../../models";
 import {AccountsStore} from "../../Account";
-import {SettingsStore} from "../../Settings/stores";
-import {AxiosError} from "axios";
+import {SettingsStore} from "../../Settings";
 
 const PAGE_SIZE = 50;
 
@@ -37,6 +37,9 @@ export class TransactionsStore {
     @observable
     refreshOnAccountChange: boolean = false;
 
+    @observable
+    transactionType?: TransactionType = undefined;
+
     constructor(settingsStore: SettingsStore, accountsStore: AccountsStore) {
         this.settingsStore = settingsStore;
         this.accountsStore = accountsStore;
@@ -59,12 +62,25 @@ export class TransactionsStore {
     };
 
     @action
+    setTransactionType = (transactionType: TransactionType | undefined): void => {
+        this.transactionType = transactionType;
+    };
+
+    @action
     fetchTransactions = (): void => {
         if (this.selectedAccount) {
             this.pending = true;
             this.error = undefined;
 
-            TransactionsService.getTransactionsByAddressAndType(this.selectedAccount, TransactionType.DATA_PURCHASE,this.page, PAGE_SIZE)
+            let fetchTransactionsPromise: AxiosPromise<TransactionResponse[]>;
+
+            if (this.transactionType === TransactionType.DATA_PURCHASE) {
+                fetchTransactionsPromise = TransactionsService.getTransactionsByAddressAndType(this.selectedAccount, TransactionType.DATA_PURCHASE,this.page, PAGE_SIZE);
+            } else {
+                fetchTransactionsPromise = TransactionsService.getTransactionsByAddress(this.selectedAccount, this.page, PAGE_SIZE);
+            }
+
+            fetchTransactionsPromise
                 .then(({data}) => {
                     if (data.length !==0) {
                         this.transactions.push(...data);
@@ -90,6 +106,7 @@ export class TransactionsStore {
         this.transactions = [];
         this.page = 0;
         this.error = undefined;
+        this.transactionType = undefined;
     };
 
     @action

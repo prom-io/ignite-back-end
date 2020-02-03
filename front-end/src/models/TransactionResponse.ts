@@ -8,5 +8,6 @@ export interface TransactionResponse {
     file: FileInfoResponse,
     hash: string,
     createdAt: string,
-    type: "dataUpload" | "dataPurchase"
+    type: "dataUpload" | "dataPurchase",
+    serviceNode: string
 }

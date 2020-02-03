@@ -10,5 +10,6 @@ export const serviceNodeTransactionToTransactionResponse = (serviceNodeTransacti
     hash: serviceNodeTransaction.hash,
     sum: serviceNodeTransaction.value,
     createdAt: serviceNodeTransaction.created_at,
-    type: serviceNodeTransaction.type
+    type: serviceNodeTransaction.type,
+    serviceNode: serviceNodeTransaction.serviceNode
 });
