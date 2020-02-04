@@ -30,6 +30,10 @@ export class RoundRobinLoadBalancerClient extends NestSchedule {
         }
     }
 
+    public getBootstrapNodes(): RegisteredNodeInstance[] {
+        return this.nodeInstances.filter(instance => instance.type === NodeType.SERVICE_NODE && instance.bootstrap);
+    }
+
     public async getServiceNodesByAddressAndType(address: string, type: NodeType): Promise<RegisteredNodeInstance[]> {
         const nodes = this.nodeInstances
             .filter(node => node.type === type)

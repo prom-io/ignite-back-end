@@ -21,4 +21,7 @@ export class EnvConfig {
 
     @Env({required: true, type: "string"})
     INITIAL_ACCOUNT_PRIVATE_KEY: string;
+
+    @Env({required: true, type: "string"})
+    USE_LOCAL_IP_FOR_REGISTRATION: boolean = false;
 }

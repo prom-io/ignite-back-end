@@ -9,6 +9,7 @@ import {ExtendFileStorageDurationRequest, ICreateServiceNodeFileRequest, IUpload
 import {ICreateDataOwnerRequest} from "../accounts/types/request";
 import {ServiceNodeTransactionResponse, TransactionType} from "../transactions/types/response";
 import {RoundRobinLoadBalancerClient} from "../discovery";
+import {RegisterNodeRequest} from "../discovery/types/request";
 
 @Injectable()
 export class ServiceNodeApiClient {
