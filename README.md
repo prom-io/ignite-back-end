@@ -124,7 +124,7 @@ If you want to run Data Mart node outside Docker, you will need to to the follow
 
 ## Current Stage of project
 
-What Validator node can do now
+What Validator node can do now:
 
 - It creates data owners and uploads files to Prometeus network;
 - It allows to prolong file storage duration;
