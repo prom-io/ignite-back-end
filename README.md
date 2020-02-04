@@ -128,4 +128,4 @@ What Validator node can do now:
 
 - It creates data owners and uploads files to Prometeus network;
 - It allows to prolong file storage duration;
-- It can show history of data sales;
+- It can show history of data sales.
