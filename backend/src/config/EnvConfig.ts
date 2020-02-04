@@ -24,4 +24,7 @@ export class EnvConfig {
 
     @Env({required: true, type: "string"})
     USE_LOCAL_IP_FOR_REGISTRATION: boolean = false;
+
+    @Env({type: "string"})
+    LOCAL_FILES_DIRECTORY: string = "storage/files";
 }

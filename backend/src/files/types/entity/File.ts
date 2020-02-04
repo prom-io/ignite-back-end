@@ -13,5 +13,9 @@ export interface File extends IBaseEntity {
     mimeType: string,
     size: number,
     name: string,
-    price: number
+    price: number,
+    fileKey: {
+        key: string,
+        iv: string
+    }
 }

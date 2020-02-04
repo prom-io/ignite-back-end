@@ -146,9 +146,22 @@ export class UploadDataStore {
             this.pending = true;
             return new Promise<void>(async resolve => {
                 try {
-                    const localFileRecord = await this.createLocalFileRecord();
+                    const localFileRecord = await this.createLocalFile();
                     await this.uploadFileByChunks(localFileRecord.id);
-                    await DataUploadService.uploadLocalFileToDds(localFileRecord.id);
+                    const mimeType = this.attachedFile!.type && this.attachedFile!.type.length !== 0
+                        ? this.attachedFile!.type
+                        : "application/octet-stream";
+                    const serviceNodeFileRecord = (await DataUploadService.uploadLocalFileToServiceNode(localFileRecord.id, {
+                        additional: this.uploadDataForm.additional!,
+                        dataOwnerAddress: this.uploadDataForm.dataOwnerAddress!,
+                        name: this.uploadDataForm.name!,
+                        keepUntil: this.uploadDataForm.keepUntil!,
+                        size: this.attachedFile!.size,
+                        mimeType,
+                        extension: getFileExtensionFromName(this.attachedFile!.name),
+                        dataValidatorAddress: this.dataValidatorAccount!,
+                        price: this.uploadDataForm.price!
+                    })).data;
 
                     let fileFullyUploaded = false;
                     let failed = false;
@@ -160,7 +173,7 @@ export class UploadDataStore {
 
                     while (!fileFullyUploaded && !failed) {
                         await sleep(5000);
-                        const fileUploadingCheckingResponse = await DataUploadService.checkIfLocalFileUploadToDds(localFileRecord.id);
+                        const fileUploadingCheckingResponse = await DataUploadService.checkIfLocalFileUploadToDds(serviceNodeFileRecord.id);
                         failed = fileUploadingCheckingResponse.data.failed;
                         fileFullyUploaded = fileUploadingCheckingResponse.data.fullyUploaded;
                         price = fileUploadingCheckingResponse.data.price;
@@ -188,7 +201,7 @@ export class UploadDataStore {
                         }
                     }
 
-                    await DataUploadService.deleteLocalFile(localFileRecord.id);
+                    await DataUploadService.deleteLocalFile(serviceNodeFileRecord.id);
                     resolve();
                 } catch (error) {
                     console.log(error);
@@ -203,21 +216,8 @@ export class UploadDataStore {
         } else return new Promise<void>(resolve => resolve());
     };
 
-    private createLocalFileRecord = async (): Promise<LocalFileRecordResponse> => {
-        const mimeType = this.attachedFile!.type && this.attachedFile!.type.length !== 0
-            ? this.attachedFile!.type
-            : "application/octet-stream";
-        return (await DataUploadService.createLocalFileRecord({
-            additional: this.uploadDataForm.additional!,
-            dataOwnerAddress: this.uploadDataForm.dataOwnerAddress!,
-            name: this.uploadDataForm.name!,
-            keepUntil: this.uploadDataForm.keepUntil!,
-            size: this.attachedFile!.size,
-            mimeType,
-            extension: getFileExtensionFromName(this.attachedFile!.name),
-            dataValidatorAddress: this.dataValidatorAccount!,
-            price: this.uploadDataForm.price!
-        })).data;
+    private createLocalFile = async (): Promise<{id: string}> => {
+        return (await DataUploadService.createLocalFile()).data;
     };
 
     private uploadFileByChunks = async (localFileId: string): Promise<void> => {

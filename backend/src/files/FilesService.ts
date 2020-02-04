@@ -1,8 +1,12 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import {AxiosError} from "axios";
-import {ExtendFileStorageDurationRequest, ICreateServiceNodeFileRequest, IUploadChunkRequest} from "./types/request";
+import uuid4 from "uuid/v4";
+import fileSystem from "fs";
+import {ExtendFileStorageDurationRequest, ICreateServiceNodeFileRequest, IUploadChunkRequest, UploadChunkRequest} from "./types/request";
 import {CheckFileUploadStatusResponse, ServiceNodeFileResponse} from "./types/response";
 import {FilesRepository} from "./FilesRepository";
+import {ServiceNodeTemporaryFilesRepository} from "./ServiceNodeTemporaryFilesRepository";
+import {CreateLocalFileRequest} from "./types/request";
 import {ServiceNodeApiClient} from "../service-node-api";
 import {EntityType} from "../nedb/entity";
 import {DataOwnersRepository} from "../accounts";
@@ -10,7 +14,7 @@ import {config} from "../config";
 import {ServiceNodeTemporaryFile} from "./types/entity";
 import {AccountsRepository} from "../accounts/AccountsRepository";
 import {Web3Wrapper} from "../web3";
-import {ServiceNodeTemporaryFilesRepository} from "./ServiceNodeTemporaryFilesRepository";
+import {EncryptorServiceClient} from "../encryptor";
 
 @Injectable()
 export class FilesService {
@@ -19,9 +23,41 @@ export class FilesService {
                 private readonly serviceNodeTemporaryFilesRepository: ServiceNodeTemporaryFilesRepository,
                 private readonly accountsRepository: AccountsRepository,
                 private readonly serviceNodeClient: ServiceNodeApiClient,
-                private readonly web3Wrapper: Web3Wrapper) {}
+                private readonly web3Wrapper: Web3Wrapper,
+                private readonly encryptorService: EncryptorServiceClient) {
+    }
 
-    public async createServiceNodeFile(createServiceNodeFileRequest: ICreateServiceNodeFileRequest): Promise<ServiceNodeFileResponse> {
+    public async createLocalFile(): Promise<{id: string}> {
+        const id = uuid4();
+        fileSystem.closeSync(fileSystem.openSync(`${config.LOCAL_FILES_DIRECTORY}/${id}`, "w"));
+        return {id};
+    }
+
+    public async uploadLocalFileChunk(localFileId: string, uploadChunkRequest: UploadChunkRequest): Promise<void> {
+        fileSystem.appendFileSync(`${config.LOCAL_FILES_DIRECTORY}/${localFileId}`, uploadChunkRequest.chunkData);
+    }
+
+    public async uploadLocalFileToServiceNode(
+        localFileId: string,
+        createServiceNodeFileRequest: ICreateServiceNodeFileRequest
+    ): Promise<ServiceNodeFileResponse> {
+        const data = fileSystem.readFileSync(`${config.LOCAL_FILES_DIRECTORY}/${localFileId}`).toString();
+        const dataEncrypted = (await this.encryptorService.encryptWithAes({content: data})).data;
+        const serviceNodeFileResponse = await this.createServiceNodeFile(createServiceNodeFileRequest, {
+            key: dataEncrypted.result.key,
+            iv: dataEncrypted.result.iv
+        });
+        this.uploadFileToServiceNodeByChunks(serviceNodeFileResponse.id, dataEncrypted.result.content);
+        return serviceNodeFileResponse;
+    }
+
+    public async createServiceNodeFile(
+        createServiceNodeFileRequest: ICreateServiceNodeFileRequest,
+        fileKey: {
+            key: string,
+            iv: string
+        }
+    ): Promise<ServiceNodeFileResponse> {
         try {
             const serviceNodeResponse = (await this.serviceNodeClient.createServiceNodeFile({
                 ...createServiceNodeFileRequest,
@@ -31,7 +67,8 @@ export class FilesService {
                 _type: EntityType.SERVICE_NODE_TEMPORARY_FILE,
                 dataValidatorAddress: createServiceNodeFileRequest.dataValidatorAddress,
                 ddsFileId: undefined,
-                id: serviceNodeResponse.id
+                id: serviceNodeResponse.id,
+                fileKey
             };
             await this.serviceNodeTemporaryFilesRepository.save(serviceNodeFile);
             return serviceNodeResponse;
@@ -40,7 +77,31 @@ export class FilesService {
         }
     }
 
-    public async uploadFileChunk(serviceNodeFileId: string, uploadChunkRequest: IUploadChunkRequest): Promise<{success: boolean}> {
+    private async uploadFileToServiceNodeByChunks(serviceNodeFileId: string, data: string): Promise<void> {
+        const targetPosition = data.length;
+        let chunk: string;
+        const chunkSize = 5242878;
+        const totalChunks = Math.ceil(targetPosition / chunkSize);
+        let currentChunk = 0;
+
+        while (currentChunk < totalChunks) {
+            const offset = currentChunk * chunkSize;
+            chunk = data.slice(offset, offset + chunkSize);
+            if (offset + chunkSize < targetPosition) {
+                if (chunk.endsWith("=")) {
+                    chunk = chunk.substring(0, chunk.indexOf("="));
+                } else if (chunk.endsWith("==")) {
+                    chunk = chunk.substring(0, chunk.indexOf("=="));
+                }
+            }
+            currentChunk++;
+            await this.uploadFileChunk(serviceNodeFileId, {
+                chunkData: chunk
+            })
+        }
+    }
+
+    private async uploadFileChunk(serviceNodeFileId: string, uploadChunkRequest: IUploadChunkRequest): Promise<{success: boolean}> {
         try {
             return (await this.serviceNodeClient.uploadFileChunk(serviceNodeFileId, uploadChunkRequest)).data;
         } catch (error) {
@@ -54,21 +115,25 @@ export class FilesService {
 
             if (uploadStatus.fullyUploaded) {
                 this.serviceNodeClient.getFileInfo(uploadStatus.ddsFileId)
-                    .then(({data}) => this.filesRepository.save({
-                        id: data.id,
-                        _type: EntityType.FILE,
-                        mimeType: data.mimeType,
-                        extension: data.extension,
-                        name: data.name,
-                        dataValidator: data.dataValidator,
-                        dataOwner: data.dataOwner,
-                        keepUntil: data.keepUntil,
-                        metadata: data.metadata,
-                        serviceNode: data.serviceNode,
-                        size: Number(data.size),
-                        createdAt: new Date().toISOString(),
-                        price: data.price
-                    }))
+                    .then(async ({data}) => {
+                        const fileKey = (await this.serviceNodeTemporaryFilesRepository.findById(serviceNodeFileId)).fileKey;
+                        return this.filesRepository.save({
+                            id: data.id,
+                            _type: EntityType.FILE,
+                            mimeType: data.mimeType,
+                            extension: data.extension,
+                            name: data.name,
+                            dataValidator: data.dataValidator,
+                            dataOwner: data.dataOwner,
+                            keepUntil: data.keepUntil,
+                            metadata: data.metadata,
+                            serviceNode: data.serviceNode,
+                            size: Number(data.size),
+                            createdAt: new Date().toISOString(),
+                            price: data.price,
+                            fileKey
+                        })
+                    })
                     .then(file => {
                         this.dataOwnersRepository.save({
                             file,
