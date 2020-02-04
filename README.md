@@ -14,10 +14,7 @@
     - [Environmental variables](#environmental-variables)
         - [Bakcend](#backend)
         - [Front-end](#front-end)
-- [Stages of project](#stages-of-project)
-    - [What Data Mart node can do now](#what-data-validator-node-can-do-now)
-    - [What Data mart node will do in the future](#what-data-validator-node-will-do-in-the-future)
-
+- [Current Stage of project](#current-stage-of-project)
 
 ## Description
 
