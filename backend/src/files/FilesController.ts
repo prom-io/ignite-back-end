@@ -43,4 +43,9 @@ export class FilesController {
                                      @Body() extendFileStorageDurationRequest: ExtendFileStorageDurationRequest): Promise<{success: boolean}> {
         return this.filesService.extendFileStorageDuration(fileId, extendFileStorageDurationRequest);
     }
+
+    @Get(":fileId/key")
+    public getFileKey(@Param("fileId") fileId: string): Promise<{key: string, iv: string}> {
+        return this.filesService.getFileKey(fileId);
+    }
 }

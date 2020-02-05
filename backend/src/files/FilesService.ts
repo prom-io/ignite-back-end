@@ -213,6 +213,19 @@ export class FilesService {
         }
     }
 
+    public async getFileKey(fileId: string): Promise<{key: string, iv: string}> {
+        const file = await this.filesRepository.findById(fileId);
+
+        if (file === null) {
+            throw new HttpException(
+                `Could not find file with id ${fileId}`,
+                HttpStatus.NOT_FOUND
+            );
+        }
+
+        return file.fileKey;
+    }
+
     private handleServiceNodeError(error: any): void {
         console.log(error);
         if (error.response) {
