@@ -1,5 +1,5 @@
 export * from "./HomePage";
 export * from "./NotFoundPage";
 export * from "./DataUploadPage";
-export * from "./DataValidatorRegistrationPage";
+export * from "./WalletsPage";
 export * from "./DataSalesPage";

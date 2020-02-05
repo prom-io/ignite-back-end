@@ -1,26 +1,31 @@
 import {Controller, Body, Param, Post, Get, Delete, Patch} from "@nestjs/common";
 import {FilesService} from "./FilesService";
-import {CreateServiceNodeFileRequest, ExtendFileStorageDurationRequest, UploadChunkRequest} from "../model/api/request";
-import {CheckFileUploadStatusResponse, ServiceNodeFileResponse} from "../model/api/response";
+import {CreateServiceNodeFileRequest, ExtendFileStorageDurationRequest, UploadChunkRequest} from "./types/request";
+import {CheckFileUploadStatusResponse, ServiceNodeFileResponse} from "./types/response";
 
 @Controller("api/v3/files")
 export class FilesController {
     constructor(private readonly filesService: FilesService) {}
 
-    @Post("service-node")
-    public createServiceNodeFile(@Body() createServiceNodeFileRequest: CreateServiceNodeFileRequest): Promise<ServiceNodeFileResponse> {
-        return this.filesService.createServiceNodeFile(createServiceNodeFileRequest);
+    @Post("local")
+    public createServiceNodeFile(): Promise<{id: string}> {
+        return this.filesService.createLocalFile();
     }
 
-    @Post("service-node/:serviceNodeFileId/to-dds")
-    public uploadServiceNodeFileToDds(@Param("serviceNodeFileId") serviceNodeFileId: string): Promise<{success: boolean}> {
-        return this.filesService.uploadFileToDds(serviceNodeFileId);
+    @Post("local/:localFileId/chunk")
+    public uploadLocalFileChink(
+        @Param("localFileId") localFileId: string,
+        @Body() uploadChunkRequest: UploadChunkRequest
+    ): Promise<void> {
+        return this.filesService.uploadLocalFileChunk(localFileId, uploadChunkRequest);
     }
 
-    @Post("service-node/:serviceNodeFileId/chunk")
-    public uploadFileChunk(@Param("serviceNodeFileId") serviceNodeFileId: string,
-                           @Body() uploadChunkRequest: UploadChunkRequest): Promise<{success: boolean}> {
-        return this.filesService.uploadFileChunk(serviceNodeFileId, uploadChunkRequest);
+    @Post("local/:localFileId/to-service-node")
+    public uploadLocalFileToServiceNode(
+        @Param("localFileId") localFileId: string,
+        @Body() createServiceNodeFileRequest: CreateServiceNodeFileRequest
+    ): Promise<ServiceNodeFileResponse> {
+        return this.filesService.uploadLocalFileToServiceNode(localFileId, createServiceNodeFileRequest);
     }
 
     @Get("service-node/:serviceNodeFileId/status")
@@ -37,5 +42,10 @@ export class FilesController {
     public extendFileStorageDuration(@Param("fileId") fileId: string,
                                      @Body() extendFileStorageDurationRequest: ExtendFileStorageDurationRequest): Promise<{success: boolean}> {
         return this.filesService.extendFileStorageDuration(fileId, extendFileStorageDurationRequest);
+    }
+
+    @Get(":fileId/key")
+    public getFileKey(@Param("fileId") fileId: string): Promise<{key: string, iv: string}> {
+        return this.filesService.getFileKey(fileId);
     }
 }

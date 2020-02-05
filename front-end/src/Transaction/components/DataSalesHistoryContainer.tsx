@@ -1,7 +1,7 @@
 import React, {FunctionComponent} from "react";
 import {inject, observer} from "mobx-react";
 import {Card, CardContent, CardHeader, Grid, Typography, createStyles, makeStyles} from "@material-ui/core";
-import {TransactionsTable} from "./TransactionsTable";
+import {DataSalesTable} from "./DataSalesTable";
 import {DataValidatorAccountSelect} from "../../Account";
 import {ApiError} from "../../api";
 import {TransactionResponse} from "../../models";
@@ -51,9 +51,9 @@ const _DataSalesHistoryContainer: FunctionComponent<DataSalesHistoryContainerMob
                 <Card className={classes.dataSalesCard}>
                     <CardHeader title="Data Sales"/>
                     <CardContent>
-                        <TransactionsTable transactions={transactions}
-                                           pending={pending}
-                                           onFetchMoreRequest={fetchTransactions}
+                        <DataSalesTable transactions={transactions}
+                                        pending={pending}
+                                        onFetchMoreRequest={fetchTransactions}
                         />
                     </CardContent>
                 </Card>

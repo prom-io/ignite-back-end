@@ -12,7 +12,7 @@
         - [Running inside Docker](#running-inside-docker)
         - [Running outside Docker](#running-outside-docker)
     - [Environmental variables](#environmental-variables)
-        - [Bakcend](#backend)
+        - [Backend](#backend)
         - [Front-end](#front-end)
 - [Current Stage of project](#current-stage-of-project)
 
@@ -33,9 +33,9 @@ encryption of uploaded data using the Data Owner's public key.
 So you can test all the essence features of the application using UI: 
 - upload Data Owners' files with their metadata;
 - browse uploaded Data Owners' files list;
-- browse the sales trancastions list;
+- browse the sales transactions list;
 - select PROM wallet as the default for the uploads;
-- browse the sales trancastions list.
+- browse the sales transactions list.
 
 Here is a [manual](https://github.com/Prometeus-Network/data-validator-node/blob/master/test.md) with screenshots: testing guideline for the operations listed above.
 
@@ -94,33 +94,39 @@ In order to run Data Validator node inside Docker container, you need to do the 
 If you want to run Data Mart node outside Docker, you will need to to the following:
 
 - Backend API
-  - Go to `backend` directory and run `npm istall` command to install all dependencies for backend application
+  - Run `yarn global add @nestjs/cli to install NestJS CLI`
+  - Go to `backend` directory and run `yarn istall` command to install all dependencies for backend application
   - Create `.env` file and configure it with the variables described [below](#backend)
-  - Run `npm run start` to start up backend applicationd
+  - Run `yarn run start` to start up backend application
 - Client application
-  - Go to `front-end` directory and run `npm run start` command to install all dependencies for front-end application
+  - Go to `front-end` directory and run `yarn run install` command to install all dependencies for front-end application
   - Create `.env` file and configure it with the variables described [below](#front-end)
-  - Run `npm run production` to start up client application
+  - Run `yarn run production` to start up client application
+      - If you want to run front-end application in development mode,
+      run `yarn run start`
 
 
 ### Environmental variables
 
 #### Backend 
 
-| Variable                   | Description                                                                             |
-|----------------------------|-----------------------------------------------------------------------------------------|
-| SERVICE_NODE_API_URL       | URL of Service node API                                                                 |
-| PORT                       | Port which will be used by backend API                                                  |
-| LOGGING_LEVEL              | Level of logging verbosity. Allowed values are trace, debug, info, warning, error       |
-
-
+| Variable                        | Description                                                                                                                                                                                          |
+|---------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `SERVICE_NODE_API_URL`          | URL of Service node API                                                                                                                                                                              |
+| `PORT`                          | Port which will be used by backend API                                                                                                                                                               |
+| `LOGGING_LEVEL`                 | Level of logging verbosity. Allowed values are trace, debug, info, warning, error                                                                                                                    |
+| `STORAGE_DIRECTORY`             | Directory which will be used by local Nedb database                                                                                                                                                  |
+| `ENCRYPTOR_SERVICE_URL`         | URL of Encryptor service                                                                                                                                                                             |
+| `INITIAL_ACCOUNT_PRIVATE_KEY`   | Private key to Ethereum account which will be used for registration upon first startup                                                                                                               |
+| `USE_LOCAL_IP_FOR_REGISTRATION` | Indicates whether local IP address should be used for registering itself to bootstrap node. This may be useful for development purposes or if your bootstrap nodes are located in your local network |
+| `LOCAL_FILES_DIRECTORY`         | Path to directory which is used for initial data upload, before sending data to Service node. Please make sure that you have read and write access to this directory                                 |
 
 #### Front-end
 
-| Variable                              | Description                                                      |
-|---------------------------------------|------------------------------------------------------------------|
+| Variable                                   | Description                                                      |
+|--------------------------------------------|------------------------------------------------------------------|
 | REACT_APP_DATA_VALIDATOR_NODE_API_BASE_URL | URL of backend API                                               |
-| REACT_APP_PRODUCTION_PORT             | Port which will be used by client application in production mode |
+| REACT_APP_PRODUCTION_PORT                  | Port which will be used by client application in production mode |
 
 ## Current Stage of project
 

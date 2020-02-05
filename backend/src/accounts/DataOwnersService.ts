@@ -1,9 +1,9 @@
 import {Injectable} from "@nestjs/common";
 import {DataOwnersRepository} from "./DataOwnersRepository";
 import {createDataOwnerRequestToDataOwner, dataOwnerToDataOwnerResponse} from "./account-mappers";
-import {DataOwnerResponse} from "../model/api/response";
-import {CreateDataOwnerRequest} from "../model/api/request";
-import {DataOwner} from "../model/entity";
+import {DataOwnerResponse} from "./types/response";
+import {CreateDataOwnerRequest} from "./types/request";
+import {DataOwner} from "./types/entity";
 import {ServiceNodeApiClient} from "../service-node-api";
 
 @Injectable()

@@ -3,7 +3,6 @@ import Axios from "axios";
 import {EncryptorServiceClient} from "./EncryptorServiceClient";
 import {config} from "../config";
 
-/*
 @Module({
     providers: [
         {
@@ -13,6 +12,7 @@ import {config} from "../config";
             })
         },
         EncryptorServiceClient
-    ]
-})*/
+    ],
+    exports: [EncryptorServiceClient]
+})
 export class EncryptorServiceModule {}

@@ -1,6 +1,7 @@
 import {Injectable} from "@nestjs/common";
 import DataStore from "nedb";
-import {Account, EntityType} from "../model/entity";
+import {Account} from "./types/entity";
+import {EntityType} from "../nedb/entity";
 
 @Injectable()
 export class AccountsRepository {
@@ -21,6 +22,12 @@ export class AccountsRepository {
     public findAll(): Promise<Account[]> {
         return new Promise<Account[]>(resolve => {
             this.dataStore.find<Account>({_type: EntityType.ACCOUNT}, (_, documents) => resolve(documents));
+        })
+    }
+
+    public findByAddress(address: string): Promise<Account> {
+        return new Promise<Account>(resolve => {
+            this.dataStore.findOne<Account>({_type: EntityType.ACCOUNT, address: address}, (_, document) => resolve(document));
         })
     }
 }

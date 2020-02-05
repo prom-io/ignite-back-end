@@ -1,6 +1,7 @@
 import * as React from "react";
-import {DataUploadPage, DataValidatorRegistrationPage, HomePage, NotFoundPage, DataSalesPage} from "../pages";
+import {DataSalesPage, DataUploadPage, HomePage, NotFoundPage, WalletsPage} from "../pages";
 import {store} from "../store";
+import {TransactionType} from "../models";
 
 const Route = require("mobx-router").Route;
 
@@ -17,14 +18,30 @@ export const Routes = {
         path: '/data-upload',
         component: <DataUploadPage/>
     }),
-    registration: new Route({
-        path: '/registration',
-        component: <DataValidatorRegistrationPage/>
+    wallets: new Route({
+        path: '/wallets',
+        component: <WalletsPage/>,
+        beforeEnter: () => {
+            store.transactions.setTransactionType(undefined);
+            store.transactions.fetchTransactions();
+            store.transactions.setRefreshOnAccountChange(true);
+        },
+        onExit: () => {
+            store.transactions.reset();
+            store.transactions.setRefreshOnAccountChange(false);
+        }
     }),
     transactions: new Route({
         path: '/data-sales',
         component: <DataSalesPage/>,
-        beforeEnter: () => store.transactions.fetchTransactions(),
-        onExit: () => store.transactions.reset()
+        beforeEnter: () => {
+            store.transactions.setTransactionType(TransactionType.DATA_PURCHASE);
+            store.transactions.fetchTransactions();
+            store.transactions.setRefreshOnAccountChange(true);
+        },
+        onExit: () => {
+            store.transactions.reset();
+            store.transactions.setRefreshOnAccountChange(false);
+        }
     })
 };

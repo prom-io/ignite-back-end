@@ -1,24 +1,26 @@
 import {AxiosPromise} from "axios";
 import {axiosInstance} from "../api-client";
+import {CHUNK, FILES, LOCAL, SERVICE_NODE, STATUS, TO_SERVICE_NODE} from "../endpoints";
 import {
     CreateLocalFileRecordRequest,
-    DdsFileUploadCheckResponse, ExtendFileStorageDurationRequest,
+    DdsFileUploadCheckResponse,
+    ExtendFileStorageDurationRequest,
     LocalFileRecordResponse,
     UploadFileChunkRequest
 } from "../../models";
-import {CHUNK, FILES, SERVICE_NODE, STATUS, TO_DDS} from "../endpoints";
 
 export class DataUploadService {
-    public static createLocalFileRecord(creatLocalFileRecordRequest: CreateLocalFileRecordRequest): AxiosPromise<LocalFileRecordResponse> {
-        return axiosInstance.post(`/${FILES}/${SERVICE_NODE}`, creatLocalFileRecordRequest);
+
+    public static createLocalFile(): AxiosPromise<{id: string}> {
+        return axiosInstance.post(`/${FILES}/${LOCAL}`);
     }
 
     public static sendFileChunk(localFileId: string, uploadChunkRequest: UploadFileChunkRequest): AxiosPromise<{success: boolean}> {
-        return axiosInstance.post(`/${FILES}/${SERVICE_NODE}/${localFileId}/${CHUNK}`, uploadChunkRequest);
+        return axiosInstance.post(`/${FILES}/${LOCAL}/${localFileId}/${CHUNK}`, uploadChunkRequest);
     }
 
-    public static uploadLocalFileToDds(localFileId: string): AxiosPromise<{success: boolean}> {
-        return axiosInstance.post(`/${FILES}/${SERVICE_NODE}/${localFileId}/${TO_DDS}`);
+    public static uploadLocalFileToServiceNode(localFileId: string, createLocalFileRecordRequest: CreateLocalFileRecordRequest): AxiosPromise<LocalFileRecordResponse> {
+        return axiosInstance.post(`/${FILES}/${LOCAL}/${localFileId}/${TO_SERVICE_NODE}`, createLocalFileRecordRequest);
     }
 
     public static checkIfLocalFileUploadToDds(localFileId: string): AxiosPromise<DdsFileUploadCheckResponse> {

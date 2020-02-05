@@ -1,7 +1,8 @@
-import {Account, DataOwner, EntityType} from "../model/entity";
-import {CreateDataOwnerRequest} from "../model/api/request";
-import {AccountResponse, DataOwnerResponse} from "../model/api/response";
+import {Account, DataOwner} from "./types/entity";
+import {CreateDataOwnerRequest} from "./types/request";
+import {AccountResponse, DataOwnerResponse} from "./types/response";
 import {fileToFileResponse} from "../files/file-mappers";
+import {EntityType} from "../nedb/entity";
 
 export const accountToAccountResponse = (account: Account): AccountResponse => ({
     address: account.address

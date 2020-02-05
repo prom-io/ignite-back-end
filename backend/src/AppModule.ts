@@ -4,6 +4,9 @@ import {NedbModule} from "./nedb";
 import {FilesModule} from "./files";
 import {AccountsModule} from "./accounts";
 import {TransactionsModule} from "./transactions";
+import {DiscoveryModule} from "./discovery";
+import {Web3Module} from "./web3";
+import {EncryptorServiceModule} from "./encryptor";
 
 @Module({
     imports: [
@@ -11,7 +14,10 @@ import {TransactionsModule} from "./transactions";
         NedbModule,
         FilesModule,
         AccountsModule,
-        TransactionsModule
+        TransactionsModule,
+        DiscoveryModule,
+        Web3Module,
+        EncryptorServiceModule
     ]
 })
 export class AppModule {}

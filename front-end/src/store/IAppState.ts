@@ -22,7 +22,6 @@ export interface IAppState {
     balances: AccountsBalanceStore,
     dataOwners: DataOwnersAccountsStore,
     createDataOwner: CreateDataOwnerStore,
-    dataValidatorRegistration: AccountRegistrationStore,
     transactions: TransactionsStore,
     fileStorageDurationExtension: ExtendFileStorageDurationStore
 }
