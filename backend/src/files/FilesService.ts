@@ -6,7 +6,6 @@ import {ExtendFileStorageDurationRequest, ICreateServiceNodeFileRequest, IUpload
 import {CheckFileUploadStatusResponse, ServiceNodeFileResponse} from "./types/response";
 import {FilesRepository} from "./FilesRepository";
 import {ServiceNodeTemporaryFilesRepository} from "./ServiceNodeTemporaryFilesRepository";
-import {CreateLocalFileRequest} from "./types/request";
 import {ServiceNodeApiClient} from "../service-node-api";
 import {EntityType} from "../nedb/entity";
 import {DataOwnersRepository} from "../accounts";
@@ -62,7 +61,6 @@ export class FilesService {
         try {
             const serviceNodeResponse = (await this.serviceNodeClient.createServiceNodeFile({
                 ...createServiceNodeFileRequest,
-                serviceNodeAddress: config.SERVICE_NODE_ACCOUNT_ADDRESS
             })).data;
             const serviceNodeFile: ServiceNodeTemporaryFile = {
                 _type: EntityType.SERVICE_NODE_TEMPORARY_FILE,

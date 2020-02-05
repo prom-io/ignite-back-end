@@ -7,7 +7,6 @@ export interface ICreateServiceNodeFileRequest {
     dataOwnerAddress: string,
     size: number,
     dataValidatorAddress: string,
-    serviceNodeAddress?: string,
     mimeType: string,
     extension: string,
 }
