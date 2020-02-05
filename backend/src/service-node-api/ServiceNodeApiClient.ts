@@ -26,7 +26,7 @@ export class ServiceNodeApiClient {
     }
 
     public uploadFileToDds(serviceNodeFileId: string, uploadRequest: SignedRequest): AxiosPromise<{success: boolean}> {
-        return this.axios.post(`${this.getUrl()}/api/v1/files/local/${serviceNodeFileId}/to-dds`);
+        return this.axios.post(`${this.getUrl()}/api/v1/files/local/${serviceNodeFileId}/to-dds`, uploadRequest);
     }
 
     public checkFileUploadStatus(serviceNodeFileId: string): AxiosPromise<CheckFileUploadStatusResponse> {

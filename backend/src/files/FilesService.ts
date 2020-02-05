@@ -47,7 +47,8 @@ export class FilesService {
             key: dataEncrypted.result.key,
             iv: dataEncrypted.result.iv
         });
-        this.uploadFileToServiceNodeByChunks(serviceNodeFileResponse.id, dataEncrypted.result.content);
+        this.uploadFileToServiceNodeByChunks(serviceNodeFileResponse.id, dataEncrypted.result.content)
+            .then(async () => this.uploadFileToDds(serviceNodeFileResponse.id));
         return serviceNodeFileResponse;
     }
 
@@ -70,6 +71,7 @@ export class FilesService {
                 id: serviceNodeResponse.id,
                 fileKey
             };
+            console.log(serviceNodeFile);
             await this.serviceNodeTemporaryFilesRepository.save(serviceNodeFile);
             return serviceNodeResponse;
         } catch (error) {
@@ -153,6 +155,7 @@ export class FilesService {
 
     public async uploadFileToDds(serviceNodeFileId: string): Promise<{success: boolean}> {
         try {
+            console.log(serviceNodeFileId);
             const serviceNodeFile = await this.serviceNodeTemporaryFilesRepository.findById(serviceNodeFileId);
             const account = await this.accountsRepository.findByAddress(serviceNodeFile.dataValidatorAddress);
             const dataToSing = {serviceNodeFileId};
@@ -211,6 +214,7 @@ export class FilesService {
     }
 
     private handleServiceNodeError(error: any): void {
+        console.log(error);
         if (error.response) {
             error = error as AxiosError;
             // tslint:disable-next-line:max-line-length

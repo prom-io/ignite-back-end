@@ -30,7 +30,7 @@ export class ServiceNodeTemporaryFilesRepository {
     public findById(id: string): Promise<ServiceNodeTemporaryFile | null> {
         return new Promise<ServiceNodeTemporaryFile | null>(resolve => {
             this.dataStore.findOne<ServiceNodeTemporaryFile>(
-                {id, type: EntityType.SERVICE_NODE_TEMPORARY_FILE},
+                {id, _type: EntityType.SERVICE_NODE_TEMPORARY_FILE},
                 (_, document) => resolve(document)
             )
         })
