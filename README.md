@@ -14,10 +14,7 @@
     - [Environmental variables](#environmental-variables)
         - [Bakcend](#backend)
         - [Front-end](#front-end)
-- [Stages of project](#stages-of-project)
-    - [What Data Mart node can do now](#what-data-validator-node-can-do-now)
-    - [What Data mart node will do in the future](#what-data-validator-node-will-do-in-the-future)
-
+- [Current Stage of project](#current-stage-of-project)
 
 ## Description
 
@@ -125,13 +122,10 @@ If you want to run Data Mart node outside Docker, you will need to to the follow
 | REACT_APP_DATA_VALIDATOR_NODE_API_BASE_URL | URL of backend API                                               |
 | REACT_APP_PRODUCTION_PORT             | Port which will be used by client application in production mode |
 
-## Stages of project
+## Current Stage of project
 
-### What Validator node can do now
+What Validator node can do now:
 
 - It creates data owners and uploads files to Prometeus network;
 - It allows to prolong file storage duration;
-- It can show history of data sales;
-
-### What Data Validator node will do in the future
-
+- It can show history of data sales.
