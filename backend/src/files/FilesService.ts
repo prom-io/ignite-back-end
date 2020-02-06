@@ -3,7 +3,7 @@ import {AxiosError} from "axios";
 import uuid4 from "uuid/v4";
 import fileSystem from "fs";
 import {ExtendFileStorageDurationRequest, ICreateServiceNodeFileRequest, IUploadChunkRequest, UploadChunkRequest} from "./types/request";
-import {CheckFileUploadStatusResponse, ServiceNodeFileResponse} from "./types/response";
+import {CheckFileUploadStatusResponse, FileResponse, ServiceNodeFileResponse} from "./types/response";
 import {FilesRepository} from "./FilesRepository";
 import {ServiceNodeTemporaryFilesRepository} from "./ServiceNodeTemporaryFilesRepository";
 import {ServiceNodeApiClient} from "../service-node-api";
@@ -14,6 +14,7 @@ import {ServiceNodeTemporaryFile} from "./types/entity";
 import {AccountsRepository} from "../accounts/AccountsRepository";
 import {Web3Wrapper} from "../web3";
 import {EncryptorServiceClient} from "../encryptor";
+import {fileToFileResponse} from "./file-mappers";
 
 @Injectable()
 export class FilesService {
@@ -34,6 +35,19 @@ export class FilesService {
 
     public async uploadLocalFileChunk(localFileId: string, uploadChunkRequest: UploadChunkRequest): Promise<void> {
         fileSystem.appendFileSync(`${config.LOCAL_FILES_DIRECTORY}/${localFileId}`, uploadChunkRequest.chunkData);
+    }
+
+    public async findFileById(id: string): Promise<FileResponse> {
+        const file = await this.filesRepository.findById(id);
+
+        if (!file) {
+            throw new HttpException(
+                `Could not find file with id ${id}`,
+                HttpStatus.NOT_FOUND
+            )
+        }
+
+        return fileToFileResponse(file);
     }
 
     public async uploadLocalFileToServiceNode(
