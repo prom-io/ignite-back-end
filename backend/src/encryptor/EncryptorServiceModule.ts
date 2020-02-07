@@ -8,7 +8,8 @@ import {config} from "../config";
         {
             provide: "encryptorServiceAxios",
             useValue: Axios.create({
-                baseURL: config.ENCRYPTOR_SERVICE_URL
+                baseURL: config.ENCRYPTOR_SERVICE_URL,
+                maxContentLength: Infinity
             })
         },
         EncryptorServiceClient

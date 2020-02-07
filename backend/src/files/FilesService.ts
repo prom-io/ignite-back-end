@@ -6,15 +6,15 @@ import {ExtendFileStorageDurationRequest, ICreateServiceNodeFileRequest, IUpload
 import {CheckFileUploadStatusResponse, FileResponse, ServiceNodeFileResponse} from "./types/response";
 import {FilesRepository} from "./FilesRepository";
 import {ServiceNodeTemporaryFilesRepository} from "./ServiceNodeTemporaryFilesRepository";
+import {fileToFileResponse} from "./file-mappers";
+import {ServiceNodeTemporaryFile} from "./types/entity";
 import {ServiceNodeApiClient} from "../service-node-api";
 import {EntityType} from "../nedb/entity";
 import {DataOwnersRepository} from "../accounts";
 import {config} from "../config";
-import {ServiceNodeTemporaryFile} from "./types/entity";
 import {AccountsRepository} from "../accounts/AccountsRepository";
 import {Web3Wrapper} from "../web3";
 import {EncryptorServiceClient} from "../encryptor";
-import {fileToFileResponse} from "./file-mappers";
 
 @Injectable()
 export class FilesService {
@@ -54,15 +54,20 @@ export class FilesService {
         localFileId: string,
         createServiceNodeFileRequest: ICreateServiceNodeFileRequest
     ): Promise<ServiceNodeFileResponse> {
-        const data = fileSystem.readFileSync(`${config.LOCAL_FILES_DIRECTORY}/${localFileId}`).toString();
-        const dataEncrypted = (await this.encryptorService.encryptWithAes({content: data})).data;
-        const serviceNodeFileResponse = await this.createServiceNodeFile(createServiceNodeFileRequest, {
-            key: dataEncrypted.result.key,
-            iv: dataEncrypted.result.iv
-        });
-        this.uploadFileToServiceNodeByChunks(serviceNodeFileResponse.id, dataEncrypted.result.content)
-            .then(async () => this.uploadFileToDds(serviceNodeFileResponse.id));
-        return serviceNodeFileResponse;
+        try {
+            const data = fileSystem.readFileSync(`${config.LOCAL_FILES_DIRECTORY}/${localFileId}`).toString();
+            const dataEncrypted = (await this.encryptorService.encryptWithAes({content: data})).data;
+            const serviceNodeFileResponse = await this.createServiceNodeFile(createServiceNodeFileRequest, {
+                key: dataEncrypted.result.key,
+                iv: dataEncrypted.result.iv
+            });
+            this.uploadFileToServiceNodeByChunks(serviceNodeFileResponse.id, dataEncrypted.result.content)
+                .then(async () => this.uploadFileToDds(serviceNodeFileResponse.id));
+            return serviceNodeFileResponse;
+        } catch (error) {
+            console.log(error.stack);
+            throw error;
+        }
     }
 
     public async createServiceNodeFile(
@@ -167,7 +172,6 @@ export class FilesService {
 
     public async uploadFileToDds(serviceNodeFileId: string): Promise<{success: boolean}> {
         try {
-            console.log(serviceNodeFileId);
             const serviceNodeFile = await this.serviceNodeTemporaryFilesRepository.findById(serviceNodeFileId);
             const account = await this.accountsRepository.findByAddress(serviceNodeFile.dataValidatorAddress);
             const dataToSing = {serviceNodeFileId};
