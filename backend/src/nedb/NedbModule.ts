@@ -10,7 +10,7 @@ import {config} from "../config";
             provide: DataStore,
             useValue: new DataStore({
                 autoload: true,
-                filename: path.join(config.STORAGE_DIRECTORY, "data.db")
+                filename: path.join(config.NEDB_DIRECTORY, "data.db")
             })
         }
     ],

@@ -2,13 +2,13 @@ import {Env} from "env-decorator";
 
 export class EnvConfig {
     @Env({required: true, type: "number"})
-    PORT: number;
+    DATA_VALIDATOR_API_PORT: number;
 
     @Env({required: true, type: "string"})
     LOGGING_LEVEL: string;
 
     @Env({required: true, type: "string"})
-    STORAGE_DIRECTORY: string;
+    NEDB_DIRECTORY: string;
 
     @Env({required: true, type: "string"})
     ENCRYPTOR_SERVICE_URL: string;
