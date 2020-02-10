@@ -54,7 +54,7 @@ As such this codebase should be treated as experimental and does not contain all
 
 Upon starting, Data Validator node performs the following steps:
  - Backend API startup
-   - Local database intialization
+   - Local database initialization
  - Client application startup
 
 After startup, Data Validator node exposes RESTful API which allows to perform the following operations:
