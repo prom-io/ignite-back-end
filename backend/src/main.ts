@@ -8,9 +8,9 @@ import {config as envConfig} from "./config";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.use(bodyParser.json({limit: "500mb"}));
+  app.use(bodyParser.json({limit: Infinity}));
   app.enableCors();
-  await app.listen(envConfig.PORT);
+  await app.listen(envConfig.DATA_VALIDATOR_API_PORT);
 }
 
 bootstrap();

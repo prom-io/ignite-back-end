@@ -25,9 +25,12 @@ export class FilesRepository {
         })
     }
 
-    public findById(id: string): Promise<File | undefined> {
-        return new Promise<File | undefined>(resolve => {
-            this.dataStore.findOne<File | undefined>({_type: EntityType.FILE, id}, (_, document) => resolve(document))
+    public findById(id: string): Promise<File | null> {
+        return new Promise<File | null>(resolve => {
+            this.dataStore.findOne<File | undefined>(
+                {_type: EntityType.FILE, id},
+                (_, document) => resolve(document)
+            )
         })
     }
 }

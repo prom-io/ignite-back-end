@@ -32,7 +32,7 @@ export class SelfRegistrationService implements OnApplicationBootstrap, OnModule
                 type: NodeType.DATA_VALIDATOR,
                 walletAddresses: accounts.map(account => account.address),
                 bootstrap: false,
-                port: config.PORT
+                port: config.DATA_VALIDATOR_API_PORT
             };
 
             const serviceNodeInstance = this.loadBalancerClient.getServiceNodeInstance();

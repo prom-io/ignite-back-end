@@ -1,7 +1,7 @@
 import {Controller, Body, Param, Post, Get, Delete, Patch} from "@nestjs/common";
 import {FilesService} from "./FilesService";
 import {CreateServiceNodeFileRequest, ExtendFileStorageDurationRequest, UploadChunkRequest} from "./types/request";
-import {CheckFileUploadStatusResponse, ServiceNodeFileResponse} from "./types/response";
+import {CheckFileUploadStatusResponse, FileResponse, ServiceNodeFileResponse} from "./types/response";
 
 @Controller("api/v3/files")
 export class FilesController {
@@ -18,6 +18,11 @@ export class FilesController {
         @Body() uploadChunkRequest: UploadChunkRequest
     ): Promise<void> {
         return this.filesService.uploadLocalFileChunk(localFileId, uploadChunkRequest);
+    }
+
+    @Get(":fileId")
+    public findFileById(@Param("fileId") fileId: string): Promise<FileResponse> {
+        return this.filesService.findFileById(fileId);
     }
 
     @Post("local/:localFileId/to-service-node")

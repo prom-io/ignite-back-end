@@ -3,35 +3,36 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: frontend.docker
-    ports:
-      - 80:3007
+      dockerfile: ./front-end/Dockerfile
     depends_on:
       - backend
-      - encryptor
-      - geth
+     # - encryptor
     working_dir: /usr/src/app
     volumes:
       - ./front-end:/usr/src/app
+    env_file:
+      - .env
+    ports:
+    - ${REACT_APP_PRODUCTION_PORT}:${REACT_APP_PRODUCTION_PORT}
     tty: true
-  encryptor:
-    build:
-      context: .
-      dockerfile: encryptor.docker
-    volumes:
-      - ./encryptor:/var/www/encryptor
+    network_mode: host
+ # encryptor:
+ #   build:
+ #     context: .
+ #     dockerfile: encryptor.docker
+ #   volumes:
+ #     - ./encryptor:/var/www/encryptor
   backend:
     build:
       context: .
-      dockerfile: backend.docker
+      dockerfile: ./backend/Dockerfile
     working_dir: /var/www/api
-    ports:
-      - 3004:3004
     volumes:
       - ./backend:/var/www/api
-  geth:
-    build:
-      context: .
-      dockerfile: geth.docker
+      - ${NEDB_DIRECTORY}
+      - ${LOCAL_FILES_DIRECTORY}
+    env_file:
+      - .env
     ports:
-      - 4545:8545
+    - ${DATA_VALIDATOR_API_PORT}:${DATA_VALIDATOR_API_PORT}
+    network_mode: host

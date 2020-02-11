@@ -19,6 +19,7 @@
     "axios": "^0.19.0",
     "bignumber.js": "^9.0.0",
     "date-fns": "^2.8.1",
+    "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "file-extension": "^4.0.5",
     "lodash.uniqby": "^4.7.0",
@@ -40,7 +41,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "production": "npm run build && node server.js"
+    "production": "yarn run build && node server.js"
   },
   "eslintConfig": {
     "extends": "react-app"
