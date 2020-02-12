@@ -1,4 +1,4 @@
-import {EthereumSingature} from "./EthereumSingature";
+import {EthereumSignature} from "./EthereumSignature";
 import {SignedRequest} from "./SignedRequest";
 import {AccountType} from "../../../accounts/types";
 

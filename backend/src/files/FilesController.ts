@@ -1,7 +1,8 @@
-import {Controller, Body, Param, Post, Get, Delete, Patch} from "@nestjs/common";
+import {Controller, Body, Param, Post, Get, Delete, Patch, Query} from "@nestjs/common";
 import {FilesService} from "./FilesService";
-import {CreateServiceNodeFileRequest, ExtendFileStorageDurationRequest, UploadChunkRequest} from "./types/request";
+import {CreateServiceNodeFileRequest, ExtendFileStorageDurationRequest, PurchaseFileRequestSignature, UploadChunkRequest} from "./types/request";
 import {CheckFileUploadStatusResponse, FileResponse, ServiceNodeFileResponse} from "./types/response";
+import {decodeUrlEncodedObjectProperties} from "../utils/decode-url";
 
 @Controller("api/v3/files")
 export class FilesController {
@@ -50,7 +51,8 @@ export class FilesController {
     }
 
     @Get(":fileId/key")
-    public getFileKey(@Param("fileId") fileId: string): Promise<{key: string, iv: string}> {
-        return this.filesService.getFileKey(fileId);
+    public getFileKey(@Param("fileId") fileId: string,
+                      @Query() purchaseFileRequestSignature: PurchaseFileRequestSignature): Promise<{key: string, iv: string}> {
+        return this.filesService.getFileKey(fileId, decodeUrlEncodedObjectProperties(purchaseFileRequestSignature));
     }
 }

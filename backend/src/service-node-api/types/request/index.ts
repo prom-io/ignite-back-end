@@ -1,3 +1,3 @@
-export * from "./EthereumSingature";
+export * from "./EthereumSignature";
 export * from "./RegisterAccountRequest";
 export * from "./SignedRequest";

@@ -1,5 +1,5 @@
-import {EthereumSingature} from "./EthereumSingature";
+import {EthereumSignature} from "./EthereumSignature";
 
 export interface SignedRequest {
-    signature: EthereumSingature
+    signature: EthereumSignature
 }

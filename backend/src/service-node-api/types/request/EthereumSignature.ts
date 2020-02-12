@@ -1,4 +1,4 @@
-export interface EthereumSingature {
+export interface EthereumSignature {
     message: string,
     messageHash: string,
     signature: string,

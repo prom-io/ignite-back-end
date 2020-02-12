@@ -1,8 +1,15 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
+import {LoggerService} from "nest-logger";
 import {AxiosError} from "axios";
 import uuid4 from "uuid/v4";
 import fileSystem from "fs";
-import {ExtendFileStorageDurationRequest, ICreateServiceNodeFileRequest, IUploadChunkRequest, UploadChunkRequest} from "./types/request";
+import {
+    ExtendFileStorageDurationRequest,
+    ICreateServiceNodeFileRequest,
+    IUploadChunkRequest,
+    PurchaseFileRequestSignature,
+    UploadChunkRequest
+} from "./types/request";
 import {CheckFileUploadStatusResponse, FileResponse, ServiceNodeFileResponse} from "./types/response";
 import {FilesRepository} from "./FilesRepository";
 import {ServiceNodeTemporaryFilesRepository} from "./ServiceNodeTemporaryFilesRepository";
@@ -15,6 +22,7 @@ import {config} from "../config";
 import {AccountsRepository} from "../accounts/AccountsRepository";
 import {Web3Wrapper} from "../web3";
 import {EncryptorServiceClient} from "../encryptor";
+import {TransactionType} from "../transactions/types/response";
 
 @Injectable()
 export class FilesService {
@@ -24,7 +32,8 @@ export class FilesService {
                 private readonly accountsRepository: AccountsRepository,
                 private readonly serviceNodeClient: ServiceNodeApiClient,
                 private readonly web3Wrapper: Web3Wrapper,
-                private readonly encryptorService: EncryptorServiceClient) {
+                private readonly encryptorService: EncryptorServiceClient,
+                private readonly log: LoggerService) {
     }
 
     public async createLocalFile(): Promise<{id: string}> {
@@ -229,7 +238,14 @@ export class FilesService {
         }
     }
 
-    public async getFileKey(fileId: string): Promise<{key: string, iv: string}> {
+    public async getFileKey(fileId: string, purchaseFileRequestSignature: PurchaseFileRequestSignature): Promise<{key: string, iv: string}> {
+        if (!this.web3Wrapper.isSignatureValid(purchaseFileRequestSignature.address, purchaseFileRequestSignature)) {
+            throw new HttpException(
+                "Invalid Ethereum signature",
+                HttpStatus.BAD_REQUEST
+            )
+        }
+
         const file = await this.filesRepository.findById(fileId);
 
         if (file === null) {
@@ -239,7 +255,48 @@ export class FilesService {
             );
         }
 
+        if (!this.checkFilePurchaseStatus(fileId, purchaseFileRequestSignature.address)) {
+            throw new HttpException(
+                `File with id ${fileId} has not been purchased by ${purchaseFileRequestSignature.address}`,
+                HttpStatus.FORBIDDEN
+            )
+        }
+
         return file.fileKey;
+    }
+
+    private async checkFilePurchaseStatus(fileId: string, dataMartAddress: string): Promise<boolean> {
+        this.log.info(`Checking if file with ${fileId} id has been purchased by ${dataMartAddress}`);
+        let fetchedAllTransactions = false;
+        let transactionFound = false;
+        let currentPage = 0;
+        const pageSize = 100;
+
+        while (!fetchedAllTransactions || !transactionFound) {
+            let transactions = (await this.serviceNodeClient.getTransactionsOfAddressByType(
+                dataMartAddress,
+                TransactionType.DATA_PURCHASE,
+                currentPage,
+                pageSize,
+            )).data;
+
+            if (transactions.length === 0) {
+                fetchedAllTransactions = true;
+                break;
+            }
+
+            transactions = transactions.filter(transaction => transaction.dataMart === dataMartAddress && transaction.id === fileId);
+
+            if (transactions.length !== 0) {
+                this.log.info(`File with ${fileId} id has been purchased by ${dataMartAddress}`);
+                transactionFound = true;
+                break;
+            }
+
+            currentPage += 1;
+        }
+
+        return transactionFound;
     }
 
     private handleServiceNodeError(error: any): void {

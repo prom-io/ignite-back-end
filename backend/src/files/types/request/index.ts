@@ -6,3 +6,4 @@ export * from "./UploadChunkRequest";
 export * from "./ICreateServiceNodeFileRequest";
 export * from "./IUploadChunkRequest";
 export * from "./CreateLocalFileRequest";
+export * from "./PurchaseFileRequestSignature";
