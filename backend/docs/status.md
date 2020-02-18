@@ -5,6 +5,7 @@
 - [Create new status](#create-new-status)
 - [Get statuses of current user](#get-statuses-of-current-user)
 - [Get statuses of specific user](#get-statuses-of-specific-user)
+- [Get status by ID](#get-status-by-id)
 
 ### Create new status
 
@@ -312,4 +313,62 @@ GET /api/v3/users/0x86D273eF283CE2eD918c9402d75a9fF9dA51d779/statuses?page=1&pag
         "text": "Hello world!"
     }
 ]
+````
+
+#### Get status by ID
+
+Returns status with the specified id.
+
+#### HTTP request
+
+````
+GET /api/v3/statuses/:id
+````
+
+#### Request parameters
+
+`id` - ID of status to be retrieved
+
+#### Response body parameters
+
+Object with the following structure is returned:
+
+````
+{
+    id: string, // ID of status
+    createdAt: string, // ISO-formatted date of status creation
+    text: string, // Text of status
+    likesCount: number, // Number of likes
+    author: {
+        id: string, // ID of user who created post,
+        ethereumAddress: string, // Ethereum address of user who created post
+        avatarUri?: string // Link to user's avatar image
+    }
+}
+````
+
+#### Sample request
+
+````
+GET /api/v3/statuses/d26c7ea5-5c66-421e-8387-dec0271d67b8
+````
+
+#### Sample response
+
+````
+200 OK
+
+{
+    "author": {
+        "avatarUri": null,
+        "displayedName": "0x86D273eF283CE2eD918c9402d75a9fF9dA51d779",
+        "ethereumAddress": "0x86D273eF283CE2eD918c9402d75a9fF9dA51d779",
+        "id": "0x86D273eF283CE2eD918c9402d75a9fF9dA51d779",
+        "remote": false
+    },
+    "createdAt": "2020-02-18T16:56:58.387Z",
+    "id": "d26c7ea5-5c66-421e-8387-dec0271d67b8",
+    "likesCount": 0,
+    "text": "test1323232323"
+}
 ````
