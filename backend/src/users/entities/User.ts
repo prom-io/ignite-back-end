@@ -11,7 +11,7 @@ export class User {
     @Column()
     privateKey: string;
 
-    @Column()
+    @Column({nullable: true})
     displayedName: string;
 
     @Column()
@@ -20,6 +20,6 @@ export class User {
     @Column()
     remote: boolean;
 
-    @Column()
+    @Column({nullable: true})
     avatarUri?: string
 }

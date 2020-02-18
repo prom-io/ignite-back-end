@@ -4,14 +4,15 @@ import {Strategy, ExtractJwt} from "passport-jwt";
 import {UserResponse} from "../users/types/response";
 import {UsersService} from "../users";
 import {User} from "../users/entities";
+import {config} from "../config";
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
+export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
     constructor(private readonly usersService: UsersService) {
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
-            secretOrKey: "12345"
+            secretOrKey: config.JWT_SECRET
         });
     }
 

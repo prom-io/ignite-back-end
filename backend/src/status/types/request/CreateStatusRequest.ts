@@ -1,4 +1,4 @@
-import {IsNotEmpty, IsString, IsUUID} from "class-validator";
+import {IsNotEmpty, IsString} from "class-validator";
 
 export class CreateStatusRequest {
     @IsNotEmpty({message: "Status text must not be empty"})

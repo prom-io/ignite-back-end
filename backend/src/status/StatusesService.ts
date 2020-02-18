@@ -1,5 +1,4 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
-import {InjectRepository} from "@nestjs/typeorm";
 import {StatusesRepository} from "./StatusesRepository";
 import {CreateStatusRequest} from "./types/request";
 import {StatusResponse} from "./types/response";
@@ -12,19 +11,19 @@ import {Status} from "./entities";
 
 @Injectable()
 export class StatusesService {
-    constructor(@InjectRepository(StatusesRepository) private readonly statusesRepository: StatusesRepository,
-                @InjectRepository(StatusLikesRepository) private readonly statusLikesRepository: StatusLikesRepository,
-                @InjectRepository(UsersRepository) private readonly usersRepository: UsersRepository,
+    constructor(private readonly statusesRepository: StatusesRepository,
+                private readonly statusLikesRepository: StatusLikesRepository,
+                private readonly usersRepository: UsersRepository,
                 private readonly statusesMapper: StatusesMapper) {
     }
 
     public async createStatus(createStatusRequest: CreateStatusRequest, currentUser: User): Promise<StatusResponse> {
         return this.statusesMapper.toStatusResponse(
-            await this.statusesRepository.create(this.statusesMapper.fromCreateStatusRequest(createStatusRequest, currentUser)), 0
+            await this.statusesRepository.save(this.statusesMapper.fromCreateStatusRequest(createStatusRequest, currentUser)), 0
         )
     }
 
-    public async findById(id: string): Promise<StatusResponse> {
+    public async findStatusById(id: string): Promise<StatusResponse> {
         const status = await this.statusesRepository.findOne({where: {id}});
 
         if (!status) {
@@ -36,7 +35,7 @@ export class StatusesService {
         return this.statusesMapper.toStatusResponse(status, likesCount);
     }
 
-    public async findByUser(ethereumAddress: string, paginationRequest: PaginationRequest): Promise<StatusResponse[]> {
+    public async findStatusesByUser(ethereumAddress: string, paginationRequest: PaginationRequest): Promise<StatusResponse[]> {
         const user = await this.usersRepository.findByEthereumAddress(ethereumAddress);
 
         if (!user) {

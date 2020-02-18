@@ -1,4 +1,5 @@
 import {Module} from "@nestjs/common";
+import {TypeOrmModule} from "@nestjs/typeorm";
 import {LoggerModule} from "./logging";
 import {NedbModule} from "./nedb";
 import {FilesModule} from "./files";
@@ -10,6 +11,11 @@ import {EncryptorServiceModule} from "./encryptor";
 import {StatusCheckModule} from "./status-check";
 import {BCryptModule} from "./bcrypt";
 import {AuthModule} from "./jwt-auth";
+import {config} from "./config";
+import {StatusesModule} from "./status";
+import {UserSubscriptionsModule} from "./user-subscriptions";
+import {UsersModule} from "./users";
+import {entities} from "./typeorm-entities";
 
 @Module({
     imports: [
@@ -23,7 +29,21 @@ import {AuthModule} from "./jwt-auth";
         EncryptorServiceModule,
         StatusCheckModule,
         BCryptModule,
-        AuthModule
+        AuthModule,
+        UsersModule,
+        StatusesModule,
+        UserSubscriptionsModule,
+        TypeOrmModule.forRoot({
+            type: "postgres",
+            database: config.DATABASE_NAME,
+            host: config.DATABASE_HOST,
+            port: config.DATABASE_PORT,
+            username: config.DATABASE_USERNAME,
+            password: config.DATABASE_PASSWORD,
+            logging: "all",
+            entities,
+            synchronize: false
+        })
     ]
 })
 export class AppModule {}

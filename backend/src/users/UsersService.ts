@@ -1,5 +1,4 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
-import {InjectRepository} from "@nestjs/typeorm";
 import {User} from "./entities";
 import {UsersRepository} from "./UsersRepository";
 import {UsersMapper} from "./UsersMapper";
@@ -8,7 +7,7 @@ import {UserResponse} from "./types/response";
 
 @Injectable()
 export class UsersService {
-    constructor(@InjectRepository(User) private readonly usersRepository: UsersRepository,
+    constructor(private readonly usersRepository: UsersRepository,
                 private readonly userMapper: UsersMapper) {
     }
 

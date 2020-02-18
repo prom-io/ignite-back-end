@@ -8,12 +8,14 @@ import {RegisterAccountRequest, ServiceNodeApiClient} from "../service-node-api"
 import {EntityType} from "../nedb/entity";
 import {Web3Wrapper} from "../web3";
 import {AccountRegistrationStatusResponse} from "../service-node-api/types/response";
+import {UsersService} from "../users";
 
 @Injectable()
 export class AccountsService {
     constructor(private readonly accountsRepository: AccountsRepository,
                 private readonly serviceNodeClient: ServiceNodeApiClient,
-                private readonly web3Wrapper: Web3Wrapper) {
+                private readonly web3Wrapper: Web3Wrapper,
+                private readonly usersService: UsersService) {
     }
 
     public async createDataValidatorAccount(createDataValidatorAccountRequest: CreateDataValidatorRequest): Promise<void> {
@@ -28,6 +30,10 @@ export class AccountsService {
                         address: createDataValidatorAccountRequest.address,
                         privateKey: createDataValidatorAccountRequest.privateKey,
                         _type: EntityType.ACCOUNT
+                    });
+                    await this.usersService.saveUser({
+                        address: createDataValidatorAccountRequest.address,
+                        privateKey: createDataValidatorAccountRequest.privateKey
                     });
                     return;
                 } else {

@@ -9,7 +9,7 @@ export class Status {
     @Column({type: "varchar", length: 250})
     text: string;
 
-    @ManyToOne(type => User)
+    @ManyToOne(type => User, {eager: true})
     author: User;
 
     @Column()

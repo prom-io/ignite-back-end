@@ -24,4 +24,19 @@ export class EnvConfig {
 
     @Env({required: true, type: "string"})
     JWT_SECRET: string;
+
+    @Env({type: "string"})
+    DATABASE_NAME: string = "data_validator";
+
+    @Env({type: "string"})
+    DATABASE_HOST: string = "localhost";
+
+    @Env({type: "number"})
+    DATABASE_PORT: number = 5432;
+
+    @Env({type: "string"})
+    DATABASE_USERNAME: string = "postgres";
+
+    @Env({type: "string"})
+    DATABASE_PASSWORD: string | undefined = undefined;
 }
