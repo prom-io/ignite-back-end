@@ -10,6 +10,9 @@ export class StatusesRepository extends Repository<Status> {
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
             where: {
                 author
+            },
+            order: {
+                createdAt: "DESC"
             }
         });
     }
