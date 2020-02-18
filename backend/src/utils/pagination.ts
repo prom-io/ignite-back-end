@@ -25,3 +25,8 @@ export const getValidPageSize = (pageSize?: string | number, fallback: number = 
 };
 
 export const calculateOffset = (page: number, pageSize: number): number => (page - 1) * pageSize;
+
+export interface PaginationRequest {
+    page: number,
+    pageSize: number
+}

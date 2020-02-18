@@ -21,4 +21,7 @@ export class EnvConfig {
 
     @Env({type: "string"})
     LOCAL_FILES_DIRECTORY: string = "storage/files";
+
+    @Env({required: true, type: "string"})
+    JWT_SECRET: string;
 }

@@ -8,6 +8,8 @@ import {DiscoveryModule} from "./discovery";
 import {Web3Module} from "./web3";
 import {EncryptorServiceModule} from "./encryptor";
 import {StatusCheckModule} from "./status-check";
+import {BCryptModule} from "./bcrypt";
+import {AuthModule} from "./jwt-auth";
 
 @Module({
     imports: [
@@ -19,7 +21,9 @@ import {StatusCheckModule} from "./status-check";
         DiscoveryModule,
         Web3Module,
         EncryptorServiceModule,
-        StatusCheckModule
+        StatusCheckModule,
+        BCryptModule,
+        AuthModule
     ]
 })
 export class AppModule {}
