@@ -248,6 +248,8 @@ GET /api/v3/users/0x86D273eF283CE2eD918c9402d75a9fF9dA51d779/statuses?page=1&pag
 #### Sample response
 
 ````
+200 OK
+
 [
     {
         "author": {
