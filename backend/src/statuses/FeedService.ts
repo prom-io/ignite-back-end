@@ -18,6 +18,11 @@ export class FeedService {
     public async getFeedOfCurrentUser(currentUser: User, paginationRequest: PaginationRequest): Promise<StatusResponse[]> {
         const subscriptions = await this.subscriptionsRepository.findAllBySubscribedUser(currentUser);
         const authors = subscriptions.map(subscription => subscription.subscribedTo);
+
+        if (authors.length === 0) {
+            return [];
+        }
+
         const statuses = await this.statusesRepository.findByAuthorIn(authors, paginationRequest);
         const likesMap: {[statusId: string]: {
                 numberOfLikes: number,
