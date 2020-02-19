@@ -18,12 +18,12 @@ export class StatusesService {
     }
 
     public async createStatus(createStatusRequest: CreateStatusRequest, currentUser: User): Promise<StatusResponse> {
-        return this.statusesMapper.toStatusResponse(
-            await this.statusesRepository.save(this.statusesMapper.fromCreateStatusRequest(createStatusRequest, currentUser)), 0
-        )
+        let status = this.statusesMapper.fromCreateStatusRequest(createStatusRequest, currentUser);
+        status = await this.statusesRepository.save(status);
+        return this.statusesMapper.toStatusResponse(status, 0, false);
     }
 
-    public async findStatusById(id: string): Promise<StatusResponse> {
+    public async findStatusById(id: string, currentUser?: User): Promise<StatusResponse> {
         const status = await this.statusesRepository.findOne({where: {id}});
 
         if (!status) {
@@ -31,11 +31,20 @@ export class StatusesService {
         }
 
         const likesCount = await this.statusLikesRepository.countByStatus(status);
+        let likedByCurrentUser = false;
 
-        return this.statusesMapper.toStatusResponse(status, likesCount);
+        if (likesCount !== 0 && currentUser) {
+            likedByCurrentUser = await this.statusLikesRepository.existByStatusAndUser(status, currentUser);
+        }
+
+        return this.statusesMapper.toStatusResponse(status, likesCount, likedByCurrentUser);
     }
 
-    public async findStatusesByUser(ethereumAddress: string, paginationRequest: PaginationRequest): Promise<StatusResponse[]> {
+    public async findStatusesByUser(
+        ethereumAddress: string,
+        paginationRequest: PaginationRequest,
+        currentUser?: User,
+    ): Promise<StatusResponse[]> {
         const user = await this.usersRepository.findByEthereumAddress(ethereumAddress);
 
         if (!user) {
@@ -43,15 +52,25 @@ export class StatusesService {
         }
 
         const statuses: Status[] = await this.statusesRepository.findByAuthor(user, paginationRequest);
-        const likesCountMap: {[statusId: string]: number} = {};
+        const likesMap: {[statusId: string]: {
+            numberOfLikes: number,
+            likedByCurrentUser: boolean
+        }} = {};
 
         for (const status of statuses) {
-            likesCountMap[status.id] = await this.statusLikesRepository.countByStatus(status);
+            likesMap[status.id] = {
+                numberOfLikes: await this.statusLikesRepository.countByStatus(status),
+                likedByCurrentUser: currentUser && await this.statusLikesRepository.existByStatusAndUser(
+                    status,
+                    currentUser
+                )
+            };
         }
 
         return statuses.map(status => this.statusesMapper.toStatusResponse(
             status,
-            likesCountMap[status.id]
+            likesMap[status.id].numberOfLikes,
+            likesMap[status.id].likedByCurrentUser
         ))
     }
 }

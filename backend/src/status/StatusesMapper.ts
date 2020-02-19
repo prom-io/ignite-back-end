@@ -11,12 +11,13 @@ export class StatusesMapper {
     constructor(private readonly userMapper: UsersMapper) {
     }
 
-    public toStatusResponse(status: Status, likesCount: number): StatusResponse {
+    public toStatusResponse(status: Status, likesCount: number, likedByCurrentUser: boolean): StatusResponse {
         return {
             author: this.userMapper.toUserResponse(status.author),
             createdAt: status.createdAt.toISOString(),
             id: status.id,
             likesCount,
+            likedByCurrentUser,
             text: status.text
         }
     }

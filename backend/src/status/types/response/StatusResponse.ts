@@ -1,4 +1,4 @@
-import {UserResponse} from "../../../users/types/response/UserResponse";
+import {UserResponse} from "../../../users/types/response";
 
 export interface StatusResponse {
     id: string,
@@ -6,5 +6,6 @@ export interface StatusResponse {
     author: UserResponse,
     text: string,
     likesCount: number,
-    inReplyTo?: StatusResponse
+    inReplyTo?: StatusResponse,
+    likedByCurrentUser: boolean
 }

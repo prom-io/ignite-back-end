@@ -1,6 +1,7 @@
 import {EntityRepository, Repository} from "typeorm";
 import {Status, StatusLike} from "./entities";
 import {calculateOffset, PaginationRequest} from "../utils/pagination";
+import {User} from "../users/entities";
 
 @EntityRepository(StatusLike)
 export class StatusLikesRepository extends Repository<StatusLike> {
@@ -21,5 +22,23 @@ export class StatusLikesRepository extends Repository<StatusLike> {
                status
            }
        })
+    }
+
+    public async existByStatusAndUser(status: Status, user: User): Promise<boolean> {
+        return (await this.count({
+            where: {
+                status,
+                user
+            }
+        })) !== 0
+    }
+
+    public async findByStatusAndUser(status: Status, user: User): Promise<StatusLike | undefined> {
+        return await this.findOne({
+            where: {
+                status,
+                user
+            }
+        })
     }
 }

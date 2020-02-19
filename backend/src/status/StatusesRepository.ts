@@ -16,4 +16,12 @@ export class StatusesRepository extends Repository<Status> {
             }
         });
     }
+
+    public async findById(id: string): Promise<Status | undefined> {
+        return this.findOne({
+            where: {
+                id
+            }
+        })
+    }
 }
