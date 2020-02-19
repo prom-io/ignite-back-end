@@ -40,4 +40,13 @@ export class UserSubscriptionsRepository extends Repository<UserSubscription> {
             take: paginationRequest.pageSize
         })
     }
+
+    public async existsBySubscribedUserAndSubscribedTo(subscribedUser: User, subscribedTo: User): Promise<boolean> {
+        return (await this.count({
+            where: {
+                subscribedUser,
+                subscribedTo
+            }
+        })) !== 0;
+    }
 }

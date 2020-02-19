@@ -25,6 +25,13 @@ export class UserSubscriptionsService {
             );
         }
 
+        if (await this.userSubscriptionsRepository.existsBySubscribedUserAndSubscribedTo(currentUser, subscribedToUser)) {
+            throw new HttpException(
+                `Current user is already subscribed to ${subscribedToUser.ethereumAddress}`,
+                HttpStatus.CONFLICT
+            );
+        }
+
         let subscription = this.userSubscriptionsMapper.fromCreateUserSubscriptionRequest(
             createUserSubscriptionRequest,
             currentUser,
