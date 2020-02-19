@@ -91,22 +91,6 @@ DELETE /api/v3/subscription/:id
 
 `id` - ID of subscription to be deleted.
 
-#### Response body parameters
-
-Response contains array of objects with the following structure:
-
-````
-{
-    id: string, // ID of subscription
-    createdAt: string, // ISO-formatted date of subscription creation,
-    user: { 
-        id: string, // ID of user to which current user subscribed
-        ethereumAddress: string, // Ethereum address of user to which current user subscribed
-        avatarUri?: string // Link to user's avatar image
-    }
-}
-````
-
 #### Sample request
 
 ````
