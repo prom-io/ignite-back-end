@@ -5,6 +5,14 @@ import {calculateOffset, PaginationRequest} from "../utils/pagination";
 
 @EntityRepository(UserSubscription)
 export class UserSubscriptionsRepository extends Repository<UserSubscription> {
+    public findById(id: string): Promise<UserSubscription | undefined> {
+        return this.findOne({
+            where: {
+                id
+            }
+        })
+    }
+
     public findBySubscribedTo(subscribedTo: User, paginationRequest: PaginationRequest): Promise<UserSubscription[]> {
         return this.find({
             where: {
@@ -12,6 +20,14 @@ export class UserSubscriptionsRepository extends Repository<UserSubscription> {
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
             take: paginationRequest.pageSize
+        })
+    }
+
+    public findAllBySubscribedUser(subscribedUser: User): Promise<UserSubscription[]> {
+        return this.find({
+            where: {
+                subscribedUser
+            }
         })
     }
 

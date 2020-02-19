@@ -1,3 +1,5 @@
+import {IsInt, IsPositive} from "class-validator";
+
 export const getValidPage = (page?: string | number, fallback: number = 1, startFromZero: boolean = false): number => {
     let returnedPage = Number(page);
 
@@ -26,7 +28,17 @@ export const getValidPageSize = (pageSize?: string | number, fallback: number = 
 
 export const calculateOffset = (page: number, pageSize: number): number => (page - 1) * pageSize;
 
-export interface PaginationRequest {
-    page: number,
-    pageSize: number
+export class PaginationRequest {
+    @IsInt({message: "Page must be integer number"})
+    @IsPositive({message: "Page must be positive"})
+    page: number = 1;
+
+    @IsInt({message: "Page size must be integer number"})
+    @IsPositive({message: "Page size must be positive"})
+    pageSize: number = 30;
+
+    constructor(page: number = 1, pageSize: number = 30) {
+        this.page = page;
+        this.pageSize = pageSize;
+    }
 }

@@ -12,7 +12,7 @@ import {StatusCheckModule} from "./status-check";
 import {BCryptModule} from "./bcrypt";
 import {AuthModule} from "./jwt-auth";
 import {config} from "./config";
-import {StatusesModule} from "./status";
+import {StatusesModule} from "./statuses";
 import {UserSubscriptionsModule} from "./user-subscriptions";
 import {UsersModule} from "./users";
 import {entities} from "./typeorm-entities";

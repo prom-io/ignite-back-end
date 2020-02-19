@@ -4,14 +4,16 @@ import {UsersService} from "./UsersService";
 import {UsersMapper} from "./UsersMapper";
 import {UsersController} from "./UsersController";
 import {UsersRepository} from "./UsersRepository";
-import {StatusesModule} from "../status";
+import {StatusesModule} from "../statuses";
+import {UserSubscriptionsModule} from "../user-subscriptions";
 
 @Module({
     controllers: [UsersController],
     providers: [UsersService, UsersMapper],
     imports: [
         TypeOrmModule.forFeature([UsersRepository]),
-        forwardRef(() => StatusesModule)
+        forwardRef(() => StatusesModule),
+        forwardRef(() => UserSubscriptionsModule)
     ],
     exports: [UsersService, UsersMapper]
 })

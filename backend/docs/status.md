@@ -85,6 +85,7 @@ GET /api/v3/users/current/statuses?page&pageSize
 #### Request query parameters
 
 `page` - Page to start with. Pagination starts with 1;
+
 `pageSize` - Page size, must be positive.
 
 #### Response body parameters
@@ -215,6 +216,7 @@ GET /api/v3/users/:address/statues?page&pageSize
 #### Request query parameters
 
 `page` - Page to start with. Pagination starts with 1;
+
 `pageSize` - Page size, must be positive.
 
 #### Response body parameters

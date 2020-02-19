@@ -6,10 +6,10 @@ export class UserSubscription {
     @PrimaryColumn()
     id: string;
 
-    @ManyToOne(type => User)
+    @ManyToOne(type => User, {eager: true})
     subscribedUser: User;
 
-    @ManyToOne(type => User)
+    @ManyToOne(type => User, {eager: true})
     subscribedTo: User;
 
     @Column()

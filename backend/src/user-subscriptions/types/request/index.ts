@@ -1,1 +1,1 @@
-export * from "./CreateSubscriptionRequest";
+export * from "./CreateUserSubscriptionRequest";

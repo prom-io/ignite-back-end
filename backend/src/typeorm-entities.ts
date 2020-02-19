@@ -1,6 +1,6 @@
 import {User, UserStatistics} from "./users/entities";
 import {UserSubscription} from "./user-subscriptions/entities";
-import {Status, StatusLike} from "./status/entities";
+import {Status, StatusLike} from "./statuses/entities";
 
 export const entities = [
     User,
