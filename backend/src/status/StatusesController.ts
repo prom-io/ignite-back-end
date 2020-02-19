@@ -1,4 +1,4 @@
-import {Body, Controller, Delete, Get, Param, Post, Req, UseGuards} from "@nestjs/common";
+import {Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Req, UseGuards} from "@nestjs/common";
 import {AuthGuard} from "@nestjs/passport";
 import {Request} from "express";
 import {StatusesService} from "./StatusesService";
@@ -37,6 +37,7 @@ export class StatusesController {
 
     @UseGuards(AuthGuard("jwt"))
     @Delete(":id/like")
+    @HttpCode(HttpStatus.NO_CONTENT)
     public unlikeStatus(@Param("id") id: string,
                         @Req() request: Request): Promise<void> {
         return this.statusLikesService.deleteStatusLike(id, request.user as User);
