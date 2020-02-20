@@ -5,13 +5,17 @@ import {UserSubscriptionsService} from "./UserSubscriptionsService";
 import {UserSubscriptionsMapper} from "./UserSubscriptionsMapper";
 import {UserSubscriptionsController} from "./UserSubscriptionsController";
 import {UserSubscriptionEntityEventsSubscriber} from "./UserSubscriptionEntityEventsSubscriber";
-import {UsersModule, UsersRepository, UserStatisticsRepository} from "../users";
+import {UsersModule} from "../users";
+import {UsersRepository} from "../users/UsersRepository";
+import {UserStatisticsRepository} from "../users/UserStatisticsRepository";
+
+console.log(UserStatisticsRepository);
 
 @Module({
     controllers: [UserSubscriptionsController],
     providers: [UserSubscriptionsService, UserSubscriptionsMapper, UserSubscriptionEntityEventsSubscriber],
     imports: [
-        TypeOrmModule.forFeature([UserSubscriptionsRepository, UsersRepository, UserStatisticsRepository]),
+        TypeOrmModule.forFeature([UsersRepository, UserStatisticsRepository, UserSubscriptionsRepository]),
         forwardRef(() => UsersModule)
     ],
     exports: [UserSubscriptionsService, UserSubscriptionsMapper]

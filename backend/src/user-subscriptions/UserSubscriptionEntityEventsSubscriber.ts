@@ -2,7 +2,7 @@ import {Injectable} from "@nestjs/common";
 import {InjectConnection} from "@nestjs/typeorm";
 import {Connection, EntitySubscriberInterface, InsertEvent, RemoveEvent} from "typeorm";
 import {UserSubscription} from "./entities";
-import {UserStatisticsRepository} from "../users";
+import {UserStatisticsRepository} from "../users/UserStatisticsRepository";
 
 @Injectable()
 export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberInterface<UserSubscription> {

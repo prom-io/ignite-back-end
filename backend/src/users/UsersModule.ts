@@ -6,14 +6,15 @@ import {UsersController} from "./UsersController";
 import {UsersRepository} from "./UsersRepository";
 import {UserStatisticsRepository} from "./UserStatisticsRepository";
 import {UserEntityEventsSubscriber} from "./UserEntityEventsSubscriber";
+import {UserStatisticsMapper} from "./UserStatisticsMapper";
 import {StatusesModule} from "../statuses";
-import {UserSubscriptionsModule} from "../user-subscriptions";
+import {UserSubscriptionsModule, UserSubscriptionsRepository} from "../user-subscriptions";
 
 @Module({
     controllers: [UsersController],
-    providers: [UsersService, UsersMapper, UserEntityEventsSubscriber],
+    providers: [UsersService, UsersMapper, UserEntityEventsSubscriber, UserStatisticsMapper],
     imports: [
-        TypeOrmModule.forFeature([UsersRepository, UserStatisticsRepository]),
+        TypeOrmModule.forFeature([UsersRepository, UserStatisticsRepository, UserSubscriptionsRepository]),
         forwardRef(() => StatusesModule),
         forwardRef(() => UserSubscriptionsModule)
     ],

@@ -1,13 +1,15 @@
 import {Injectable} from "@nestjs/common";
 import uuid from "uuid";
-import {UserResponse} from "./types/response";
+import {UserStatisticsMapper} from "./UserStatisticsMapper";
+import {UserResponse, UserProfileResponse} from "./types/response";
 import {CreateUserRequest} from "./types/request";
-import {User} from "./entities";
+import {User, UserStatistics} from "./entities";
 import {BCryptPasswordEncoder} from "../bcrypt";
 
 @Injectable()
 export class UsersMapper {
-    constructor(private readonly bCryptPasswordEncoder: BCryptPasswordEncoder) {
+    constructor(private readonly bCryptPasswordEncoder: BCryptPasswordEncoder,
+                private readonly userStatisticsMapper: UserStatisticsMapper) {
     }
 
     public toUserResponse(user: User): UserResponse {
@@ -17,6 +19,18 @@ export class UsersMapper {
             ethereumAddress: user.ethereumAddress,
             id: user.ethereumAddress,
             remote: user.remote
+        }
+    }
+
+    public toUserProfileResponse(user: User, userStatistics: UserStatistics, currentUserSubscriptionId?: string): UserProfileResponse {
+        return {
+            avatarUri: user.avatarUri,
+            displayedName: user.displayedName,
+            ethereumAddress: user.ethereumAddress,
+            id: user.ethereumAddress,
+            remote: user.remote,
+            stats: this.userStatisticsMapper.toUserStatisticsResponse(userStatistics),
+            currentUserSubscriptionId
         }
     }
 

@@ -3,7 +3,7 @@ import {AuthGuard} from "@nestjs/passport";
 import {Request} from "express";
 import {UsersService} from "./UsersService";
 import {User} from "./entities";
-import {UserResponse} from "./types/response";
+import {UserProfileResponse, UserResponse} from "./types/response";
 import {StatusesService} from "../statuses";
 import {StatusResponse} from "../statuses/types/response";
 import {PaginationRequest} from "../utils/pagination";
@@ -49,5 +49,18 @@ export class UsersController {
     public getSubscriptionsOfUser(@Param("address") address: string,
                                   @Query() paginationRequest: PaginationRequest): Promise<UserSubscriptionResponse[]> {
         return this.userSubscriptionsService.getSubscriptionsByUser(address, paginationRequest);
+    }
+
+    @UseGuards(AuthGuard("jwt"))
+    @Get("current/profile")
+    public getCurrentUserProfile(@Req() request: Request): Promise<UserProfileResponse> {
+        return this.usersService.getCurrentUserProfile(request.user as User);
+    }
+
+    @UseGuards(OptionalJwtAuthGuard)
+    @Get(":address/profile")
+    public getUserProfile(@Param("address") address: string,
+                          @Req() request: Request): Promise<UserProfileResponse> {
+        return this.usersService.getUserProfile(address, request.user as User | null);
     }
 }

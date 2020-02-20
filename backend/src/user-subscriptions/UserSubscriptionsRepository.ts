@@ -41,6 +41,15 @@ export class UserSubscriptionsRepository extends Repository<UserSubscription> {
         })
     }
 
+    public findBySubscribedUserAndSubscribedTo(subscribedUser: User, subscribedTo: User): Promise<UserSubscription | undefined> {
+        return this.findOne({
+            where: {
+                subscribedTo,
+                subscribedUser
+            }
+        })
+    }
+
     public async existsBySubscribedUserAndSubscribedTo(subscribedUser: User, subscribedTo: User): Promise<boolean> {
         return (await this.count({
             where: {
