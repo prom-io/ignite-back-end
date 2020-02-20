@@ -8,15 +8,15 @@ import {StatusesMapper} from "./StatusesMapper";
 import {StatusesRepository} from "./StatusesRepository";
 import {StatusLikesRepository} from "./StatusLikesRepository";
 import {StatusLikesService} from "./StatusLikesService";
-import {UsersModule} from "../users";
-import {UsersRepository} from "../users/UsersRepository";
+import {StatusEntityEventsSubscriber} from "./StatusEntityEventsSubscriber";
+import {UsersModule, UsersRepository, UserStatisticsRepository} from "../users";
 import {UserSubscriptionsModule, UserSubscriptionsRepository} from "../user-subscriptions";
 
 @Module({
     controllers: [StatusesController, FeedController],
-    providers: [StatusesService, StatusesMapper, StatusLikesService, FeedService],
+    providers: [StatusesService, StatusesMapper, StatusLikesService, FeedService, StatusEntityEventsSubscriber],
     imports: [
-        TypeOrmModule.forFeature([StatusesRepository, StatusLikesRepository, UsersRepository, UserSubscriptionsRepository]),
+        TypeOrmModule.forFeature([StatusesRepository, StatusLikesRepository, UsersRepository, UserSubscriptionsRepository, UserStatisticsRepository]),
         forwardRef(() => UsersModule),
         UserSubscriptionsModule
     ],

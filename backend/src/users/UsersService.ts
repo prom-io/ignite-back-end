@@ -4,10 +4,12 @@ import {UsersRepository} from "./UsersRepository";
 import {UsersMapper} from "./UsersMapper";
 import {CreateUserRequest} from "./types/request";
 import {UserResponse} from "./types/response";
+import {UserStatisticsRepository} from "./UserStatisticsRepository";
 
 @Injectable()
 export class UsersService {
     constructor(private readonly usersRepository: UsersRepository,
+                private readonly userStatisticsRepository: UserStatisticsRepository,
                 private readonly userMapper: UsersMapper) {
     }
 

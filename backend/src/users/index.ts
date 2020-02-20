@@ -1,2 +1,4 @@
-export * from "./UsersModule";
 export * from "./UsersService";
+export * from "./UserStatisticsRepository";
+export * from "./UsersRepository";
+export * from "./UsersModule";

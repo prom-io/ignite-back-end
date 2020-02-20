@@ -16,6 +16,7 @@ import {StatusesModule} from "./statuses";
 import {UserSubscriptionsModule} from "./user-subscriptions";
 import {UsersModule} from "./users";
 import {entities} from "./typeorm-entities";
+import {subscribers} from "./typeorm-subscribers";
 
 @Module({
     imports: [
@@ -42,6 +43,7 @@ import {entities} from "./typeorm-entities";
             password: config.DATABASE_PASSWORD,
             logging: "all",
             entities,
+            subscribers,
             synchronize: false
         })
     ]

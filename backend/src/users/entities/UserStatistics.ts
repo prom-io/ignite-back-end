@@ -1,4 +1,4 @@
-import {Column, Entity, OneToOne, PrimaryColumn} from "typeorm";
+import {Column, Entity, JoinColumn, OneToOne, PrimaryColumn} from "typeorm";
 import {User} from "./User";
 
 @Entity()
@@ -16,5 +16,6 @@ export class UserStatistics {
     followersCount: number;
 
     @OneToOne(type => User)
+    @JoinColumn()
     user: User;
 }
