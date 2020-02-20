@@ -34,7 +34,7 @@ export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberI
         const subscribedToStatistics = await this.userStatisticsRepository.findByUser(subscribedTo);
         const subscribedUserStatistics = await this.userStatisticsRepository.findByUser(subscribedUser);
 
-        subscribedToStatistics.followersCount = subscribedToStatistics.followsCount - 1;
+        subscribedToStatistics.followersCount = subscribedToStatistics.followersCount - 1;
         subscribedUserStatistics.followsCount = subscribedUserStatistics.followsCount - 1;
 
         await this.userStatisticsRepository.save(subscribedToStatistics);
