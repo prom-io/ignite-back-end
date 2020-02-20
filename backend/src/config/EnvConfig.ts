@@ -39,4 +39,7 @@ export class EnvConfig {
 
     @Env({type: "string"})
     DATABASE_PASSWORD: string | undefined = undefined;
+
+    @Env({type: "boolean"})
+    RECREATE_DATABASE_SCHEMA: boolean = false;
 }

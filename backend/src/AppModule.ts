@@ -44,7 +44,7 @@ import {subscribers} from "./typeorm-subscribers";
             logging: "all",
             entities,
             subscribers,
-            synchronize: false
+            synchronize: config.RECREATE_DATABASE_SCHEMA
         })
     ]
 })
