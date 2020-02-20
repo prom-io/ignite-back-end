@@ -30,7 +30,8 @@ export class UsersMapper {
             id: user.ethereumAddress,
             remote: user.remote,
             stats: this.userStatisticsMapper.toUserStatisticsResponse(userStatistics),
-            currentUserSubscriptionId
+            currentUserSubscriptionId,
+            createdAt: user.createdAt.toISOString()
         }
     }
 

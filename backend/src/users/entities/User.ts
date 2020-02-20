@@ -21,5 +21,5 @@ export class User {
     remote: boolean;
 
     @Column({nullable: true})
-    avatarUri?: string
+    avatarUri?: string;
 }

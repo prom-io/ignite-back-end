@@ -3,5 +3,6 @@ import {UserStatisticsResponse} from "./UserStatisticsResponse";
 
 export interface UserProfileResponse extends UserResponse {
     stats: UserStatisticsResponse,
-    currentUserSubscriptionId?: string
+    currentUserSubscriptionId?: string,
+    createdAt: string
 }
