@@ -16,6 +16,19 @@ services:
     - ${REACT_APP_PRODUCTION_PORT}:${REACT_APP_PRODUCTION_PORT}
     tty: true
     network_mode: host
+  postgres:
+    image: postgres:latest
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=${DATABASE_USERNAME}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_DB=${DATABASE_NAME}
+    ports:
+      - "5433:5432"
+    restart: unless-stopped
  # encryptor:
  #   build:
  #     context: .
@@ -36,3 +49,7 @@ services:
     ports:
     - ${DATA_VALIDATOR_API_PORT}:${DATA_VALIDATOR_API_PORT}
     network_mode: host
+    depends_on:
+      - postgres
+volumes:
+  pg-data: {}

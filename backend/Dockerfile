@@ -1,4 +1,4 @@
-FROM node:12
+FROM node:10
 WORKDIR /var/www/api
 
 RUN yarn global add @nestjs/cli
