@@ -28,7 +28,8 @@ Response contains object with the following structure:
         followsCount: number, // number of users followed by this user
         statusesCount: number // number of statuses created by this user
     },
-    currentUserSubscriptionId?: string // If current user is subscribed to this user, this field contains ID of subscription
+    currentUserSubscriptionId?: string, // If current user is subscribed to this user, this field contains ID of subscription,
+    createdAt: string // ISO-formatted date of profile creation
 }
 ````
 
@@ -88,7 +89,8 @@ Response contains object with the following structure:
         followersCount: number, // number of followers of this user
         followsCount: number, // number of users followed by this user
         statusesCount: number // number of statuses created by this user
-    }
+    },
+    createdAt: string // ISO-formatted date of profile creation
 }
 ````
 
