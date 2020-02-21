@@ -5,11 +5,11 @@ import {UserSubscriptionsRepository} from "./UserSubscriptionsRepository";
 import {UserSubscriptionsMapper} from "./UserSubscriptionsMapper";
 import {RelationshipsResponse, UserSubscriptionResponse} from "./types/response";
 import {UsersRepository} from "../users/UsersRepository";
+import {UserStatisticsRepository} from "../users/UserStatisticsRepository";
 import {User, UserStatistics} from "../users/entities";
 import {PaginationRequest} from "../utils/pagination";
 import {UserResponse} from "../users/types/response";
 import {UsersMapper} from "../users/UsersMapper";
-import {UserStatisticsRepository} from "../users";
 
 @Injectable()
 export class UserSubscriptionsService {
@@ -82,7 +82,7 @@ export class UserSubscriptionsService {
 
         return {
             id: targetUser.id,
-            following: true,
+            following: false,
             followedBy: Boolean(targetUserSubscription),
             showingReblogs: false,
             blockedBy: false,
@@ -204,5 +204,7 @@ export class UserSubscriptionsService {
         if (!user) {
             throw new HttpException(`Could not find user with address ${address}`, HttpStatus.NOT_FOUND);
         }
+
+        return user;
     }
 }

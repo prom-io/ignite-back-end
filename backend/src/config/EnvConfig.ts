@@ -42,4 +42,7 @@ export class EnvConfig {
 
     @Env({type: "boolean"})
     RECREATE_DATABASE_SCHEMA: boolean = false;
+
+    @Env({type: "string"})
+    MICROBLOGGING_BLOCKCHAIN_API_URL: string;
 }

@@ -7,10 +7,10 @@ export class StatusLike {
     @PrimaryColumn()
     id: string;
 
-    @ManyToOne(type => Status)
+    @ManyToOne(type => Status, {eager: true})
     status: Status;
 
-    @ManyToOne(type => User)
+    @ManyToOne(type => User, {eager: true})
     user: User;
 
     @Column()

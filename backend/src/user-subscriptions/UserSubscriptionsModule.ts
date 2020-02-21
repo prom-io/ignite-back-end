@@ -8,6 +8,7 @@ import {UserSubscriptionEntityEventsSubscriber} from "./UserSubscriptionEntityEv
 import {UsersModule} from "../users";
 import {UsersRepository} from "../users/UsersRepository";
 import {UserStatisticsRepository} from "../users/UserStatisticsRepository";
+import {MicrobloggingBlockchainApiModule} from "../microblogging-blockchain-api";
 
 console.log(UserStatisticsRepository);
 
@@ -16,7 +17,8 @@ console.log(UserStatisticsRepository);
     providers: [UserSubscriptionsService, UserSubscriptionsMapper, UserSubscriptionEntityEventsSubscriber],
     imports: [
         TypeOrmModule.forFeature([UsersRepository, UserStatisticsRepository, UserSubscriptionsRepository]),
-        forwardRef(() => UsersModule)
+        forwardRef(() => UsersModule),
+        MicrobloggingBlockchainApiModule
     ],
     exports: [UserSubscriptionsService, UserSubscriptionsMapper]
 })

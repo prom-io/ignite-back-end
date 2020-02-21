@@ -9,12 +9,21 @@ import {StatusesRepository} from "./StatusesRepository";
 import {StatusLikesRepository} from "./StatusLikesRepository";
 import {StatusLikesService} from "./StatusLikesService";
 import {StatusEntityEventsSubscriber} from "./StatusEntityEventsSubscriber";
+import {StatusLikeEntityEventsListener} from "./StatusLikeEntityEventsListener";
 import {UsersModule, UsersRepository, UserStatisticsRepository} from "../users";
 import {UserSubscriptionsModule, UserSubscriptionsRepository} from "../user-subscriptions";
+import {MicrobloggingBlockchainApiModule} from "../microblogging-blockchain-api";
 
 @Module({
     controllers: [StatusesController, TimelineController],
-    providers: [StatusesService, StatusesMapper, StatusLikesService, FeedService, StatusEntityEventsSubscriber],
+    providers: [
+        StatusesService,
+        StatusesMapper,
+        StatusLikesService,
+        FeedService,
+        StatusEntityEventsSubscriber,
+        StatusLikeEntityEventsListener
+    ],
     imports: [
         TypeOrmModule.forFeature([
             StatusesRepository,
@@ -24,7 +33,8 @@ import {UserSubscriptionsModule, UserSubscriptionsRepository} from "../user-subs
             UserStatisticsRepository
         ]),
         forwardRef(() => UsersModule),
-        UserSubscriptionsModule
+        UserSubscriptionsModule,
+        MicrobloggingBlockchainApiModule
     ],
     exports: [StatusesService, StatusesMapper]
 })
