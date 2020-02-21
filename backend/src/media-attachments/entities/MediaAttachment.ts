@@ -11,11 +11,12 @@ export class MediaAttachment {
     @Column()
     format: string;
 
-    @Column()
+    @Column({nullable: true})
     width?: number;
 
-    @Column()
+    @Column({nullable: true})
     height?: number;
 
+    @Column({nullable: true})
     name: string;
 }

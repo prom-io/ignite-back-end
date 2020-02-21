@@ -14,6 +14,9 @@ export class User {
     @Column({nullable: true})
     displayedName: string;
 
+    @Column({nullable: true})
+    username: string;
+
     @Column()
     createdAt: Date;
 

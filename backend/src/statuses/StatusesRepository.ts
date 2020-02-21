@@ -29,7 +29,10 @@ export class StatusesRepository extends Repository<Status> {
     public async findAllBy(paginationRequest: PaginationRequest): Promise<Status[]> {
         return this.find({
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
-            take: paginationRequest.pageSize
+            take: paginationRequest.pageSize,
+            order: {
+                createdAt: "DESC"
+            }
         })
     }
 

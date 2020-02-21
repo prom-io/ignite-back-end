@@ -22,7 +22,7 @@ export class UsersMapper {
             followingCount: userStatistics ? userStatistics.followsCount : 0,
             header: user.avatarUri,
             headerStatic: user.avatarUri,
-            username: user.ethereumAddress,
+            username: user.username || user.ethereumAddress,
             remote: user.remote,
             statusesCount: userStatistics ? userStatistics.statusesCount : 0
         })
@@ -36,7 +36,8 @@ export class UsersMapper {
             avatarUri: null,
             displayedName: createUserRequest.address,
             createdAt: new Date(),
-            privateKey: this.bCryptPasswordEncoder.encode(createUserRequest.privateKey, 12)
+            privateKey: this.bCryptPasswordEncoder.encode(createUserRequest.privateKey, 12),
+            username: createUserRequest.address
         }
     }
 }

@@ -34,12 +34,12 @@ export class StatusLikeEntityEventsListener implements EntitySubscriberInterface
             })
     }
 
-    public async afterRemove(event: RemoveEvent<StatusLike>): Promise<void> {
+    public async beforeRemove(event: RemoveEvent<StatusLike>): Promise<void> {
         const statusLike = event.entity;
 
         this.log.info("Logging status unlike to blockchain");
         this.microbloggingBlockchainApiClient.logStatusUnlike({
-            id: statusLike.status.id,
+            id: statusLike.id,
             messageId: statusLike.status.id,
             user: statusLike.user.ethereumAddress
         })

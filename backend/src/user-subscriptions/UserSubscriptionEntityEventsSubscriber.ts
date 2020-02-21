@@ -44,8 +44,14 @@ export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberI
             })
     }
 
-    public async afterRemove(event: RemoveEvent<UserSubscription>): Promise<void> {
-        const {subscribedTo, subscribedUser} = event.entity;
+    public async beforeRemove(event: RemoveEvent<UserSubscription>): Promise<void> {
+        console.log("Subscription id is" + event.entity.id);
+
+        const {subscribedTo, subscribedUser, id} = event.entity;
+
+        console.log(subscribedTo);
+        console.log(subscribedUser);
+        console.log(id);
 
         const subscribedToStatistics = await this.userStatisticsRepository.findByUser(subscribedTo);
         const subscribedUserStatistics = await this.userStatisticsRepository.findByUser(subscribedUser);
