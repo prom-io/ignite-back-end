@@ -13,6 +13,8 @@ import {StatusLikeEntityEventsListener} from "./StatusLikeEntityEventsListener";
 import {UsersModule, UsersRepository, UserStatisticsRepository} from "../users";
 import {UserSubscriptionsModule, UserSubscriptionsRepository} from "../user-subscriptions";
 import {MicrobloggingBlockchainApiModule} from "../microblogging-blockchain-api";
+import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
+import {MediaAttachmentsModule} from "../media-attachments";
 
 @Module({
     controllers: [StatusesController, TimelineController],
@@ -30,11 +32,13 @@ import {MicrobloggingBlockchainApiModule} from "../microblogging-blockchain-api"
             StatusLikesRepository,
             UsersRepository,
             UserSubscriptionsRepository,
-            UserStatisticsRepository
+            UserStatisticsRepository,
+            MediaAttachmentsRepository
         ]),
         forwardRef(() => UsersModule),
         UserSubscriptionsModule,
-        MicrobloggingBlockchainApiModule
+        MicrobloggingBlockchainApiModule,
+        MediaAttachmentsModule
     ],
     exports: [StatusesService, StatusesMapper]
 })

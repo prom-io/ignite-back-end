@@ -1,5 +1,6 @@
-import {Column, Entity, ManyToOne, PrimaryColumn, UpdateDateColumn} from "typeorm";
+import {Column, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryColumn, UpdateDateColumn} from "typeorm";
 import {User} from "../../users/entities/User";
+import {MediaAttachment} from "../../media-attachments/entities";
 
 @Entity()
 export class Status {
@@ -20,4 +21,8 @@ export class Status {
 
     @UpdateDateColumn()
     updatedAt: Date;
+
+    @ManyToMany(() => MediaAttachment, {eager: true})
+    @JoinTable()
+    mediaAttachments: MediaAttachment[];
 }

@@ -43,6 +43,12 @@ export class EnvConfig {
     @Env({type: "boolean"})
     RECREATE_DATABASE_SCHEMA: boolean = false;
 
-    @Env({type: "string"})
+    @Env({type: "string", required: true})
     MICROBLOGGING_BLOCKCHAIN_API_URL: string;
+
+    @Env({type: "string", required: true})
+    HOST: string;
+
+    @Env({type: "string", required: true})
+    MEDIA_ATTACHMENTS_DIRECTORY: string;
 }

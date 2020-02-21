@@ -8,17 +8,28 @@ import {User} from "../users/entities";
 import {UsersRepository} from "../users/UsersRepository";
 import {PaginationRequest} from "../utils/pagination";
 import {Status} from "./entities";
+import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
+import {MediaAttachment} from "../media-attachments/entities";
 
 @Injectable()
 export class StatusesService {
     constructor(private readonly statusesRepository: StatusesRepository,
                 private readonly statusLikesRepository: StatusLikesRepository,
                 private readonly usersRepository: UsersRepository,
+                private readonly mediaAttachmentRepository: MediaAttachmentsRepository,
                 private readonly statusesMapper: StatusesMapper) {
     }
 
     public async createStatus(createStatusRequest: CreateStatusRequest, currentUser: User): Promise<StatusResponse> {
-        let status = this.statusesMapper.fromCreateStatusRequest(createStatusRequest, currentUser);
+        let mediaAttachments: MediaAttachment[] = [];
+
+        if (createStatusRequest.media_attachments && createStatusRequest.media_attachments.length) {
+            mediaAttachments = await this.mediaAttachmentRepository.findAllByIds(
+                createStatusRequest.media_attachments.map(mediaAttachment => mediaAttachment.id)
+            );
+        }
+
+        let status = this.statusesMapper.fromCreateStatusRequest(createStatusRequest, currentUser, mediaAttachments);
         status = await this.statusesRepository.save(status);
         return this.statusesMapper.toStatusResponse(status, 0, false);
     }
