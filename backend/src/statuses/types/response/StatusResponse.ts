@@ -1,11 +1,20 @@
+import {Expose} from "class-transformer";
 import {UserResponse} from "../../../users/types/response";
 
-export interface StatusResponse {
-    id: string,
-    createdAt: string,
-    author: UserResponse,
-    text: string,
-    likesCount: number,
-    inReplyTo?: StatusResponse,
-    likedByCurrentUser: boolean
+export class StatusResponse {
+    id: string;
+
+    @Expose({name: "created_at"})
+    createdAt: string;
+
+    account: UserResponse;
+    content: string;
+
+    @Expose({name: "favourite_count"})
+    favouritesCount: number;
+    favourited: boolean;
+
+    constructor(object: StatusResponse) {
+        Object.assign(this, object);
+    }
 }

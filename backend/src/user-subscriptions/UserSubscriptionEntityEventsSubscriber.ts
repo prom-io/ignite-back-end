@@ -16,10 +16,14 @@ export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberI
     }
 
     public async afterInsert(event: InsertEvent<UserSubscription>): Promise<void> {
+        console.log(event.entity);
         const {subscribedTo, subscribedUser} = event.entity;
 
         const subscribedToStatistics = await this.userStatisticsRepository.findByUser(subscribedTo);
         const subscribedUserStatistics = await this.userStatisticsRepository.findByUser(subscribedUser);
+
+        console.log(subscribedToStatistics);
+        console.log(subscribedUserStatistics);
 
         subscribedToStatistics.followersCount = subscribedToStatistics.followersCount + 1;
         subscribedUserStatistics.followsCount = subscribedToStatistics.followsCount + 1;

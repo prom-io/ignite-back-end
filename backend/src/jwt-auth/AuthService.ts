@@ -28,7 +28,7 @@ export class AuthService {
     }
 
     public async login(user: User): Promise<any> {
-        const payload = this.usersMapper.toUserResponse(user);
+        const payload = Object.assign({}, this.usersMapper.toUserResponse(user));
 
         return {
             access_token: this.jwtService.sign(payload)

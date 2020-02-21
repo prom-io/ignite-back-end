@@ -4,7 +4,7 @@ import {UsersRepository} from "./UsersRepository";
 import {UserStatisticsRepository} from "./UserStatisticsRepository";
 import {UsersMapper} from "./UsersMapper";
 import {CreateUserRequest} from "./types/request";
-import {UserResponse, UserProfileResponse} from "./types/response";
+import {UserResponse} from "./types/response";
 import {UserSubscriptionsRepository} from "../user-subscriptions";
 
 @Injectable()
@@ -16,11 +16,30 @@ export class UsersService {
     }
 
     public async saveUser(createUserRequest: CreateUserRequest): Promise<UserResponse> {
-        return this.usersMapper.toUserResponse(await this.usersRepository.save(this.usersMapper.fromCreateUserRequest(createUserRequest)));
+        const existingUser = await this.usersRepository.findByEthereumAddress(createUserRequest.address);
+
+        if (existingUser) {
+            return this.usersMapper.toUserResponse(existingUser);
+        }
+
+        const user = await this.usersRepository.save(this.usersMapper.fromCreateUserRequest(createUserRequest))
+
+        return this.usersMapper.toUserResponse(
+            user,{
+                followsCount: 0,
+                followersCount: 0,
+                statusesCount: 0,
+                user,
+                id: ""
+            }
+        );
     }
 
     public async findUserByEthereumAddress(address: string): Promise<UserResponse> {
-        return this.usersMapper.toUserResponse(await this.findUserEntityByEthereumAddress(address));
+        const user = await this.findUserEntityByEthereumAddress(address);
+        const userStatistics = await this.userStatisticsRepository.findByUser(user);
+
+        return this.usersMapper.toUserResponse(user, userStatistics);
     }
 
     public async findUserEntityByEthereumAddress(address: string): Promise<User> {
@@ -33,7 +52,7 @@ export class UsersService {
         return user;
     }
 
-    public async getUserProfile(address: string, currentUser?: User): Promise<UserProfileResponse> {
+    public async getUserProfile(address: string, currentUser?: User): Promise<UserResponse> {
         const user = await this.usersRepository.findByEthereumAddress(address);
 
         if (!user) {
@@ -41,18 +60,12 @@ export class UsersService {
         }
 
         const userStatistics = await this.userStatisticsRepository.findByUser(user);
-        let currentUserSubscriptionId: string | null = null;
 
-        if (currentUser) {
-            const subscription = await this.subscriptionsRepository.findBySubscribedUserAndSubscribedTo(currentUser, user);
-            currentUserSubscriptionId = subscription ? subscription.id : null;
-        }
-
-        return this.usersMapper.toUserProfileResponse(user, userStatistics, currentUserSubscriptionId);
+        return this.usersMapper.toUserResponse(user, userStatistics);
     }
 
-    public async getCurrentUserProfile(currentUser: User): Promise<UserProfileResponse> {
+    public async getCurrentUserProfile(currentUser: User): Promise<UserResponse> {
         const userStatistics = await this.userStatisticsRepository.findByUser(currentUser);
-        return this.usersMapper.toUserProfileResponse(currentUser, userStatistics);
+        return this.usersMapper.toUserResponse(currentUser, userStatistics);
     }
 }

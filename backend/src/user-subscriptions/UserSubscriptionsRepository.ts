@@ -23,6 +23,14 @@ export class UserSubscriptionsRepository extends Repository<UserSubscription> {
         })
     }
 
+    public findAllBySubscribedTo(subscribedTo: User): Promise<UserSubscription[]> {
+        return this.find({
+            where: {
+                subscribedTo
+            }
+        })
+    }
+
     public findAllBySubscribedUser(subscribedUser: User): Promise<UserSubscription[]> {
         return this.find({
             where: {

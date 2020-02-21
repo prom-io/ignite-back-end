@@ -3,6 +3,7 @@ import {TypeOrmModule} from "@nestjs/typeorm";
 import {UsersService} from "./UsersService";
 import {UsersMapper} from "./UsersMapper";
 import {UsersController} from "./UsersController";
+import {UserByAddressController} from "./UserByAddressController";
 import {UsersRepository} from "./UsersRepository";
 import {UserStatisticsRepository} from "./UserStatisticsRepository";
 import {UserEntityEventsSubscriber} from "./UserEntityEventsSubscriber";
@@ -11,7 +12,7 @@ import {StatusesModule} from "../statuses";
 import {UserSubscriptionsModule, UserSubscriptionsRepository} from "../user-subscriptions";
 
 @Module({
-    controllers: [UsersController],
+    controllers: [UsersController, UserByAddressController],
     providers: [UsersService, UsersMapper, UserEntityEventsSubscriber, UserStatisticsMapper],
     imports: [
         TypeOrmModule.forFeature([UsersRepository, UserStatisticsRepository, UserSubscriptionsRepository]),

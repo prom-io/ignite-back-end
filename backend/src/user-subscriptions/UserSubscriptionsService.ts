@@ -1,45 +1,98 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
+import uuid from "uuid";
+import {UserSubscription} from "./entities";
 import {UserSubscriptionsRepository} from "./UserSubscriptionsRepository";
 import {UserSubscriptionsMapper} from "./UserSubscriptionsMapper";
-import {CreateUserSubscriptionRequest} from "./types/request";
-import {UserSubscriptionResponse} from "./types/response";
+import {RelationshipsResponse, UserSubscriptionResponse} from "./types/response";
 import {UsersRepository} from "../users/UsersRepository";
-import {User} from "../users/entities";
+import {User, UserStatistics} from "../users/entities";
 import {PaginationRequest} from "../utils/pagination";
+import {UserResponse} from "../users/types/response";
+import {UsersMapper} from "../users/UsersMapper";
+import {UserStatisticsRepository} from "../users";
 
 @Injectable()
 export class UserSubscriptionsService {
     constructor(private readonly userSubscriptionsRepository: UserSubscriptionsRepository,
                 private readonly usersRepository: UsersRepository,
-                private readonly userSubscriptionsMapper: UserSubscriptionsMapper) {
+                private readonly userStatisticsRepository: UserStatisticsRepository,
+                private readonly userSubscriptionsMapper: UserSubscriptionsMapper,
+                private readonly usersMapper: UsersMapper) {
     }
 
-    public async createUserSubscription(createUserSubscriptionRequest: CreateUserSubscriptionRequest,
-                                        currentUser: User): Promise<UserSubscriptionResponse> {
-        const subscribedToUser = await this.usersRepository.findByEthereumAddress(createUserSubscriptionRequest.subscribeToAddress);
+    public async followUser(address: string,
+                            currentUser: User): Promise<RelationshipsResponse> {
+        const targetUser = await this.usersRepository.findByEthereumAddress(address);
 
-        if (!subscribedToUser) {
+        if (!targetUser) {
             throw new HttpException(
-                `Could not find user with address ${createUserSubscriptionRequest.subscribeToAddress}`,
+                `Could not find user with address ${address}`,
                 HttpStatus.NOT_FOUND
             );
         }
 
-        if (await this.userSubscriptionsRepository.existsBySubscribedUserAndSubscribedTo(currentUser, subscribedToUser)) {
+        if (await this.userSubscriptionsRepository.existsBySubscribedUserAndSubscribedTo(currentUser, targetUser)) {
             throw new HttpException(
-                `Current user is already subscribed to ${subscribedToUser.ethereumAddress}`,
+                `Current user is already subscribed to ${targetUser.ethereumAddress}`,
                 HttpStatus.CONFLICT
             );
         }
 
-        let subscription = this.userSubscriptionsMapper.fromCreateUserSubscriptionRequest(
-            createUserSubscriptionRequest,
-            currentUser,
-            subscribedToUser
-        );
-        subscription = await this.userSubscriptionsRepository.save(subscription);
+        const subscription: UserSubscription = {
+            id: uuid(),
+            subscribedUser: currentUser,
+            subscribedTo: targetUser,
+            createdAt: new Date()
+        };
+        await this.userSubscriptionsRepository.save(subscription);
 
-        return this.userSubscriptionsMapper.toUserSubscriptionResponse(subscription);
+        const targetUserSubscription = await this.userSubscriptionsRepository.findBySubscribedUserAndSubscribedTo(targetUser, currentUser);
+
+        return {
+            id: targetUser.id,
+            following: true,
+            followedBy: Boolean(targetUserSubscription),
+            showingReblogs: false,
+            blockedBy: false,
+            blocking: false,
+            muting: false,
+            requested: false,
+            domainBlocking: false,
+            endorsed: false,
+            mutingNotifications: false
+        }
+    }
+
+    public async unfollowUser(address: string, currentUser: User): Promise<RelationshipsResponse> {
+        const targetUser = await this.usersRepository.findByEthereumAddress(address);
+
+        if (!targetUser) {
+            throw new HttpException(`Could not find user with address ${address}`, HttpStatus.NOT_FOUND);
+        }
+
+        const subscription = await this.userSubscriptionsRepository.findBySubscribedUserAndSubscribedTo(currentUser, targetUser);
+
+        if (!subscription) {
+            throw new HttpException(`Current user is not subscribed to ${address}`, HttpStatus.FORBIDDEN);
+        }
+
+        await this.userSubscriptionsRepository.remove(subscription);
+
+        const targetUserSubscription = await this.userSubscriptionsRepository.findBySubscribedUserAndSubscribedTo(targetUser, currentUser);
+
+        return {
+            id: targetUser.id,
+            following: true,
+            followedBy: Boolean(targetUserSubscription),
+            showingReblogs: false,
+            blockedBy: false,
+            blocking: false,
+            muting: false,
+            requested: false,
+            domainBlocking: false,
+            endorsed: false,
+            mutingNotifications: false
+        }
     }
 
     public async getSubscriptionsOfCurrentUser(currentUser: User, paginationRequest: PaginationRequest): Promise<UserSubscriptionResponse[]> {
@@ -79,5 +132,77 @@ export class UserSubscriptionsService {
         }
 
         await this.userSubscriptionsRepository.remove(subscription);
+    }
+
+    public async getUserRelationships(addresses: string[], currentUser: User): Promise<RelationshipsResponse[]> {
+        const users = await this.usersRepository.findAllByEthereumAddresses(addresses);
+        const relationships: RelationshipsResponse[] = [];
+
+        for (const user of users) {
+            const currentUserSubscription = await this.userSubscriptionsRepository.findBySubscribedUserAndSubscribedTo(currentUser, user);
+            const backwardsSubscription = await this.userSubscriptionsRepository.findBySubscribedUserAndSubscribedTo(user, currentUser);
+
+            relationships.push(new RelationshipsResponse({
+                id: user.ethereumAddress,
+                following: Boolean(currentUserSubscription),
+                followedBy: Boolean(backwardsSubscription),
+                showingReblogs: false,
+                blockedBy: false,
+                blocking: false,
+                muting: false,
+                requested: false,
+                domainBlocking: false,
+                endorsed: false,
+                mutingNotifications: false
+            }))
+        }
+
+        return relationships;
+    }
+
+    public async getFollowersOfUser(address: string): Promise<UserResponse[]> {
+        const subscribedTo = await this.findUserByAddress(address);
+        const subscriptions = await this.userSubscriptionsRepository.findAllBySubscribedTo(subscribedTo);
+
+        const userStatisticsMap: {
+            [userId: string]: UserStatistics
+        } = {};
+
+        for (const subscription of subscriptions) {
+            userStatisticsMap[subscription.subscribedUser.id] = await this.userStatisticsRepository.findByUser(subscription.subscribedUser);
+        }
+
+        return subscriptions.map(subscription => subscription.subscribedUser)
+            .map(user => this.usersMapper.toUserResponse(
+                user,
+                userStatisticsMap[user.id]
+            ));
+    }
+
+    public async getFollowingOfUser(address: string): Promise<UserResponse[]> {
+        const subscribedUser = await this.findUserByAddress(address);
+        const subscriptions = await this.userSubscriptionsRepository.findAllBySubscribedUser(subscribedUser);
+
+        const userStatisticsMap: {
+            [userId: string]: UserStatistics
+        } = {};
+
+        for (const subscription of subscriptions) {
+            userStatisticsMap[subscription.subscribedUser.id] = await this.userStatisticsRepository.findByUser(subscription.subscribedTo);
+        }
+
+        return subscriptions.map(subscription => subscription.subscribedUser)
+            .map(user => this.usersMapper.toUserResponse(
+                user,
+                userStatisticsMap[user.id]
+            ));
+    }
+
+    private async findUserByAddress(address: string): Promise<User> {
+        const user = await this.usersRepository.findByEthereumAddress(address);
+
+        if (!user) {
+            throw new HttpException(`Could not find user with address ${address}`, HttpStatus.NOT_FOUND);
+        }
     }
 }

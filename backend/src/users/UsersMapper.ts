@@ -1,38 +1,31 @@
 import {Injectable} from "@nestjs/common";
 import uuid from "uuid";
-import {UserStatisticsMapper} from "./UserStatisticsMapper";
-import {UserResponse, UserProfileResponse} from "./types/response";
+import {UserResponse} from "./types/response";
 import {CreateUserRequest} from "./types/request";
 import {User, UserStatistics} from "./entities";
 import {BCryptPasswordEncoder} from "../bcrypt";
 
 @Injectable()
 export class UsersMapper {
-    constructor(private readonly bCryptPasswordEncoder: BCryptPasswordEncoder,
-                private readonly userStatisticsMapper: UserStatisticsMapper) {
+    constructor(private readonly bCryptPasswordEncoder: BCryptPasswordEncoder) {
     }
 
-    public toUserResponse(user: User): UserResponse {
-        return {
-            avatarUri: user.avatarUri,
-            displayedName: user.displayedName,
-            ethereumAddress: user.ethereumAddress,
+    public toUserResponse(user: User, userStatistics?: UserStatistics): UserResponse {
+        return new UserResponse({
+            avatar: user.avatarUri,
+            displayName: user.displayedName,
+            acct: user.displayedName,
             id: user.ethereumAddress,
-            remote: user.remote
-        }
-    }
-
-    public toUserProfileResponse(user: User, userStatistics: UserStatistics, currentUserSubscriptionId?: string): UserProfileResponse {
-        return {
-            avatarUri: user.avatarUri,
-            displayedName: user.displayedName,
-            ethereumAddress: user.ethereumAddress,
-            id: user.ethereumAddress,
+            avatarStatic: user.avatarUri,
+            createdAt: user.createdAt.toISOString(),
+            followersCount: userStatistics ? userStatistics.followersCount : 0,
+            followingCount: userStatistics ? userStatistics.followsCount : 0,
+            header: user.avatarUri,
+            headerStatic: user.avatarUri,
+            username: user.ethereumAddress,
             remote: user.remote,
-            stats: this.userStatisticsMapper.toUserStatisticsResponse(userStatistics),
-            currentUserSubscriptionId,
-            createdAt: user.createdAt.toISOString()
-        }
+            statusesCount: userStatistics ? userStatistics.statusesCount : 0
+        })
     }
 
     public fromCreateUserRequest(createUserRequest: CreateUserRequest): User {

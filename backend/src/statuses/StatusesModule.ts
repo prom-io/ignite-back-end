@@ -1,6 +1,6 @@
 import {forwardRef, Module} from "@nestjs/common";
 import {TypeOrmModule} from "@nestjs/typeorm";
-import {FeedController} from "./FeedController";
+import {TimelineController} from "./TimelineController";
 import {FeedService} from "./FeedService";
 import {StatusesController} from "./StatusesController";
 import {StatusesService} from "./StatusesService";
@@ -13,10 +13,16 @@ import {UsersModule, UsersRepository, UserStatisticsRepository} from "../users";
 import {UserSubscriptionsModule, UserSubscriptionsRepository} from "../user-subscriptions";
 
 @Module({
-    controllers: [StatusesController, FeedController],
+    controllers: [StatusesController, TimelineController],
     providers: [StatusesService, StatusesMapper, StatusLikesService, FeedService, StatusEntityEventsSubscriber],
     imports: [
-        TypeOrmModule.forFeature([StatusesRepository, StatusLikesRepository, UsersRepository, UserSubscriptionsRepository, UserStatisticsRepository]),
+        TypeOrmModule.forFeature([
+            StatusesRepository,
+            StatusLikesRepository,
+            UsersRepository,
+            UserSubscriptionsRepository,
+            UserStatisticsRepository
+        ]),
         forwardRef(() => UsersModule),
         UserSubscriptionsModule
     ],

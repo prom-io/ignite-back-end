@@ -18,15 +18,4 @@ export class UserSubscriptionsMapper {
             user: this.usersMapper.toUserResponse(userSubscription.subscribedTo)
         }
     }
-
-    public fromCreateUserSubscriptionRequest(createUserSubscriptionRequest: CreateUserSubscriptionRequest,
-                                             currentUser: User,
-                                             subscribedToUser: User): UserSubscription {
-        return {
-            id: uuid(),
-            subscribedTo: subscribedToUser,
-            subscribedUser: currentUser,
-            createdAt: new Date()
-        }
-    }
 }

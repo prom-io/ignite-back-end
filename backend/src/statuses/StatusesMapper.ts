@@ -3,7 +3,7 @@ import uuid from "uuid/v4";
 import {Status} from "./entities";
 import {StatusResponse} from "./types/response";
 import {CreateStatusRequest} from "./types/request";
-import {User} from "../users/entities";
+import {User, UserStatistics} from "../users/entities";
 import {UsersMapper} from "../users/UsersMapper";
 
 @Injectable()
@@ -11,21 +11,21 @@ export class StatusesMapper {
     constructor(private readonly userMapper: UsersMapper) {
     }
 
-    public toStatusResponse(status: Status, likesCount: number, likedByCurrentUser: boolean): StatusResponse {
-        return {
-            author: this.userMapper.toUserResponse(status.author),
+    public toStatusResponse(status: Status, favouritesCount: number, favourited: boolean, userStatistics?: UserStatistics): StatusResponse {
+        return new StatusResponse({
+            account: this.userMapper.toUserResponse(status.author, userStatistics),
             createdAt: status.createdAt.toISOString(),
             id: status.id,
-            likesCount,
-            likedByCurrentUser,
-            text: status.text
-        }
+            favouritesCount,
+            favourited,
+            content: status.text
+        })
     }
 
     public fromCreateStatusRequest(createStatusRequest: CreateStatusRequest, author: User): Status {
         return  {
             id: uuid(),
-            text: createStatusRequest.text,
+            text: createStatusRequest.status,
             createdAt: new Date(),
             author,
             updatedAt: null,
