@@ -1,6 +1,7 @@
 FROM node:10
 WORKDIR /var/www/api
 
+COPY . .
 RUN apt-get update
 RUN apt-get -y install graphicsmagick
 RUN yarn global add @nestjs/cli
