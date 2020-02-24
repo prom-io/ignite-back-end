@@ -51,4 +51,7 @@ export class EnvConfig {
 
     @Env({type: "string", required: true})
     MEDIA_ATTACHMENTS_DIRECTORY: string;
+
+    @Env({type: "string", required: true})
+    DEFAULT_AVATAR_URL: string;
 }

@@ -18,7 +18,7 @@ export class UsersMapper {
         followedBy: boolean = false
     ): UserResponse {
         return new UserResponse({
-            avatar: user.avatarUri || `${config.HOST}/api/v1/media/b653997e-7a4a-482f-a9fc-ea546729da5e.png`,
+            avatar: user.avatarUri || `${config.DEFAULT_AVATAR_URL}`,
             displayName: user.displayedName,
             acct: user.displayedName,
             id: user.ethereumAddress,
