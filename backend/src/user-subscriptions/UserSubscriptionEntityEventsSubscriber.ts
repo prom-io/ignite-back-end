@@ -40,19 +40,12 @@ export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberI
             .then(() => this.log.info(`Subscription of ${subscribedUser.ethereumAddress} to ${subscribedTo.ethereumAddress} has been written to blockchain`))
             .catch(error => {
                 this.log.error(`Error occurred when tried to write subscription of ${subscribedUser.ethereumAddress} to ${subscribedTo.ethereumAddress} to blockchain`);
-                console.error(error);
+                console.error(error.response.data.message);
             })
     }
 
     public async beforeRemove(event: RemoveEvent<UserSubscription>): Promise<void> {
-        console.log("Subscription id is" + event.entity.id);
-
         const {subscribedTo, subscribedUser, id} = event.entity;
-
-        console.log(subscribedTo);
-        console.log(subscribedUser);
-        console.log(id);
-
         const subscribedToStatistics = await this.userStatisticsRepository.findByUser(subscribedTo);
         const subscribedUserStatistics = await this.userStatisticsRepository.findByUser(subscribedUser);
 

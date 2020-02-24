@@ -36,6 +36,53 @@ export class StatusesRepository extends Repository<Status> {
         })
     }
 
+    public async findByAuthorAndCreatedAtBefore(author: User, createdAt: Date, paginationRequest: PaginationRequest): Promise<Status[]> {
+        return this.find({
+            where: {
+                author,
+                createdAt: LessThan(createdAt)
+            },
+            order: {
+                createdAt: "DESC"
+            },
+            skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
+            take: paginationRequest.pageSize
+        })
+    }
+
+    public async findByAuthorAndCreatedAtAfter(author: User, createdAt: Date, paginationRequest: PaginationRequest): Promise<Status[]> {
+        return this.find({
+            where: {
+                author,
+                createdAt: MoreThan(createdAt)
+            },
+            order: {
+                createdAt: "DESC"
+            },
+            skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
+            take: paginationRequest.pageSize
+        })
+    }
+
+    public async findByAuthorAndCreatedAtBetween(
+        author: User,
+        createdAtBefore: Date,
+        createdAtAfter: Date,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        return this.find({
+            where: {
+                author,
+                createdAt: Between(createdAtBefore, createdAtAfter)
+            },
+            order: {
+                createdAt: "DESC"
+            },
+            skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
+            take: paginationRequest.pageSize
+        })
+    }
+
     public findByAuthorIn(authors: User[], paginationRequest: PaginationRequest): Promise<Status[]> {
         return this.find({
             where: {

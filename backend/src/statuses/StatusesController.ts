@@ -45,4 +45,12 @@ export class StatusesController {
                         @Req() request: Request): Promise<StatusResponse> {
         return this.statusLikesService.deleteStatusLike(id, request.user as User);
     }
+
+    @Get(":id/context")
+    public getStatusContext(@Param("id") id: string) {
+        return {
+            ancestors: [],
+            descendants: []
+        }
+    }
 }

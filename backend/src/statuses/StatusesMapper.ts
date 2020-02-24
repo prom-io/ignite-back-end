@@ -14,15 +14,28 @@ export class StatusesMapper {
                 private readonly mediaAttachmentsMapper: MediaAttachmentsMapper) {
     }
 
-    public toStatusResponse(status: Status, favouritesCount: number, favourited: boolean, userStatistics?: UserStatistics): StatusResponse {
+    public toStatusResponse(
+        status: Status,
+        favouritesCount: number,
+        favourited: boolean,
+        userStatistics?: UserStatistics,
+        followingAuthor: boolean = false,
+        followedByAuthor: boolean = false
+    ): StatusResponse {
         return new StatusResponse({
-            account: this.userMapper.toUserResponse(status.author, userStatistics),
+            account: this.userMapper.toUserResponse(status.author, userStatistics, followingAuthor, followedByAuthor),
             createdAt: status.createdAt.toISOString(),
             id: status.id,
             favouritesCount,
             favourited,
             content: status.text,
-            mediaAttachments: status.mediaAttachments.map(mediaAttachment => this.mediaAttachmentsMapper.toMediaAttachmentResponse(mediaAttachment))
+            mediaAttachments: [],
+            emojis: [],
+            fields: [],
+            tags: [],
+            visibility: "public",
+            spoilerText: "",
+            revisedAt: null,
         })
     }
 

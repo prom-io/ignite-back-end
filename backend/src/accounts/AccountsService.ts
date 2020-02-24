@@ -56,6 +56,10 @@ export class AccountsService {
                 privateKey: createDataValidatorAccountRequest.privateKey,
                 _type: EntityType.ACCOUNT
             });
+            await this.usersService.saveUser({
+                address: createDataValidatorAccountRequest.address,
+                privateKey: createDataValidatorAccountRequest.privateKey
+            });
         } catch (error) {
             if (error instanceof HttpException) {
                 throw error;

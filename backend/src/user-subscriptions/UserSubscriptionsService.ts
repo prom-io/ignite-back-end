@@ -191,7 +191,7 @@ export class UserSubscriptionsService {
             userStatisticsMap[subscription.subscribedUser.id] = await this.userStatisticsRepository.findByUser(subscription.subscribedTo);
         }
 
-        return subscriptions.map(subscription => subscription.subscribedUser)
+        return subscriptions.map(subscription => subscription.subscribedTo)
             .map(user => this.usersMapper.toUserResponse(
                 user,
                 userStatisticsMap[user.id]

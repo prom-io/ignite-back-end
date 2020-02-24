@@ -28,4 +28,13 @@ export class TimelineController {
                          @Query("since_id") sinceId?: string): Promise<StatusResponse[]> {
         return this.feedService.getGlobalFeed({maxId, sinceId}, request.user as User | null);
     }
+
+    @UseInterceptors(ClassSerializerInterceptor)
+    @UseGuards(OptionalJwtAuthGuard)
+    @Get("public")
+    public getPublicFeed(@Req() request: Request,
+                         @Query("max_id") maxId?: string,
+                         @Query("since_id") sinceId?: string): Promise<StatusResponse[]> {
+        return this.feedService.getGlobalFeed({maxId, sinceId}, request.user as User | null);
+    }
 }

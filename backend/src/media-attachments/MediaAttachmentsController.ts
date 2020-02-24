@@ -1,4 +1,4 @@
-import {Controller, Get, Param, Post, Res, UploadedFile, UseGuards, UseInterceptors} from "@nestjs/common";
+import {ClassSerializerInterceptor, Controller, Get, Param, Post, Res, UploadedFile, UseGuards, UseInterceptors} from "@nestjs/common";
 import {AuthGuard} from "@nestjs/passport";
 import {FileInterceptor} from "@nestjs/platform-express";
 import {Response} from "express";
@@ -11,6 +11,7 @@ export class MediaAttachmentsController {
     }
 
     @UseGuards(AuthGuard("jwt"))
+    @UseInterceptors(ClassSerializerInterceptor)
     @UseInterceptors(FileInterceptor("file"))
     @Post()
     public uploadMedia(@UploadedFile() file: MultipartFile): Promise<MediaAttachmentResponse> {

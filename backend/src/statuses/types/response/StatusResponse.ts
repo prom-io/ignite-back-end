@@ -18,6 +18,17 @@ export class StatusResponse {
     @Expose({name: "media_attachments"})
     mediaAttachments: MediaAttachmentResponse[] = [];
 
+    emojis: string[] = [];
+    tags: string[] = [];
+    fields: string[] = [];
+    visibility: string = "public";
+
+    @Expose({name: "spoiler_text"})
+    spoilerText: string = "";
+
+    @Expose({name: "revised_at"})
+    revisedAt: string | null = null;
+
     constructor(object: StatusResponse) {
         Object.assign(this, object);
     }

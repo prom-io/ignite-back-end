@@ -19,7 +19,7 @@ import {OptionalJwtAuthGuard} from "./OptionalJwtAuthGuard";
         JwtModule.register({
             secret: config.JWT_SECRET,
             signOptions: {
-                expiresIn: "3600s"
+                expiresIn: "3600000000s"
             }
         })
     ]

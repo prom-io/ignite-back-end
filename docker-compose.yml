@@ -20,14 +20,15 @@ services:
     image: postgres:latest
     volumes:
       - pg-data:/var/lib/postgresql/data
+      - ${MEDIA_ATTACHMENTS_DIRECTORY}
     expose:
-      - 5432
+      - 5433
     environment:
       - POSTGRES_USER=${DATABASE_USERNAME}
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
       - POSTGRES_DB=${DATABASE_NAME}
     ports:
-      - "5433:5432"
+      - "5433:5433"
     restart: unless-stopped
  # encryptor:
  #   build:

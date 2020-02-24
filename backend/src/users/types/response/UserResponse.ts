@@ -30,6 +30,15 @@ export class UserResponse {
     @Expose({name: "statuses_count"})
     statusesCount: number;
 
+    emojis: string[] = [];
+    note: string = "";
+    fields: string[] = [];
+
+    following: boolean;
+
+    @Expose({name: "followed_by"})
+    followedBy: boolean;
+
     constructor(object: UserResponse) {
         Object.assign(this, object);
     }

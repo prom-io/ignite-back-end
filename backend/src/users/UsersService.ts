@@ -35,6 +35,10 @@ export class UsersService {
         );
     }
 
+    public async getCurrentUser(user: User): Promise<UserResponse> {
+        return this.usersMapper.toUserResponse(user, await this.userStatisticsRepository.findByUser(user))
+    }
+
     public async findUserByEthereumAddress(address: string): Promise<UserResponse> {
         const user = await this.findUserEntityByEthereumAddress(address);
         const userStatistics = await this.userStatisticsRepository.findByUser(user);
@@ -60,8 +64,14 @@ export class UsersService {
         }
 
         const userStatistics = await this.userStatisticsRepository.findByUser(user);
+        const following = currentUser && await this.subscriptionsRepository.existsBySubscribedUserAndSubscribedTo(
+            currentUser, user
+        );
+        const followed = currentUser && await this.subscriptionsRepository.existsBySubscribedUserAndSubscribedTo(
+            user, currentUser
+        );
 
-        return this.usersMapper.toUserResponse(user, userStatistics);
+        return this.usersMapper.toUserResponse(user, userStatistics, following, followed);
     }
 
     public async getCurrentUserProfile(currentUser: User): Promise<UserResponse> {

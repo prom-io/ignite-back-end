@@ -9,7 +9,6 @@ import {PaginationRequest} from "../utils/pagination";
 import {UserSubscriptionsRepository} from "../user-subscriptions";
 import {FeedCursors} from "./types/request/FeedCursors";
 import {UserStatisticsRepository} from "../users";
-import {max, sample} from "rxjs/operators";
 
 @Injectable()
 export class FeedService {
@@ -17,6 +16,7 @@ export class FeedService {
                 private readonly userStatisticsRepository: UserStatisticsRepository,
                 private readonly statusesRepository: StatusesRepository,
                 private readonly statusLikesRepository: StatusLikesRepository,
+                private readonly userSubscriptionRepository: UserSubscriptionsRepository,
                 private readonly statusesMapper: StatusesMapper) {
     }
 
@@ -54,21 +54,29 @@ export class FeedService {
             statuses = await this.statusesRepository.findByAuthorIn(authors, paginationRequest);
         }
 
-        const likesMap: {
+        const likesAndSubscriptionsMap: {
             [statusId: string]: {
                 numberOfLikes: number,
-                likedByCurrentUser: boolean
+                likedByCurrentUser: boolean,
+                followingAuthor: boolean,
+                followedByAuthor: boolean
             }} = {};
         const userStatisticsMap: {
             [userId: string]: UserStatistics
         } = {};
 
         for (const status of statuses) {
-            likesMap[status.id] = {
+            likesAndSubscriptionsMap[status.id] = {
                 numberOfLikes: await this.statusLikesRepository.countByStatus(status),
                 likedByCurrentUser: currentUser && await this.statusLikesRepository.existByStatusAndUser(
                     status,
                     currentUser
+                ),
+                followingAuthor: await this.userSubscriptionRepository.existsBySubscribedUserAndSubscribedTo(
+                    currentUser, status.author
+                ),
+                followedByAuthor: await this.userSubscriptionRepository.existsBySubscribedUserAndSubscribedTo(
+                    status.author, currentUser
                 )
             };
 
@@ -79,9 +87,11 @@ export class FeedService {
 
         return statuses.map(status => this.statusesMapper.toStatusResponse(
             status,
-            likesMap[status.id].numberOfLikes,
-            likesMap[status.id].likedByCurrentUser,
-            userStatisticsMap[status.author.id]
+            likesAndSubscriptionsMap[status.id].numberOfLikes,
+            likesAndSubscriptionsMap[status.id].likedByCurrentUser,
+            userStatisticsMap[status.author.id],
+            likesAndSubscriptionsMap[status.id].followingAuthor,
+            likesAndSubscriptionsMap[status.id].followedByAuthor
         ))
     }
 
@@ -104,7 +114,7 @@ export class FeedService {
                     paginationRequest
                 );
             } else {
-                const maxCursor = await  this.findStatusById(feedCursors.maxId);
+                const maxCursor = await this.findStatusById(feedCursors.maxId);
                 statuses = await this.statusesRepository.findByCreatedAtBefore(maxCursor.createdAt, paginationRequest);
             }
         } else if (feedCursors.sinceId) {
@@ -114,19 +124,27 @@ export class FeedService {
             statuses = await this.statusesRepository.findAllBy(paginationRequest);
         }
 
-        const likesMap: {
+        const likesAndSubscriptionsMapMap: {
             [statusId: string]: {
                 numberOfLikes: number,
-                likedByCurrentUser: boolean
+                likedByCurrentUser: boolean,
+                followingAuthor: boolean,
+                followedByAuthor: boolean
             }} = {};
         const userStatisticsMap: {
             [userId: string]: UserStatistics
         } = {};
 
         for (const status of statuses) {
-            likesMap[status.id] = {
+            likesAndSubscriptionsMapMap[status.id] = {
                 numberOfLikes: await this.statusLikesRepository.countByStatus(status),
-                likedByCurrentUser: currentUser ? await this.statusLikesRepository.existByStatusAndUser(status, currentUser) : false
+                likedByCurrentUser: currentUser ? await this.statusLikesRepository.existByStatusAndUser(status, currentUser) : false,
+                followingAuthor: currentUser && await this.userSubscriptionRepository.existsBySubscribedUserAndSubscribedTo(
+                    currentUser, status.author
+                ),
+                followedByAuthor: currentUser && await this.userSubscriptionRepository.existsBySubscribedUserAndSubscribedTo(
+                    status.author, currentUser
+                )
             };
 
             if (!userStatisticsMap[status.author.id]) {
@@ -136,9 +154,11 @@ export class FeedService {
 
         return statuses.map(status => this.statusesMapper.toStatusResponse(
             status,
-            likesMap[status.id].numberOfLikes,
-            likesMap[status.id].likedByCurrentUser,
-            userStatisticsMap[status.author.id]
+            likesAndSubscriptionsMapMap[status.id].numberOfLikes,
+            likesAndSubscriptionsMapMap[status.id].likedByCurrentUser,
+            userStatisticsMap[status.author.id],
+            likesAndSubscriptionsMapMap[status.id].followingAuthor,
+            likesAndSubscriptionsMapMap[status.id].followedByAuthor
         ))
     }
 

@@ -27,24 +27,26 @@ export class UsersController {
     }
 
     @UseInterceptors(ClassSerializerInterceptor)
+    @UseGuards(AuthGuard("jwt"))
+    @Get("current")
+    public getCurrentUser(@Req() request: Request): Promise<UserResponse> {
+        return this.usersService.getCurrentUser(request.user as User);
+    }
+
+    @UseInterceptors(ClassSerializerInterceptor)
     @Get(":address")
     public findByAddress(@Param("address") address: string): Promise<UserResponse> {
         return this.usersService.findUserByEthereumAddress(address);
     }
 
-    @UseGuards(AuthGuard("jwt"))
-    @Get("current/statuses")
-    public findStatusesOfCurrentUser(@Query() paginationRequest: PaginationRequest,
-                                     @Req() request: Request): Promise<StatusResponse[]> {
-        return this.statusesService.findStatusesByUser((request.user as User).ethereumAddress, paginationRequest);
-    }
-
+    @UseInterceptors(ClassSerializerInterceptor)
     @UseGuards(OptionalJwtAuthGuard)
     @Get(":address/statuses")
     public findStatusesOfUser(@Param("address") address: string,
-                              @Query() paginationRequest: PaginationRequest,
-                              @Req() request: Request): Promise<StatusResponse[]> {
-        return this.statusesService.findStatusesByUser(address, paginationRequest, request.user as User | null);
+                              @Req() request: Request,
+                              @Query("since_id") sinceId?: string,
+                              @Query("max_id") maxId?: string): Promise<StatusResponse[]> {
+        return this.statusesService.findStatusesByUser(address, {sinceId, maxId}, request.user as User | null);
     }
 
     @UseGuards(AuthGuard("jwt"))

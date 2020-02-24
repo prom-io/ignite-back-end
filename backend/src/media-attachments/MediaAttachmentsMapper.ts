@@ -6,7 +6,7 @@ import {config} from "../config";
 @Injectable()
 export class MediaAttachmentsMapper {
     public toMediaAttachmentResponse(mediaAttachment: MediaAttachment): MediaAttachmentResponse {
-        return {
+        return new MediaAttachmentResponse({
             id: mediaAttachment.id,
             previewUrl: `${config.HOST}/api/v1/media/${mediaAttachment.name}`,
             url: `${config.HOST}/api/v1/media/${mediaAttachment.name}`,
@@ -21,6 +21,6 @@ export class MediaAttachmentsMapper {
                     height: mediaAttachment.height
                 }
             }
-        }
+        })
     }
 }

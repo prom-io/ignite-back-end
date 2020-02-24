@@ -18,4 +18,8 @@ export class MediaAttachmentResponse {
             height: number
         }
     };
+
+    constructor(object: MediaAttachmentResponse) {
+        Object.assign(this, object);
+    }
 }
