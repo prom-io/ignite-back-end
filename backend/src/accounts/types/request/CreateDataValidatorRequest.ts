@@ -17,8 +17,12 @@ export class CreateDataValidatorRequest {
     // @IsValidEthereumPrivateKey("address")
     public privateKey: string;
 
-    constructor(address: string, privateKey: string) {
+    @IsString({message: "Username must be string"})
+    public username: string;
+
+    constructor(address: string, privateKey: string, username: string) {
         this.address = address;
         this.privateKey = privateKey;
+        this.username = username;
     }
 }

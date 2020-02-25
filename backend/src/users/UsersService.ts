@@ -19,10 +19,18 @@ export class UsersService {
         const existingUser = await this.usersRepository.findByEthereumAddress(createUserRequest.address);
 
         if (existingUser) {
+            if (existingUser.username !== createUserRequest.username) {
+                existingUser.username = createUserRequest.username && createUserRequest.username.length !== 0
+                    ? createUserRequest.username
+                    : createUserRequest.address;
+                await this.usersRepository.save(existingUser);
+                return this.usersMapper.toUserResponse(existingUser);
+            }
+
             return this.usersMapper.toUserResponse(existingUser);
         }
 
-        const user = await this.usersRepository.save(this.usersMapper.fromCreateUserRequest(createUserRequest))
+        const user = await this.usersRepository.save(this.usersMapper.fromCreateUserRequest(createUserRequest));
 
         return this.usersMapper.toUserResponse(
             user,{

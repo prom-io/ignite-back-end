@@ -20,6 +20,7 @@ export class SelfRegistrationService implements OnApplicationBootstrap, OnModule
 
     public async registerSelf(): Promise<void> {
         const accounts = await this.accountsRepository.findAll();
+        await this.loadBalancerClient.refreshInstances();
 
         if (accounts.length !== 0) {
             this.log.info("Registering itself to bootstrap node");

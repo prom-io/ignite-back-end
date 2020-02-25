@@ -17,6 +17,7 @@ export class UsersMapper {
         following: boolean = false,
         followedBy: boolean = false
     ): UserResponse {
+        console.log(user.username);
         return new UserResponse({
             avatar: user.avatarUri || `${config.DEFAULT_AVATAR_URL}`,
             displayName: user.displayedName,
@@ -48,7 +49,7 @@ export class UsersMapper {
             displayedName: createUserRequest.address,
             createdAt: new Date(),
             privateKey: this.bCryptPasswordEncoder.encode(createUserRequest.privateKey, 12),
-            username: createUserRequest.address
+            username: createUserRequest.username
         }
     }
 }

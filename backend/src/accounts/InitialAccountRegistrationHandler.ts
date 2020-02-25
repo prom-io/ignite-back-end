@@ -19,7 +19,8 @@ export class InitialAccountRegistrationHandler implements OnApplicationBootstrap
             const account = this.web3Wrapper.generateAccountFromPrivateKey(config.INITIAL_ACCOUNT_PRIVATE_KEY);
             const createDataValidatorRequest = new CreateDataValidatorRequest(
                 account.address,
-                config.INITIAL_ACCOUNT_PRIVATE_KEY
+                config.INITIAL_ACCOUNT_PRIVATE_KEY,
+                account.address
             );
             await this.accountsService.createDataValidatorAccount(createDataValidatorRequest);
             this.log.info(`Created initial account with ${account.address} address`);

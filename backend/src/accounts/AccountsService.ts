@@ -20,6 +20,7 @@ export class AccountsService {
 
     public async createDataValidatorAccount(createDataValidatorAccountRequest: CreateDataValidatorRequest): Promise<void> {
         try {
+            console.log(createDataValidatorAccountRequest);
             const accountRegistrationStatusResponse: AccountRegistrationStatusResponse = (
                 await this.serviceNodeClient.isAccountRegistered(createDataValidatorAccountRequest.address)
             ).data;
@@ -33,7 +34,8 @@ export class AccountsService {
                     });
                     await this.usersService.saveUser({
                         address: createDataValidatorAccountRequest.address,
-                        privateKey: createDataValidatorAccountRequest.privateKey
+                        privateKey: createDataValidatorAccountRequest.privateKey,
+                        username: createDataValidatorAccountRequest.username
                     });
                     return;
                 } else {
@@ -58,7 +60,8 @@ export class AccountsService {
             });
             await this.usersService.saveUser({
                 address: createDataValidatorAccountRequest.address,
-                privateKey: createDataValidatorAccountRequest.privateKey
+                privateKey: createDataValidatorAccountRequest.privateKey,
+                username: createDataValidatorAccountRequest.username
             });
         } catch (error) {
             if (error instanceof HttpException) {

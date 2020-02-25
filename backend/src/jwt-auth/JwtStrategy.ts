@@ -18,7 +18,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
 
     public async validate(payload: UserResponse): Promise<User> {
         try {
-            return  await this.usersService.findUserEntityByEthereumAddress(payload.username);
+            return await this.usersService.findUserEntityByEthereumAddress(payload.id);
         } catch (error) {
             throw new UnauthorizedException();
         }
