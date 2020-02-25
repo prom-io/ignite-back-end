@@ -8,8 +8,8 @@ services:
       - backend
      # - encryptor
     working_dir: /usr/src/app
-    volumes:
-      - ./front-end:/usr/src/app
+    #volumes:
+    #- ./front-end:/usr/src/app
     env_file:
       - .env
     ports:
@@ -42,7 +42,7 @@ services:
       dockerfile: ./backend/Dockerfile
     working_dir: /var/www/api
     volumes:
-      - ./backend:/var/www/api
+     # - ./backend:/var/www/api
       - ${NEDB_DIRECTORY}
       - ${LOCAL_FILES_DIRECTORY}
     env_file:
