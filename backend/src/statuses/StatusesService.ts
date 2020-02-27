@@ -75,8 +75,6 @@ export class StatusesService {
         cursors: FeedCursors,
         currentUser?: User,
     ): Promise<StatusResponse[]> {
-        console.log("Fetching statuses of user");
-        console.log(cursors);
         const user = await this.usersRepository.findByEthereumAddress(ethereumAddress);
 
         if (!user) {

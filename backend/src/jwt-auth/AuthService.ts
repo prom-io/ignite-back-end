@@ -15,13 +15,9 @@ export class AuthService {
 
     public async validateUser(username: string, password: string): Promise<User | null> {
         try {
-            console.log(username);
             const user = await this.usersService.findUserEntityByEthereumAddress(username);
-            console.log(user);
 
-            console.log(password);
             if (this.bCryptPasswordEncoder.matches(password, user.privateKey)) {
-                console.log("Matching")
                 return user;
             }
 

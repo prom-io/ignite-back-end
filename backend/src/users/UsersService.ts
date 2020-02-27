@@ -77,10 +77,12 @@ export class UsersService {
 
         const userStatistics = await this.userStatisticsRepository.findByUser(user);
         const following = currentUser && await this.subscriptionsRepository.existsBySubscribedUserAndSubscribedTo(
-            currentUser, user
+            currentUser,
+            user
         );
         const followed = currentUser && await this.subscriptionsRepository.existsBySubscribedUserAndSubscribedTo(
-            user, currentUser
+            user,
+            currentUser
         );
 
         return this.usersMapper.toUserResponse(user, userStatistics, following, followed);

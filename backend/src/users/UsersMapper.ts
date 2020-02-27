@@ -17,7 +17,6 @@ export class UsersMapper {
         following: boolean = false,
         followedBy: boolean = false
     ): UserResponse {
-        console.log(user.username);
         return new UserResponse({
             avatar: user.avatarUri || `${config.DEFAULT_AVATAR_URL}`,
             displayName: user.displayedName,

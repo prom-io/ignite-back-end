@@ -23,7 +23,7 @@ export class OptionalJwtStrategy extends PassportStrategy(Strategy, "optionalJwt
         }
 
         try {
-            return await this.usersService.findUserEntityByEthereumAddress(payload.username);
+            return await this.usersService.findUserEntityByEthereumAddress(payload.id);
         } catch (error) {
             throw new UnauthorizedException();
         }
