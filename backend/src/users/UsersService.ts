@@ -65,10 +65,14 @@ export class UsersService {
     }
 
     public async getUserProfile(address: string, currentUser?: User): Promise<UserResponse> {
-        const user = await this.usersRepository.findByUsername(address);
+        let user = await this.usersRepository.findByUsername(address);
 
         if (!user) {
-            throw new HttpException(`Could not find user with address ${address}`, HttpStatus.NOT_FOUND);
+            user = await this.usersRepository.findByEthereumAddress(address);
+        }
+
+        if (!user) {
+            throw new HttpException(`Could not find user with address or username ${address}`, HttpStatus.NOT_FOUND);
         }
 
         const userStatistics = await this.userStatisticsRepository.findByUser(user);
