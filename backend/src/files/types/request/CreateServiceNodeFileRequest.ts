@@ -14,16 +14,6 @@ export class CreateServiceNodeFileRequest implements ICreateServiceNodeFileReque
     @ValidateNested()
     public additional: CreateFileMetadataRequest;
 
-    @IsNotEmpty({message: "Data owner address must be specified"})
-    @IsString({message: "Data owner address must be string"})
-    @Matches(
-        new RegExp("^0x[a-fA-F0-9]{40}$"),
-        {
-            message: "Data owner address must be valid Ethereum address"
-        }
-    )
-    public dataOwnerAddress: string;
-
     @IsNotEmpty({message: "File extension must be present"})
     @IsString({message: "File extension must be string"})
     public extension: string;
@@ -55,11 +45,10 @@ export class CreateServiceNodeFileRequest implements ICreateServiceNodeFileReque
     public price: number;
 
     // tslint:disable-next-line:max-line-length
-    constructor(keepUntil: string, name: string, additional: CreateFileMetadataRequest, dataOwnerAddress: string, extension: string, mimeType: string, size: number, serviceNodeAddress: string, dataValidatorAddress: string) {
+    constructor(keepUntil: string, name: string, additional: CreateFileMetadataRequest, extension: string, mimeType: string, size: number, serviceNodeAddress: string, dataValidatorAddress: string) {
         this.keepUntil = keepUntil;
         this.name = name;
         this.additional = additional;
-        this.dataOwnerAddress = dataOwnerAddress;
         this.extension = extension;
         this.mimeType = mimeType;
         this.size = size;
