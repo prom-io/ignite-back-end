@@ -20,41 +20,43 @@ export class MediaAttachmentsService {
     }
     
     public saveMediaAttachment(multipartFile: MultipartFile): Promise<MediaAttachmentResponse> {
+        return new Promise<MediaAttachmentResponse>(async (resolve, reject) => {
+            try {
+                const id = uuid();
+                const temporaryFilePath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, `${id}.temporary`);
+                const fileDescriptor = fileSystem.openSync(temporaryFilePath, "w");
+                fileSystem.writeSync(fileDescriptor, multipartFile.buffer);
+                fileSystem.closeSync(fileDescriptor);
 
-        return new Promise<MediaAttachmentResponse>(async resolve => {
-            const id = uuid();
-            const temporaryFilePath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, `${id}.temporary`);
-            const fileDescriptor = fileSystem.openSync(temporaryFilePath, "w");
-            fileSystem.writeSync(fileDescriptor, multipartFile.buffer);
-            fileSystem.closeSync(fileDescriptor);
+                const file = await FileTypeExtractor.fromBuffer(fileSystem.readFileSync(temporaryFilePath));
+                if (file.mime.startsWith("image")) {
+                    gm(temporaryFilePath)
+                        .size(async (error, size) => {
+                            if (error) {
+                                console.log(error);
+                                reject(error);
+                            }
 
-            FileTypeExtractor.fromBuffer(fileSystem.readFileSync(temporaryFilePath))
-                .then(file => {
-                    if (file.mime.startsWith("image")) {
-                        gm(temporaryFilePath)
-                            .size(async (error, size) => {
-                                if (error) {
-                                    console.log(error);
-                                    throw error;
-                                }
-
-                                const permanentFilePath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, `${id}.${file.ext}`);
-                                fileSystem.renameSync(temporaryFilePath, permanentFilePath);
-                                const siaLink = await this.skynetClient.uploadFile(permanentFilePath);
-                                const mediaAttachment: MediaAttachment = {
-                                    id,
-                                    format: file.ext,
-                                    mimeType: file.mime,
-                                    height: size.height,
-                                    width: size.width,
-                                    name: `${id}.${file.ext}`,
-                                    siaLink
-                                };
-                                await this.mediaAttachmentRepository.save(mediaAttachment);
-                                resolve(this.mediaAttachmentsMapper.toMediaAttachmentResponse(mediaAttachment));
-                            })
-                    }
-                })
+                            const permanentFilePath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, `${id}.${file.ext}`);
+                            fileSystem.renameSync(temporaryFilePath, permanentFilePath);
+                            const siaLink = await this.skynetClient.uploadFile(permanentFilePath);
+                            const mediaAttachment: MediaAttachment = {
+                                id,
+                                format: file.ext,
+                                mimeType: file.mime,
+                                height: size.height,
+                                width: size.width,
+                                name: `${id}.${file.ext}`,
+                                siaLink
+                            };
+                            await this.mediaAttachmentRepository.save(mediaAttachment);
+                            resolve(this.mediaAttachmentsMapper.toMediaAttachmentResponse(mediaAttachment));
+                        })
+                }
+            } catch (error) {
+                console.log(error);
+                reject(error);
+            }
         })
     }
 
