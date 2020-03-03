@@ -17,7 +17,7 @@ export class CreateDataValidatorRequest {
     // @IsValidEthereumPrivateKey("address")
     public privateKey: string;
 
-    @ValidateIf(object => Boolean(object.username))
+    @ValidateIf(object => Boolean(object.username) && object.username.trim().length !== 0)
     @IsString({message: "Username must be string"})
     public username: string;
 
