@@ -47,7 +47,7 @@ import {SkynetModule} from "./skynet";
             port: config.DATABASE_PORT,
             username: config.DATABASE_USERNAME,
             password: config.DATABASE_PASSWORD,
-            logging: "all",
+            logging: false,
             entities,
             subscribers,
             synchronize: config.RECREATE_DATABASE_SCHEMA
