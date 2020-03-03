@@ -19,6 +19,7 @@ import {entities} from "./typeorm-entities";
 import {subscribers} from "./typeorm-subscribers";
 import {MicrobloggingBlockchainApiModule} from "./microblogging-blockchain-api";
 import {MediaAttachmentsModule} from "./media-attachments";
+import {SkynetModule} from "./skynet";
 
 @Module({
     imports: [
@@ -38,6 +39,7 @@ import {MediaAttachmentsModule} from "./media-attachments";
         UserSubscriptionsModule,
         MicrobloggingBlockchainApiModule,
         MediaAttachmentsModule,
+        SkynetModule,
         TypeOrmModule.forRoot({
             type: "postgres",
             database: config.DATABASE_NAME,

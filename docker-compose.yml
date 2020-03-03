@@ -8,8 +8,6 @@ services:
       - backend
      # - encryptor
     working_dir: /usr/src/app
-    #volumes:
-    #- ./front-end:/usr/src/app
     env_file:
       - .env
     ports:
@@ -20,7 +18,6 @@ services:
     image: postgres:latest
     volumes:
       - pg-data:/var/lib/postgresql/data
-      - ${MEDIA_ATTACHMENTS_DIRECTORY}
     expose:
       - 5433
     environment:
@@ -42,9 +39,9 @@ services:
       dockerfile: ./backend/Dockerfile
     working_dir: /var/www/api
     volumes:
-     # - ./backend:/var/www/api
       - ${NEDB_DIRECTORY}
       - ${LOCAL_FILES_DIRECTORY}
+      - ${MEDIA_ATTACHMENTS_DIRECTORY}
     env_file:
       - .env
     ports:

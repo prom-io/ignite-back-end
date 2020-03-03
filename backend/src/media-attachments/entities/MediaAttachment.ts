@@ -19,4 +19,7 @@ export class MediaAttachment {
 
     @Column({nullable: true})
     name: string;
+
+    @Column({nullable: true})
+    siaLink: string;
 }

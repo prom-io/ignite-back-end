@@ -29,7 +29,7 @@ export class StatusesMapper {
             favouritesCount,
             favourited,
             content: status.text,
-            mediaAttachments: [],
+            mediaAttachments: status.mediaAttachments.map(mediaAttachment => this.mediaAttachmentsMapper.toMediaAttachmentResponse(mediaAttachment)),
             emojis: [],
             fields: [],
             tags: [],

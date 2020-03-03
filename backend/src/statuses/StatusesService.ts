@@ -29,9 +29,7 @@ export class StatusesService {
         let mediaAttachments: MediaAttachment[] = [];
 
         if (createStatusRequest.media_attachments && createStatusRequest.media_attachments.length) {
-            mediaAttachments = await this.mediaAttachmentRepository.findAllByIds(
-                createStatusRequest.media_attachments.map(mediaAttachment => mediaAttachment.id)
-            );
+            mediaAttachments = await this.mediaAttachmentRepository.findAllByIds(createStatusRequest.media_attachments);
         }
 
         let status = this.statusesMapper.fromCreateStatusRequest(createStatusRequest, currentUser, mediaAttachments);
