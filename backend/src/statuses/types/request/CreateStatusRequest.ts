@@ -7,6 +7,7 @@ export class CreateStatusRequest {
     @ValidateIf(object => !object.media_attachments || object.media_attachments.length === 0)
     public status: string;
 
+    @ValidateIf(object => object.media_attachments)
     @ArrayMaxSize(10, {message: "You can attach up to 10 media attachments to status"})
     @Expose({name: "media_attachments"})
     // tslint:disable-next-line:variable-name
