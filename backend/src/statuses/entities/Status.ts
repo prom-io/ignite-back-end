@@ -25,4 +25,7 @@ export class Status {
     @ManyToMany(() => MediaAttachment, {eager: true})
     @JoinTable()
     mediaAttachments: MediaAttachment[];
+
+    @Column({nullable: true})
+    btfsHash?: string = undefined;
 }

@@ -14,4 +14,7 @@ export class UserSubscription {
 
     @Column()
     createdAt: Date;
+
+    @Column({nullable: true})
+    btfsHash?: string = undefined;
 }

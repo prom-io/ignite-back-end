@@ -22,4 +22,7 @@ export class MediaAttachment {
 
     @Column({nullable: true})
     siaLink: string;
+
+    @Column({nullable: true})
+    btfsHash?: string;
 }

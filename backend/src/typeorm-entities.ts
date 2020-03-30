@@ -2,6 +2,7 @@ import {User, UserStatistics} from "./users/entities";
 import {UserSubscription} from "./user-subscriptions/entities";
 import {Status, StatusLike} from "./statuses/entities";
 import {MediaAttachment} from "./media-attachments/entities";
+import {BtfsHash} from "./btfs-sync/entities";
 
 export const entities = [
     User,
@@ -9,5 +10,6 @@ export const entities = [
     UserSubscription,
     Status,
     StatusLike,
-    MediaAttachment
+    MediaAttachment,
+    BtfsHash
 ];

@@ -20,6 +20,7 @@ import {subscribers} from "./typeorm-subscribers";
 import {MicrobloggingBlockchainApiModule} from "./microblogging-blockchain-api";
 import {MediaAttachmentsModule} from "./media-attachments";
 import {SkynetModule} from "./skynet";
+import {BtfsModule} from "./btfs-sync";
 
 @Module({
     imports: [
@@ -40,6 +41,7 @@ import {SkynetModule} from "./skynet";
         MicrobloggingBlockchainApiModule,
         MediaAttachmentsModule,
         SkynetModule,
+        BtfsModule,
         TypeOrmModule.forRoot({
             type: "postgres",
             database: config.DATABASE_NAME,
@@ -47,7 +49,7 @@ import {SkynetModule} from "./skynet";
             port: config.DATABASE_PORT,
             username: config.DATABASE_USERNAME,
             password: config.DATABASE_PASSWORD,
-            logging: false,
+            logging: "all",
             entities,
             subscribers,
             synchronize: config.RECREATE_DATABASE_SCHEMA

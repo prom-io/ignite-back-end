@@ -8,8 +8,8 @@ export class User {
     @Column()
     ethereumAddress: string;
 
-    @Column()
-    privateKey: string;
+    @Column({nullable: true})
+    privateKey?: string;
 
     @Column({nullable: true})
     displayedName: string;
@@ -25,4 +25,7 @@ export class User {
 
     @Column({nullable: true})
     avatarUri?: string;
+
+    @Column({nullable: true})
+    btfsHash?: string = undefined;
 }

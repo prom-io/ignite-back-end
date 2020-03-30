@@ -1,4 +1,4 @@
-import {Column, CreateDateColumn, Entity, ManyToOne, PrimaryColumn} from "typeorm";
+import {Column, Entity, ManyToOne, PrimaryColumn} from "typeorm";
 import {Status} from "./Status";
 import {User} from "../../users/entities/User";
 
@@ -15,4 +15,7 @@ export class StatusLike {
 
     @Column()
     createdAt: Date;
+
+    @Column({nullable: true})
+    btfsHash?: string = undefined;
 }

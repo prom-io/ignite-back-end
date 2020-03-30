@@ -54,4 +54,7 @@ export class EnvConfig {
 
     @Env({type: "string", required: true})
     DEFAULT_AVATAR_URL: string;
+
+    @Env({type: "string"})
+    LIBP2P_NODE_PORT: number = 12578;
 }
