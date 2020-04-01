@@ -4,5 +4,5 @@ export interface BtfsUser {
     username: string,
     displayedName: string,
     createdAt: string,
-    avatarUri: string,
+    avatarUri?: string,
 }

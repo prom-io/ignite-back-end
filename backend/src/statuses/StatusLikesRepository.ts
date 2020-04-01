@@ -6,6 +6,14 @@ import {User} from "../users/entities";
 @EntityRepository(StatusLike)
 export class StatusLikesRepository extends Repository<StatusLike> {
 
+    public findById(id: string): Promise<StatusLike | undefined> {
+        return this.findOne({
+            where: {
+                id
+            }
+        })
+    }
+
     public findByStatus(status: Status, paginationRequest: PaginationRequest): Promise<StatusLike[]> {
         return this.find({
             where: {
@@ -40,5 +48,13 @@ export class StatusLikesRepository extends Repository<StatusLike> {
                 user
             }
         })
+    }
+
+    public async existsById(id: string): Promise<boolean> {
+        return (await this.count({
+            where: {
+                id
+            }
+        })) !== 0
     }
 }

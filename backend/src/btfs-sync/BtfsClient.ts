@@ -1,5 +1,7 @@
 import {Injectable, Inject} from "@nestjs/common";
 import {AxiosInstance, AxiosPromise} from "axios";
+import fileSystem, {PathLike} from "fs";
+import FormData from "form-data";
 import {BtfsEntitiesResponse, BtfsStatusLikesResponse, BtfsUserSubscriptionsResponse} from "./types/response";
 import {SaveStatusLikeRequest, SaveStatusRequest, SaveUserSubscriptionRequest} from "./types/request";
 import {BtfsStatus} from "./types/btfs-entities";
@@ -10,13 +12,19 @@ interface GetUserSubscriptionsOptions {
 }
 
 interface GetStatusLikesOptions {
-    statusLikeId: string,
+    commentId: string,
     cid: string
 }
 
 interface GetStatusOptions {
     cid: string,
     statusId: string
+}
+
+interface DownloadFileOptions {
+    path: PathLike,
+    id: string,
+    cid: string
 }
 
 @Injectable()
@@ -41,7 +49,7 @@ export class BtfsClient {
     }
 
     public getStatusLikesByCid(options: GetStatusLikesOptions): AxiosPromise<BtfsStatusLikesResponse> {
-        return this.axios.get(`/api/v1/like/${options.cid}/${options.statusLikeId}`);
+        return this.axios.get(`/api/v1/like/${options.cid}/${options.commentId}`);
     }
 
     public saveStatus(saveStatusRequest: SaveStatusRequest): AxiosPromise<void> {
@@ -50,5 +58,29 @@ export class BtfsClient {
 
     public getStatusByCid(options: GetStatusOptions): AxiosPromise<BtfsStatus> {
         return this.axios.get(`/api/v1/status/${options.cid}/${options.statusId}`);
+    }
+
+    public uploadFile(fileId: string, path: PathLike): AxiosPromise<void> {
+        const formData = new FormData();
+        formData.append("id", fileId);
+        formData.append("file", fileSystem.createReadStream(path));
+
+        return this.axios.post("/api/v1/file", formData, {headers: formData.getHeaders()});
+    }
+
+    public downloadFile(options: DownloadFileOptions): Promise<void> {
+        const writer = fileSystem.createWriteStream(options.path);
+
+        return new Promise<void>((resolve, reject) => {
+            this.axios.get(`/api/v1/file/${options.cid}/${options.id}`, {responseType: "stream"})
+                .then(response => {
+                    response.data.pipe(writer);
+                    writer.on("finish", resolve);
+                    writer.on("error", reject);
+                })
+                .catch(error => {
+                    reject(error);
+                })
+        })
     }
 }

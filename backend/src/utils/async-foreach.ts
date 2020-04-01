@@ -1,6 +1,6 @@
-type CallbackFunction<T> = (element: T, index: number, array: T[]) => void
+import {IteratingCallback} from "./internal/callback-types";
 
-export const asyncForEach = async <T>(array: T[], callback: CallbackFunction<T>): Promise<void> => {
+export const asyncForEach = async <T>(array: T[], callback: IteratingCallback<T>): Promise<void> => {
     for (let index = 0; index < array.length; index++) {
         callback(array[index], index, array);
     }

@@ -1,6 +1,8 @@
+import {BtfsUser} from "./BtfsUser";
+
 export interface BtfsUserSubscription {
     id: string,
-    subscribedUser: string,
-    subscribedTo: string,
+    subscribedUser: BtfsUser,
+    subscribedTo: BtfsUser,
     createdAt: string
 }

@@ -17,18 +17,14 @@ export class SkynetClient {
     public async downloadFileToHttpResponse(siaLink: string, httpResponse: Response): Promise<void> {
         const skynetPortal = "https://siasky.net";
 
-        console.log(siaLink);
-
         if (siaLink.startsWith("sia://")) {
             siaLink = siaLink.substring("sia://".length, siaLink.length);
         }
 
         const skynetResponse: AxiosResponse = await axios.get(`${skynetPortal}/${siaLink}`, {responseType: "stream"});
 
-        console.log(skynetResponse.headers);
-
         httpResponse.setHeader("Content-Type", skynetResponse.headers["content-type"]);
-        httpResponse.setHeader("Content-Dispositipn", skynetResponse.headers["content-disposition"]);
+        httpResponse.setHeader("Content-Disposition", skynetResponse.headers["content-disposition"]);
 
         skynetResponse.data.pipe(httpResponse);
     }

@@ -1,7 +1,7 @@
 export interface BtfsEntitiesResponse {
-    posts: string[],
+    comments: string[],
     likes: Array<{
-        postId: string,
+        commentId: string,
         id: string
     }>,
     images: string[],
