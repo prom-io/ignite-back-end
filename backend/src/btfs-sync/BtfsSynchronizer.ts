@@ -1,5 +1,6 @@
 import {Injectable} from "@nestjs/common";
 import {Cron, NestSchedule} from "nest-schedule";
+import {validate} from "class-validator";
 import fileSystem from "fs";
 import path from "path";
 import graphicsMagic from "gm";
@@ -89,7 +90,14 @@ export class BtfsSynchronizer extends NestSchedule {
 
     private async synchronizeStatuses(cid: string, statusesIds: string[]): Promise<void> {
         await asyncForEach(statusesIds, async statusId => {
-            const status: BtfsStatus = (await this.btfsClient.getStatusByCid({cid, statusId})).data;
+            const status = new BtfsStatus((await this.btfsClient.getStatusByCid({cid, statusId})).data);
+            const errors = await validate(status);
+
+            if (errors.length > 0) {
+                console.log(errors);
+                return ;
+            }
+
             await this.mergeStatus(
                 await this.statusesRepository.findById(status.id),
                 status,
@@ -104,7 +112,14 @@ export class BtfsSynchronizer extends NestSchedule {
            const likesIds = Object.keys(btfsLikes);
 
            await asyncForEach(likesIds, async likeId => {
-               const btfsLike: BtfsStatusLike = btfsLikes[likeId];
+               const btfsLike: BtfsStatusLike = new BtfsStatusLike(btfsLikes[likeId]);
+               const errors = await validate(btfsLike);
+
+               if (errors.length > 0) {
+                   console.log(errors);
+                   return ;
+               }
+
                await this.saveBtfsStatusLike(btfsLike, cid);
            })
        })
@@ -139,7 +154,14 @@ export class BtfsSynchronizer extends NestSchedule {
             const subscriptionIds = Object.keys(subscriptionsMap);
 
             await asyncForEach(subscriptionIds, async subscriptionId => {
-                const btfsUserSubscription = subscriptionsMap[subscriptionId];
+                const btfsUserSubscription = new BtfsUserSubscription(subscriptionsMap[subscriptionId]);
+                const errors = await validate(btfsUserSubscription);
+
+                if (errors.length > 0) {
+                    console.log(errors);
+                    return;
+                }
+
                 await this.mergeSubscription(
                     await this.userSubscriptionsRepository.findById(btfsUserSubscription.id),
                     btfsUserSubscription,
