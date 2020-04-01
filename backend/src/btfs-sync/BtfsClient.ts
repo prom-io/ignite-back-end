@@ -57,7 +57,7 @@ export class BtfsClient {
     }
 
     public getStatusByCid(options: GetStatusOptions): AxiosPromise<BtfsStatus> {
-        return this.axios.get(`/api/v1/status/${options.cid}/${options.statusId}`);
+        return this.axios.get(`/api/v1/comment/${options.cid}/${options.statusId}`);
     }
 
     public uploadFile(fileId: string, path: PathLike): AxiosPromise<void> {
