@@ -5,12 +5,16 @@ import {Connection, EntitySubscriberInterface, InsertEvent, RemoveEvent} from "t
 import {UserSubscription} from "./entities";
 import {UserStatisticsRepository} from "../users/UserStatisticsRepository";
 import {MicrobloggingBlockchainApiClient} from "../microblogging-blockchain-api";
+import {BtfsUserSubscriptionsMapper} from "../btfs-sync/mappers";
+import {BtfsClient} from "../btfs-sync/BtfsClient";
 
 @Injectable()
 export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberInterface<UserSubscription> {
     constructor(@InjectConnection() private readonly connection: Connection,
                 private readonly userStatisticsRepository: UserStatisticsRepository,
                 private readonly microbloggingBlockchainApiClient: MicrobloggingBlockchainApiClient,
+                private readonly btfsClient: BtfsClient,
+                private readonly btfsUserSubscriptionsMapper: BtfsUserSubscriptionsMapper,
                 private readonly log: LoggerService) {
         connection.subscribers.push(this);
     }
@@ -41,7 +45,19 @@ export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberI
             .catch(error => {
                 this.log.error(`Error occurred when tried to write subscription of ${subscribedUser.ethereumAddress} to ${subscribedTo.ethereumAddress} to blockchain`);
                 console.error(error.response.data.message);
+            });
+        if (!event.entity.btfsHash) {
+            this.btfsClient.saveUserSubscription({
+                id: event.entity.id,
+                userId: event.entity.subscribedUser.id,
+                data: this.btfsUserSubscriptionsMapper.fromUserSubscription(event.entity)
             })
+                .then(() => this.log.info(`Subscription of ${subscribedUser.ethereumAddress} to ${subscribedTo.ethereumAddress} has been saved to BTFS`))
+                .catch(error => {
+                    this.log.error(`Error occurred when tried to save subscription of ${subscribedUser.ethereumAddress} to ${subscribedTo.ethereumAddress} to BTFS`);
+                    console.log(error);
+                })
+        }
     }
 
     public async beforeRemove(event: RemoveEvent<UserSubscription>): Promise<void> {

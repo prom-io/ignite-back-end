@@ -57,4 +57,7 @@ export class EnvConfig {
 
     @Env({type: "string"})
     LIBP2P_NODE_PORT: number = 12578;
+
+    @Env({type: "string"})
+    BTFS_API_BASE_URL: string;
 }

@@ -3,13 +3,16 @@ import {User} from "../../users/entities";
 import {BtfsUser} from "../types/btfs-entities";
 
 @Injectable()
-export class BtfsUserMapper {
+export class BtfsUsersMapper {
 
     public fromUser(user: User): BtfsUser {
         return {
-            ...user,
-            createdAt: user.createdAt.toISOString(),
+            id: user.id,
             address: user.ethereumAddress,
+            createdAt: user.createdAt.toISOString(),
+            avatarUri: user.avatarUri,
+            username: user.username,
+            displayedName: user.displayedName
         }
     }
 

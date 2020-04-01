@@ -6,10 +6,10 @@ export class BtfsMediaAttachment {
     id: string;
 
     @IsNumber()
-    width: number;
+    width?: number;
 
     @IsNumber()
-    height: number;
+    height?: number;
 
     @IsString()
     mimeType: string;

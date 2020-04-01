@@ -4,11 +4,15 @@ import {LoggerService} from "nest-logger";
 import {Connection, EntitySubscriberInterface, InsertEvent, RemoveEvent} from "typeorm";
 import {StatusLike} from "./entities";
 import {MicrobloggingBlockchainApiClient} from "../microblogging-blockchain-api";
+import {BtfsClient} from "../btfs-sync/BtfsClient";
+import {BtfsStatusLikesMapper} from "../btfs-sync/mappers";
 
 @Injectable()
 export class StatusLikeEntityEventsListener implements EntitySubscriberInterface<StatusLike> {
     constructor(@InjectConnection() private readonly connection: Connection,
                 private readonly microbloggingBlockchainApiClient: MicrobloggingBlockchainApiClient,
+                private readonly btfsClient: BtfsClient,
+                private readonly btfsStatusLikesMapper: BtfsStatusLikesMapper,
                 private readonly log: LoggerService) {
         connection.subscribers.push(this);
     }
@@ -31,7 +35,20 @@ export class StatusLikeEntityEventsListener implements EntitySubscriberInterface
             .catch(error => {
                 this.log.error(`Error occurred when tried to write like of ${statusLike.user.ethereumAddress} to status ${statusLike.status.id} to blockchain`);
                 console.error(error);
+            });
+        if (!statusLike.btfsHash) {
+            this.log.info("Saving status like to BTFS");
+            this.btfsClient.saveStatusLike({
+                commentId: statusLike.status.id,
+                id: statusLike.id,
+                data: this.btfsStatusLikesMapper.fromStatusLike(statusLike)
             })
+                .then(() => this.log.info(`Like of ${statusLike.user.ethereumAddress} to status ${statusLike.status.id} has been written to BTFS`))
+                .catch(error => {
+                    this.log.error(`Error occurred when tried to write like of ${statusLike.user.ethereumAddress} to status ${statusLike.status.id} to BTFS`);
+                    console.error(error);
+                })
+        }
     }
 
     public async beforeRemove(event: RemoveEvent<StatusLike>): Promise<void> {

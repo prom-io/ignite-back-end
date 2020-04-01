@@ -53,7 +53,7 @@ export class BtfsClient {
     }
 
     public saveStatus(saveStatusRequest: SaveStatusRequest): AxiosPromise<void> {
-        return this.axios.post("/api/v1/status", saveStatusRequest);
+        return this.axios.post("/api/v1/comment", saveStatusRequest);
     }
 
     public getStatusByCid(options: GetStatusOptions): AxiosPromise<BtfsStatus> {
@@ -65,7 +65,7 @@ export class BtfsClient {
         formData.append("id", fileId);
         formData.append("file", fileSystem.createReadStream(path));
 
-        return this.axios.post("/api/v1/file", formData, {headers: formData.getHeaders()});
+        return this.axios.post("/api/v1/file/upload", formData, {headers: formData.getHeaders()});
     }
 
     public downloadFile(options: DownloadFileOptions): Promise<void> {

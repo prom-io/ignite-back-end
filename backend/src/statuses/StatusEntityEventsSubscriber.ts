@@ -2,15 +2,22 @@ import {Injectable} from "@nestjs/common";
 import {InjectConnection} from "@nestjs/typeorm";
 import {LoggerService} from "nest-logger";
 import {Connection, EntitySubscriberInterface, InsertEvent} from "typeorm";
+import path from "path";
 import {Status} from "./entities";
 import {UserStatisticsRepository} from "../users";
 import {MicrobloggingBlockchainApiClient} from "../microblogging-blockchain-api";
+import {BtfsClient} from "../btfs-sync/BtfsClient";
+import {BtfsStatusesMapper} from "../btfs-sync/mappers";
+import {asyncForEach} from "../utils/async-foreach";
+import {config} from "../config";
 
 @Injectable()
 export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<Status> {
     constructor(@InjectConnection() private readonly connection: Connection,
                 private readonly userStatisticsRepository: UserStatisticsRepository,
                 private readonly microbloggingBlockchainApiClient: MicrobloggingBlockchainApiClient,
+                private readonly btfsClient: BtfsClient,
+                private readonly btfsStatusesMapper: BtfsStatusesMapper,
                 private readonly log: LoggerService) {
         connection.subscribers.push(this);
     }
@@ -38,6 +45,27 @@ export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<S
             .catch(error => {
                 this.log.error("Error occurred when tried to write status to blockchain");
                 console.error(error);
+            });
+        if (!event.entity.btfsHash) {
+            await asyncForEach(event.entity.mediaAttachments, async mediaAttachment => {
+                const filePath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, mediaAttachment.name);
+                try {
+                    await this.btfsClient.uploadFile(mediaAttachment.id, filePath);
+                    this.log.info(`Media attachment ${mediaAttachment.id} has been saved to BTFS`);
+                } catch (error) {
+                    this.log.error(`Error occurred when tried to save media attachment ${mediaAttachment.id} to BTFS`);
+                    console.log(error);
+                }
+            });
+            this.btfsClient.saveStatus({
+                id: event.entity.id,
+                data: this.btfsStatusesMapper.fromStatus(event.entity)
             })
+                .then(() => this.log.info(`Status ${event.entity.id} has been saved to BTFS`))
+                .catch(error => {
+                    this.log.error(`Error occurred when tried to write status ${event.entity.id} to BTFS`);
+                    console.log(error);
+                })
+        }
     }
 }

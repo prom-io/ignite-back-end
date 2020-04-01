@@ -1,5 +1,6 @@
 import {Injectable} from "@nestjs/common";
 import {Cron, NestSchedule} from "nest-schedule";
+import {LoggerService} from "nest-logger";
 import {validate} from "class-validator";
 import fileSystem from "fs";
 import path from "path";
@@ -30,26 +31,39 @@ export class BtfsSynchronizer extends NestSchedule {
                 private readonly usersRepository: UsersRepository,
                 private readonly userSubscriptionsRepository: UserSubscriptionsRepository,
                 private readonly mediaAttachmentsRepository: MediaAttachmentsRepository,
-                private readonly btfsClient: BtfsClient
+                private readonly btfsClient: BtfsClient,
+                private readonly log: LoggerService
                 ) {
         super();
     }
 
     @Cron("* * * *", {waiting: true})
     public async synchronizeEntities(): Promise<void> {
+        this.log.info("Started synchronization with BTFS");
         const unsyncedBtfsCids: BtfsHash[] = await this.btfsHashRepository.findAllNotSynced();
 
         await asyncForEach(unsyncedBtfsCids, async btfsHash => {
-            const entities = (await this.btfsClient.getEntitiesByCid(btfsHash.btfsCid)).data;
-            const images = entities.images;
-            const statuses = entities.comments;
-            const statusLikes = entities.likes;
-            const subscriptions = entities.subscribes;
+            try {
+                this.log.info(`Synchronizing with BTFS cid ${btfsHash.btfsCid}`);
+                const entities = (await this.btfsClient.getEntitiesByCid(btfsHash.btfsCid)).data;
+                const images = entities.images || [];
+                const statuses = entities.posts || [];
+                const statusLikes = entities.likes || [];
+                const subscriptions = entities.subscribes || [];
 
-            await this.synchronizeImages(btfsHash.btfsCid, images)
-            await this.synchronizeStatuses(btfsHash.btfsCid, statuses);
-            await this.synchronizeStatusLikes(btfsHash.btfsCid, statusLikes);
-            await this.synchronizeSubscriptions(btfsHash.btfsCid, subscriptions);
+                console.log(entities);
+
+                await this.synchronizeImages(btfsHash.btfsCid, images);
+                await this.synchronizeStatuses(btfsHash.btfsCid, statuses);
+                await this.synchronizeStatusLikes(btfsHash.btfsCid, statusLikes);
+                await this.synchronizeSubscriptions(btfsHash.btfsCid, subscriptions);
+
+                btfsHash.synced = true;
+                await this.btfsHashRepository.save(btfsHash);
+            } catch (error) {
+                this.log.error(`Error occurred when tried to synchronize with BTFS cid ${btfsHash.btfsCid}`);
+                console.log(error);
+            }
         })
     }
 
@@ -194,11 +208,10 @@ export class BtfsSynchronizer extends NestSchedule {
             };
             status = await this.statusesRepository.save(status);
         } else {
-            status = {
-                ...status,
-                btfsHash: btfsCid
-            };
-            status = await this.statusesRepository.save(status);
+            if (!status.btfsHash) {
+                status.btfsHash = btfsCid;
+                status = await this.statusesRepository.save(status);
+            }
         }
 
         return status;
@@ -211,13 +224,6 @@ export class BtfsSynchronizer extends NestSchedule {
                 remote: true,
                 ethereumAddress: btfsUser.address,
                 createdAt: new Date(btfsUser.createdAt)
-            };
-            user = await this.usersRepository.save(user);
-        } else {
-            user = {
-                ...btfsUser,
-                ...user,
-                createdAt: user.createdAt
             };
             user = await this.usersRepository.save(user);
         }
