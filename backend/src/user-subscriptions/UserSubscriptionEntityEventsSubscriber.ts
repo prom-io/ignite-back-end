@@ -35,18 +35,18 @@ export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberI
         await this.userStatisticsRepository.save(subscribedToStatistics);
         await this.userStatisticsRepository.save(subscribedUserStatistics);
 
-        this.microbloggingBlockchainApiClient.logSubscription({
-            id: event.entity.id,
-            subscribeAt: event.entity.createdAt.toISOString(),
-            user: event.entity.subscribedUser.ethereumAddress,
-            whoSubscribe: event.entity.subscribedTo.ethereumAddress
-        })
-            .then(() => this.log.info(`Subscription of ${subscribedUser.ethereumAddress} to ${subscribedTo.ethereumAddress} has been written to blockchain`))
-            .catch(error => {
-                this.log.error(`Error occurred when tried to write subscription of ${subscribedUser.ethereumAddress} to ${subscribedTo.ethereumAddress} to blockchain`);
-                console.error(error.response.data.message);
-            });
         if (!event.entity.btfsHash) {
+            this.microbloggingBlockchainApiClient.logSubscription({
+                id: event.entity.id,
+                subscribeAt: event.entity.createdAt.toISOString(),
+                user: event.entity.subscribedUser.ethereumAddress,
+                whoSubscribe: event.entity.subscribedTo.ethereumAddress
+            })
+                .then(() => this.log.info(`Subscription of ${subscribedUser.ethereumAddress} to ${subscribedTo.ethereumAddress} has been written to blockchain`))
+                .catch(error => {
+                    this.log.error(`Error occurred when tried to write subscription of ${subscribedUser.ethereumAddress} to ${subscribedTo.ethereumAddress} to blockchain`);
+                });
+            this.log.info("Saving user subscription to BTFS");
             this.btfsClient.saveUserSubscription({
                 id: event.entity.id,
                 userId: event.entity.subscribedUser.id,

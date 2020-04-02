@@ -54,8 +54,8 @@ export class BtfsSynchronizer extends NestSchedule {
                 console.log(entities);
 
                 await this.synchronizeImages(btfsHash.btfsCid, images);
-                await this.synchronizeStatuses(btfsHash.btfsCid, statuses);
                 await this.synchronizeStatusLikes(btfsHash.btfsCid, statusLikes);
+                await this.synchronizeStatuses(btfsHash.btfsCid, statuses);
                 await this.synchronizeSubscriptions(btfsHash.btfsCid, subscriptions);
 
                 btfsHash.synced = true;
@@ -141,6 +141,7 @@ export class BtfsSynchronizer extends NestSchedule {
 
     private async saveBtfsStatusLike(btfsStatusLike: BtfsStatusLike, btfsCid: string): Promise<void> {
         let statusLike = await this.statusLikesRepository.findById(btfsStatusLike.id);
+
         if (!statusLike) {
             const user = await this.mergeUser(await this.usersRepository.findById(btfsStatusLike.user.id), btfsStatusLike.user);
             const status = await this.mergeStatus(
@@ -155,6 +156,14 @@ export class BtfsSynchronizer extends NestSchedule {
                 createdAt: new Date(btfsStatusLike.createdAt),
                 btfsHash: btfsCid
             };
+
+            const existingLike = await this.statusLikesRepository.findByStatusAndUser(status, user);
+
+            if (existingLike) {
+                this.log.info("Deleting existing status like");
+                await this.statusLikesRepository.delete(existingLike);
+            }
+
             await this.statusLikesRepository.save(statusLike);
         } else if (!statusLike.btfsHash) {
             statusLike.btfsHash = btfsCid;
@@ -276,6 +285,14 @@ export class BtfsSynchronizer extends NestSchedule {
                 btfsHash: btfsCid,
                 createdAt: new Date(btfsUserSubscription.createdAt)
             };
+
+            const existingSubscription = await this.userSubscriptionsRepository.findBySubscribedUserAndSubscribedTo(subscribedUser, subscribedTo);
+
+            if (existingSubscription) {
+                this.log.info("Deleting existing subscription");
+                await this.userSubscriptionsRepository.delete(existingSubscription);
+            }
+
             userSubscription = await this.userSubscriptionsRepository.save(userSubscription);
             return userSubscription;
         }

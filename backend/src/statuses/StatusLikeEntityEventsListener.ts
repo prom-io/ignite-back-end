@@ -24,19 +24,19 @@ export class StatusLikeEntityEventsListener implements EntitySubscriberInterface
     public async afterInsert(event: InsertEvent<StatusLike>): Promise<void> {
         const statusLike = event.entity;
 
-        this.log.info("Logging status like to blockchain");
-        this.microbloggingBlockchainApiClient.logStatusLike({
-            id: statusLike.id,
-            user: statusLike.user.ethereumAddress,
-            likedAt: statusLike.createdAt.toISOString(),
-            messageId: statusLike.status.id
-        })
-            .then(() => this.log.info(`Like of ${statusLike.user.ethereumAddress} to status ${statusLike.status.id} has been written to blockchain`))
-            .catch(error => {
-                this.log.error(`Error occurred when tried to write like of ${statusLike.user.ethereumAddress} to status ${statusLike.status.id} to blockchain`);
-                console.error(error);
-            });
         if (!statusLike.btfsHash) {
+            this.log.info("Logging status like to blockchain");
+            this.microbloggingBlockchainApiClient.logStatusLike({
+                id: statusLike.id,
+                user: statusLike.user.ethereumAddress,
+                likedAt: statusLike.createdAt.toISOString(),
+                messageId: statusLike.status.id
+            })
+                .then(() => this.log.info(`Like of ${statusLike.user.ethereumAddress} to status ${statusLike.status.id} has been written to blockchain`))
+                .catch(error => {
+                    this.log.error(`Error occurred when tried to write like of ${statusLike.user.ethereumAddress} to status ${statusLike.status.id} to blockchain`);
+                    console.error(error);
+                });
             this.log.info("Saving status like to BTFS");
             this.btfsClient.saveStatusLike({
                 commentId: statusLike.status.id,

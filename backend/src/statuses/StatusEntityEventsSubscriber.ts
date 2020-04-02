@@ -32,21 +32,21 @@ export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<S
         userStatistics.statusesCount += 1;
         await this.userStatisticsRepository.save(userStatistics);
 
-        this.log.info("Logging status to blockchain");
-        this.microbloggingBlockchainApiClient.logStatus({
-            id: event.entity.id,
-            address: author.ethereumAddress,
-            createdAt: event.entity.createdAt.toISOString(),
-            text: event.entity.text
-        })
-            .then(response => {
-                this.log.info(`Status ${event.entity.id} has been written to blockchain`)
-            })
-            .catch(error => {
-                this.log.error("Error occurred when tried to write status to blockchain");
-                console.error(error);
-            });
         if (!event.entity.btfsHash) {
+            this.log.info("Logging status to blockchain");
+            this.microbloggingBlockchainApiClient.logStatus({
+                id: event.entity.id,
+                address: author.ethereumAddress,
+                createdAt: event.entity.createdAt.toISOString(),
+                text: event.entity.text
+            })
+                .then(response => {
+                    this.log.info(`Status ${event.entity.id} has been written to blockchain`)
+                })
+                .catch(error => {
+                    this.log.error("Error occurred when tried to write status to blockchain");
+                    console.error(error);
+                });
             await asyncForEach(event.entity.mediaAttachments, async mediaAttachment => {
                 const filePath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, mediaAttachment.name);
                 try {
