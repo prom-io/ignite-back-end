@@ -1,7 +1,7 @@
 {
   "bootstrapNodes": [
     {
-      "ipAddress": "127.0.0.1",
+      "ipAddress": "64.227.68.22",
       "port": 2000,
       "libp2pAddress": "/ip4/188.166.37.102/tcp/12345/p2p/QmekndSMXKCGLFXp4peHpf9ynLWno6QFbo1uqMq8HBPqtz"
     }
