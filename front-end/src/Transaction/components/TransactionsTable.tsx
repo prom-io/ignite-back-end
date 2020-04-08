@@ -85,9 +85,9 @@ export const TransactionsTable: FunctionComponent<TransactionsTableProps> = ({
                 <TableCell>
                   <b>Data owner</b>
                 </TableCell>
-                <TableCell>
+                {/* <TableCell>
                   <b>Service node</b>
-                </TableCell>
+                </TableCell> */}
                 <TableCell>
                   <b>Data mart</b>
                 </TableCell>
@@ -122,9 +122,9 @@ export const TransactionsTable: FunctionComponent<TransactionsTableProps> = ({
                   <TableCell>
                     {shortenString(transaction.dataOwner.address, 16)}
                   </TableCell>
-                  <TableCell>
+                  {/* <TableCell>
                     {shortenString(transaction.serviceNode, 16)}
-                  </TableCell>
+                  </TableCell> */}
                   <TableCell>
                     {shortenString(transaction.dataMart, 16)}
                   </TableCell>
