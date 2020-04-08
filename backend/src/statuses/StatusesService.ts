@@ -2,7 +2,7 @@ import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import {StatusesRepository} from "./StatusesRepository";
 import {CreateStatusRequest} from "./types/request";
 import {StatusResponse} from "./types/response";
-import {StatusesMapper} from "./StatusesMapper";
+import {StatusesMapper, ToStatusResponseOptions} from "./StatusesMapper";
 import {StatusLikesRepository} from "./StatusLikesRepository";
 import {User, UserStatistics} from "../users/entities";
 import {UsersRepository} from "../users/UsersRepository";
@@ -13,6 +13,7 @@ import {MediaAttachment} from "../media-attachments/entities";
 import {FeedCursors} from "./types/request/FeedCursors";
 import {UserStatisticsRepository} from "../users";
 import {UserSubscriptionsRepository} from "../user-subscriptions";
+import {asyncMap} from "../utils/async-map";
 
 @Injectable()
 export class StatusesService {
@@ -32,9 +33,40 @@ export class StatusesService {
             mediaAttachments = await this.mediaAttachmentRepository.findAllByIds(createStatusRequest.media_attachments);
         }
 
-        let status = this.statusesMapper.fromCreateStatusRequest(createStatusRequest, currentUser, mediaAttachments);
+        let repostedStatus: Status | undefined;
+
+        if (createStatusRequest.repostedStatusId) {
+            repostedStatus = await this.statusesRepository.findById(createStatusRequest.repostedStatusId);
+
+            if (!repostedStatus) {
+                throw new HttpException(
+                    `Could not find status with id ${createStatusRequest.repostedStatusId}`,
+                    HttpStatus.NOT_FOUND
+                )
+            }
+        }
+
+        let status = this.statusesMapper.fromCreateStatusRequest(
+            createStatusRequest,
+            currentUser,
+            mediaAttachments,
+            repostedStatus
+        );
         status = await this.statusesRepository.save(status);
-        return this.statusesMapper.toStatusResponse(status, 0, false);
+
+        const repostedStatusMappingOptions = await status.repostedStatus && await this.getStatusMappingOptions(
+            status,
+            undefined,
+            currentUser
+        );
+
+        const statusMappingOptions = await this.getStatusMappingOptions(
+            status,
+            repostedStatusMappingOptions,
+            currentUser
+        );
+
+        return this.statusesMapper.toStatusResponse(statusMappingOptions);
     }
 
     public async findStatusById(id: string, currentUser?: User): Promise<StatusResponse> {
@@ -44,6 +76,27 @@ export class StatusesService {
             throw new HttpException(`Could not find status with id ${id}`, HttpStatus.NOT_FOUND);
         }
 
+        const repostedStatusMappingOptions = await status.repostedStatus && await this.getStatusMappingOptions(
+            status.repostedStatus,
+            undefined,
+            currentUser
+        );
+        delete repostedStatusMappingOptions.mapRepostedStatus;
+
+        const statusMappingOptions = await this.getStatusMappingOptions(
+            status,
+            repostedStatusMappingOptions,
+            currentUser
+        );
+
+        return this.statusesMapper.toStatusResponse(statusMappingOptions);
+    }
+
+    private async getStatusMappingOptions(
+        status: Status,
+        mapRepostedStatusOptions?: ToStatusResponseOptions,
+        currentUser?: User,
+    ): Promise<ToStatusResponseOptions> {
         const likesCount = await this.statusLikesRepository.countByStatus(status);
         let likedByCurrentUser = false;
 
@@ -58,14 +111,15 @@ export class StatusesService {
             status.author, currentUser
         );
 
-        return this.statusesMapper.toStatusResponse(
+        return {
             status,
-            likesCount,
-            likedByCurrentUser,
-            null,
+            favouritesCount: likesCount,
+            favourited: likedByCurrentUser,
+            followedByAuthor,
             followingAuthor,
-            followedByAuthor
-        );
+            mapRepostedStatus: Boolean(mapRepostedStatusOptions),
+            repostedStatusOptions: mapRepostedStatusOptions
+        }
     }
 
     public async findStatusesByUser(
@@ -136,14 +190,19 @@ export class StatusesService {
             }
         }
 
-        return statuses.map(status => this.statusesMapper.toStatusResponse(
-            status,
-            likesAndSubscriptionMap[status.id].numberOfLikes,
-            likesAndSubscriptionMap[status.id].likedByCurrentUser,
-            userStatisticsMap[status.author.id],
-            likesAndSubscriptionMap[status.id].followingAuthor,
-            likesAndSubscriptionMap[status.id].followedByAuthor
-        ))
+        return asyncMap(statuses, async status => {
+            const repostedStatusOptions = status.repostedStatus && await this.getStatusMappingOptions(
+                status,
+                undefined,
+                currentUser
+            );
+            const statusMappingOptions = await this.getStatusMappingOptions(
+                status,
+                repostedStatusOptions,
+                currentUser
+            );
+            return this.statusesMapper.toStatusResponse(statusMappingOptions);
+        })
     }
 
     private async findStatusEntityById(id: string): Promise<Status> {

@@ -12,4 +12,6 @@ export class CreateStatusRequest {
     @Expose({name: "media_attachments"})
     // tslint:disable-next-line:variable-name
     public media_attachments: string[] = [];
+
+    public repostedStatusId?: string;
 }

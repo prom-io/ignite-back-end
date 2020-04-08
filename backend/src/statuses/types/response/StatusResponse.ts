@@ -29,6 +29,9 @@ export class StatusResponse {
     @Expose({name: "revised_at"})
     revisedAt: string | null = null;
 
+    @Expose({name: "reposted_status"})
+    respostedStatus?: StatusResponse = null;
+
     constructor(object: StatusResponse) {
         Object.assign(this, object);
     }
