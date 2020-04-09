@@ -95,7 +95,7 @@ export class FeedService {
     private async mapStatusesToStatusesResponse(statuses: Status[], currentUser?: User): Promise<StatusResponse[]> {
         return asyncMap(statuses, async status => {
             let repostedStatusOptions: ToStatusResponseOptions | undefined;
-            const repostedStatus = await status.repostedStatus;
+            const repostedStatus = status.repostedStatus;
 
             if (repostedStatus) {
                 console.log(repostedStatus);

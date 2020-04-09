@@ -5,7 +5,7 @@ import {StatusResponse} from "./types/response";
 import {StatusesMapper, ToStatusResponseOptions} from "./StatusesMapper";
 import {StatusMappingOptionsProvider} from "./StatusMappingOptionsProvider";
 import {StatusLikesRepository} from "./StatusLikesRepository";
-import {User, UserStatistics} from "../users/entities";
+import {User} from "../users/entities";
 import {UsersRepository} from "../users/UsersRepository";
 import {PaginationRequest} from "../utils/pagination";
 import {Status} from "./entities";
@@ -48,6 +48,7 @@ export class StatusesService {
             }
         }
 
+        console.log(repostedStatus);
         let status = this.statusesMapper.fromCreateStatusRequest(
             createStatusRequest,
             currentUser,
@@ -56,9 +57,9 @@ export class StatusesService {
         );
         status = await this.statusesRepository.save(status);
 
-        const repostedStatusMappingOptions = await status.repostedStatus && await this.statusMappingOptionsProvider
+        const repostedStatusMappingOptions = status.repostedStatus && await this.statusMappingOptionsProvider
             .getStatusMappingOptions(
-                status,
+                repostedStatus,
                 undefined,
                 currentUser
             );
@@ -80,7 +81,7 @@ export class StatusesService {
         }
 
         let repostedStatusOptions: ToStatusResponseOptions | undefined;
-        const repostedStatus = await status.repostedStatus;
+        const repostedStatus = status.repostedStatus;
 
         if (repostedStatus) {
             repostedStatusOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
@@ -129,7 +130,6 @@ export class StatusesService {
                 );
             } else {
                 const maxCursor = await  this.findStatusEntityById(cursors.maxId);
-                console.log(maxCursor);
                 statuses = await this.statusesRepository.findByAuthorAndCreatedAtBefore(user, maxCursor.createdAt, paginationRequest);
             }
         } else if (cursors.sinceId) {
@@ -141,7 +141,7 @@ export class StatusesService {
 
         return asyncMap(statuses, async status => {
             let repostedStatusOptions: ToStatusResponseOptions | undefined;
-            const repostedStatus = await status.repostedStatus;
+            const repostedStatus = status.repostedStatus;
 
             if (repostedStatus) {
                 repostedStatusOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(

@@ -45,7 +45,7 @@ export class StatusLikesService {
         await this.statusLikesRepository.save(statusLike);
 
         let repostedStatusOptions: ToStatusResponseOptions | undefined;
-        const repostedStatus = await status.repostedStatus;
+        const repostedStatus = status.repostedStatus;
 
         if (repostedStatus) {
             repostedStatusOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
@@ -86,7 +86,7 @@ export class StatusLikesService {
         await this.statusLikesRepository.remove(statusLike);
 
         let repostedStatusOptions: ToStatusResponseOptions | undefined;
-        const repostedStatus = await status.repostedStatus;
+        const repostedStatus = status.repostedStatus;
 
         if (repostedStatus) {
             repostedStatusOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(

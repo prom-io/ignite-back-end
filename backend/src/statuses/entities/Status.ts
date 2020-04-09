@@ -1,8 +1,19 @@
-import {Column, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryColumn, UpdateDateColumn} from "typeorm";
+import {
+    Column,
+    Entity,
+    JoinTable,
+    ManyToMany,
+    ManyToOne,
+    PrimaryColumn,
+    Tree,
+    TreeParent,
+    UpdateDateColumn
+} from "typeorm";
 import {User} from "../../users/entities/User";
 import {MediaAttachment} from "../../media-attachments/entities";
 
 @Entity()
+@Tree("materialized-path")
 export class Status {
     @PrimaryColumn()
     id: string;
@@ -29,6 +40,6 @@ export class Status {
     @Column({nullable: true})
     btfsHash?: string = undefined;
 
-    @ManyToOne(() => Status, {nullable: true})
-    repostedStatus: Promise<Status | null | undefined>
+    @TreeParent()
+    repostedStatus?: Status
 }

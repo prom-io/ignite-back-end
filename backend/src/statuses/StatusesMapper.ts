@@ -65,13 +65,13 @@ export class StatusesMapper {
     ): Status {
         return  {
             id: uuid(),
-            text: createStatusRequest.status,
+            text: createStatusRequest.status || "",
             createdAt: new Date(),
             author,
             updatedAt: null,
             remote: false,
             mediaAttachments,
-            repostedStatus: Promise.resolve(repostedStatus)
+            repostedStatus
         }
     }
 }
