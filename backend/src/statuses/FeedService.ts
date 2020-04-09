@@ -1,14 +1,16 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import {StatusesRepository} from "./StatusesRepository";
 import {StatusLikesRepository} from "./StatusLikesRepository";
-import {StatusesMapper} from "./StatusesMapper";
+import {StatusesMapper, ToStatusResponseOptions} from "./StatusesMapper";
+import {StatusMappingOptionsProvider} from "./StatusMappingOptionsProvider";
 import {StatusResponse} from "./types/response";
+import {FeedCursors} from "./types/request/FeedCursors";
 import {Status} from "./entities";
 import {User, UserStatistics} from "../users/entities";
 import {PaginationRequest} from "../utils/pagination";
 import {UserSubscriptionsRepository} from "../user-subscriptions";
-import {FeedCursors} from "./types/request/FeedCursors";
 import {UserStatisticsRepository} from "../users";
+import {asyncMap} from "../utils/async-map";
 
 @Injectable()
 export class FeedService {
@@ -17,7 +19,8 @@ export class FeedService {
                 private readonly statusesRepository: StatusesRepository,
                 private readonly statusLikesRepository: StatusLikesRepository,
                 private readonly userSubscriptionRepository: UserSubscriptionsRepository,
-                private readonly statusesMapper: StatusesMapper) {
+                private readonly statusesMapper: StatusesMapper,
+                private readonly statusMappingOptionsProvider: StatusMappingOptionsProvider) {
     }
 
     public async getFeedOfCurrentUserAfter(currentUser: User, feedCursors: FeedCursors): Promise<StatusResponse[]> {
@@ -54,45 +57,7 @@ export class FeedService {
             statuses = await this.statusesRepository.findByAuthorIn(authors, paginationRequest);
         }
 
-        const likesAndSubscriptionsMap: {
-            [statusId: string]: {
-                numberOfLikes: number,
-                likedByCurrentUser: boolean,
-                followingAuthor: boolean,
-                followedByAuthor: boolean
-            }} = {};
-        const userStatisticsMap: {
-            [userId: string]: UserStatistics
-        } = {};
-
-        for (const status of statuses) {
-            likesAndSubscriptionsMap[status.id] = {
-                numberOfLikes: await this.statusLikesRepository.countByStatus(status),
-                likedByCurrentUser: currentUser && await this.statusLikesRepository.existByStatusAndUser(
-                    status,
-                    currentUser
-                ),
-                followingAuthor: await this.userSubscriptionRepository.existsBySubscribedUserAndSubscribedTo(
-                    currentUser, status.author
-                ),
-                followedByAuthor: await this.userSubscriptionRepository.existsBySubscribedUserAndSubscribedTo(
-                    status.author, currentUser
-                )
-            };
-
-            if (!userStatisticsMap[status.author.id]) {
-                userStatisticsMap[status.author.id] = await this.userStatisticsRepository.findByUser(status.author);
-            }
-        }
-
-        return statuses.map(status => this.statusesMapper.toStatusResponse(
-            status,
-            likesAndSubscriptionsMap[status.id].numberOfLikes,
-            likesAndSubscriptionsMap[status.id].likedByCurrentUser,
-            userStatisticsMap[status.author.id],
-            likesAndSubscriptionsMap[status.id].followingAuthor,
-            likesAndSubscriptionsMap[status.id].followedByAuthor
-        ))
+        return this.mapStatusesToStatusesResponse(statuses, currentUser)
     }
 
     public async getGlobalFeed(feedCursors: FeedCursors, currentUser?: User): Promise<StatusResponse[]> {
@@ -124,42 +89,29 @@ export class FeedService {
             statuses = await this.statusesRepository.findAllBy(paginationRequest);
         }
 
-        const likesAndSubscriptionsMapMap: {
-            [statusId: string]: {
-                numberOfLikes: number,
-                likedByCurrentUser: boolean,
-                followingAuthor: boolean,
-                followedByAuthor: boolean
-            }} = {};
-        const userStatisticsMap: {
-            [userId: string]: UserStatistics
-        } = {};
+        return this.mapStatusesToStatusesResponse(statuses, currentUser);
+    }
 
-        for (const status of statuses) {
-            likesAndSubscriptionsMapMap[status.id] = {
-                numberOfLikes: await this.statusLikesRepository.countByStatus(status),
-                likedByCurrentUser: currentUser ? await this.statusLikesRepository.existByStatusAndUser(status, currentUser) : false,
-                followingAuthor: currentUser && await this.userSubscriptionRepository.existsBySubscribedUserAndSubscribedTo(
-                    currentUser, status.author
-                ),
-                followedByAuthor: currentUser && await this.userSubscriptionRepository.existsBySubscribedUserAndSubscribedTo(
-                    status.author, currentUser
-                )
-            };
+    private async mapStatusesToStatusesResponse(statuses: Status[], currentUser?: User): Promise<StatusResponse[]> {
+        return asyncMap(statuses, async status => {
+            let repostedStatusOptions: ToStatusResponseOptions | undefined;
 
-            if (!userStatisticsMap[status.author.id]) {
-                userStatisticsMap[status.author.id] = await this.userStatisticsRepository.findByUser(status.author);
+            if (status.repostedStatus) {
+                repostedStatusOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
+                    status.repostedStatus,
+                    undefined,
+                    currentUser
+                );
             }
-        }
 
-        return statuses.map(status => this.statusesMapper.toStatusResponse(
-            status,
-            likesAndSubscriptionsMapMap[status.id].numberOfLikes,
-            likesAndSubscriptionsMapMap[status.id].likedByCurrentUser,
-            userStatisticsMap[status.author.id],
-            likesAndSubscriptionsMapMap[status.id].followingAuthor,
-            likesAndSubscriptionsMapMap[status.id].followedByAuthor
-        ))
+            const statusMappingOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
+                status,
+                repostedStatusOptions,
+                currentUser
+            );
+
+            return this.statusesMapper.toStatusResponse(statusMappingOptions);
+        })
     }
 
     private async findStatusById(id: string): Promise<Status> {

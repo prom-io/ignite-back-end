@@ -3,17 +3,19 @@ import uuid from "uuid/v4";
 import {StatusLike} from "./entities";
 import {StatusLikesRepository} from "./StatusLikesRepository";
 import {StatusesRepository} from "./StatusesRepository";
-import {User} from "../users/entities";
+import {StatusesMapper, ToStatusResponseOptions} from "./StatusesMapper";
+import {StatusMappingOptionsProvider} from "./StatusMappingOptionsProvider";
 import {StatusResponse} from "./types/response";
+import {User} from "../users/entities";
 import {UserStatisticsRepository} from "../users";
-import {StatusesMapper} from "./StatusesMapper";
 
 @Injectable()
 export class StatusLikesService {
     constructor(private readonly statusLikesRepository: StatusLikesRepository,
                 private readonly statusRepository: StatusesRepository,
                 private readonly userStatisticsRepository: UserStatisticsRepository,
-                private readonly statusesMapper: StatusesMapper) {
+                private readonly statusesMapper: StatusesMapper,
+                private readonly statusMappingOptionsProvider: StatusMappingOptionsProvider) {
     }
 
     public async createStatusLike(statusId: string, currentUser: User): Promise<StatusResponse> {
@@ -42,15 +44,23 @@ export class StatusLikesService {
 
         await this.statusLikesRepository.save(statusLike);
 
-        const userStatistics = await this.userStatisticsRepository.findByUser(status.author);
-        const favouritesCount = await this.statusLikesRepository.countByStatus(status);
+        let repostedStatusOptions: ToStatusResponseOptions | undefined;
 
-        return this.statusesMapper.toStatusResponse(
+        if (status.repostedStatus) {
+            repostedStatusOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
+                status.repostedStatus,
+                undefined,
+                currentUser
+            )
+        }
+
+        const statusMappingOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
             status,
-            favouritesCount,
-            true,
-            userStatistics
+            repostedStatusOptions,
+            currentUser
         );
+
+        return this.statusesMapper.toStatusResponse(statusMappingOptions);
     }
 
     public async deleteStatusLike(statusId: string, currentUser: User): Promise<StatusResponse> {
@@ -74,14 +84,22 @@ export class StatusLikesService {
 
         await this.statusLikesRepository.remove(statusLike);
 
-        const userStatistics = await this.userStatisticsRepository.findByUser(status.author);
-        const favouritesCount = await this.statusLikesRepository.countByStatus(status);
+        let repostedStatusOptions: ToStatusResponseOptions | undefined;
 
-        return this.statusesMapper.toStatusResponse(
+        if (status.repostedStatus) {
+            repostedStatusOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
+                status.repostedStatus,
+                undefined,
+                currentUser
+            );
+        }
+
+        const statusMappingOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
             status,
-            favouritesCount,
-            false,
-            userStatistics
+            repostedStatusOptions,
+            currentUser
         );
+
+        return this.statusesMapper.toStatusResponse(statusMappingOptions);
     }
 }

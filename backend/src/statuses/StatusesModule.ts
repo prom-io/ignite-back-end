@@ -10,6 +10,7 @@ import {StatusLikesRepository} from "./StatusLikesRepository";
 import {StatusLikesService} from "./StatusLikesService";
 import {StatusEntityEventsSubscriber} from "./StatusEntityEventsSubscriber";
 import {StatusLikeEntityEventsListener} from "./StatusLikeEntityEventsListener";
+import {StatusMappingOptionsProvider} from "./StatusMappingOptionsProvider";
 import {UsersModule, UsersRepository, UserStatisticsRepository} from "../users";
 import {UserSubscriptionsModule, UserSubscriptionsRepository} from "../user-subscriptions";
 import {MicrobloggingBlockchainApiModule} from "../microblogging-blockchain-api";
@@ -24,7 +25,8 @@ import {MediaAttachmentsModule} from "../media-attachments";
         StatusLikesService,
         FeedService,
         StatusEntityEventsSubscriber,
-        StatusLikeEntityEventsListener
+        StatusLikeEntityEventsListener,
+        StatusMappingOptionsProvider
     ],
     imports: [
         TypeOrmModule.forFeature([

@@ -29,7 +29,6 @@ export class Status {
     @Column({nullable: true})
     btfsHash?: string = undefined;
 
-    @Column({nullable: true})
-    @ManyToOne(() => Status, {eager: true})
+    @ManyToOne(() => Status, {nullable: true})
     repostedStatus?: Status
 }

@@ -3,6 +3,7 @@ import {StatusesRepository} from "./StatusesRepository";
 import {CreateStatusRequest} from "./types/request";
 import {StatusResponse} from "./types/response";
 import {StatusesMapper, ToStatusResponseOptions} from "./StatusesMapper";
+import {StatusMappingOptionsProvider} from "./StatusMappingOptionsProvider";
 import {StatusLikesRepository} from "./StatusLikesRepository";
 import {User, UserStatistics} from "../users/entities";
 import {UsersRepository} from "../users/UsersRepository";
@@ -23,7 +24,8 @@ export class StatusesService {
                 private readonly userStatisticsRepository: UserStatisticsRepository,
                 private readonly userSubscriptionRepository: UserSubscriptionsRepository,
                 private readonly mediaAttachmentRepository: MediaAttachmentsRepository,
-                private readonly statusesMapper: StatusesMapper) {
+                private readonly statusesMapper: StatusesMapper,
+                private readonly statusMappingOptionsProvider: StatusMappingOptionsProvider) {
     }
 
     public async createStatus(createStatusRequest: CreateStatusRequest, currentUser: User): Promise<StatusResponse> {
@@ -54,13 +56,14 @@ export class StatusesService {
         );
         status = await this.statusesRepository.save(status);
 
-        const repostedStatusMappingOptions = await status.repostedStatus && await this.getStatusMappingOptions(
-            status,
-            undefined,
-            currentUser
-        );
+        const repostedStatusMappingOptions = await status.repostedStatus && await this.statusMappingOptionsProvider
+            .getStatusMappingOptions(
+                status,
+                undefined,
+                currentUser
+            );
 
-        const statusMappingOptions = await this.getStatusMappingOptions(
+        const statusMappingOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
             status,
             repostedStatusMappingOptions,
             currentUser
@@ -76,50 +79,20 @@ export class StatusesService {
             throw new HttpException(`Could not find status with id ${id}`, HttpStatus.NOT_FOUND);
         }
 
-        const repostedStatusMappingOptions = await status.repostedStatus && await this.getStatusMappingOptions(
-            status.repostedStatus,
-            undefined,
-            currentUser
-        );
-        delete repostedStatusMappingOptions.mapRepostedStatus;
+        const repostedStatusMappingOptions = await status.repostedStatus && await this.statusMappingOptionsProvider
+            .getStatusMappingOptions(
+                status.repostedStatus,
+                undefined,
+                currentUser
+            );
 
-        const statusMappingOptions = await this.getStatusMappingOptions(
+        const statusMappingOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
             status,
             repostedStatusMappingOptions,
             currentUser
         );
 
         return this.statusesMapper.toStatusResponse(statusMappingOptions);
-    }
-
-    private async getStatusMappingOptions(
-        status: Status,
-        mapRepostedStatusOptions?: ToStatusResponseOptions,
-        currentUser?: User,
-    ): Promise<ToStatusResponseOptions> {
-        const likesCount = await this.statusLikesRepository.countByStatus(status);
-        let likedByCurrentUser = false;
-
-        if (likesCount !== 0 && currentUser) {
-            likedByCurrentUser = await this.statusLikesRepository.existByStatusAndUser(status, currentUser);
-        }
-
-        const followingAuthor = currentUser && await this.userSubscriptionRepository.existsBySubscribedUserAndSubscribedTo(
-            currentUser, status.author
-        );
-        const followedByAuthor = currentUser && await this.userSubscriptionRepository.existsBySubscribedUserAndSubscribedTo(
-            status.author, currentUser
-        );
-
-        return {
-            status,
-            favouritesCount: likesCount,
-            favourited: likedByCurrentUser,
-            followedByAuthor,
-            followingAuthor,
-            mapRepostedStatus: Boolean(mapRepostedStatusOptions),
-            repostedStatusOptions: mapRepostedStatusOptions
-        }
     }
 
     public async findStatusesByUser(
@@ -191,12 +164,13 @@ export class StatusesService {
         }
 
         return asyncMap(statuses, async status => {
-            const repostedStatusOptions = status.repostedStatus && await this.getStatusMappingOptions(
-                status,
-                undefined,
-                currentUser
-            );
-            const statusMappingOptions = await this.getStatusMappingOptions(
+            const repostedStatusOptions = status.repostedStatus && await this.statusMappingOptionsProvider
+                .getStatusMappingOptions(
+                    status,
+                    undefined,
+                    currentUser
+                );
+            const statusMappingOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
                 status,
                 repostedStatusOptions,
                 currentUser
