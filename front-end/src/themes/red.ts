@@ -1,6 +1,17 @@
 import { createMuiTheme } from "@material-ui/core";
 
 export const red = createMuiTheme({
+  typography: {
+    fontFamily: [
+      "SuisseRegular",
+      "-apple-system",
+      '"Segoe UI"',
+      "Roboto",
+      "Arial",
+      "sans-serif",
+      '"Apple Color Emoji"',
+    ].join(","),
+  },
   palette: {
     common: {
       black: "#000",
