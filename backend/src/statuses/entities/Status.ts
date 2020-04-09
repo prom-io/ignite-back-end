@@ -30,5 +30,5 @@ export class Status {
     btfsHash?: string = undefined;
 
     @ManyToOne(() => Status, {nullable: true})
-    repostedStatus?: Status
+    repostedStatus: Promise<Status | null | undefined>
 }

@@ -4,11 +4,13 @@ import {UserSubscriptionsRepository} from "../user-subscriptions";
 import {Status} from "./entities";
 import {ToStatusResponseOptions} from "./StatusesMapper";
 import {User} from "../users/entities";
+import {UserStatisticsRepository} from "../users";
 
 @Injectable()
 export class StatusMappingOptionsProvider {
     constructor(private readonly statusLikesRepository: StatusLikesRepository,
-                private readonly userSubscriptionsRepository: UserSubscriptionsRepository) {
+                private readonly userSubscriptionsRepository: UserSubscriptionsRepository,
+                private readonly userStatisticsRepository: UserStatisticsRepository) {
 
     }
 
@@ -30,6 +32,7 @@ export class StatusMappingOptionsProvider {
         const followedByAuthor = currentUser && await this.userSubscriptionsRepository.existsBySubscribedUserAndSubscribedTo(
             status.author, currentUser
         );
+        const userStatistics  = await this.userStatisticsRepository.findByUser(status.author)
 
         return {
             status,
@@ -38,7 +41,8 @@ export class StatusMappingOptionsProvider {
             followedByAuthor,
             followingAuthor,
             mapRepostedStatus: Boolean(mapRepostedStatusOptions),
-            repostedStatusOptions: mapRepostedStatusOptions
+            repostedStatusOptions: mapRepostedStatusOptions,
+            userStatistics
         }
     }
 }

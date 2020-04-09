@@ -73,22 +73,26 @@ export class StatusesService {
     }
 
     public async findStatusById(id: string, currentUser?: User): Promise<StatusResponse> {
-        const status = await this.statusesRepository.findOne({where: {id}});
+        const status = await this.statusesRepository.findById(id);
 
         if (!status) {
             throw new HttpException(`Could not find status with id ${id}`, HttpStatus.NOT_FOUND);
         }
 
-        const repostedStatusMappingOptions = await status.repostedStatus && await this.statusMappingOptionsProvider
-            .getStatusMappingOptions(
-                status.repostedStatus,
+        let repostedStatusOptions: ToStatusResponseOptions | undefined;
+        const repostedStatus = await status.repostedStatus;
+
+        if (repostedStatus) {
+            repostedStatusOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
+                repostedStatus,
                 undefined,
                 currentUser
             );
+        }
 
         const statusMappingOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
             status,
-            repostedStatusMappingOptions,
+            repostedStatusOptions,
             currentUser
         );
 
@@ -135,41 +139,18 @@ export class StatusesService {
             statuses = await this.statusesRepository.findByAuthor(user, paginationRequest);
         }
 
-        const likesAndSubscriptionMap: {
-            [statusId: string]: {
-                numberOfLikes: number,
-                likedByCurrentUser: boolean,
-                followingAuthor: boolean,
-                followedByAuthor: boolean
-            }} = {};
-        const userStatisticsMap: {
-            [userId: string]: UserStatistics
-        } = {};
-
-        for (const status of statuses) {
-            likesAndSubscriptionMap[status.id] = {
-                numberOfLikes: await this.statusLikesRepository.countByStatus(status),
-                likedByCurrentUser: currentUser ? await this.statusLikesRepository.existByStatusAndUser(status, currentUser) : false,
-                followingAuthor: currentUser && await this.userSubscriptionRepository.existsBySubscribedUserAndSubscribedTo(
-                    currentUser, status.author
-                ),
-                followedByAuthor: currentUser && await this.userSubscriptionRepository.existsBySubscribedUserAndSubscribedTo(
-                    status.author, currentUser
-                )
-            };
-
-            if (!userStatisticsMap[status.author.id]) {
-                userStatisticsMap[status.author.id] = await this.userStatisticsRepository.findByUser(status.author);
-            }
-        }
-
         return asyncMap(statuses, async status => {
-            const repostedStatusOptions = status.repostedStatus && await this.statusMappingOptionsProvider
-                .getStatusMappingOptions(
-                    status,
+            let repostedStatusOptions: ToStatusResponseOptions | undefined;
+            const repostedStatus = await status.repostedStatus;
+
+            if (repostedStatus) {
+                repostedStatusOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
+                    repostedStatus,
                     undefined,
                     currentUser
                 );
+            }
+
             const statusMappingOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
                 status,
                 repostedStatusOptions,

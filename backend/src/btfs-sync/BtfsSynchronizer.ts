@@ -213,7 +213,8 @@ export class BtfsSynchronizer extends NestSchedule {
                 createdAt: new Date(btfsStatus.createdAt),
                 updatedAt: undefined,
                 remote: true,
-                btfsHash: btfsCid
+                btfsHash: btfsCid,
+                repostedStatus: Promise.resolve(null)
             };
             status = await this.statusesRepository.save(status);
         } else {

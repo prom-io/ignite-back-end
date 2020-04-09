@@ -15,6 +15,7 @@ export class StatusesRepository extends Repository<Status> {
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
             take: paginationRequest.pageSize,
+            relations: ["repostedStatus"]
         });
     }
 
@@ -22,7 +23,8 @@ export class StatusesRepository extends Repository<Status> {
         return this.findOne({
             where: {
                 id
-            }
+            },
+            relations: ["repostedStatus"]
         })
     }
 
@@ -32,7 +34,8 @@ export class StatusesRepository extends Repository<Status> {
             take: paginationRequest.pageSize,
             order: {
                 createdAt: "DESC"
-            }
+            },
+            relations: ["repostedStatus"]
         })
     }
 
@@ -46,7 +49,8 @@ export class StatusesRepository extends Repository<Status> {
                 createdAt: "DESC"
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
-            take: paginationRequest.pageSize
+            take: paginationRequest.pageSize,
+            relations: ["repostedStatus"]
         })
     }
 
@@ -60,7 +64,8 @@ export class StatusesRepository extends Repository<Status> {
                 createdAt: "DESC"
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
-            take: paginationRequest.pageSize
+            take: paginationRequest.pageSize,
+            relations: ["repostedStatus"]
         })
     }
 
@@ -79,7 +84,8 @@ export class StatusesRepository extends Repository<Status> {
                 createdAt: "DESC"
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
-            take: paginationRequest.pageSize
+            take: paginationRequest.pageSize,
+            relations: ["repostedStatus"]
         })
     }
 
@@ -94,7 +100,8 @@ export class StatusesRepository extends Repository<Status> {
                 createdAt: "DESC"
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
-            take: paginationRequest.pageSize
+            take: paginationRequest.pageSize,
+            relations: ["repostedStatus"]
         })
     }
 
@@ -110,7 +117,8 @@ export class StatusesRepository extends Repository<Status> {
                 createdAt: "DESC"
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
-            take: paginationRequest.pageSize
+            take: paginationRequest.pageSize,
+            relations: ["repostedStatus"]
         })
     }
 
@@ -126,7 +134,8 @@ export class StatusesRepository extends Repository<Status> {
                 createdAt: "DESC"
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
-            take: paginationRequest.pageSize
+            take: paginationRequest.pageSize,
+            relations: ["repostedStatus"]
         })
     }
 
@@ -147,7 +156,8 @@ export class StatusesRepository extends Repository<Status> {
                 createdAt: "DESC"
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
-            take: paginationRequest.pageSize
+            take: paginationRequest.pageSize,
+            relations: ["repostedStatus"]
         })
     }
 
@@ -160,7 +170,8 @@ export class StatusesRepository extends Repository<Status> {
                 createdAt: "DESC"
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
-            take: paginationRequest.pageSize
+            take: paginationRequest.pageSize,
+            relations: ["repostedStatus"]
         })
     }
 
@@ -173,7 +184,8 @@ export class StatusesRepository extends Repository<Status> {
                 createdAt: "DESC"
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
-            take: paginationRequest.pageSize
+            take: paginationRequest.pageSize,
+            relations: ["repostedStatus"]
         })
     }
 
@@ -186,7 +198,8 @@ export class StatusesRepository extends Repository<Status> {
                 createdAt: "DESC"
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
-            take: paginationRequest.pageSize
+            take: paginationRequest.pageSize,
+            relations: ["repostedStatus"]
         })
     }
 }

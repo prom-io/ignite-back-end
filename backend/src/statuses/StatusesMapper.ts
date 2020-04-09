@@ -71,7 +71,7 @@ export class StatusesMapper {
             updatedAt: null,
             remote: false,
             mediaAttachments,
-            repostedStatus
+            repostedStatus: Promise.resolve(repostedStatus)
         }
     }
 }
