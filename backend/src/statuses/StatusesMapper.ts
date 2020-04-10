@@ -16,7 +16,9 @@ export interface ToStatusResponseOptions {
     followingAuthor: boolean,
     followedByAuthor: boolean,
     mapRepostedStatus: boolean,
-    repostedStatusOptions?: Omit<ToStatusResponseOptions, "mapRepostedStatus">
+    repostedStatusOptions?: Omit<ToStatusResponseOptions, "mapRepostedStatus" | "repostsCount">,
+    repostsCount: number,
+    repostedStatusId?: string
 }
 
 @Injectable()
@@ -34,7 +36,9 @@ export class StatusesMapper {
             followingAuthor,
             favouritesCount,
             mapRepostedStatus,
-            repostedStatusOptions
+            repostedStatusOptions,
+            repostsCount,
+            repostedStatusId
         } = options;
         return new StatusResponse({
             account: this.userMapper.toUserResponse(status.author, userStatistics, followingAuthor, followedByAuthor),
@@ -52,8 +56,11 @@ export class StatusesMapper {
             revisedAt: null,
             respostedStatus: mapRepostedStatus ? this.toStatusResponse({
                 ...repostedStatusOptions,
-                mapRepostedStatus: false
-            }) : null
+                mapRepostedStatus: false,
+                repostsCount: 0
+            }) : null,
+            repostsCount,
+            repostedStatusId
         })
     }
 

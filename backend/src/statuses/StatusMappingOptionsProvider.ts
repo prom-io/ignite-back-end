@@ -5,10 +5,12 @@ import {Status} from "./entities";
 import {ToStatusResponseOptions} from "./StatusesMapper";
 import {User} from "../users/entities";
 import {UserStatisticsRepository} from "../users";
+import {StatusesRepository} from "./StatusesRepository";
 
 @Injectable()
 export class StatusMappingOptionsProvider {
-    constructor(private readonly statusLikesRepository: StatusLikesRepository,
+    constructor(private readonly statusesRepository: StatusesRepository,
+                private readonly statusLikesRepository: StatusLikesRepository,
                 private readonly userSubscriptionsRepository: UserSubscriptionsRepository,
                 private readonly userStatisticsRepository: UserStatisticsRepository) {
 
@@ -32,7 +34,8 @@ export class StatusMappingOptionsProvider {
         const followedByAuthor = currentUser && await this.userSubscriptionsRepository.existsBySubscribedUserAndSubscribedTo(
             status.author, currentUser
         );
-        const userStatistics  = await this.userStatisticsRepository.findByUser(status.author)
+        const userStatistics  = await this.userStatisticsRepository.findByUser(status.author);
+        const repostsCount = await this.statusesRepository.countByRepostedStatus(status);
 
         return {
             status,
@@ -42,7 +45,8 @@ export class StatusMappingOptionsProvider {
             followingAuthor,
             mapRepostedStatus: Boolean(mapRepostedStatusOptions),
             repostedStatusOptions: mapRepostedStatusOptions,
-            userStatistics
+            userStatistics,
+            repostsCount
         }
     }
 }

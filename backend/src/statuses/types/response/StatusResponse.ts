@@ -32,6 +32,12 @@ export class StatusResponse {
     @Expose({name: "reposted_status"})
     respostedStatus?: StatusResponse = null;
 
+    @Expose({name: "reposted_status_id"})
+    repostedStatusId?: string;
+
+    @Expose({name: "reposts_count"})
+    repostsCount: number;
+
     constructor(object: StatusResponse) {
         Object.assign(this, object);
     }

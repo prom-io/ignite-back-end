@@ -48,7 +48,6 @@ export class StatusesService {
             }
         }
 
-        console.log(repostedStatus);
         let status = this.statusesMapper.fromCreateStatusRequest(
             createStatusRequest,
             currentUser,
@@ -56,13 +55,18 @@ export class StatusesService {
             repostedStatus
         );
         status = await this.statusesRepository.save(status);
+        let repostedStatusMappingOptions: ToStatusResponseOptions | undefined;
 
-        const repostedStatusMappingOptions = status.repostedStatus && await this.statusMappingOptionsProvider
-            .getStatusMappingOptions(
+        if (status.repostedStatus) {
+            repostedStatusMappingOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
                 repostedStatus,
                 undefined,
                 currentUser
             );
+            const statusAncestors = (await this.statusesRepository.findAncestorsOfStatus(repostedStatus))
+                .map(ancestor => ancestor.id);
+            repostedStatusMappingOptions.repostedStatusId = statusAncestors[statusAncestors.length - 1];
+        }
 
         const statusMappingOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
             status,
@@ -89,6 +93,9 @@ export class StatusesService {
                 undefined,
                 currentUser
             );
+            const statusAncestors = (await this.statusesRepository.findAncestorsOfStatus(repostedStatus))
+                .map(ancestor => ancestor.id);
+            repostedStatusOptions.repostedStatusId = statusAncestors[statusAncestors.length - 1];
         }
 
         const statusMappingOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
@@ -149,6 +156,9 @@ export class StatusesService {
                     undefined,
                     currentUser
                 );
+                const statusAncestors = (await this.statusesRepository.findAncestorsOfStatus(repostedStatus))
+                    .map(ancestor => ancestor.id);
+                repostedStatusOptions.repostedStatusId = statusAncestors[statusAncestors.length - 1];
             }
 
             const statusMappingOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(

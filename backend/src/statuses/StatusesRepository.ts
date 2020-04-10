@@ -202,4 +202,17 @@ export class StatusesRepository extends Repository<Status> {
             relations: ["repostedStatus"]
         })
     }
+
+    public countByRepostedStatus(repostedStatus: Status): Promise<number> {
+        return this.count({
+            where: {
+                repostedStatus
+            }
+        })
+    }
+
+    public findAncestorsOfStatus(status: Status): Promise<Status[]> {
+        const treeRepository = this.manager.getTreeRepository<Status>(Status);
+        return treeRepository.findAncestors(status);
+    }
 }

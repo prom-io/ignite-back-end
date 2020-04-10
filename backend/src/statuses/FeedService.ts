@@ -98,12 +98,14 @@ export class FeedService {
             const repostedStatus = status.repostedStatus;
 
             if (repostedStatus) {
-                console.log(repostedStatus);
                 repostedStatusOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
                     repostedStatus,
                     undefined,
                     currentUser
                 );
+                const statusAncestors = (await this.statusesRepository.findAncestorsOfStatus(repostedStatus))
+                    .map(ancestor => ancestor.id);
+                repostedStatusOptions.repostedStatusId = statusAncestors[statusAncestors.length - 1];
             }
 
             const statusMappingOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
