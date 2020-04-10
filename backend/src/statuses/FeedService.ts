@@ -104,7 +104,8 @@ export class FeedService {
                     currentUser
                 );
                 const statusAncestors = (await this.statusesRepository.findAncestorsOfStatus(repostedStatus))
-                    .map(ancestor => ancestor.id);
+                    .map(ancestor => ancestor.id)
+                    .filter(ancestorId => ancestorId !== repostedStatus.id);
                 repostedStatusOptions.repostedStatusId = statusAncestors[statusAncestors.length - 1];
             }
 

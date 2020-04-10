@@ -2,7 +2,7 @@ import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import {Response} from "express";
 import fileSystem from "fs";
 import path from "path";
-import gm from "gm";
+import graphicsMagic from "gm";
 import FileTypeExtractor from "file-type";
 import uuid from "uuid/v4";
 import {MediaAttachmentsRepository} from "./MediaAttachmentsRepository";
@@ -12,13 +12,15 @@ import {MediaAttachmentsMapper} from "./MediaAttachmentsMapper";
 import {config} from "../config";
 import {SkynetClient} from "../skynet";
 
+const gm = graphicsMagic.subClass({imageMagick: true});
+
 @Injectable()
 export class MediaAttachmentsService {
     constructor(private readonly mediaAttachmentRepository: MediaAttachmentsRepository,
                 private readonly mediaAttachmentsMapper: MediaAttachmentsMapper,
                 private readonly skynetClient: SkynetClient) {
     }
-    
+
     public saveMediaAttachment(multipartFile: MultipartFile): Promise<MediaAttachmentResponse> {
         return new Promise<MediaAttachmentResponse>(async (resolve, reject) => {
             try {

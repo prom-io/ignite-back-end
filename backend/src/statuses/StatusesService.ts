@@ -64,7 +64,8 @@ export class StatusesService {
                 currentUser
             );
             const statusAncestors = (await this.statusesRepository.findAncestorsOfStatus(repostedStatus))
-                .map(ancestor => ancestor.id);
+                .map(ancestor => ancestor.id)
+                .filter(ancestorId => ancestorId !== repostedStatus.id);
             repostedStatusMappingOptions.repostedStatusId = statusAncestors[statusAncestors.length - 1];
         }
 
@@ -93,8 +94,10 @@ export class StatusesService {
                 undefined,
                 currentUser
             );
-            const statusAncestors = (await this.statusesRepository.findAncestorsOfStatus(repostedStatus))
-                .map(ancestor => ancestor.id);
+            let statusAncestors = (await this.statusesRepository.findAncestorsOfStatus(repostedStatus))
+                .map(ancestor => ancestor.id)
+                .filter(ancestorId => ancestorId !== repostedStatus.id);
+            statusAncestors = statusAncestors.filter(ancestorId => ancestorId !== repostedStatus.id);
             repostedStatusOptions.repostedStatusId = statusAncestors[statusAncestors.length - 1];
         }
 
@@ -157,7 +160,8 @@ export class StatusesService {
                     currentUser
                 );
                 const statusAncestors = (await this.statusesRepository.findAncestorsOfStatus(repostedStatus))
-                    .map(ancestor => ancestor.id);
+                    .map(ancestor => ancestor.id)
+                    .filter(ancestorId => ancestorId !== repostedStatus.id);;
                 repostedStatusOptions.repostedStatusId = statusAncestors[statusAncestors.length - 1];
             }
 
