@@ -23,4 +23,7 @@ export class UserSubscription {
 
     @Column({nullable: true})
     peerWallet?: string;
+
+    @Column({nullable: true})
+    saveUnsubscriptionToBtfs?: boolean = false;
 }

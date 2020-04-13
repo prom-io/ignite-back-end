@@ -15,7 +15,8 @@ import {
     BtfsStatusEntityResponse,
     BtfsStatusLikeEntityResponse,
     BtfsStatusLikesResponse,
-    BtfsUserSubscriptionEntityResponse
+    BtfsUserSubscriptionEntityResponse,
+    BtfsUserSubscriptionsResponse
 } from "./types/response";
 import {asyncForEach} from "../utils/async-foreach";
 import {User} from "../users/entities";
@@ -71,6 +72,8 @@ export class BtfsSynchronizer extends NestSchedule {
                 await this.synchronizeStatusLikes(btfsHash.btfsCid, statusLikes);
                 await this.synchronizeStatuses(btfsHash.btfsCid, statuses);
                 await this.synchronizeSubscriptions(btfsHash.btfsCid, subscriptions);
+                await this.synchronizeUnlikes(btfsHash.btfsCid, statusUnlikes);
+                await this.synchronizeUnsubscriptions(btfsHash.btfsCid, unsubscriptions);
 
                 btfsHash.synced = true;
                 await this.btfsHashRepository.save(btfsHash);
@@ -334,5 +337,39 @@ export class BtfsSynchronizer extends NestSchedule {
             userSubscription = await this.userSubscriptionsRepository.save(userSubscription);
             return userSubscription;
         }
+    }
+
+    private async synchronizeUnlikes(cid: string, unlikes: BtfsStatusLikeEntityResponse[]): Promise<void> {
+        await asyncForEach(unlikes, async unlikeData => {
+            const btfsUnlike: BtfsStatusLikesResponse = (await this.btfsClient.getStatusUnlikesByCid({commentId: unlikeData.commentId, cid})).data;
+            const deletedLikesIds = Object.keys(btfsUnlike);
+
+            await asyncForEach(deletedLikesIds, async deletedLikeId => {
+                const deletedLike = await this.statusLikesRepository.findById(deletedLikeId);
+
+                if (deletedLike) {
+                    deletedLike.saveUnlikeToBtfs = false;
+                    await this.statusLikesRepository.delete(deletedLike);
+                }
+            })
+        })
+    }
+
+    private async synchronizeUnsubscriptions(cid: string, unsubscriptions: BtfsUserSubscriptionEntityResponse[]): Promise<void> {
+        await asyncForEach(unsubscriptions, async unsubscriptionData => {
+            const btfsUnsubscriptions: BtfsUserSubscriptionsResponse = (await this.btfsClient
+                .getUserUnsubscriptionsByCid({userId: unsubscriptionData.userId, cid}))
+                .data;
+            const deletedSubscriptionIds = Object.keys(btfsUnsubscriptions);
+
+            await asyncForEach(deletedSubscriptionIds, async deletedSubscriptionId => {
+                const deletedSubscription = await this.userSubscriptionsRepository.findById(deletedSubscriptionId);
+
+                if (deletedSubscription) {
+                    deletedSubscription.saveUnsubscriptionToBtfs = false;
+                    await this.userSubscriptionsRepository.delete(deletedSubscription);
+                }
+            })
+        })
     }
 }

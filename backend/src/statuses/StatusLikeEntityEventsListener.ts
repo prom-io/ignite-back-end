@@ -61,16 +61,31 @@ export class StatusLikeEntityEventsListener implements EntitySubscriberInterface
         const statusLike = event.entity;
 
         this.log.info("Logging status unlike to blockchain");
-        this.microbloggingBlockchainApiClient.logStatusUnlike({
-            id: statusLike.id,
-            messageId: statusLike.status.id,
-            user: statusLike.user.ethereumAddress
-        })
-            // tslint:disable-next-line:max-line-length
-            .then(() => this.log.info(`Unlike of ${statusLike.user.ethereumAddress} to status ${statusLike.status.id} has been written to blockchain`))
-            .catch(error => {
-                this.log.error(`Error occurred when tried to write unlike of ${statusLike.user.ethereumAddress} to status ${statusLike.status.id} to blockchain client`);
-                console.error(error);
+
+        if (statusLike.saveUnlikeToBtfs) {
+            this.microbloggingBlockchainApiClient.logStatusUnlike({
+                id: statusLike.id,
+                messageId: statusLike.status.id,
+                user: statusLike.user.ethereumAddress
             })
+                // tslint:disable-next-line:max-line-length
+                .then(() => this.log.info(`Unlike of ${statusLike.user.ethereumAddress} to status ${statusLike.status.id} has been written to blockchain`))
+                .catch(error => {
+                    this.log.error(`Error occurred when tried to write unlike of ${statusLike.user.ethereumAddress} to status ${statusLike.status.id} to blockchain client`);
+                    console.error(error);
+                });
+            this.btfsClient.saveStatusUnlike({
+                commentId: statusLike.status.id,
+                id: statusLike.id,
+                peerIp: this.ipAddressProvider.getGlobalIpAddress(),
+                peerWallet: (await this.accountService.getDefaultAccount()).address,
+                data: this.btfsStatusLikesMapper.fromStatusLike(statusLike)
+            })
+                .then(() => this.log.info(`Unlike of ${statusLike.user.ethereumAddress} to status ${statusLike.status.id} has been written to BTFS`))
+                .catch(error => {
+                    this.log.error(`Error occurred when trued to write unlike of ${statusLike.user.ethereumAddress} to status ${statusLike.status.id} to BTFS`);
+                    console.log(error);
+                })
+        }
     }
 }

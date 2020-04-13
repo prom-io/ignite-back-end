@@ -1,4 +1,4 @@
-import {Module, Global} from "@nestjs/common";
+import {Global, Module} from "@nestjs/common";
 import {TypeOrmModule} from "@nestjs/typeorm";
 import {ScheduleModule} from "nest-schedule";
 import Axios from "axios";

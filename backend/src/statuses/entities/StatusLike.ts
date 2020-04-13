@@ -24,4 +24,7 @@ export class StatusLike {
 
     @Column({nullable: true})
     peerWallet?: string;
+
+    @Column({nullable: true})
+    saveUnlikeToBtfs?: boolean = true;
 }

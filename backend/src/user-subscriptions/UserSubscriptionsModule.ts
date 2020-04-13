@@ -10,8 +10,6 @@ import {UsersRepository} from "../users/UsersRepository";
 import {UserStatisticsRepository} from "../users/UserStatisticsRepository";
 import {MicrobloggingBlockchainApiModule} from "../microblogging-blockchain-api";
 
-console.log(UserStatisticsRepository);
-
 @Module({
     controllers: [UserSubscriptionsController],
     providers: [UserSubscriptionsService, UserSubscriptionsMapper, UserSubscriptionEntityEventsSubscriber],
