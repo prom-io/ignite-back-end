@@ -10,6 +10,8 @@ import {BtfsClient} from "../btfs-sync/BtfsClient";
 import {BtfsStatusesMapper} from "../btfs-sync/mappers";
 import {asyncForEach} from "../utils/async-foreach";
 import {config} from "../config";
+import {AccountsService} from "../accounts/AccountsService";
+import {IpAddressProvider} from "../btfs-sync/IpAddressProvider";
 
 @Injectable()
 export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<Status> {
@@ -18,6 +20,8 @@ export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<S
                 private readonly microbloggingBlockchainApiClient: MicrobloggingBlockchainApiClient,
                 private readonly btfsClient: BtfsClient,
                 private readonly btfsStatusesMapper: BtfsStatusesMapper,
+                private readonly accountService: AccountsService,
+                private readonly ipAddressProvider: IpAddressProvider,
                 private readonly log: LoggerService) {
         connection.subscribers.push(this);
     }
@@ -59,7 +63,9 @@ export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<S
             });
             this.btfsClient.saveStatus({
                 id: event.entity.id,
-                data: this.btfsStatusesMapper.fromStatus(event.entity)
+                data: this.btfsStatusesMapper.fromStatus(event.entity),
+                peerIp: this.ipAddressProvider.getGlobalIpAddress(),
+                peerWallet: (await this.accountService.getDefaultAccount()).address
             })
                 .then(() => this.log.info(`Status ${event.entity.id} has been saved to BTFS`))
                 .catch(error => {

@@ -17,4 +17,10 @@ export class UserSubscription {
 
     @Column({nullable: true})
     btfsHash?: string = undefined;
+
+    @Column({nullable: true})
+    peerIp?: string;
+
+    @Column({nullable: true})
+    peerWallet?: string;
 }

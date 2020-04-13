@@ -25,4 +25,10 @@ export class MediaAttachment {
 
     @Column({nullable: true})
     btfsCid?: string;
+
+    @Column({nullable: true})
+    peerIp?: string;
+
+    @Column({nullable: true})
+    peerWallet?: string
 }

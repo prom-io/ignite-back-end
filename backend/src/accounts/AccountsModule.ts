@@ -13,6 +13,6 @@ import {UsersModule} from "../users";
     controllers: [AccountsController],
     providers: [AccountsService, AccountsRepository, DataOwnersService, DataOwnersRepository, InitialAccountRegistrationHandler],
     imports: [ServiceNodeApiClientModule, Web3Module, UsersModule],
-    exports: [DataOwnersService, DataOwnersRepository, AccountsRepository]
+    exports: [DataOwnersService, DataOwnersRepository, AccountsRepository, AccountsService]
 })
 export class AccountsModule {}

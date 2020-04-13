@@ -5,7 +5,8 @@ import {fileToFileResponse} from "../files/file-mappers";
 import {EntityType} from "../nedb/entity";
 
 export const accountToAccountResponse = (account: Account): AccountResponse => ({
-    address: account.address
+    address: account.address,
+    default: account.default
 });
 
 export const dataOwnerToDataOwnerResponse = (dataOwner: DataOwner): DataOwnerResponse => ({

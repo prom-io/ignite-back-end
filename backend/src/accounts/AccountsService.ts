@@ -4,6 +4,7 @@ import {accountToAccountResponse} from "./account-mappers";
 import {AccountType} from "./types";
 import {AccountResponse, BalanceResponse, BalancesResponse, DataOwnersOfDataValidatorResponse} from "./types/response";
 import {CreateDataValidatorRequest, ICreateDataOwnerRequest} from "./types/request";
+import {NoAccountsRegisteredException} from "./NoAccountsRegisteredException";
 import {RegisterAccountRequest, ServiceNodeApiClient} from "../service-node-api";
 import {EntityType} from "../nedb/entity";
 import {Web3Wrapper} from "../web3";
@@ -20,6 +21,7 @@ export class AccountsService {
 
     public async createDataValidatorAccount(createDataValidatorAccountRequest: CreateDataValidatorRequest): Promise<void> {
         try {
+            const defaultAccount: boolean = (await this.accountsRepository.findAll()).filter(account => account.default).length === 0;
             console.log(createDataValidatorAccountRequest);
             const accountRegistrationStatusResponse: AccountRegistrationStatusResponse = (
                 await this.serviceNodeClient.isAccountRegistered(createDataValidatorAccountRequest.address)
@@ -30,7 +32,8 @@ export class AccountsService {
                     await this.accountsRepository.save({
                         address: createDataValidatorAccountRequest.address,
                         privateKey: createDataValidatorAccountRequest.privateKey,
-                        _type: EntityType.ACCOUNT
+                        _type: EntityType.ACCOUNT,
+                        default: defaultAccount
                     });
                     await this.usersService.saveUser({
                         address: createDataValidatorAccountRequest.address,
@@ -56,7 +59,8 @@ export class AccountsService {
             await this.accountsRepository.save({
                 address: createDataValidatorAccountRequest.address,
                 privateKey: createDataValidatorAccountRequest.privateKey,
-                _type: EntityType.ACCOUNT
+                _type: EntityType.ACCOUNT,
+                default: defaultAccount
             });
             await this.usersService.saveUser({
                 address: createDataValidatorAccountRequest.address,
@@ -144,5 +148,38 @@ export class AccountsService {
                     return result;
                 })
         })
+    }
+
+    public async setAccountDefaultAccount(address: string): Promise<AccountResponse> {
+        const account = await this.accountsRepository.findByAddress(address);
+
+        if (!account) {
+            throw new HttpException(
+                `Could not find account with address ${address}`,
+                HttpStatus.NOT_FOUND
+            )
+        }
+
+        account.default = true;
+
+        return accountToAccountResponse(await this.accountsRepository.save(account));
+    }
+
+    public async getDefaultAccount(): Promise<AccountResponse> {
+        const accounts = await this.accountsRepository.findAll();
+
+        if (accounts.length === 0) {
+            throw new NoAccountsRegisteredException("This node doesn't have any registered accounts");
+        }
+
+        let defaultAccount = accounts.find(account => account.default);
+
+        if (!defaultAccount) {
+            defaultAccount = accounts[0];
+            defaultAccount.default = true;
+            defaultAccount = await this.accountsRepository.save(defaultAccount);
+        }
+
+        return accountToAccountResponse(defaultAccount);
     }
 }

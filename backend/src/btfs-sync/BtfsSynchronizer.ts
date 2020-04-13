@@ -10,7 +10,13 @@ import {BtfsHashRepository} from "./BtfsHashRepository";
 import {BtfsClient} from "./BtfsClient";
 import {BtfsHash} from "./entities";
 import {BtfsMediaAttachment, BtfsStatus, BtfsStatusLike, BtfsUser, BtfsUserSubscription} from "./types/btfs-entities";
-import {BtfsStatusLikesResponse} from "./types/response";
+import {
+    BtfsImageEntityResponse,
+    BtfsStatusEntityResponse,
+    BtfsStatusLikeEntityResponse,
+    BtfsStatusLikesResponse,
+    BtfsUserSubscriptionEntityResponse
+} from "./types/response";
 import {asyncForEach} from "../utils/async-foreach";
 import {User} from "../users/entities";
 import {Status} from "../statuses/entities";
@@ -22,6 +28,12 @@ import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsR
 import {asyncMap} from "../utils/async-map";
 import {UserSubscription} from "../user-subscriptions/entities";
 import {config} from "../config";
+
+interface BtfsEntityInfo {
+    peerIp: string,
+    peerWallet: string,
+    btfsCid: string
+}
 
 @Injectable()
 export class BtfsSynchronizer extends NestSchedule {
@@ -50,6 +62,8 @@ export class BtfsSynchronizer extends NestSchedule {
                 const statuses = entities.posts || [];
                 const statusLikes = entities.likes || [];
                 const subscriptions = entities.subscribes || [];
+                const statusUnlikes = entities.unlikes || [];
+                const unsubscriptions = entities.unsubscribes || [];
 
                 console.log(entities);
 
@@ -67,12 +81,12 @@ export class BtfsSynchronizer extends NestSchedule {
         })
     }
 
-    private async synchronizeImages(cid: string, imagesIds: string[]): Promise<void> {
-        await asyncForEach(imagesIds, async imageId => {
-            const temporaryFilePath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, `${imageId}.temporary`);
+    private async synchronizeImages(cid: string, btfsImages: BtfsImageEntityResponse[]): Promise<void> {
+        await asyncForEach(btfsImages, async image => {
+            const temporaryFilePath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, `${image.fileId}.temporary`);
             await this.btfsClient.downloadFile({
                 cid,
-                id: imageId,
+                id: image.fileId,
                 path: temporaryFilePath
             });
 
@@ -88,13 +102,15 @@ export class BtfsSynchronizer extends NestSchedule {
                         const permanentFilePath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, `${imageId}.${file.ext}`);
                         fileSystem.renameSync(temporaryFilePath, permanentFilePath);
                         const mediaAttachment: MediaAttachment = {
-                            id: imageId,
+                            id: image.fileId,
                             format: file.ext,
                             mimeType: file.mime,
                             height: size.height,
                             width: size.width,
-                            name: `${imageId}.${file.ext}`,
-                            btfsCid: cid
+                            name: `${image.fileId}.${file.ext}`,
+                            btfsCid: cid,
+                            peerIp: image.peerIp,
+                            peerWallet: image.peerWallet
                         };
                         await this.mediaAttachmentsRepository.save(mediaAttachment);
                     })
@@ -102,9 +118,9 @@ export class BtfsSynchronizer extends NestSchedule {
         })
     }
 
-    private async synchronizeStatuses(cid: string, statusesIds: string[]): Promise<void> {
-        await asyncForEach(statusesIds, async statusId => {
-            const status = new BtfsStatus((await this.btfsClient.getStatusByCid({cid, statusId})).data);
+    private async synchronizeStatuses(cid: string, statuses: BtfsStatusEntityResponse[]): Promise<void> {
+        await asyncForEach(statuses, async btfsStatus => {
+            const status = new BtfsStatus((await this.btfsClient.getStatusByCid({cid, statusId: btfsStatus.postId})).data);
             const errors = await validate(status);
 
             if (errors.length > 0) {
@@ -115,12 +131,12 @@ export class BtfsSynchronizer extends NestSchedule {
             await this.mergeStatus(
                 await this.statusesRepository.findById(status.id),
                 status,
-                cid
+                {peerIp: btfsStatus.peerIp, peerWallet: btfsStatus.peerWallet, btfsCid: cid}
             );
         });
     }
 
-    private async synchronizeStatusLikes(cid: string, likes: Array<{commentId: string, id: string}>): Promise<void> {
+    private async synchronizeStatusLikes(cid: string, likes: BtfsStatusLikeEntityResponse[]): Promise<void> {
        await asyncForEach(likes, async likeData => {
            const btfsLikes: BtfsStatusLikesResponse = (await this.btfsClient.getStatusLikesByCid({commentId: likeData.commentId, cid})).data;
            const likesIds = Object.keys(btfsLikes);
@@ -134,12 +150,16 @@ export class BtfsSynchronizer extends NestSchedule {
                    return ;
                }
 
-               await this.saveBtfsStatusLike(btfsLike, cid);
+               await this.saveBtfsStatusLike(btfsLike, {
+                   peerIp: likeData.peerIp,
+                   peerWallet: likeData.peerWallet,
+                   btfsCid: cid
+               });
            })
        })
     }
 
-    private async saveBtfsStatusLike(btfsStatusLike: BtfsStatusLike, btfsCid: string): Promise<void> {
+    private async saveBtfsStatusLike(btfsStatusLike: BtfsStatusLike, btfsEntityInfo: BtfsEntityInfo): Promise<void> {
         let statusLike = await this.statusLikesRepository.findById(btfsStatusLike.id);
 
         if (!statusLike) {
@@ -147,14 +167,16 @@ export class BtfsSynchronizer extends NestSchedule {
             const status = await this.mergeStatus(
                 await this.statusesRepository.findById(btfsStatusLike.status.id),
                 btfsStatusLike.status,
-                btfsCid
+                btfsEntityInfo
             );
             statusLike = {
                 id: btfsStatusLike.id,
                 user,
                 status,
                 createdAt: new Date(btfsStatusLike.createdAt),
-                btfsHash: btfsCid
+                btfsHash: btfsEntityInfo.btfsCid,
+                peerIp: btfsEntityInfo.peerIp,
+                peerWallet: btfsEntityInfo.peerWallet
             };
 
             const existingLike = await this.statusLikesRepository.findByStatusAndUser(status, user);
@@ -166,12 +188,14 @@ export class BtfsSynchronizer extends NestSchedule {
 
             await this.statusLikesRepository.save(statusLike);
         } else if (!statusLike.btfsHash) {
-            statusLike.btfsHash = btfsCid;
+            statusLike.btfsHash = btfsEntityInfo.btfsCid;
+            statusLike.peerWallet = btfsEntityInfo.peerWallet;
+            statusLike.peerIp = btfsEntityInfo.peerIp;
             await this.statusLikesRepository.save(statusLike);
         }
     }
 
-    private async synchronizeSubscriptions(cid: string, subscriptions: Array<{id: string, userId: string}>): Promise<void> {
+    private async synchronizeSubscriptions(cid: string, subscriptions: BtfsUserSubscriptionEntityResponse[]): Promise<void> {
         await asyncForEach(subscriptions, async subscriptionData => {
             const subscriptionsMap = (await this.btfsClient.getUserSubscriptionsByCid({cid, userId: subscriptionData.userId})).data;
             const subscriptionIds = Object.keys(subscriptionsMap);
@@ -188,20 +212,21 @@ export class BtfsSynchronizer extends NestSchedule {
                 await this.mergeSubscription(
                     await this.userSubscriptionsRepository.findById(btfsUserSubscription.id),
                     btfsUserSubscription,
-                    cid
+                    {peerWallet: subscriptionData.peerWallet, btfsCid: cid, peerIp: subscriptionData.peerIp}
                 )
             })
         })
     }
 
-    private async mergeStatus(status: Status | undefined, btfsStatus: BtfsStatus, btfsCid: string): Promise<Status> {
+    private async mergeStatus(status: Status | undefined, btfsStatus: BtfsStatus, btfsEntityInfo: BtfsEntityInfo): Promise<Status> {
         if (!status) {
             const mediaAttachments = await asyncMap(
                 btfsStatus.mediaAttachments,
                 async btfsMediaAttachment => {
                     return await this.mergeMediaAttachment(
                         await this.mediaAttachmentsRepository.findById(btfsMediaAttachment.id),
-                        btfsMediaAttachment
+                        btfsMediaAttachment,
+                        btfsEntityInfo
                     );
                 }
             );
@@ -213,13 +238,17 @@ export class BtfsSynchronizer extends NestSchedule {
                 createdAt: new Date(btfsStatus.createdAt),
                 updatedAt: undefined,
                 remote: true,
-                btfsHash: btfsCid,
-                repostedStatus: null
+                btfsHash: btfsEntityInfo.btfsCid,
+                repostedStatus: null,
+                peerWallet: btfsEntityInfo.peerWallet,
+                peerIp: btfsEntityInfo.peerIp
             };
             status = await this.statusesRepository.save(status);
         } else {
             if (!status.btfsHash) {
-                status.btfsHash = btfsCid;
+                status.btfsHash = btfsEntityInfo.btfsCid;
+                status.peerIp = btfsEntityInfo.peerIp;
+                status.peerWallet = btfsEntityInfo.peerWallet;
                 status = await this.statusesRepository.save(status);
             }
         }
@@ -243,7 +272,8 @@ export class BtfsSynchronizer extends NestSchedule {
 
     private async mergeMediaAttachment(
         mediaAttachment: MediaAttachment | undefined,
-        btfsMediaAttachment: BtfsMediaAttachment
+        btfsMediaAttachment: BtfsMediaAttachment,
+        btfsEntityInfo: BtfsEntityInfo
     ): Promise<MediaAttachment> {
         if (mediaAttachment) {
             return mediaAttachment;
@@ -251,7 +281,10 @@ export class BtfsSynchronizer extends NestSchedule {
             mediaAttachment = {
                 ...btfsMediaAttachment,
                 name: btfsMediaAttachment.id,
-                siaLink: undefined
+                siaLink: undefined,
+                peerWallet: btfsEntityInfo.peerWallet,
+                peerIp: btfsEntityInfo.peerIp,
+                btfsCid: btfsEntityInfo.btfsCid
             };
             mediaAttachment = await this.mediaAttachmentsRepository.save(mediaAttachment);
             return mediaAttachment;
@@ -261,11 +294,13 @@ export class BtfsSynchronizer extends NestSchedule {
     private async mergeSubscription(
         userSubscription: UserSubscription | undefined,
         btfsUserSubscription: BtfsUserSubscription,
-        btfsCid: string
+        btfsEntityInfo: BtfsEntityInfo
     ): Promise<UserSubscription> {
         if (userSubscription) {
             if (!userSubscription.btfsHash) {
-                userSubscription.btfsHash = btfsCid;
+                userSubscription.btfsHash = btfsEntityInfo.btfsCid;
+                userSubscription.peerIp = btfsEntityInfo.peerIp;
+                userSubscription.peerWallet = btfsEntityInfo.peerWallet;
                 userSubscription = await this.userSubscriptionsRepository.save(userSubscription);
             }
 
@@ -283,8 +318,10 @@ export class BtfsSynchronizer extends NestSchedule {
                 id: btfsUserSubscription.id,
                 subscribedUser,
                 subscribedTo,
-                btfsHash: btfsCid,
-                createdAt: new Date(btfsUserSubscription.createdAt)
+                btfsHash: btfsEntityInfo.btfsCid,
+                createdAt: new Date(btfsUserSubscription.createdAt),
+                peerWallet: btfsEntityInfo.peerWallet,
+                peerIp: btfsEntityInfo.peerIp
             };
 
             const existingSubscription = await this.userSubscriptionsRepository.findBySubscribedUserAndSubscribedTo(subscribedUser, subscribedTo);

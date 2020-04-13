@@ -41,5 +41,11 @@ export class Status {
     btfsHash?: string = undefined;
 
     @TreeParent()
-    repostedStatus?: Status
+    repostedStatus?: Status;
+
+    @Column({nullable: true})
+    peerIp?: string;
+
+    @Column({nullable: true})
+    peerWallet?: string;
 }

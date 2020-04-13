@@ -5,6 +5,7 @@ import FormData from "form-data";
 import {BtfsEntitiesResponse, BtfsStatusLikesResponse, BtfsUserSubscriptionsResponse} from "./types/response";
 import {SaveStatusLikeRequest, SaveStatusRequest, SaveUserSubscriptionRequest} from "./types/request";
 import {BtfsStatus} from "./types/btfs-entities";
+import {SaveUserUnsubscriptionRequest} from "./types/request/SaveUserUnsubscriptionRequest";
 
 interface GetUserSubscriptionsOptions {
     userId: string,
@@ -40,24 +41,40 @@ export class BtfsClient {
         return this.axios.post("/api/v1/subscribe", saveUserSubscriptionRequest);
     }
 
+    public saveUserUnsubscription(saveUserUnsubscriptionRequest: SaveUserUnsubscriptionRequest): AxiosPromise<void> {
+        return this.axios.post("/api/v1/unsubscribe", saveUserUnsubscriptionRequest);
+    }
+
     public getUserSubscriptionsByCid(options: GetUserSubscriptionsOptions): AxiosPromise<BtfsUserSubscriptionsResponse> {
         return this.axios.get(`/api/v1/subscribe/${options.cid}/${options.userId}`);
+    }
+
+    public getUserUnsubscriptionsByCid(options: GetUserSubscriptionsOptions): AxiosPromise<BtfsUserSubscriptionsResponse> {
+        return this.axios.get(`/api/v1/unsubscribe/${options.cid}/${options.userId}`);
     }
 
     public saveStatusLike(saveStatusLikeRequest: SaveStatusLikeRequest): AxiosPromise<void> {
         return this.axios.post("/api/v1/like", saveStatusLikeRequest);
     }
 
+    public saveStatusUnlike(saveStatusUnlikeRequest: SaveStatusLikeRequest): AxiosPromise<void> {
+        return this.axios.post("/api/v1/unlike", saveStatusUnlikeRequest);
+    }
+
     public getStatusLikesByCid(options: GetStatusLikesOptions): AxiosPromise<BtfsStatusLikesResponse> {
         return this.axios.get(`/api/v1/like/${options.cid}/${options.commentId}`);
     }
 
+    public getStatusUnlikesByCid(options: GetStatusLikesOptions): AxiosPromise<BtfsStatusLikesResponse> {
+        return this.axios.get(`/api/v1/unlike/${options.cid}/${options.commentId}`);
+    }
+
     public saveStatus(saveStatusRequest: SaveStatusRequest): AxiosPromise<void> {
-        return this.axios.post("/api/v1/comment", saveStatusRequest);
+        return this.axios.post("/api/v1/post", saveStatusRequest);
     }
 
     public getStatusByCid(options: GetStatusOptions): AxiosPromise<BtfsStatus> {
-        return this.axios.get(`/api/v1/comment/${options.cid}/${options.statusId}`);
+        return this.axios.get(`/api/v1/post/${options.cid}/${options.statusId}`);
     }
 
     public uploadFile(fileId: string, path: PathLike): AxiosPromise<void> {

@@ -5,14 +5,15 @@ import Axios from "axios";
 import {BtfsController} from "./BtfsController";
 import {BtfsService} from "./BtfsService";
 import {BtfsHashRepository} from "./BtfsHashRepository";
+import {BtfsMediaAttachmentsMapper, BtfsStatusesMapper, BtfsStatusLikesMapper, BtfsUsersMapper, BtfsUserSubscriptionsMapper} from "./mappers";
+import {IpAddressProvider} from "./IpAddressProvider";
+import {BtfsSynchronizer} from "./BtfsSynchronizer";
+import {BtfsClient} from "./BtfsClient";
 import {UsersRepository} from "../users";
 import {StatusesRepository, StatusLikesRepository} from "../statuses";
 import {UserSubscriptionsRepository} from "../user-subscriptions";
-import {BtfsSynchronizer} from "./BtfsSynchronizer";
 import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
-import {BtfsClient} from "./BtfsClient";
 import {config} from "../config";
-import {BtfsMediaAttachmentsMapper, BtfsStatusesMapper, BtfsStatusLikesMapper, BtfsUsersMapper, BtfsUserSubscriptionsMapper} from "./mappers";
 
 @Global()
 @Module({
@@ -31,7 +32,8 @@ import {BtfsMediaAttachmentsMapper, BtfsStatusesMapper, BtfsStatusLikesMapper, B
         BtfsUserSubscriptionsMapper,
         BtfsStatusLikesMapper,
         BtfsStatusesMapper,
-        BtfsMediaAttachmentsMapper
+        BtfsMediaAttachmentsMapper,
+        IpAddressProvider
     ],
     imports: [
         TypeOrmModule.forFeature([
@@ -50,7 +52,8 @@ import {BtfsMediaAttachmentsMapper, BtfsStatusesMapper, BtfsStatusLikesMapper, B
         BtfsUserSubscriptionsMapper,
         BtfsStatusLikesMapper,
         BtfsStatusesMapper,
-        BtfsMediaAttachmentsMapper
+        BtfsMediaAttachmentsMapper,
+        IpAddressProvider
     ]
 })
 export class BtfsModule {}

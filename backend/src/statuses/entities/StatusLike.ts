@@ -18,4 +18,10 @@ export class StatusLike {
 
     @Column({nullable: true})
     btfsHash?: string = undefined;
+
+    @Column({nullable: true})
+    peerIp?: string;
+
+    @Column({nullable: true})
+    peerWallet?: string;
 }

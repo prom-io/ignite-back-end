@@ -1,3 +1,5 @@
 export * from "./BtfsEntitiesResponse";
 export * from "./BtfsStatusLikesResponse";
 export * from "./BtfsUserSubscriptionsResponse";
+export * from "./BtfsUserUnsubscriptionsResponse";
+export * from "./BtfsStatusUnlikesResponse";

@@ -6,6 +6,8 @@ import {StatusLike} from "./entities";
 import {MicrobloggingBlockchainApiClient} from "../microblogging-blockchain-api";
 import {BtfsClient} from "../btfs-sync/BtfsClient";
 import {BtfsStatusLikesMapper} from "../btfs-sync/mappers";
+import {AccountsService} from "../accounts/AccountsService";
+import {IpAddressProvider} from "../btfs-sync/IpAddressProvider";
 
 @Injectable()
 export class StatusLikeEntityEventsListener implements EntitySubscriberInterface<StatusLike> {
@@ -13,6 +15,8 @@ export class StatusLikeEntityEventsListener implements EntitySubscriberInterface
                 private readonly microbloggingBlockchainApiClient: MicrobloggingBlockchainApiClient,
                 private readonly btfsClient: BtfsClient,
                 private readonly btfsStatusLikesMapper: BtfsStatusLikesMapper,
+                private readonly accountService: AccountsService,
+                private readonly ipAddressProvider: IpAddressProvider,
                 private readonly log: LoggerService) {
         connection.subscribers.push(this);
     }
@@ -41,6 +45,8 @@ export class StatusLikeEntityEventsListener implements EntitySubscriberInterface
             this.btfsClient.saveStatusLike({
                 commentId: statusLike.status.id,
                 id: statusLike.id,
+                peerIp: this.ipAddressProvider.getGlobalIpAddress(),
+                peerWallet: (await this.accountService.getDefaultAccount()).address,
                 data: this.btfsStatusLikesMapper.fromStatusLike(statusLike)
             })
                 .then(() => this.log.info(`Like of ${statusLike.user.ethereumAddress} to status ${statusLike.status.id} has been written to BTFS`))

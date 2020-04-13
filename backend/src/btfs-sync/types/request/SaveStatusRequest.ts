@@ -1,8 +1,6 @@
-import {UserResponse} from "../../../users/types/response";
-import {StatusResponse} from "../../../statuses/types/response";
+import {BaseBtfsRequest} from "./BaseBtfsRequest";
 import {BtfsStatus} from "../btfs-entities";
 
-export interface SaveStatusRequest {
-    id: string,
+export interface SaveStatusRequest extends BaseBtfsRequest {
     data: BtfsStatus
 }

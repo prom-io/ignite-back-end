@@ -1,3 +1,4 @@
 export class AccountResponse {
-    address: string
+    address: string;
+    default: boolean
 }
