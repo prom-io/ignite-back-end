@@ -99,7 +99,7 @@ export class BtfsSynchronizer extends NestSchedule {
                             throw error;
                         }
 
-                        const permanentFilePath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, `${imageId}.${file.ext}`);
+                        const permanentFilePath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, `${image.fileId}.${file.ext}`);
                         fileSystem.renameSync(temporaryFilePath, permanentFilePath);
                         const mediaAttachment: MediaAttachment = {
                             id: image.fileId,
