@@ -8,7 +8,7 @@ import {FeedCursors} from "./types/request/FeedCursors";
 import {Status} from "./entities";
 import {User, UserStatistics} from "../users/entities";
 import {PaginationRequest} from "../utils/pagination";
-import {UserSubscriptionsRepository} from "../user-subscriptions";
+import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {UserStatisticsRepository} from "../users";
 import {asyncMap} from "../utils/async-map";
 

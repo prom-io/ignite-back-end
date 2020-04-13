@@ -1,4 +1,4 @@
-import {Module} from "@nestjs/common";
+import {forwardRef, Module} from "@nestjs/common";
 import {AccountsController} from "./AccountsController";
 import {AccountsService} from "./AccountsService";
 import {AccountsRepository} from "./AccountsRepository";
@@ -7,7 +7,7 @@ import {DataOwnersRepository} from "./DataOwnersRepository";
 import {InitialAccountRegistrationHandler} from "./InitialAccountRegistrationHandler";
 import {ServiceNodeApiClientModule} from "../service-node-api";
 import {Web3Module} from "../web3";
-import {UsersModule} from "../users";
+import {UsersModule} from "../users/UsersModule";
 
 @Module({
     controllers: [AccountsController],

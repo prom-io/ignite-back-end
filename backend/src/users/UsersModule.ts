@@ -8,8 +8,9 @@ import {UsersRepository} from "./UsersRepository";
 import {UserStatisticsRepository} from "./UserStatisticsRepository";
 import {UserEntityEventsSubscriber} from "./UserEntityEventsSubscriber";
 import {UserStatisticsMapper} from "./UserStatisticsMapper";
-import {StatusesModule} from "../statuses";
-import {UserSubscriptionsModule, UserSubscriptionsRepository} from "../user-subscriptions";
+import {StatusesModule} from "../statuses/StatusesModule";
+import {UserSubscriptionsModule} from "../user-subscriptions/UserSubscriptionsModule";
+import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 
 @Module({
     controllers: [UsersController, UserByAddressController],
@@ -17,7 +18,7 @@ import {UserSubscriptionsModule, UserSubscriptionsRepository} from "../user-subs
     imports: [
         TypeOrmModule.forFeature([UsersRepository, UserStatisticsRepository, UserSubscriptionsRepository]),
         forwardRef(() => StatusesModule),
-        forwardRef(() => UserSubscriptionsModule)
+        forwardRef(() => UserSubscriptionsModule),
     ],
     exports: [UsersService, UsersMapper]
 })

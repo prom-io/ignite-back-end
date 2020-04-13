@@ -12,8 +12,8 @@ import {Status} from "./entities";
 import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
 import {MediaAttachment} from "../media-attachments/entities";
 import {FeedCursors} from "./types/request/FeedCursors";
-import {UserStatisticsRepository} from "../users";
-import {UserSubscriptionsRepository} from "../user-subscriptions";
+import {UserStatisticsRepository} from "../users/UserStatisticsRepository";
+import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {asyncMap} from "../utils/async-map";
 
 @Injectable()

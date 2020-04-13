@@ -6,8 +6,8 @@ import {StatusLike} from "./entities";
 import {MicrobloggingBlockchainApiClient} from "../microblogging-blockchain-api";
 import {BtfsClient} from "../btfs-sync/BtfsClient";
 import {BtfsStatusLikesMapper} from "../btfs-sync/mappers";
-import {AccountsService} from "../accounts/AccountsService";
 import {IpAddressProvider} from "../btfs-sync/IpAddressProvider";
+import {DefaultAccountProviderService} from "../default-account-provider/DefaultAccountProviderService";
 
 @Injectable()
 export class StatusLikeEntityEventsListener implements EntitySubscriberInterface<StatusLike> {
@@ -15,7 +15,7 @@ export class StatusLikeEntityEventsListener implements EntitySubscriberInterface
                 private readonly microbloggingBlockchainApiClient: MicrobloggingBlockchainApiClient,
                 private readonly btfsClient: BtfsClient,
                 private readonly btfsStatusLikesMapper: BtfsStatusLikesMapper,
-                private readonly accountService: AccountsService,
+                private readonly accountService: DefaultAccountProviderService,
                 private readonly ipAddressProvider: IpAddressProvider,
                 private readonly log: LoggerService) {
         connection.subscribers.push(this);

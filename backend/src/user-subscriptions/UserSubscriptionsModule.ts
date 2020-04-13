@@ -5,10 +5,11 @@ import {UserSubscriptionsService} from "./UserSubscriptionsService";
 import {UserSubscriptionsMapper} from "./UserSubscriptionsMapper";
 import {UserSubscriptionsController} from "./UserSubscriptionsController";
 import {UserSubscriptionEntityEventsSubscriber} from "./UserSubscriptionEntityEventsSubscriber";
-import {UsersModule} from "../users";
+import {UsersModule} from "../users/UsersModule";
 import {UsersRepository} from "../users/UsersRepository";
 import {UserStatisticsRepository} from "../users/UserStatisticsRepository";
 import {MicrobloggingBlockchainApiModule} from "../microblogging-blockchain-api";
+import {DefaultAccountProviderModule} from "../default-account-provider/DefaultAccountProviderModule";
 
 @Module({
     controllers: [UserSubscriptionsController],
@@ -16,7 +17,8 @@ import {MicrobloggingBlockchainApiModule} from "../microblogging-blockchain-api"
     imports: [
         TypeOrmModule.forFeature([UsersRepository, UserStatisticsRepository, UserSubscriptionsRepository]),
         forwardRef(() => UsersModule),
-        MicrobloggingBlockchainApiModule
+        MicrobloggingBlockchainApiModule,
+        DefaultAccountProviderModule
     ],
     exports: [UserSubscriptionsService, UserSubscriptionsMapper]
 })

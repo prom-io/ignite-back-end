@@ -2,7 +2,7 @@ import {Module} from "@nestjs/common";
 import {TransactionsController} from "./TransactionsController";
 import {TransactionsService} from "./TransactionsService";
 import {FilesModule} from "../files";
-import {AccountsModule} from "../accounts";
+import {AccountsModule} from "../accounts/AccountsModule";
 
 @Module({
     controllers: [TransactionsController],

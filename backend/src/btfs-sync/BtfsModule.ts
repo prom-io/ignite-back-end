@@ -9,9 +9,10 @@ import {BtfsMediaAttachmentsMapper, BtfsStatusesMapper, BtfsStatusLikesMapper, B
 import {IpAddressProvider} from "./IpAddressProvider";
 import {BtfsSynchronizer} from "./BtfsSynchronizer";
 import {BtfsClient} from "./BtfsClient";
-import {UsersRepository} from "../users";
-import {StatusesRepository, StatusLikesRepository} from "../statuses";
-import {UserSubscriptionsRepository} from "../user-subscriptions";
+import {UsersRepository} from "../users/UsersRepository";
+import {StatusesRepository} from "../statuses/StatusesRepository";
+import {StatusLikesRepository} from "../statuses/StatusLikesRepository";
+import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
 import {config} from "../config";
 

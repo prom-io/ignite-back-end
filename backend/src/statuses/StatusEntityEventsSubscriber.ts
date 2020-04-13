@@ -1,4 +1,4 @@
-import {Injectable} from "@nestjs/common";
+import {Inject, Injectable} from "@nestjs/common";
 import {InjectConnection} from "@nestjs/typeorm";
 import {LoggerService} from "nest-logger";
 import {Connection, EntitySubscriberInterface, InsertEvent} from "typeorm";
@@ -12,6 +12,7 @@ import {asyncForEach} from "../utils/async-foreach";
 import {config} from "../config";
 import {AccountsService} from "../accounts/AccountsService";
 import {IpAddressProvider} from "../btfs-sync/IpAddressProvider";
+import {DefaultAccountProviderService} from "../default-account-provider/DefaultAccountProviderService";
 
 @Injectable()
 export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<Status> {
@@ -20,7 +21,7 @@ export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<S
                 private readonly microbloggingBlockchainApiClient: MicrobloggingBlockchainApiClient,
                 private readonly btfsClient: BtfsClient,
                 private readonly btfsStatusesMapper: BtfsStatusesMapper,
-                private readonly accountService: AccountsService,
+                private readonly accountService: DefaultAccountProviderService,
                 private readonly ipAddressProvider: IpAddressProvider,
                 private readonly log: LoggerService) {
         connection.subscribers.push(this);

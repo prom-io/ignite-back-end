@@ -1,11 +1,11 @@
 import {Injectable} from "@nestjs/common";
-import {StatusLikesRepository} from "./StatusLikesRepository";
-import {UserSubscriptionsRepository} from "../user-subscriptions";
 import {Status} from "./entities";
 import {ToStatusResponseOptions} from "./StatusesMapper";
-import {User} from "../users/entities";
-import {UserStatisticsRepository} from "../users";
 import {StatusesRepository} from "./StatusesRepository";
+import {StatusLikesRepository} from "./StatusLikesRepository";
+import {UserStatisticsRepository} from "../users/UserStatisticsRepository";
+import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
+import {User} from "../users/entities";
 
 @Injectable()
 export class StatusMappingOptionsProvider {

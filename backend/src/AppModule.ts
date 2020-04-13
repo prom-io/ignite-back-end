@@ -3,7 +3,7 @@ import {TypeOrmModule} from "@nestjs/typeorm";
 import {LoggerModule} from "./logging";
 import {NedbModule} from "./nedb";
 import {FilesModule} from "./files";
-import {AccountsModule} from "./accounts";
+import {AccountsModule} from "./accounts/AccountsModule";
 import {TransactionsModule} from "./transactions";
 import {DiscoveryModule} from "./discovery";
 import {Web3Module} from "./web3";
@@ -21,6 +21,7 @@ import {MicrobloggingBlockchainApiModule} from "./microblogging-blockchain-api";
 import {MediaAttachmentsModule} from "./media-attachments";
 import {SkynetModule} from "./skynet";
 import {BtfsModule} from "./btfs-sync";
+import {DefaultAccountProviderModule} from "./default-account-provider/DefaultAccountProviderModule";
 
 @Module({
     imports: [
@@ -28,6 +29,7 @@ import {BtfsModule} from "./btfs-sync";
         NedbModule,
         FilesModule,
         AccountsModule,
+        DefaultAccountProviderModule,
         TransactionsModule,
         DiscoveryModule,
         Web3Module,
@@ -49,7 +51,7 @@ import {BtfsModule} from "./btfs-sync";
             port: config.DATABASE_PORT,
             username: config.DATABASE_USERNAME,
             password: config.DATABASE_PASSWORD,
-            logging: false,
+            logging: "all",
             entities,
             subscribers,
             synchronize: config.RECREATE_DATABASE_SCHEMA

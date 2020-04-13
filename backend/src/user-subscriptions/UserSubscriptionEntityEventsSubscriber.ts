@@ -8,7 +8,7 @@ import {MicrobloggingBlockchainApiClient} from "../microblogging-blockchain-api"
 import {BtfsUserSubscriptionsMapper} from "../btfs-sync/mappers";
 import {BtfsClient} from "../btfs-sync/BtfsClient";
 import {IpAddressProvider} from "../btfs-sync/IpAddressProvider";
-import {AccountsService} from "../accounts/AccountsService";
+import {DefaultAccountProviderService} from "../default-account-provider/DefaultAccountProviderService";
 
 @Injectable()
 export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberInterface<UserSubscription> {
@@ -18,7 +18,7 @@ export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberI
                 private readonly btfsClient: BtfsClient,
                 private readonly btfsUserSubscriptionsMapper: BtfsUserSubscriptionsMapper,
                 private readonly ipAddressProvider: IpAddressProvider,
-                private readonly accountService: AccountsService,
+                private readonly accountService: DefaultAccountProviderService,
                 private readonly log: LoggerService) {
         connection.subscribers.push(this);
     }

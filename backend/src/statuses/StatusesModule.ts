@@ -11,11 +11,14 @@ import {StatusLikesService} from "./StatusLikesService";
 import {StatusEntityEventsSubscriber} from "./StatusEntityEventsSubscriber";
 import {StatusLikeEntityEventsListener} from "./StatusLikeEntityEventsListener";
 import {StatusMappingOptionsProvider} from "./StatusMappingOptionsProvider";
-import {UsersModule, UsersRepository, UserStatisticsRepository} from "../users";
-import {UserSubscriptionsModule, UserSubscriptionsRepository} from "../user-subscriptions";
+import {UsersRepository, UserStatisticsRepository} from "../users";
+import {UsersModule} from "../users/UsersModule";
+import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
+import {UserSubscriptionsModule} from "../user-subscriptions/UserSubscriptionsModule";
 import {MicrobloggingBlockchainApiModule} from "../microblogging-blockchain-api";
 import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
 import {MediaAttachmentsModule} from "../media-attachments";
+import {DefaultAccountProviderModule} from "../default-account-provider/DefaultAccountProviderModule";
 
 @Module({
     controllers: [StatusesController, TimelineController],
@@ -37,10 +40,11 @@ import {MediaAttachmentsModule} from "../media-attachments";
             UserStatisticsRepository,
             MediaAttachmentsRepository
         ]),
-        forwardRef(() => UsersModule),
         UserSubscriptionsModule,
         MicrobloggingBlockchainApiModule,
-        MediaAttachmentsModule
+        MediaAttachmentsModule,
+        DefaultAccountProviderModule,
+        forwardRef(() => UsersModule)
     ],
     exports: [StatusesService, StatusesMapper]
 })

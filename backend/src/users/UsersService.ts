@@ -5,7 +5,7 @@ import {UserStatisticsRepository} from "./UserStatisticsRepository";
 import {UsersMapper} from "./UsersMapper";
 import {CreateUserRequest} from "./types/request";
 import {UserResponse} from "./types/response";
-import {UserSubscriptionsRepository} from "../user-subscriptions";
+import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 
 @Injectable()
 export class UsersService {

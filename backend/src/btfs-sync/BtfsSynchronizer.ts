@@ -21,9 +21,10 @@ import {
 import {asyncForEach} from "../utils/async-foreach";
 import {User} from "../users/entities";
 import {Status} from "../statuses/entities";
-import {StatusesRepository, StatusLikesRepository} from "../statuses";
-import {UsersRepository} from "../users";
-import {UserSubscriptionsRepository} from "../user-subscriptions";
+import {StatusesRepository} from "../statuses/StatusesRepository";
+import {StatusLikesRepository} from "../statuses/StatusLikesRepository";
+import {UsersRepository} from "../users/UsersRepository";
+import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {MediaAttachment} from "../media-attachments/entities";
 import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
 import {asyncMap} from "../utils/async-map";
