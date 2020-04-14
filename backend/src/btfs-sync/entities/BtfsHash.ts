@@ -13,4 +13,10 @@ export class BtfsHash {
 
     @Column()
     createdAt: Date;
+
+    @Column({nullable: true})
+    peerIp?: string;
+
+    @Column({nullable: true})
+    peerWallet?: string;
 }

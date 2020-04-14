@@ -22,7 +22,6 @@ export class BtfsStatus {
     @IsDateString()
     createdAt: string;
 
-    @IsString()
     repostedStatusId?: string;
 
     constructor(plainObject: BtfsStatus) {
