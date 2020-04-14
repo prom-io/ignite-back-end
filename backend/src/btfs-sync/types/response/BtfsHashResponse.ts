@@ -11,6 +11,12 @@ export class BtfsHashResponse {
 
     synced: boolean;
 
+    @Expose({name: "peer_ip"})
+    peerIp?: string;
+
+    @Expose({name: "peer_wallet"})
+    peerWallet?: string;
+
     constructor(plainObject: BtfsHashResponse) {
         Object.assign(this, plainObject);
     }

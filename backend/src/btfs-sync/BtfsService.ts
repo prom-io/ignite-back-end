@@ -3,13 +3,11 @@ import {BtfsHashRepository} from "./BtfsHashRepository";
 import uuid from "uuid/v4";
 import {CreateBtfsCidRequest} from "./types/request";
 import {BtfsHash} from "./entities";
-import {BtfsLibp2pEventsHandler} from "./BtfsLibp2pEventsHandler";
 import {BtfsHashResponse} from "./types/response";
 
 @Injectable()
 export class BtfsService {
-    constructor(private readonly btfsHashRepository: BtfsHashRepository,
-                /*private readonly btfsLibp2pEventsHandler: BtfsLibp2pEventsHandler*/) {
+    constructor(private readonly btfsHashRepository: BtfsHashRepository) {
     }
 
     public async createBtfcCid(createBtfsCidRequest: CreateBtfsCidRequest): Promise<void> {
@@ -20,7 +18,6 @@ export class BtfsService {
             btfsCid: createBtfsCidRequest.btfsCid
         };
         await this.btfsHashRepository.save(btfsHash);
-        // this.btfsLibp2pEventsHandler.publishNewBtfsCid(createBtfsCidRequest.btfsCid);
     }
 
     public async getAllBtfsCids(): Promise<BtfsHashResponse[]> {
@@ -29,7 +26,9 @@ export class BtfsService {
                 cid: btfsHash.btfsCid,
                 soterLink: `https://sandbox.btfssoter.io/btfs/${btfsHash.btfsCid}`,
                 createdAt: btfsHash.createdAt.toISOString(),
-                synced: btfsHash.synced
+                synced: btfsHash.synced,
+                peerIp: btfsHash.peerIp,
+                peerWallet: btfsHash.peerWallet
             }))
     }
 }

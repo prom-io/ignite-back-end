@@ -1,4 +1,4 @@
-import {EntityRepository, Repository} from "typeorm";
+import {EntityRepository, Not, Repository} from "typeorm";
 import {BtfsHash} from "./entities";
 
 @EntityRepository(BtfsHash)
@@ -21,6 +21,14 @@ export class BtfsHashRepository extends Repository<BtfsHash> {
     }
 
     public findAll(): Promise<BtfsHash[]> {
-        return this.find();
+        return this.find({
+            order: {
+                createdAt: "DESC"
+            },
+            where: {
+                peerWallet: Not("null"),
+                peerIp: Not("null")
+            }
+        });
     }
 }
