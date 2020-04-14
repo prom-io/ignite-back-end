@@ -15,7 +15,9 @@ export class BtfsService {
             id: uuid(),
             createdAt: new Date(),
             synced: false,
-            btfsCid: createBtfsCidRequest.btfsCid
+            btfsCid: createBtfsCidRequest.btfsCid,
+            peerIp: createBtfsCidRequest.peerIp,
+            peerWallet: createBtfsCidRequest.peerWallet
         };
         await this.btfsHashRepository.save(btfsHash);
     }
