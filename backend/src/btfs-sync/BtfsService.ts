@@ -4,6 +4,7 @@ import uuid from "uuid/v4";
 import {CreateBtfsCidRequest} from "./types/request";
 import {BtfsHash} from "./entities";
 import {BtfsLibp2pEventsHandler} from "./BtfsLibp2pEventsHandler";
+import {BtfsHashResponse} from "./types/response";
 
 @Injectable()
 export class BtfsService {
@@ -20,5 +21,15 @@ export class BtfsService {
         };
         await this.btfsHashRepository.save(btfsHash);
         // this.btfsLibp2pEventsHandler.publishNewBtfsCid(createBtfsCidRequest.btfsCid);
+    }
+
+    public async getAllBtfsCids(): Promise<BtfsHashResponse[]> {
+        return (await this.btfsHashRepository.findAll())
+            .map(btfsHash => new BtfsHashResponse({
+                cid: btfsHash.btfsCid,
+                soterLink: `https://sandbox.btfssoter.io/btfs/${btfsHash.btfsCid}`,
+                createdAt: btfsHash.createdAt.toISOString(),
+                synced: btfsHash.synced
+            }))
     }
 }
