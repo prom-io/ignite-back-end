@@ -53,6 +53,10 @@ export class BtfsSynchronizer extends NestSchedule {
 
     @Cron("* * * *", {waiting: true})
     public async synchronizeEntities(): Promise<void> {
+        if (!config.ENABLE_BTFS_PULLING) {
+            return ;
+        }
+
         this.log.info("Started synchronization with BTFS");
         const unsyncedBtfsCids: BtfsHash[] = await this.btfsHashRepository.findAllNotSynced();
 

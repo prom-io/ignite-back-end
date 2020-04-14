@@ -9,6 +9,7 @@ import {BtfsUserSubscriptionsMapper} from "../btfs-sync/mappers";
 import {BtfsClient} from "../btfs-sync/BtfsClient";
 import {IpAddressProvider} from "../btfs-sync/IpAddressProvider";
 import {DefaultAccountProviderService} from "../default-account-provider/DefaultAccountProviderService";
+import {config} from "../config";
 
 @Injectable()
 export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberInterface<UserSubscription> {
@@ -51,6 +52,11 @@ export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberI
                     this.log.error(`Error occurred when tried to write subscription of ${subscribedUser.ethereumAddress} to ${subscribedTo.ethereumAddress} to blockchain`);
                 });
             this.log.info("Saving user subscription to BTFS");
+
+            if (!config.ENABLE_BTFS_PUSHING) {
+                return ;
+            }
+
             this.btfsClient.saveUserSubscription({
                 id: event.entity.id,
                 userId: event.entity.subscribedUser.id,
@@ -87,6 +93,11 @@ export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberI
                     this.log.error(`Error occurred when tried to write unsubscription of ${subscribedUser.ethereumAddress} from ${subscribedTo.ethereumAddress} to blockchain`);
                     console.error(error);
                 });
+
+            if (!config.ENABLE_BTFS_PUSHING) {
+                return ;
+            }
+
             this.btfsClient.saveUserUnsubscription({
                 id: event.entity.id,
                 data: this.btfsUserSubscriptionsMapper.fromUserSubscription(event.entity),

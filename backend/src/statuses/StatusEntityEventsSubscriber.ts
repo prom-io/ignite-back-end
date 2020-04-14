@@ -51,6 +51,11 @@ export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<S
                     this.log.error("Error occurred when tried to write status to blockchain");
                     console.error(error);
                 });
+
+            if (!config.ENABLE_BTFS_PUSHING) {
+                return ;
+            }
+
             await asyncForEach(event.entity.mediaAttachments, async mediaAttachment => {
                 const filePath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, mediaAttachment.name);
                 try {

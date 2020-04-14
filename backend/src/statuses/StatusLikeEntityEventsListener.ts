@@ -8,6 +8,7 @@ import {BtfsClient} from "../btfs-sync/BtfsClient";
 import {BtfsStatusLikesMapper} from "../btfs-sync/mappers";
 import {IpAddressProvider} from "../btfs-sync/IpAddressProvider";
 import {DefaultAccountProviderService} from "../default-account-provider/DefaultAccountProviderService";
+import {config} from "../config";
 
 @Injectable()
 export class StatusLikeEntityEventsListener implements EntitySubscriberInterface<StatusLike> {
@@ -42,6 +43,11 @@ export class StatusLikeEntityEventsListener implements EntitySubscriberInterface
                     console.error(error);
                 });
             this.log.info("Saving status like to BTFS");
+
+            if (!config.ENABLE_BTFS_PUSHING) {
+                return ;
+            }
+
             this.btfsClient.saveStatusLike({
                 commentId: statusLike.status.id,
                 id: statusLike.id,
@@ -74,6 +80,11 @@ export class StatusLikeEntityEventsListener implements EntitySubscriberInterface
                     this.log.error(`Error occurred when tried to write unlike of ${statusLike.user.ethereumAddress} to status ${statusLike.status.id} to blockchain client`);
                     console.error(error);
                 });
+
+            if (!config.ENABLE_BTFS_PUSHING) {
+                return ;
+            }
+
             this.btfsClient.saveStatusUnlike({
                 commentId: statusLike.status.id,
                 id: statusLike.id,
