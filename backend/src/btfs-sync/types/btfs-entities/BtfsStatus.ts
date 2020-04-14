@@ -22,11 +22,15 @@ export class BtfsStatus {
     @IsDateString()
     createdAt: string;
 
+    @IsString()
+    repostedStatusId?: string;
+
     constructor(plainObject: BtfsStatus) {
         this.id = plainObject.id;
         this.text = plainObject.text;
         this.author = new BtfsUser(plainObject.author);
         this.mediaAttachments = plainObject.mediaAttachments.map(mediaAttachment => new BtfsMediaAttachment(mediaAttachment));
         this.createdAt = plainObject.createdAt;
+        this.repostedStatusId = plainObject.repostedStatusId;
     }
 }

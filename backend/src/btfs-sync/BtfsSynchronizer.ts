@@ -235,6 +235,12 @@ export class BtfsSynchronizer extends NestSchedule {
                 }
             );
             const author = await this.mergeUser(await this.usersRepository.findById(btfsStatus.author.id), btfsStatus.author);
+            let repostedStatus: Status | undefined;
+
+            if (btfsStatus.repostedStatusId) {
+                repostedStatus = await this.statusesRepository.findById(btfsStatus.id);
+            }
+
             status = {
                 ...btfsStatus,
                 author,
@@ -243,9 +249,9 @@ export class BtfsSynchronizer extends NestSchedule {
                 updatedAt: undefined,
                 remote: true,
                 btfsHash: btfsEntityInfo.btfsCid,
-                repostedStatus: null,
+                repostedStatus: repostedStatus ? repostedStatus : null,
                 peerWallet: btfsEntityInfo.peerWallet,
-                peerIp: btfsEntityInfo.peerIp
+                peerIp: btfsEntityInfo.peerIp,
             };
             status = await this.statusesRepository.save(status);
         } else {

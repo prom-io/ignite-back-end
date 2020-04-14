@@ -1,4 +1,4 @@
-import {Inject, Injectable} from "@nestjs/common";
+import {Injectable} from "@nestjs/common";
 import {InjectConnection} from "@nestjs/typeorm";
 import {LoggerService} from "nest-logger";
 import {Connection, EntitySubscriberInterface, InsertEvent} from "typeorm";
@@ -10,7 +10,6 @@ import {BtfsClient} from "../btfs-sync/BtfsClient";
 import {BtfsStatusesMapper} from "../btfs-sync/mappers";
 import {asyncForEach} from "../utils/async-foreach";
 import {config} from "../config";
-import {AccountsService} from "../accounts/AccountsService";
 import {IpAddressProvider} from "../btfs-sync/IpAddressProvider";
 import {DefaultAccountProviderService} from "../default-account-provider/DefaultAccountProviderService";
 
@@ -45,7 +44,7 @@ export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<S
                 createdAt: event.entity.createdAt.toISOString(),
                 text: event.entity.text
             })
-                .then(response => {
+                .then(() => {
                     this.log.info(`Status ${event.entity.id} has been written to blockchain`)
                 })
                 .catch(error => {

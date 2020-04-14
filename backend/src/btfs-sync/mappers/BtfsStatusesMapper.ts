@@ -16,7 +16,8 @@ export class BtfsStatusesMapper {
             createdAt: status.createdAt.toISOString(),
             mediaAttachments: status.mediaAttachments.map(mediaAttachment => this.btfsMediaAttachmentsMapper.fromMediaAttachment(mediaAttachment)),
             author: this.btfsUsersMapper.fromUser(status.author),
-            text: status.text
+            text: status.text,
+            repostedStatusId: status.repostedStatus ? status.repostedStatus.id : null
         }
     }
 }
