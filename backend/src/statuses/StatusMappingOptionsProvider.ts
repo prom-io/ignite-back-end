@@ -6,13 +6,15 @@ import {StatusLikesRepository} from "./StatusLikesRepository";
 import {UserStatisticsRepository} from "../users/UserStatisticsRepository";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {User} from "../users/entities";
+import {BtfsHashRepository} from "../btfs-sync/BtfsHashRepository";
 
 @Injectable()
 export class StatusMappingOptionsProvider {
     constructor(private readonly statusesRepository: StatusesRepository,
                 private readonly statusLikesRepository: StatusLikesRepository,
                 private readonly userSubscriptionsRepository: UserSubscriptionsRepository,
-                private readonly userStatisticsRepository: UserStatisticsRepository) {
+                private readonly userStatisticsRepository: UserStatisticsRepository,
+                private readonly btfsHashRepository: BtfsHashRepository) {
 
     }
 
@@ -36,6 +38,7 @@ export class StatusMappingOptionsProvider {
         );
         const userStatistics  = await this.userStatisticsRepository.findByUser(status.author);
         const repostsCount = await this.statusesRepository.countByRepostedStatus(status);
+        const btfsHash = status.btfsHash && await this.btfsHashRepository.findByBtfsCid(status.btfsHash);
 
         return {
             status,
@@ -46,7 +49,8 @@ export class StatusMappingOptionsProvider {
             mapRepostedStatus: Boolean(mapRepostedStatusOptions),
             repostedStatusOptions: mapRepostedStatusOptions,
             userStatistics,
-            repostsCount
+            repostsCount,
+            btfsHash
         }
     }
 }

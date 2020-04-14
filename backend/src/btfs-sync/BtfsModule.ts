@@ -5,7 +5,14 @@ import Axios from "axios";
 import {BtfsController} from "./BtfsController";
 import {BtfsService} from "./BtfsService";
 import {BtfsHashRepository} from "./BtfsHashRepository";
-import {BtfsMediaAttachmentsMapper, BtfsStatusesMapper, BtfsStatusLikesMapper, BtfsUsersMapper, BtfsUserSubscriptionsMapper} from "./mappers";
+import {
+    BtfsHashesMapper,
+    BtfsMediaAttachmentsMapper,
+    BtfsStatusesMapper,
+    BtfsStatusLikesMapper,
+    BtfsUsersMapper,
+    BtfsUserSubscriptionsMapper
+} from "./mappers";
 import {IpAddressProvider} from "./IpAddressProvider";
 import {BtfsSynchronizer} from "./BtfsSynchronizer";
 import {BtfsClient} from "./BtfsClient";
@@ -34,7 +41,8 @@ import {config} from "../config";
         BtfsStatusLikesMapper,
         BtfsStatusesMapper,
         BtfsMediaAttachmentsMapper,
-        IpAddressProvider
+        IpAddressProvider,
+        BtfsHashesMapper
     ],
     imports: [
         TypeOrmModule.forFeature([
@@ -54,7 +62,8 @@ import {config} from "../config";
         BtfsStatusLikesMapper,
         BtfsStatusesMapper,
         BtfsMediaAttachmentsMapper,
-        IpAddressProvider
+        IpAddressProvider,
+        BtfsHashesMapper
     ]
 })
 export class BtfsModule {}

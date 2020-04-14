@@ -19,6 +19,7 @@ import {MicrobloggingBlockchainApiModule} from "../microblogging-blockchain-api"
 import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
 import {MediaAttachmentsModule} from "../media-attachments";
 import {DefaultAccountProviderModule} from "../default-account-provider/DefaultAccountProviderModule";
+import {BtfsHashRepository} from "../btfs-sync/BtfsHashRepository";
 
 @Module({
     controllers: [StatusesController, TimelineController],
@@ -38,7 +39,8 @@ import {DefaultAccountProviderModule} from "../default-account-provider/DefaultA
             UsersRepository,
             UserSubscriptionsRepository,
             UserStatisticsRepository,
-            MediaAttachmentsRepository
+            MediaAttachmentsRepository,
+            BtfsHashRepository
         ]),
         UserSubscriptionsModule,
         MicrobloggingBlockchainApiModule,

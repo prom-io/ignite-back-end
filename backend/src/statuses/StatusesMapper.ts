@@ -7,6 +7,8 @@ import {User, UserStatistics} from "../users/entities";
 import {UsersMapper} from "../users/UsersMapper";
 import {MediaAttachment} from "../media-attachments/entities";
 import {MediaAttachmentsMapper} from "../media-attachments/MediaAttachmentsMapper";
+import {BtfsHash} from "../btfs-sync/entities";
+import {BtfsHashesMapper} from "../btfs-sync/mappers";
 
 export interface ToStatusResponseOptions {
     status: Status,
@@ -18,13 +20,15 @@ export interface ToStatusResponseOptions {
     mapRepostedStatus: boolean,
     repostedStatusOptions?: Omit<ToStatusResponseOptions, "mapRepostedStatus" | "repostsCount">,
     repostsCount: number,
-    repostedStatusId?: string
+    repostedStatusId?: string,
+    btfsHash?: BtfsHash
 }
 
 @Injectable()
 export class StatusesMapper {
     constructor(private readonly userMapper: UsersMapper,
-                private readonly mediaAttachmentsMapper: MediaAttachmentsMapper) {
+                private readonly mediaAttachmentsMapper: MediaAttachmentsMapper,
+                private readonly btfsHashesMapper: BtfsHashesMapper) {
     }
 
     public toStatusResponse(options: ToStatusResponseOptions): StatusResponse {
@@ -38,7 +42,8 @@ export class StatusesMapper {
             mapRepostedStatus,
             repostedStatusOptions,
             repostsCount,
-            repostedStatusId
+            repostedStatusId,
+            btfsHash
         } = options;
         return new StatusResponse({
             account: this.userMapper.toUserResponse(status.author, userStatistics, followingAuthor, followedByAuthor),
@@ -60,7 +65,8 @@ export class StatusesMapper {
                 repostsCount: 0
             }) : null,
             repostsCount,
-            repostedStatusId
+            repostedStatusId,
+            btfsInfo: btfsHash && this.btfsHashesMapper.toBtfsHashResponse(btfsHash)
         })
     }
 
