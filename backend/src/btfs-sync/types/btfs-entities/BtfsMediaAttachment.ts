@@ -20,6 +20,9 @@ export class BtfsMediaAttachment {
     @IsString()
     name: string;
 
+    @IsString()
+    siaLink?: string;
+
     constructor(plainObject: BtfsMediaAttachment) {
         Object.assign(this, plainObject);
     }

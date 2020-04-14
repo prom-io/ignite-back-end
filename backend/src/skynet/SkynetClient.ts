@@ -11,7 +11,7 @@ export class SkynetClient {
     }
 
     public async downloadFile(path: PathLike, skylink: string): Promise<void> {
-        return await Skynet.DownloadFile(path, skylink);
+        return await Skynet.DownloadFile(path, skylink, Skynet.DefaultDownloadOptions);
     }
 
     public async downloadFileToHttpResponse(siaLink: string, httpResponse: Response): Promise<void> {

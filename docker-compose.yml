@@ -46,7 +46,7 @@ services:
       - .env
     ports:
     - ${DATA_VALIDATOR_API_PORT}:${DATA_VALIDATOR_API_PORT}
-    network_mode: host
+#    network_mode: host
     depends_on:
       - postgres
 volumes:
