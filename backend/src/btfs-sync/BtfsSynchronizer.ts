@@ -290,7 +290,7 @@ export class BtfsSynchronizer extends NestSchedule {
         } else {
             mediaAttachment = {
                 ...btfsMediaAttachment,
-                name: btfsMediaAttachment.id,
+                name: `${btfsMediaAttachment.id}.${mediaAttachment.format}`,
                 siaLink: btfsMediaAttachment.siaLink,
                 peerWallet: btfsEntityInfo.peerWallet,
                 peerIp: btfsEntityInfo.peerIp,
