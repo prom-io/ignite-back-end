@@ -42,7 +42,8 @@ import {config} from "../config";
         BtfsStatusesMapper,
         BtfsMediaAttachmentsMapper,
         IpAddressProvider,
-        BtfsHashesMapper
+        BtfsHashesMapper,
+        IpAddressProvider
     ],
     imports: [
         TypeOrmModule.forFeature([
