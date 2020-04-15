@@ -50,7 +50,7 @@ export class StatusMappingOptionsProvider {
             repostedStatusOptions: mapRepostedStatusOptions,
             userStatistics,
             repostsCount,
-            btfsHash
+            btfsHash: btfsHash && btfsHash.peerIp && btfsHash.peerWallet ? btfsHash : null
         }
     }
 }
