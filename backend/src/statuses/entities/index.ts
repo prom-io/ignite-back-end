@@ -1,2 +1,3 @@
 export * from "./StatusLike";
 export * from "./Status";
+export * from "./Comment";

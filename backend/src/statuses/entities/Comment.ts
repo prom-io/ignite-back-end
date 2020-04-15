@@ -1,6 +1,6 @@
-import {Entity, Column, PrimaryColumn, ManyToOne, UpdateDateColumn, ManyToMany, JoinTable, Tree} from "typeorm";
+import {Column, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryColumn, Tree, TreeParent} from "typeorm";
 import {User} from "../../users/entities";
-import {Status} from "../../statuses/entities";
+import {Status} from "./index";
 import {MediaAttachment} from "../../media-attachments/entities";
 
 @Entity()
@@ -17,6 +17,9 @@ export class Comment {
 
     @ManyToOne(type => Status, {eager: true})
     status: Status;
+
+    @TreeParent()
+    repostedComment?: Comment;
 
     @Column()
     createdAt: Date;

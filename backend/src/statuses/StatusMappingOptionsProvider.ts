@@ -3,6 +3,7 @@ import {Status} from "./entities";
 import {ToStatusResponseOptions} from "./StatusesMapper";
 import {StatusesRepository} from "./StatusesRepository";
 import {StatusLikesRepository} from "./StatusLikesRepository";
+import {CommentsRepository} from "./CommentsRepository";
 import {UserStatisticsRepository} from "../users/UserStatisticsRepository";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {User} from "../users/entities";
@@ -14,7 +15,8 @@ export class StatusMappingOptionsProvider {
                 private readonly statusLikesRepository: StatusLikesRepository,
                 private readonly userSubscriptionsRepository: UserSubscriptionsRepository,
                 private readonly userStatisticsRepository: UserStatisticsRepository,
-                private readonly btfsHashRepository: BtfsHashRepository) {
+                private readonly btfsHashRepository: BtfsHashRepository,
+                private readonly commentsRepository: CommentsRepository) {
 
     }
 
@@ -38,6 +40,7 @@ export class StatusMappingOptionsProvider {
         );
         const userStatistics  = await this.userStatisticsRepository.findByUser(status.author);
         const repostsCount = await this.statusesRepository.countByRepostedStatus(status);
+        const commentsCount = await this.commentsRepository.countByStatus(status);
         const btfsHash = status.btfsHash && await this.btfsHashRepository.findByBtfsCid(status.btfsHash);
 
         return {
@@ -50,7 +53,8 @@ export class StatusMappingOptionsProvider {
             repostedStatusOptions: mapRepostedStatusOptions,
             userStatistics,
             repostsCount,
-            btfsHash
+            btfsHash,
+            commentsCount
         }
     }
 }

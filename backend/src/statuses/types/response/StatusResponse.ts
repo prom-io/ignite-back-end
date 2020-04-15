@@ -42,6 +42,9 @@ export class StatusResponse {
     @Expose({name: "btfs_info"})
     btfsInfo?: BtfsHashResponse;
 
+    @Expose({name: "comments_count"})
+    commentsCount: number;
+
     constructor(object: StatusResponse) {
         Object.assign(this, object);
     }

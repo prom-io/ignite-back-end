@@ -7,6 +7,7 @@ import {StatusesService} from "./StatusesService";
 import {StatusesMapper} from "./StatusesMapper";
 import {StatusesRepository} from "./StatusesRepository";
 import {StatusLikesRepository} from "./StatusLikesRepository";
+import {CommentsRepository} from "./CommentsRepository";
 import {StatusLikesService} from "./StatusLikesService";
 import {StatusEntityEventsSubscriber} from "./StatusEntityEventsSubscriber";
 import {StatusLikeEntityEventsListener} from "./StatusLikeEntityEventsListener";
@@ -20,6 +21,8 @@ import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsR
 import {MediaAttachmentsModule} from "../media-attachments";
 import {DefaultAccountProviderModule} from "../default-account-provider/DefaultAccountProviderModule";
 import {BtfsHashRepository} from "../btfs-sync/BtfsHashRepository";
+import {CommentsService} from "./CommentsService";
+import {CommentsMapper} from "./CommentsMapper";
 
 @Module({
     controllers: [StatusesController, TimelineController],
@@ -30,7 +33,9 @@ import {BtfsHashRepository} from "../btfs-sync/BtfsHashRepository";
         FeedService,
         StatusEntityEventsSubscriber,
         StatusLikeEntityEventsListener,
-        StatusMappingOptionsProvider
+        StatusMappingOptionsProvider,
+        CommentsService,
+        CommentsMapper
     ],
     imports: [
         TypeOrmModule.forFeature([
@@ -40,7 +45,8 @@ import {BtfsHashRepository} from "../btfs-sync/BtfsHashRepository";
             UserSubscriptionsRepository,
             UserStatisticsRepository,
             MediaAttachmentsRepository,
-            BtfsHashRepository
+            BtfsHashRepository,
+            CommentsRepository
         ]),
         UserSubscriptionsModule,
         MicrobloggingBlockchainApiModule,

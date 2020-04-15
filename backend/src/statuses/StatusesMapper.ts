@@ -21,7 +21,8 @@ export interface ToStatusResponseOptions {
     repostedStatusOptions?: Omit<ToStatusResponseOptions, "mapRepostedStatus" | "repostsCount">,
     repostsCount: number,
     repostedStatusId?: string,
-    btfsHash?: BtfsHash
+    btfsHash?: BtfsHash,
+    commentsCount: number
 }
 
 @Injectable()
@@ -43,7 +44,8 @@ export class StatusesMapper {
             repostedStatusOptions,
             repostsCount,
             repostedStatusId,
-            btfsHash
+            btfsHash,
+            commentsCount
         } = options;
         return new StatusResponse({
             account: this.userMapper.toUserResponse(status.author, userStatistics, followingAuthor, followedByAuthor),
@@ -66,7 +68,8 @@ export class StatusesMapper {
             }) : null,
             repostsCount,
             repostedStatusId,
-            btfsInfo: btfsHash && this.btfsHashesMapper.toBtfsHashResponse(btfsHash)
+            btfsInfo: btfsHash && this.btfsHashesMapper.toBtfsHashResponse(btfsHash),
+            commentsCount
         })
     }
 
