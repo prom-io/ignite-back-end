@@ -1,5 +1,5 @@
 import {Between, EntityRepository, In, LessThan, MoreThan, Repository} from "typeorm";
-import {Status} from "./entities";
+import {Comment, Status} from "./entities";
 import {User} from "../users/entities";
 import {calculateOffset, PaginationRequest} from "../utils/pagination";
 
@@ -15,7 +15,7 @@ export class StatusesRepository extends Repository<Status> {
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
             take: paginationRequest.pageSize,
-            relations: ["repostedStatus"]
+            relations: ["repostedStatus", "repostedComment"]
         });
     }
 
@@ -24,7 +24,7 @@ export class StatusesRepository extends Repository<Status> {
             where: {
                 id
             },
-            relations: ["repostedStatus"]
+            relations: ["repostedStatus", "repostedComment"]
         })
     }
 
@@ -35,7 +35,7 @@ export class StatusesRepository extends Repository<Status> {
             order: {
                 createdAt: "DESC"
             },
-            relations: ["repostedStatus"]
+            relations: ["repostedStatus", "repostedComment"]
         })
     }
 
@@ -50,7 +50,7 @@ export class StatusesRepository extends Repository<Status> {
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
             take: paginationRequest.pageSize,
-            relations: ["repostedStatus"]
+            relations: ["repostedStatus", "repostedComment"]
         })
     }
 
@@ -65,7 +65,7 @@ export class StatusesRepository extends Repository<Status> {
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
             take: paginationRequest.pageSize,
-            relations: ["repostedStatus"]
+            relations: ["repostedStatus", "repostedComment"]
         })
     }
 
@@ -85,7 +85,7 @@ export class StatusesRepository extends Repository<Status> {
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
             take: paginationRequest.pageSize,
-            relations: ["repostedStatus"]
+            relations: ["repostedStatus", "repostedComment"]
         })
     }
 
@@ -101,7 +101,7 @@ export class StatusesRepository extends Repository<Status> {
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
             take: paginationRequest.pageSize,
-            relations: ["repostedStatus"]
+            relations: ["repostedStatus", "repostedComment"]
         })
     }
 
@@ -118,7 +118,7 @@ export class StatusesRepository extends Repository<Status> {
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
             take: paginationRequest.pageSize,
-            relations: ["repostedStatus"]
+            relations: ["repostedStatus", "repostedComment"]
         })
     }
 
@@ -135,7 +135,7 @@ export class StatusesRepository extends Repository<Status> {
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
             take: paginationRequest.pageSize,
-            relations: ["repostedStatus"]
+            relations: ["repostedStatus", "repostedComment"]
         })
     }
 
@@ -157,7 +157,7 @@ export class StatusesRepository extends Repository<Status> {
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
             take: paginationRequest.pageSize,
-            relations: ["repostedStatus"]
+            relations: ["repostedStatus", "repostedComment"]
         })
     }
 
@@ -171,7 +171,7 @@ export class StatusesRepository extends Repository<Status> {
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
             take: paginationRequest.pageSize,
-            relations: ["repostedStatus"]
+            relations: ["repostedStatus", "repostedComment"]
         })
     }
 
@@ -185,7 +185,7 @@ export class StatusesRepository extends Repository<Status> {
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
             take: paginationRequest.pageSize,
-            relations: ["repostedStatus"]
+            relations: ["repostedStatus", "repostedComment"]
         })
     }
 
@@ -199,7 +199,7 @@ export class StatusesRepository extends Repository<Status> {
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
             take: paginationRequest.pageSize,
-            relations: ["repostedStatus"]
+            relations: ["repostedStatus", "repostedComment"]
         })
     }
 
@@ -214,5 +214,13 @@ export class StatusesRepository extends Repository<Status> {
     public findAncestorsOfStatus(status: Status): Promise<Status[]> {
         const treeRepository = this.manager.getTreeRepository<Status>(Status);
         return treeRepository.findAncestors(status);
+    }
+
+    public countByRepostedComment(repostedComment: Comment): Promise<number> {
+        return this.count({
+            where: {
+                repostedComment
+            }
+        })
     }
 }

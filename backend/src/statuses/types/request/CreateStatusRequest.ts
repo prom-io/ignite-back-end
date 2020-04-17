@@ -9,6 +9,10 @@ export class CreateStatusRequest {
             return false;
         }
 
+        if (object.reposted_comment_id) {
+            return false;
+        }
+
         return !(object.media_attachments && object.media_attachments.length !== 0);
     })
     public status?: string;
@@ -20,4 +24,7 @@ export class CreateStatusRequest {
     public media_attachments: string[] = [];
 
     public repostedStatusId?: string;
+
+    // tslint:disable-next-line:variable-name
+    public reposted_comment_id?: string;
 }

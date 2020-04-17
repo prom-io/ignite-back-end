@@ -25,4 +25,12 @@ export class CommentsRepository extends Repository<Comment>{
             }
         })
     }
+
+    public findById(id: string): Promise<Comment | null> {
+        return this.findOne({
+            where: {
+                id
+            }
+        })
+    }
 }

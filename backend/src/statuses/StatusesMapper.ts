@@ -1,8 +1,9 @@
 import {Injectable} from "@nestjs/common";
 import uuid from "uuid/v4";
-import {Status} from "./entities";
+import {Comment, Status} from "./entities";
 import {StatusResponse} from "./types/response";
 import {CreateStatusRequest} from "./types/request";
+import {CommentsMapper, ToCommentResponseOptions} from "./CommentsMapper";
 import {User, UserStatistics} from "../users/entities";
 import {UsersMapper} from "../users/UsersMapper";
 import {MediaAttachment} from "../media-attachments/entities";
@@ -22,14 +23,16 @@ export interface ToStatusResponseOptions {
     repostsCount: number,
     repostedStatusId?: string,
     btfsHash?: BtfsHash,
-    commentsCount: number
+    commentsCount: number,
+    repostedCommentOptions?: ToCommentResponseOptions
 }
 
 @Injectable()
 export class StatusesMapper {
     constructor(private readonly userMapper: UsersMapper,
                 private readonly mediaAttachmentsMapper: MediaAttachmentsMapper,
-                private readonly btfsHashesMapper: BtfsHashesMapper) {
+                private readonly btfsHashesMapper: BtfsHashesMapper,
+                private readonly commentsMapper: CommentsMapper) {
     }
 
     public toStatusResponse(options: ToStatusResponseOptions): StatusResponse {
@@ -45,7 +48,8 @@ export class StatusesMapper {
             repostsCount,
             repostedStatusId,
             btfsHash,
-            commentsCount
+            commentsCount,
+            repostedCommentOptions
         } = options;
         return new StatusResponse({
             account: this.userMapper.toUserResponse(status.author, userStatistics, followingAuthor, followedByAuthor),
@@ -69,7 +73,8 @@ export class StatusesMapper {
             repostsCount,
             repostedStatusId,
             btfsInfo: btfsHash && this.btfsHashesMapper.toBtfsHashResponse(btfsHash),
-            commentsCount
+            commentsCount,
+            repostedComment: repostedCommentOptions && this.commentsMapper.toCommentResponse(repostedCommentOptions)
         })
     }
 
@@ -77,7 +82,8 @@ export class StatusesMapper {
         createStatusRequest: CreateStatusRequest,
         author: User,
         mediaAttachments: MediaAttachment[],
-        repostedStatus?: Status
+        repostedStatus?: Status,
+        repostedComment?: Comment
     ): Status {
         return  {
             id: uuid(),
@@ -87,7 +93,8 @@ export class StatusesMapper {
             updatedAt: null,
             remote: false,
             mediaAttachments,
-            repostedStatus
+            repostedStatus,
+            repostedComment
         }
     }
 }

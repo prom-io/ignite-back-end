@@ -4,6 +4,7 @@ import {ToStatusResponseOptions} from "./StatusesMapper";
 import {StatusesRepository} from "./StatusesRepository";
 import {StatusLikesRepository} from "./StatusLikesRepository";
 import {CommentsRepository} from "./CommentsRepository";
+import {ToCommentResponseOptions} from "./CommentsMapper";
 import {UserStatisticsRepository} from "../users/UserStatisticsRepository";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {User} from "../users/entities";
@@ -43,6 +44,15 @@ export class StatusMappingOptionsProvider {
         const commentsCount = await this.commentsRepository.countByStatus(status);
         const btfsHash = status.btfsHash && await this.btfsHashRepository.findByBtfsCid(status.btfsHash);
 
+        let repostedCommentOptions: ToCommentResponseOptions | undefined;
+
+        if (status.repostedComment) {
+            repostedCommentOptions = {
+                comment: status.repostedComment,
+                repostsCount: await this.statusesRepository.countByRepostedComment(status.repostedComment)
+            }
+        }
+
         return {
             status,
             favouritesCount: likesCount,
@@ -54,7 +64,8 @@ export class StatusMappingOptionsProvider {
             userStatistics,
             repostsCount,
             btfsHash,
-            commentsCount
+            commentsCount,
+            repostedCommentOptions
         }
     }
 }

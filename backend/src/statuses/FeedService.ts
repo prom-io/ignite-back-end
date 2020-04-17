@@ -11,6 +11,8 @@ import {PaginationRequest} from "../utils/pagination";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {UserStatisticsRepository} from "../users";
 import {asyncMap} from "../utils/async-map";
+import {CommentsRepository} from "./CommentsRepository";
+import {ToCommentResponseOptions} from "./CommentsMapper";
 
 @Injectable()
 export class FeedService {
@@ -19,6 +21,7 @@ export class FeedService {
                 private readonly statusesRepository: StatusesRepository,
                 private readonly statusLikesRepository: StatusLikesRepository,
                 private readonly userSubscriptionRepository: UserSubscriptionsRepository,
+                private readonly commentsRepository: CommentsRepository,
                 private readonly statusesMapper: StatusesMapper,
                 private readonly statusMappingOptionsProvider: StatusMappingOptionsProvider) {
     }
@@ -95,7 +98,9 @@ export class FeedService {
     private async mapStatusesToStatusesResponse(statuses: Status[], currentUser?: User): Promise<StatusResponse[]> {
         return asyncMap(statuses, async status => {
             let repostedStatusOptions: ToStatusResponseOptions | undefined;
+            let repostedCommentOptions: ToCommentResponseOptions | undefined;
             const repostedStatus = status.repostedStatus;
+            const repostedComment = status.repostedComment;
 
             if (repostedStatus) {
                 repostedStatusOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
@@ -107,6 +112,13 @@ export class FeedService {
                     .map(ancestor => ancestor.id)
                     .filter(ancestorId => ancestorId !== repostedStatus.id);
                 repostedStatusOptions.repostedStatusId = statusAncestors[statusAncestors.length - 1];
+            }
+
+            if (repostedComment) {
+                repostedCommentOptions = {
+                    comment: repostedComment,
+                    repostsCount: await this.statusesRepository.countByRepostedComment(repostedComment)
+                }
             }
 
             const statusMappingOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(

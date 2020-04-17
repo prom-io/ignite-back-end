@@ -2,6 +2,7 @@ import {Expose} from "class-transformer";
 import {UserResponse} from "../../../users/types/response";
 import {MediaAttachmentResponse} from "../../../media-attachments/types";
 import {BtfsHashResponse} from "../../../btfs-sync/types/response";
+import {CommentResponse} from "./CommentResponse";
 
 export class StatusResponse {
     id: string;
@@ -44,6 +45,9 @@ export class StatusResponse {
 
     @Expose({name: "comments_count"})
     commentsCount: number;
+
+    @Expose({name: "reposted_comment"})
+    repostedComment?: CommentResponse;
 
     constructor(object: StatusResponse) {
         Object.assign(this, object);

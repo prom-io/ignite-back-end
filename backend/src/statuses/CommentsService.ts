@@ -9,6 +9,7 @@ import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsR
 import {User} from "../users/entities";
 import {asyncForEach} from "../utils/async-foreach";
 import {PaginationRequest} from "../utils/pagination";
+import {asyncMap} from "../utils/async-map";
 
 @Injectable()
 export class CommentsService {
@@ -54,7 +55,8 @@ export class CommentsService {
         comment = await this.commentsRepository.save(comment);
 
         return this.commentsMapper.toCommentResponse({
-            comment
+            comment,
+            repostsCount: await this.statusesRepository.countByRepostedComment(comment)
         })
     }
 
@@ -68,7 +70,13 @@ export class CommentsService {
             )
         }
 
-        return (await this.commentsRepository.findByStatus(status, paginationRequest))
-            .map(comment => this.commentsMapper.toCommentResponse({comment}))
+        const comments = await this.commentsRepository.findByStatus(status, paginationRequest);
+
+        return await asyncMap(comments, async comment => {
+            return this.commentsMapper.toCommentResponse({
+                comment,
+                repostsCount: await this.statusesRepository.countByRepostedComment(comment)
+            })
+        })
     }
 }

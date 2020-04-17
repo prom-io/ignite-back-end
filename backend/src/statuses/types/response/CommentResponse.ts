@@ -18,6 +18,9 @@ export class CommentResponse {
 
     author: UserResponse;
 
+    @Expose({name: "reposts_count"})
+    repostsCount: number;
+
     constructor(plainObject: CommentResponse) {
         Object.assign(this, plainObject);
     }

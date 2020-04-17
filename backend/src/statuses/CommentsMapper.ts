@@ -9,7 +9,8 @@ import {MediaAttachment} from "../media-attachments/entities";
 import {MediaAttachmentsMapper} from "../media-attachments/MediaAttachmentsMapper";
 
 export interface ToCommentResponseOptions {
-    comment: Comment
+    comment: Comment,
+    repostsCount: number
 }
 
 export interface FromCreateCommentRequestOptions {
@@ -33,7 +34,8 @@ export class CommentsMapper {
                 .map(mediaAttachment => this.mediaAttachmentsMapper.toMediaAttachmentResponse(mediaAttachment)),
             statusId: options.comment.status.id,
             text: options.comment.text,
-            author: this.usersMapper.toUserResponse(options.comment.author)
+            author: this.usersMapper.toUserResponse(options.comment.author),
+            repostsCount: options.repostsCount
         })
     }
 

@@ -11,6 +11,7 @@ import {
 } from "typeorm";
 import {User} from "../../users/entities/User";
 import {MediaAttachment} from "../../media-attachments/entities";
+import {Comment} from "./Comment";
 
 @Entity()
 @Tree("materialized-path")
@@ -42,6 +43,9 @@ export class Status {
 
     @TreeParent()
     repostedStatus?: Status;
+
+    @ManyToOne(() => Comment, {eager: false, nullable: true})
+    repostedComment?: Comment;
 
     @Column({nullable: true})
     peerIp?: string;

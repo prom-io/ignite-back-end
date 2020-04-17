@@ -4,26 +4,22 @@ import {CreateStatusRequest} from "./types/request";
 import {StatusResponse} from "./types/response";
 import {StatusesMapper, ToStatusResponseOptions} from "./StatusesMapper";
 import {StatusMappingOptionsProvider} from "./StatusMappingOptionsProvider";
-import {StatusLikesRepository} from "./StatusLikesRepository";
+import {CommentsRepository} from "./CommentsRepository";
+import {Comment, Status} from "./entities";
+import {FeedCursors} from "./types/request/FeedCursors";
 import {User} from "../users/entities";
 import {UsersRepository} from "../users/UsersRepository";
 import {PaginationRequest} from "../utils/pagination";
-import {Status} from "./entities";
 import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
 import {MediaAttachment} from "../media-attachments/entities";
-import {FeedCursors} from "./types/request/FeedCursors";
-import {UserStatisticsRepository} from "../users/UserStatisticsRepository";
-import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {asyncMap} from "../utils/async-map";
 
 @Injectable()
 export class StatusesService {
     constructor(private readonly statusesRepository: StatusesRepository,
-                private readonly statusLikesRepository: StatusLikesRepository,
                 private readonly usersRepository: UsersRepository,
-                private readonly userStatisticsRepository: UserStatisticsRepository,
-                private readonly userSubscriptionRepository: UserSubscriptionsRepository,
                 private readonly mediaAttachmentRepository: MediaAttachmentsRepository,
+                private readonly commentsRepository: CommentsRepository,
                 private readonly statusesMapper: StatusesMapper,
                 private readonly statusMappingOptionsProvider: StatusMappingOptionsProvider) {
     }
@@ -36,6 +32,7 @@ export class StatusesService {
         }
 
         let repostedStatus: Status | undefined;
+        let repostedComment: Comment | undefined;
 
         if (createStatusRequest.repostedStatusId) {
             repostedStatus = await this.statusesRepository.findById(createStatusRequest.repostedStatusId);
@@ -48,11 +45,23 @@ export class StatusesService {
             }
         }
 
+        if (createStatusRequest.reposted_comment_id) {
+            repostedComment = await this.commentsRepository.findById(createStatusRequest.reposted_comment_id);
+
+            if (!repostedComment) {
+                throw new HttpException(
+                    `Could not find comment with id ${createStatusRequest.reposted_comment_id}`,
+                    HttpStatus.NOT_FOUND
+                )
+            }
+        }
+
         let status = this.statusesMapper.fromCreateStatusRequest(
             createStatusRequest,
             currentUser,
             mediaAttachments,
-            repostedStatus
+            repostedStatus,
+            repostedComment
         );
         status = await this.statusesRepository.save(status);
         let repostedStatusMappingOptions: ToStatusResponseOptions | undefined;
