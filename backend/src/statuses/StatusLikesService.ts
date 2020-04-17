@@ -52,7 +52,12 @@ export class StatusLikesService {
                 repostedStatus,
                 undefined,
                 currentUser
-            )
+            );
+            let statusAncestors = (await this.statusRepository.findAncestorsOfStatus(repostedStatus))
+                .map(ancestor => ancestor.id)
+                .filter(ancestorId => ancestorId !== repostedStatus.id);
+            statusAncestors = statusAncestors.filter(ancestorId => ancestorId !== repostedStatus.id);
+            repostedStatusOptions.repostedStatusId = statusAncestors[statusAncestors.length - 1];
         }
 
         const statusMappingOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
@@ -94,6 +99,11 @@ export class StatusLikesService {
                 undefined,
                 currentUser
             );
+            let statusAncestors = (await this.statusRepository.findAncestorsOfStatus(repostedStatus))
+                .map(ancestor => ancestor.id)
+                .filter(ancestorId => ancestorId !== repostedStatus.id);
+            statusAncestors = statusAncestors.filter(ancestorId => ancestorId !== repostedStatus.id);
+            repostedStatusOptions.repostedStatusId = statusAncestors[statusAncestors.length - 1];
         }
 
         const statusMappingOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
