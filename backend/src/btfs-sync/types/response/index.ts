@@ -4,3 +4,4 @@ export * from "./BtfsUserSubscriptionsResponse";
 export * from "./BtfsUserUnsubscriptionsResponse";
 export * from "./BtfsStatusUnlikesResponse";
 export * from "./BtfsHashResponse";
+export * from "./BtfsCommentsResponse";

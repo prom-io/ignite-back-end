@@ -30,12 +30,20 @@ export interface BtfsUserSubscriptionEntityResponse {
     peerWallet: string
 }
 
+export interface BtfsCommentEntityResponse {
+    commentId: string,
+    postId: string,
+    peerWallet: string,
+    peerId: string
+}
+
 export interface BtfsEntitiesResponse {
     posts?: BtfsStatusEntityResponse[],
     likes?: BtfsStatusLikeEntityResponse[],
     images?: BtfsImageEntityResponse[],
     subscribes?: BtfsUserSubscriptionEntityResponse[],
     users?: BtfsUserEntityResponse[],
-    unlikes: BtfsStatusLikeEntityResponse[],
-    unsubscribes: BtfsUserSubscriptionEntityResponse[]
+    unlikes?: BtfsStatusLikeEntityResponse[],
+    unsubscribes?: BtfsUserSubscriptionEntityResponse[],
+    comments?: BtfsCommentEntityResponse[]
 }

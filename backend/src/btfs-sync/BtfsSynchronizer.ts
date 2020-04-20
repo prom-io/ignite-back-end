@@ -11,6 +11,8 @@ import {BtfsClient} from "./BtfsClient";
 import {BtfsHash} from "./entities";
 import {BtfsMediaAttachment, BtfsStatus, BtfsStatusLike, BtfsUser, BtfsUserSubscription} from "./types/btfs-entities";
 import {
+    BtfsCommentEntityResponse,
+    BtfsCommentsResponse,
     BtfsImageEntityResponse,
     BtfsStatusEntityResponse,
     BtfsStatusLikeEntityResponse,
@@ -30,6 +32,8 @@ import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsR
 import {asyncMap} from "../utils/async-map";
 import {UserSubscription} from "../user-subscriptions/entities";
 import {config} from "../config";
+import {BtfsComment} from "./types/btfs-entities/BtfsComment";
+import {CommentsRepository} from "../statuses/CommentsRepository";
 
 interface BtfsEntityInfo {
     peerIp: string,
@@ -45,6 +49,7 @@ export class BtfsSynchronizer extends NestSchedule {
                 private readonly usersRepository: UsersRepository,
                 private readonly userSubscriptionsRepository: UserSubscriptionsRepository,
                 private readonly mediaAttachmentsRepository: MediaAttachmentsRepository,
+                private readonly commentsRepository: CommentsRepository,
                 private readonly btfsClient: BtfsClient,
                 private readonly log: LoggerService
                 ) {
@@ -65,15 +70,15 @@ export class BtfsSynchronizer extends NestSchedule {
                 this.log.info(`Synchronizing with BTFS cid ${btfsHash.btfsCid}`);
                 const entities = (await this.btfsClient.getEntitiesByCid(btfsHash.btfsCid)).data;
                 const images = entities.images || [];
+                const comments = entities.comments || [];
                 const statuses = entities.posts || [];
                 const statusLikes = entities.likes || [];
                 const subscriptions = entities.subscribes || [];
                 const statusUnlikes = entities.unlikes || [];
                 const unsubscriptions = entities.unsubscribes || [];
 
-                console.log(entities);
-
                 await this.synchronizeImages(btfsHash.btfsCid, images);
+                await this.synchronizeComments(btfsHash.btfsCid, comments);
                 await this.synchronizeStatusLikes(btfsHash.btfsCid, statusLikes);
                 await this.synchronizeStatuses(btfsHash.btfsCid, statuses);
                 await this.synchronizeSubscriptions(btfsHash.btfsCid, subscriptions);
@@ -142,6 +147,69 @@ export class BtfsSynchronizer extends NestSchedule {
                 {peerIp: btfsStatus.peerIp, peerWallet: btfsStatus.peerWallet, btfsCid: cid}
             );
         });
+    }
+
+    private async synchronizeComments(cid: string, comments: BtfsCommentEntityResponse[]): Promise<void> {
+        await asyncForEach(comments, async commentData => {
+            const btfsComments: BtfsCommentsResponse = (await this.btfsClient.getCommentsByCid({cid, statusId: commentData.postId})).data;
+            const commentsIds = Object.keys(btfsComments);
+
+            await asyncForEach(commentsIds, async commentId => {
+                const btfsComment: BtfsComment = new BtfsComment(btfsComments[commentId]);
+                const errors = await validate(btfsComment);
+
+                if (errors.length > 0) {
+                    console.log(errors);
+                    return ;
+                }
+
+                await this.saveBtfsComment(btfsComment, {
+                    peerIp: commentData.peerId,
+                    peerWallet: commentData.peerWallet,
+                    btfsCid: cid
+                });
+            })
+        })
+    }
+
+    private async saveBtfsComment(btfsComment: BtfsComment, btfsEntityInfo: BtfsEntityInfo): Promise<void> {
+        let comment = await this.commentsRepository.findById(btfsComment.id);
+
+        if (comment && !comment.btfsHash) {
+            comment.btfsHash = btfsEntityInfo.btfsCid;
+            comment.peerIp = btfsEntityInfo.peerIp;
+            comment.peerWallet = btfsEntityInfo.peerWallet;
+        } else {
+            const mediaAttachments = await asyncMap(
+                btfsComment.mediaAttachments,
+                async btfsMediaAttachment => await this.mergeMediaAttachment(
+                    await this.mediaAttachmentsRepository.findById(btfsMediaAttachment.id),
+                    btfsMediaAttachment,
+                    btfsEntityInfo
+                )
+            );
+            const author = await this.mergeUser(await this.usersRepository.findById(btfsComment.author.id), btfsComment.author);
+            const status = await this.mergeStatus(
+                await this.statusesRepository.findById(btfsComment.status.id),
+                btfsComment.status,
+                btfsEntityInfo
+            );
+
+            comment = {
+                id: btfsComment.id,
+                author,
+                status,
+                createdAt: new Date(btfsComment.createdAt),
+                btfsHash: btfsEntityInfo.btfsCid,
+                peerWallet: btfsEntityInfo.peerWallet,
+                peerIp: btfsEntityInfo.peerIp,
+                text: btfsComment.text,
+                repostedComment: undefined,
+                mediaAttachments,
+                updatedAt: undefined
+            };
+            await this.commentsRepository.save(comment);
+        }
     }
 
     private async synchronizeStatusLikes(cid: string, likes: BtfsStatusLikeEntityResponse[]): Promise<void> {

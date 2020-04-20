@@ -2,8 +2,8 @@ import {Injectable, Inject} from "@nestjs/common";
 import {AxiosInstance, AxiosPromise} from "axios";
 import fileSystem, {PathLike} from "fs";
 import FormData from "form-data";
-import {BtfsEntitiesResponse, BtfsStatusLikesResponse, BtfsUserSubscriptionsResponse} from "./types/response";
-import {SaveStatusLikeRequest, SaveStatusRequest, SaveUserSubscriptionRequest} from "./types/request";
+import {BtfsCommentsResponse, BtfsEntitiesResponse, BtfsStatusLikesResponse, BtfsUserSubscriptionsResponse} from "./types/response";
+import {SaveCommentRequest, SaveStatusLikeRequest, SaveStatusRequest, SaveUserSubscriptionRequest} from "./types/request";
 import {BtfsStatus} from "./types/btfs-entities";
 import {SaveUserUnsubscriptionRequest} from "./types/request/SaveUserUnsubscriptionRequest";
 
@@ -18,6 +18,11 @@ interface GetStatusLikesOptions {
 }
 
 interface GetStatusOptions {
+    cid: string,
+    statusId: string
+}
+
+interface GetCommentsOptions {
     cid: string,
     statusId: string
 }
@@ -75,6 +80,14 @@ export class BtfsClient {
 
     public getStatusByCid(options: GetStatusOptions): AxiosPromise<BtfsStatus> {
         return this.axios.get(`/api/v1/post/${options.cid}/${options.statusId}`);
+    }
+
+    public saveComment(saveCommentRequest: SaveCommentRequest): AxiosPromise<void> {
+        return this.axios.post("/api/v1/comment", saveCommentRequest);
+    }
+
+    public getCommentsByCid(options: GetCommentsOptions): AxiosPromise<BtfsCommentsResponse> {
+        return this.axios.get(`/api/v1/comment/${options.cid}/${options.statusId}`);
     }
 
     public uploadFile(fileId: string, path: PathLike): AxiosPromise<void> {
