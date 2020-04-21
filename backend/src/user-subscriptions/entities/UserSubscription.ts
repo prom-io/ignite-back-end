@@ -16,6 +16,12 @@ export class UserSubscription {
     createdAt: Date;
 
     @Column({nullable: true})
+    reverted: boolean = false;
+
+    @Column({nullable: true})
+    revertedAt?: Date;
+
+    @Column({nullable: true})
     btfsHash?: string = undefined;
 
     @Column({nullable: true})

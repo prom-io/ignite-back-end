@@ -17,7 +17,8 @@ export class StatusLikesRepository extends Repository<StatusLike> {
     public findByStatus(status: Status, paginationRequest: PaginationRequest): Promise<StatusLike[]> {
         return this.find({
             where: {
-                status
+                status,
+                reverted: false
             },
             take: paginationRequest.pageSize,
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize)
@@ -27,25 +28,28 @@ export class StatusLikesRepository extends Repository<StatusLike> {
     public async countByStatus(status: Status): Promise<number> {
        return this.count({
            where: {
-               status
+               status,
+               reverted: false
            }
        })
     }
 
-    public async existByStatusAndUser(status: Status, user: User): Promise<boolean> {
+    public async existByStatusAndUserNotReverted(status: Status, user: User): Promise<boolean> {
         return (await this.count({
             where: {
                 status,
-                user
+                user,
+                reverted: false
             }
         })) !== 0
     }
 
-    public async findByStatusAndUser(status: Status, user: User): Promise<StatusLike | undefined> {
+    public async findByStatusAndUserNotReverted(status: Status, user: User): Promise<StatusLike | undefined> {
         return await this.findOne({
             where: {
                 status,
-                user
+                user,
+                reverted: false
             }
         })
     }

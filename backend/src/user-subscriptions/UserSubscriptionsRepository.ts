@@ -13,56 +13,62 @@ export class UserSubscriptionsRepository extends Repository<UserSubscription> {
         })
     }
 
-    public findBySubscribedTo(subscribedTo: User, paginationRequest: PaginationRequest): Promise<UserSubscription[]> {
+    public findBySubscribedToNotReverted(subscribedTo: User, paginationRequest: PaginationRequest): Promise<UserSubscription[]> {
         return this.find({
             where: {
-                subscribedTo
+                subscribedTo,
+                reverted: false
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
             take: paginationRequest.pageSize
         })
     }
 
-    public findAllBySubscribedTo(subscribedTo: User): Promise<UserSubscription[]> {
+    public findAllBySubscribedToNotReverted(subscribedTo: User): Promise<UserSubscription[]> {
         return this.find({
             where: {
-                subscribedTo
+                subscribedTo,
+                reverted: false
             }
         })
     }
 
-    public findAllBySubscribedUser(subscribedUser: User): Promise<UserSubscription[]> {
+    public findAllBySubscribedUserNotReverted(subscribedUser: User): Promise<UserSubscription[]> {
         return this.find({
             where: {
-                subscribedUser
+                subscribedUser,
+                reverted: false
             }
         })
     }
 
-    public findBySubscribedUser(subscribedUser: User, paginationRequest: PaginationRequest): Promise<UserSubscription[]> {
+    public findBySubscribedUserNotReverted(subscribedUser: User, paginationRequest: PaginationRequest): Promise<UserSubscription[]> {
         return this.find({
             where: {
-                subscribedUser
+                subscribedUser,
+                reverted: false
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
             take: paginationRequest.pageSize
         })
     }
 
-    public findBySubscribedUserAndSubscribedTo(subscribedUser: User, subscribedTo: User): Promise<UserSubscription | undefined> {
+    public findBySubscribedUserAndSubscribedToNotReverted(subscribedUser: User, subscribedTo: User): Promise<UserSubscription | undefined> {
         return this.findOne({
             where: {
                 subscribedTo,
-                subscribedUser
+                subscribedUser,
+                reverted: false
             }
         })
     }
 
-    public async existsBySubscribedUserAndSubscribedTo(subscribedUser: User, subscribedTo: User): Promise<boolean> {
+    public async existsBySubscribedUserAndSubscribedToNotReverted(subscribedUser: User, subscribedTo: User): Promise<boolean> {
         return (await this.count({
             where: {
                 subscribedUser,
-                subscribedTo
+                subscribedTo,
+                reverted: false
             }
         })) !== 0;
     }

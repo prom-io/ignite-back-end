@@ -1,7 +1,7 @@
 import {Injectable} from "@nestjs/common";
 import {InjectConnection} from "@nestjs/typeorm";
 import {LoggerService} from "nest-logger";
-import {Connection, EntitySubscriberInterface, InsertEvent, RemoveEvent} from "typeorm";
+import {Connection, EntitySubscriberInterface, InsertEvent, UpdateEvent} from "typeorm";
 import {StatusLike} from "./entities";
 import {MicrobloggingBlockchainApiClient} from "../microblogging-blockchain-api";
 import {BtfsClient} from "../btfs-sync/BtfsClient";
@@ -63,12 +63,12 @@ export class StatusLikeEntityEventsListener implements EntitySubscriberInterface
         }
     }
 
-    public async beforeRemove(event: RemoveEvent<StatusLike>): Promise<void> {
+    public async afterUpdate(event: UpdateEvent<StatusLike>): Promise<void> {
         const statusLike = event.entity;
 
         this.log.info("Logging status unlike to blockchain");
 
-        if (statusLike.saveUnlikeToBtfs) {
+        if (statusLike.reverted && statusLike.saveUnlikeToBtfs && config.ENABLE_BTFS_PUSHING) {
             this.microbloggingBlockchainApiClient.logStatusUnlike({
                 id: statusLike.id,
                 messageId: statusLike.status.id,

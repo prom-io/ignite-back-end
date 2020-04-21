@@ -31,7 +31,7 @@ export class UserSubscriptionsService {
             );
         }
 
-        if (await this.userSubscriptionsRepository.existsBySubscribedUserAndSubscribedTo(currentUser, targetUser)) {
+        if (await this.userSubscriptionsRepository.existsBySubscribedUserAndSubscribedToNotReverted(currentUser, targetUser)) {
             throw new HttpException(
                 `Current user is already subscribed to ${targetUser.ethereumAddress}`,
                 HttpStatus.CONFLICT
@@ -42,11 +42,13 @@ export class UserSubscriptionsService {
             id: uuid(),
             subscribedUser: currentUser,
             subscribedTo: targetUser,
-            createdAt: new Date()
+            createdAt: new Date(),
+            reverted: false,
+            revertedAt: null
         };
         await this.userSubscriptionsRepository.save(subscription);
 
-        const targetUserSubscription = await this.userSubscriptionsRepository.findBySubscribedUserAndSubscribedTo(targetUser, currentUser);
+        const targetUserSubscription = await this.userSubscriptionsRepository.findBySubscribedUserAndSubscribedToNotReverted(targetUser, currentUser);
 
         return {
             id: targetUser.id,
@@ -70,7 +72,7 @@ export class UserSubscriptionsService {
             throw new HttpException(`Could not find user with address ${address}`, HttpStatus.NOT_FOUND);
         }
 
-        const subscription = await this.userSubscriptionsRepository.findBySubscribedUserAndSubscribedTo(currentUser, targetUser);
+        const subscription = await this.userSubscriptionsRepository.findBySubscribedUserAndSubscribedToNotReverted(currentUser, targetUser);
 
         if (!subscription) {
             throw new HttpException(`Current user is not subscribed to ${address}`, HttpStatus.FORBIDDEN);
@@ -78,7 +80,7 @@ export class UserSubscriptionsService {
 
         await this.userSubscriptionsRepository.remove(subscription);
 
-        const targetUserSubscription = await this.userSubscriptionsRepository.findBySubscribedUserAndSubscribedTo(targetUser, currentUser);
+        const targetUserSubscription = await this.userSubscriptionsRepository.findBySubscribedUserAndSubscribedToNotReverted(targetUser, currentUser);
 
         return {
             id: targetUser.id,
@@ -96,7 +98,7 @@ export class UserSubscriptionsService {
     }
 
     public async getSubscriptionsOfCurrentUser(currentUser: User, paginationRequest: PaginationRequest): Promise<UserSubscriptionResponse[]> {
-        const subscriptions = await this.userSubscriptionsRepository.findBySubscribedUser(currentUser, paginationRequest);
+        const subscriptions = await this.userSubscriptionsRepository.findBySubscribedUserNotReverted(currentUser, paginationRequest);
         return subscriptions.map(subscription => this.userSubscriptionsMapper.toUserSubscriptionResponse(subscription));
     }
 
@@ -110,7 +112,7 @@ export class UserSubscriptionsService {
             );
         }
 
-        const subscriptions = await this.userSubscriptionsRepository.findBySubscribedUser(user, paginationRequest);
+        const subscriptions = await this.userSubscriptionsRepository.findBySubscribedUserNotReverted(user, paginationRequest);
         return subscriptions.map(subscription => this.userSubscriptionsMapper.toUserSubscriptionResponse(subscription));
     }
 
@@ -139,8 +141,8 @@ export class UserSubscriptionsService {
         const relationships: RelationshipsResponse[] = [];
 
         for (const user of users) {
-            const currentUserSubscription = await this.userSubscriptionsRepository.findBySubscribedUserAndSubscribedTo(currentUser, user);
-            const backwardsSubscription = await this.userSubscriptionsRepository.findBySubscribedUserAndSubscribedTo(user, currentUser);
+            const currentUserSubscription = await this.userSubscriptionsRepository.findBySubscribedUserAndSubscribedToNotReverted(currentUser, user);
+            const backwardsSubscription = await this.userSubscriptionsRepository.findBySubscribedUserAndSubscribedToNotReverted(user, currentUser);
 
             relationships.push(new RelationshipsResponse({
                 id: user.ethereumAddress,
@@ -162,7 +164,7 @@ export class UserSubscriptionsService {
 
     public async getFollowersOfUser(address: string): Promise<UserResponse[]> {
         const subscribedTo = await this.findUserByAddress(address);
-        const subscriptions = await this.userSubscriptionsRepository.findAllBySubscribedTo(subscribedTo);
+        const subscriptions = await this.userSubscriptionsRepository.findAllBySubscribedToNotReverted(subscribedTo);
 
         const userStatisticsMap: {
             [userId: string]: UserStatistics
@@ -181,7 +183,7 @@ export class UserSubscriptionsService {
 
     public async getFollowingOfUser(address: string): Promise<UserResponse[]> {
         const subscribedUser = await this.findUserByAddress(address);
-        const subscriptions = await this.userSubscriptionsRepository.findAllBySubscribedUser(subscribedUser);
+        const subscriptions = await this.userSubscriptionsRepository.findAllBySubscribedUserNotReverted(subscribedUser);
 
         const userStatisticsMap: {
             [userId: string]: UserStatistics

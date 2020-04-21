@@ -1,7 +1,7 @@
 import {Injectable} from "@nestjs/common";
 import {InjectConnection} from "@nestjs/typeorm";
 import {LoggerService} from "nest-logger";
-import {Connection, EntitySubscriberInterface, InsertEvent, RemoveEvent} from "typeorm";
+import {Connection, EntitySubscriberInterface, InsertEvent, UpdateEvent} from "typeorm";
 import {UserSubscription} from "./entities";
 import {UserStatisticsRepository} from "../users/UserStatisticsRepository";
 import {MicrobloggingBlockchainApiClient} from "../microblogging-blockchain-api";
@@ -40,7 +40,7 @@ export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberI
         await this.userStatisticsRepository.save(subscribedToStatistics);
         await this.userStatisticsRepository.save(subscribedUserStatistics);
 
-        if (!event.entity.btfsHash) {
+        if (!event.entity.btfsHash && config.ENABLE_BTFS_PUSHING) {
             this.microbloggingBlockchainApiClient.logSubscription({
                 id: event.entity.id,
                 subscribeAt: event.entity.createdAt.toISOString(),
@@ -72,7 +72,7 @@ export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberI
         }
     }
 
-    public async beforeRemove(event: RemoveEvent<UserSubscription>): Promise<void> {
+    public async afterUpdate(event: UpdateEvent<UserSubscription>): Promise<void> {
         const {subscribedTo, subscribedUser, id} = event.entity;
         const subscribedToStatistics = await this.userStatisticsRepository.findByUser(subscribedTo);
         const subscribedUserStatistics = await this.userStatisticsRepository.findByUser(subscribedUser);
@@ -83,7 +83,7 @@ export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberI
         await this.userStatisticsRepository.save(subscribedToStatistics);
         await this.userStatisticsRepository.save(subscribedUserStatistics);
 
-        if (event.entity.saveUnsubscriptionToBtfs) {
+        if (event.entity.revertedAt && event.entity.saveUnsubscriptionToBtfs && config.ENABLE_BTFS_PUSHING) {
             this.microbloggingBlockchainApiClient.logUnsubscription({
                 id: event.entity.id,
                 user: subscribedUser.ethereumAddress

@@ -27,7 +27,7 @@ export class FeedService {
     }
 
     public async getFeedOfCurrentUserAfter(currentUser: User, feedCursors: FeedCursors): Promise<StatusResponse[]> {
-        const subscriptions = await this.subscriptionsRepository.findAllBySubscribedUser(currentUser);
+        const subscriptions = await this.subscriptionsRepository.findAllBySubscribedUserNotReverted(currentUser);
         const authors = subscriptions.map(subscription => subscription.subscribedTo);
         authors.push(currentUser);
 

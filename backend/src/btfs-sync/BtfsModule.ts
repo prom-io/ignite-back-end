@@ -22,6 +22,7 @@ import {StatusLikesRepository} from "../statuses/StatusLikesRepository";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
 import {config} from "../config";
+import {CommentsRepository} from "../statuses/CommentsRepository";
 
 @Global()
 @Module({
@@ -52,7 +53,8 @@ import {config} from "../config";
             StatusesRepository,
             StatusLikesRepository,
             UserSubscriptionsRepository,
-            MediaAttachmentsRepository
+            MediaAttachmentsRepository,
+            CommentsRepository
         ]),
         ScheduleModule.register()
     ],

@@ -76,11 +76,11 @@ export class UsersService {
         }
 
         const userStatistics = await this.userStatisticsRepository.findByUser(user);
-        const following = currentUser && await this.subscriptionsRepository.existsBySubscribedUserAndSubscribedTo(
+        const following = currentUser && await this.subscriptionsRepository.existsBySubscribedUserAndSubscribedToNotReverted(
             currentUser,
             user
         );
-        const followed = currentUser && await this.subscriptionsRepository.existsBySubscribedUserAndSubscribedTo(
+        const followed = currentUser && await this.subscriptionsRepository.existsBySubscribedUserAndSubscribedToNotReverted(
             user,
             currentUser
         );

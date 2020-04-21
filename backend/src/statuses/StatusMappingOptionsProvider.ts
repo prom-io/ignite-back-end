@@ -30,13 +30,13 @@ export class StatusMappingOptionsProvider {
         let likedByCurrentUser = false;
 
         if (likesCount !== 0 && currentUser) {
-            likedByCurrentUser = await this.statusLikesRepository.existByStatusAndUser(status, currentUser);
+            likedByCurrentUser = await this.statusLikesRepository.existByStatusAndUserNotReverted(status, currentUser);
         }
 
-        const followingAuthor = currentUser && await this.userSubscriptionsRepository.existsBySubscribedUserAndSubscribedTo(
+        const followingAuthor = currentUser && await this.userSubscriptionsRepository.existsBySubscribedUserAndSubscribedToNotReverted(
             currentUser, status.author
         );
-        const followedByAuthor = currentUser && await this.userSubscriptionsRepository.existsBySubscribedUserAndSubscribedTo(
+        const followedByAuthor = currentUser && await this.userSubscriptionsRepository.existsBySubscribedUserAndSubscribedToNotReverted(
             status.author, currentUser
         );
         const userStatistics  = await this.userStatisticsRepository.findByUser(status.author);

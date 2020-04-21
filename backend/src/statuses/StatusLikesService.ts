@@ -7,13 +7,11 @@ import {StatusesMapper, ToStatusResponseOptions} from "./StatusesMapper";
 import {StatusMappingOptionsProvider} from "./StatusMappingOptionsProvider";
 import {StatusResponse} from "./types/response";
 import {User} from "../users/entities";
-import {UserStatisticsRepository} from "../users";
 
 @Injectable()
 export class StatusLikesService {
     constructor(private readonly statusLikesRepository: StatusLikesRepository,
                 private readonly statusRepository: StatusesRepository,
-                private readonly userStatisticsRepository: UserStatisticsRepository,
                 private readonly statusesMapper: StatusesMapper,
                 private readonly statusMappingOptionsProvider: StatusMappingOptionsProvider) {
     }
@@ -28,7 +26,7 @@ export class StatusLikesService {
             );
         }
 
-        if (await this.statusLikesRepository.existByStatusAndUser(status, currentUser)) {
+        if (await this.statusLikesRepository.existByStatusAndUserNotReverted(status, currentUser)) {
             throw new HttpException(
                 "Current user has already liked this status",
                 HttpStatus.FORBIDDEN
@@ -39,7 +37,9 @@ export class StatusLikesService {
             id: uuid(),
             status,
             user: currentUser,
-            createdAt: new Date()
+            createdAt: new Date(),
+            reverted: false,
+            revertedAt: null
         };
 
         await this.statusLikesRepository.save(statusLike);
@@ -79,7 +79,7 @@ export class StatusLikesService {
             );
         }
 
-        const statusLike = await this.statusLikesRepository.findByStatusAndUser(status, currentUser);
+        const statusLike = await this.statusLikesRepository.findByStatusAndUserNotReverted(status, currentUser);
 
         if (!statusLike) {
             throw new HttpException(
@@ -88,7 +88,10 @@ export class StatusLikesService {
             );
         }
 
-        await this.statusLikesRepository.remove(statusLike);
+        statusLike.reverted = true;
+        statusLike.revertedAt = new Date();
+
+        await this.statusLikesRepository.save(statusLike);
 
         let repostedStatusOptions: ToStatusResponseOptions | undefined;
         const repostedStatus = status.repostedStatus;

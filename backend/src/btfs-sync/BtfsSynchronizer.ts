@@ -252,17 +252,23 @@ export class BtfsSynchronizer extends NestSchedule {
                 createdAt: new Date(btfsStatusLike.createdAt),
                 btfsHash: btfsEntityInfo.btfsCid,
                 peerIp: btfsEntityInfo.peerIp,
-                peerWallet: btfsEntityInfo.peerWallet
+                peerWallet: btfsEntityInfo.peerWallet,
+                reverted: false,
+                revertedAt: null
             };
 
-            const existingLike = await this.statusLikesRepository.findByStatusAndUser(status, user);
+            let existingLike = await this.statusLikesRepository.findByStatusAndUserNotReverted(status, user);
 
             if (existingLike) {
-                this.log.info("Deleting existing status like");
-                await this.statusLikesRepository.delete(existingLike);
+                existingLike = {
+                    ...existingLike,
+                    ...statusLike
+                };
+                this.log.info("Updating existing status like");
+                await this.statusLikesRepository.save(existingLike);
+            } else {
+                await this.statusLikesRepository.save(statusLike);
             }
-
-            await this.statusLikesRepository.save(statusLike);
         } else if (!statusLike.btfsHash) {
             statusLike.btfsHash = btfsEntityInfo.btfsCid;
             statusLike.peerWallet = btfsEntityInfo.peerWallet;
@@ -403,10 +409,15 @@ export class BtfsSynchronizer extends NestSchedule {
                 btfsHash: btfsEntityInfo.btfsCid,
                 createdAt: new Date(btfsUserSubscription.createdAt),
                 peerWallet: btfsEntityInfo.peerWallet,
-                peerIp: btfsEntityInfo.peerIp
+                peerIp: btfsEntityInfo.peerIp,
+                reverted: false,
+                revertedAt: null
             };
 
-            const existingSubscription = await this.userSubscriptionsRepository.findBySubscribedUserAndSubscribedTo(subscribedUser, subscribedTo);
+            const existingSubscription = await this.userSubscriptionsRepository.findBySubscribedUserAndSubscribedToNotReverted(
+                subscribedUser,
+                subscribedTo
+            );
 
             if (existingSubscription) {
                 this.log.info("Deleting existing subscription");
@@ -428,7 +439,9 @@ export class BtfsSynchronizer extends NestSchedule {
 
                 if (deletedLike) {
                     deletedLike.saveUnlikeToBtfs = false;
-                    await this.statusLikesRepository.delete(deletedLike);
+                    deletedLike.reverted = true;
+                    deletedLike.revertedAt = new Date();
+                    await this.statusLikesRepository.save(deletedLike);
                 }
             })
         })
@@ -446,7 +459,9 @@ export class BtfsSynchronizer extends NestSchedule {
 
                 if (deletedSubscription) {
                     deletedSubscription.saveUnsubscriptionToBtfs = false;
-                    await this.userSubscriptionsRepository.delete(deletedSubscription);
+                    deletedSubscription.reverted = true;
+                    deletedSubscription.revertedAt = new Date();
+                    await this.userSubscriptionsRepository.save(deletedSubscription);
                 }
             })
         })
