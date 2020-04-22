@@ -34,7 +34,7 @@ interface DownloadFileOptions {
 }
 
 @Injectable()
-export class BtfsClient {
+export class BtfsHttpClient {
     constructor(@Inject("btfsAxios") private readonly axios: AxiosInstance) {
     }
 

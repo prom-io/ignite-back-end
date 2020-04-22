@@ -4,17 +4,17 @@ import {LoggerService} from "nest-logger";
 import {Connection, EntitySubscriberInterface, InsertEvent, UpdateEvent} from "typeorm";
 import {StatusLike} from "./entities";
 import {MicrobloggingBlockchainApiClient} from "../microblogging-blockchain-api";
-import {BtfsClient} from "../btfs-sync/BtfsClient";
 import {BtfsStatusLikesMapper} from "../btfs-sync/mappers";
 import {IpAddressProvider} from "../btfs-sync/IpAddressProvider";
 import {DefaultAccountProviderService} from "../default-account-provider/DefaultAccountProviderService";
 import {config} from "../config";
+import {BtfsKafkaClient} from "../btfs-sync/BtfsKafkaClient";
 
 @Injectable()
 export class StatusLikeEntityEventsListener implements EntitySubscriberInterface<StatusLike> {
     constructor(@InjectConnection() private readonly connection: Connection,
                 private readonly microbloggingBlockchainApiClient: MicrobloggingBlockchainApiClient,
-                private readonly btfsClient: BtfsClient,
+                private readonly btfsClient: BtfsKafkaClient,
                 private readonly btfsStatusLikesMapper: BtfsStatusLikesMapper,
                 private readonly accountService: DefaultAccountProviderService,
                 private readonly ipAddressProvider: IpAddressProvider,

@@ -89,6 +89,7 @@ export class StatusLikesService {
         }
 
         statusLike.reverted = true;
+        statusLike.saveUnlikeToBtfs = true;
         statusLike.revertedAt = new Date();
 
         await this.statusLikesRepository.save(statusLike);

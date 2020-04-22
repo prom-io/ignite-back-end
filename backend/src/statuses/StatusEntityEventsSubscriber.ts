@@ -6,19 +6,21 @@ import path from "path";
 import {Status} from "./entities";
 import {UserStatisticsRepository} from "../users";
 import {MicrobloggingBlockchainApiClient} from "../microblogging-blockchain-api";
-import {BtfsClient} from "../btfs-sync/BtfsClient";
+import {BtfsHttpClient} from "../btfs-sync/BtfsHttpClient";
 import {BtfsStatusesMapper} from "../btfs-sync/mappers";
 import {asyncForEach} from "../utils/async-foreach";
 import {config} from "../config";
 import {IpAddressProvider} from "../btfs-sync/IpAddressProvider";
 import {DefaultAccountProviderService} from "../default-account-provider/DefaultAccountProviderService";
+import {BtfsKafkaClient} from "../btfs-sync/BtfsKafkaClient";
 
 @Injectable()
 export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<Status> {
     constructor(@InjectConnection() private readonly connection: Connection,
                 private readonly userStatisticsRepository: UserStatisticsRepository,
                 private readonly microbloggingBlockchainApiClient: MicrobloggingBlockchainApiClient,
-                private readonly btfsClient: BtfsClient,
+                private readonly btfsClient: BtfsKafkaClient,
+                private readonly btfsHttpClient: BtfsHttpClient,
                 private readonly btfsStatusesMapper: BtfsStatusesMapper,
                 private readonly accountService: DefaultAccountProviderService,
                 private readonly ipAddressProvider: IpAddressProvider,
@@ -59,7 +61,7 @@ export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<S
             await asyncForEach(event.entity.mediaAttachments, async mediaAttachment => {
                 const filePath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, mediaAttachment.name);
                 try {
-                    await this.btfsClient.uploadFile(mediaAttachment.id, filePath);
+                    await this.btfsHttpClient.uploadFile(mediaAttachment.id, filePath);
                     this.log.info(`Media attachment ${mediaAttachment.id} has been saved to BTFS`);
                 } catch (error) {
                     this.log.error(`Error occurred when tried to save media attachment ${mediaAttachment.id} to BTFS`);
