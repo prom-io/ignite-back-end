@@ -34,4 +34,12 @@ export class UsersRepository extends Repository<User> {
             }
         })
     }
+
+    public async existsByUsername(username: string): Promise<boolean> {
+        return (await this.count({
+            where: {
+                username
+            }
+        })) !== 0;
+    }
 }

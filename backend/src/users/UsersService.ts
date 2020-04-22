@@ -18,6 +18,15 @@ export class UsersService {
     public async saveUser(createUserRequest: CreateUserRequest): Promise<UserResponse> {
         const existingUser = await this.usersRepository.findByEthereumAddress(createUserRequest.address);
 
+        if (createUserRequest.username && createUserRequest.username !== createUserRequest.address) {
+            if (await this.usersRepository.existsByUsername(createUserRequest.username)) {
+                throw new HttpException(
+                    `User with ${createUserRequest.username} has already been registered`,
+                    HttpStatus.CONFLICT
+                )
+            }
+        }
+
         if (existingUser) {
             if (existingUser.username !== createUserRequest.username) {
                 existingUser.username = createUserRequest.username && createUserRequest.username.length !== 0
@@ -33,7 +42,7 @@ export class UsersService {
         const user = await this.usersRepository.save(this.usersMapper.fromCreateUserRequest(createUserRequest));
 
         return this.usersMapper.toUserResponse(
-            user,{
+            user, {
                 followsCount: 0,
                 followersCount: 0,
                 statusesCount: 0,
