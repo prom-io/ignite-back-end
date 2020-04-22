@@ -63,9 +63,9 @@ export class StatusMappingOptionsProvider {
             repostedStatusOptions: mapRepostedStatusOptions,
             userStatistics,
             repostsCount,
-            btfsHash,
             commentsCount,
-            repostedCommentOptions
+            repostedCommentOptions,
+            btfsHash: btfsHash && btfsHash.peerIp && btfsHash.peerWallet ? btfsHash : null
         }
     }
 }

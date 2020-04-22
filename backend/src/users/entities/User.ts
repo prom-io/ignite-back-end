@@ -28,4 +28,13 @@ export class User {
 
     @Column({nullable: true})
     btfsHash?: string = undefined;
+
+    @Column({nullable: true})
+    peerIp?: string;
+
+    @Column({nullable: true})
+    peerWallet?: string;
+
+    @Column({nullable: true})
+    btfsCid?: string;
 }
