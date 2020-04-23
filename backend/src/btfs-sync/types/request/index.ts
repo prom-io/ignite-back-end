@@ -6,3 +6,4 @@ export * from "./BaseBtfsRequest";
 export * from "./SaveUnlikeRequest";
 export * from "./SaveUserSubscriptionRequest";
 export * from "./SaveCommentRequest";
+export * from "./SaveBtfsFileRequest";

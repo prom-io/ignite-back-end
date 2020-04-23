@@ -1,6 +1,13 @@
 import {Injectable, OnModuleInit} from "@nestjs/common";
 import {Client, ClientKafka, Transport} from "@nestjs/microservices";
-import {SaveCommentRequest, SaveStatusLikeRequest, SaveStatusRequest, SaveUnlikeRequest, SaveUserSubscriptionRequest} from "./types/request";
+import {
+    SaveBtfsFileRequest,
+    SaveCommentRequest,
+    SaveStatusLikeRequest,
+    SaveStatusRequest,
+    SaveUnlikeRequest,
+    SaveUserSubscriptionRequest
+} from "./types/request";
 
 @Injectable()
 export class BtfsKafkaClient implements OnModuleInit {
@@ -25,6 +32,7 @@ export class BtfsKafkaClient implements OnModuleInit {
         this.clientKafka.subscribeToResponseOf("ignite.unlikes.add");
         this.clientKafka.subscribeToResponseOf("ignite.posts.add");
         this.clientKafka.subscribeToResponseOf("ignite.comments.add");
+        this.clientKafka.subscribeToResponseOf("ignite.files.add");
     }
 
     public saveUserSubscription(saveUsersSubscriptionRequest: SaveUserSubscriptionRequest): Promise<void> {
@@ -49,5 +57,9 @@ export class BtfsKafkaClient implements OnModuleInit {
 
     public saveComment(saveCommentRequest: SaveCommentRequest): Promise<void> {
         return this.clientKafka.send("ignite.comments.add", saveCommentRequest).toPromise();
+    }
+
+    public uploadFile(saveBtfsFileRequest: SaveBtfsFileRequest): Promise<void> {
+        return this.clientKafka.send("ignite.files.add", saveBtfsFileRequest).toPromise();
     }
 }
