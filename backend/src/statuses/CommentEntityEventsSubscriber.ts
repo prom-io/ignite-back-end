@@ -5,17 +5,19 @@ import {Connection, EntitySubscriberInterface, InsertEvent} from "typeorm";
 import * as path from "path";
 import {Comment} from "./entities";
 import {BtfsCommentsMapper} from "../btfs-sync/mappers";
-import {BtfsClient} from "../btfs-sync/BtfsClient";
 import {config} from "../config";
 import {asyncForEach} from "../utils/async-foreach";
 import {IpAddressProvider} from "../btfs-sync/IpAddressProvider";
 import {DefaultAccountProviderService} from "../default-account-provider/DefaultAccountProviderService";
+import {BtfsKafkaClient} from "../btfs-sync/BtfsKafkaClient";
+import {BtfsHttpClient} from "../btfs-sync/BtfsHttpClient";
 
 @Injectable()
 export class CommentEntityEventsSubscriber implements EntitySubscriberInterface<Comment> {
     constructor(@InjectConnection() private readonly connection: Connection,
                 private readonly btfsCommentsMapper: BtfsCommentsMapper,
-                private readonly btfsClient: BtfsClient,
+                private readonly btfsClient: BtfsKafkaClient,
+                private readonly btfsHttpClient: BtfsHttpClient,
                 private readonly ipAddressProvider: IpAddressProvider,
                 private readonly accountsService: DefaultAccountProviderService,
                 private readonly log: LoggerService) {
@@ -34,7 +36,7 @@ export class CommentEntityEventsSubscriber implements EntitySubscriberInterface<
             await asyncForEach(comment.mediaAttachments, async mediaAttachment => {
                 const filePath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, mediaAttachment.name);
                 try {
-                    await this.btfsClient.uploadFile(mediaAttachment.id, filePath)
+                    await this.btfsHttpClient.uploadFile(mediaAttachment.id, filePath)
                 } catch (error) {
                     this.log.error(`Error occurred when tried to save media attachment ${mediaAttachment.id} to BTFS`);
                     console.log(error);

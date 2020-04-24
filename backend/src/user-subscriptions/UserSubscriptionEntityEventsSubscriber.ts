@@ -6,17 +6,17 @@ import {UserSubscription} from "./entities";
 import {UserStatisticsRepository} from "../users/UserStatisticsRepository";
 import {MicrobloggingBlockchainApiClient} from "../microblogging-blockchain-api";
 import {BtfsUserSubscriptionsMapper} from "../btfs-sync/mappers";
-import {BtfsClient} from "../btfs-sync/BtfsClient";
 import {IpAddressProvider} from "../btfs-sync/IpAddressProvider";
 import {DefaultAccountProviderService} from "../default-account-provider/DefaultAccountProviderService";
 import {config} from "../config";
+import {BtfsKafkaClient} from "../btfs-sync/BtfsKafkaClient";
 
 @Injectable()
 export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberInterface<UserSubscription> {
     constructor(@InjectConnection() private readonly connection: Connection,
                 private readonly userStatisticsRepository: UserStatisticsRepository,
                 private readonly microbloggingBlockchainApiClient: MicrobloggingBlockchainApiClient,
-                private readonly btfsClient: BtfsClient,
+                private readonly btfsClient: BtfsKafkaClient,
                 private readonly btfsUserSubscriptionsMapper: BtfsUserSubscriptionsMapper,
                 private readonly ipAddressProvider: IpAddressProvider,
                 private readonly accountService: DefaultAccountProviderService,
@@ -102,7 +102,8 @@ export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberI
                 id: event.entity.id,
                 data: this.btfsUserSubscriptionsMapper.fromUserSubscription(event.entity),
                 peerIp: this.ipAddressProvider.getGlobalIpAddress(),
-                peerWallet: (await this.accountService.getDefaultAccount()).address
+                peerWallet: (await this.accountService.getDefaultAccount()).address,
+                userId: event.entity.subscribedUser.id
             })
                 .then(() => `Unsubscription on ${subscribedUser.ethereumAddress} from ${subscribedTo.ethereumAddress} has been saved to BTFS`)
                 .catch(error => {

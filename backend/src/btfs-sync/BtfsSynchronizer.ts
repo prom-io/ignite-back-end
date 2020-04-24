@@ -7,7 +7,7 @@ import path from "path";
 import graphicsMagic from "gm";
 import FileTypeExtractor from "file-type";
 import {BtfsHashRepository} from "./BtfsHashRepository";
-import {BtfsClient} from "./BtfsClient";
+import {BtfsHttpClient} from "./BtfsHttpClient";
 import {BtfsHash} from "./entities";
 import {BtfsMediaAttachment, BtfsStatus, BtfsStatusLike, BtfsUser, BtfsUserSubscription} from "./types/btfs-entities";
 import {
@@ -53,7 +53,7 @@ export class BtfsSynchronizer extends NestSchedule {
                 private readonly userSubscriptionsRepository: UserSubscriptionsRepository,
                 private readonly mediaAttachmentsRepository: MediaAttachmentsRepository,
                 private readonly commentsRepository: CommentsRepository,
-                private readonly btfsClient: BtfsClient,
+                private readonly btfsClient: BtfsHttpClient,
                 private readonly log: LoggerService
                 ) {
         super();

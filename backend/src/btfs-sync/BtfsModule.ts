@@ -15,7 +15,7 @@ import {
 } from "./mappers";
 import {IpAddressProvider} from "./IpAddressProvider";
 import {BtfsSynchronizer} from "./BtfsSynchronizer";
-import {BtfsClient} from "./BtfsClient";
+import {BtfsHttpClient} from "./BtfsHttpClient";
 import {UsersRepository} from "../users/UsersRepository";
 import {StatusesRepository} from "../statuses/StatusesRepository";
 import {StatusLikesRepository} from "../statuses/StatusLikesRepository";
@@ -23,6 +23,7 @@ import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptio
 import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
 import {config} from "../config";
 import {CommentsRepository} from "../statuses/CommentsRepository";
+import {BtfsKafkaClient} from "./BtfsKafkaClient";
 
 @Global()
 @Module({
@@ -36,7 +37,8 @@ import {CommentsRepository} from "../statuses/CommentsRepository";
         },
         BtfsService,
         BtfsSynchronizer,
-        BtfsClient,
+        BtfsHttpClient,
+        BtfsKafkaClient,
         BtfsUsersMapper,
         BtfsUserSubscriptionsMapper,
         BtfsStatusLikesMapper,
@@ -59,7 +61,8 @@ import {CommentsRepository} from "../statuses/CommentsRepository";
         ScheduleModule.register()
     ],
     exports: [
-        BtfsClient,
+        BtfsHttpClient,
+        BtfsKafkaClient,
         BtfsUsersMapper,
         BtfsUserSubscriptionsMapper,
         BtfsStatusLikesMapper,
