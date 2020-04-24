@@ -13,6 +13,7 @@ import {BtfsMediaAttachment, BtfsStatus, BtfsStatusLike, BtfsUser, BtfsUserSubsc
 import {
     BtfsCommentEntityResponse,
     BtfsCommentsResponse,
+    BtfsEntitiesResponse,
     BtfsImageEntityResponse,
     BtfsStatusEntityResponse,
     BtfsStatusLikeEntityResponse,
@@ -40,6 +41,8 @@ interface BtfsEntityInfo {
     peerWallet: string,
     btfsCid: string
 }
+
+type ObjectFromJsonConstructor<T> = new(json: T) => T
 
 @Injectable()
 export class BtfsSynchronizer extends NestSchedule {
@@ -69,6 +72,8 @@ export class BtfsSynchronizer extends NestSchedule {
             try {
                 this.log.info(`Synchronizing with BTFS cid ${btfsHash.btfsCid}`);
                 const entities = (await this.btfsClient.getEntitiesByCid(btfsHash.btfsCid)).data;
+                const allJson = (await this.btfsClient.getAllJson(btfsHash.btfsCid)).data;
+                const jsonNotInEntities = this.getJsonNotInEntities(allJson, entities);
                 const images = entities.images || [];
                 const comments = entities.comments || [];
                 const statuses = entities.posts || [];
@@ -77,6 +82,18 @@ export class BtfsSynchronizer extends NestSchedule {
                 const statusUnlikes = entities.unlikes || [];
                 const unsubscriptions = entities.unsubscribes || [];
 
+                const notSavedEntities = (await asyncMap(jsonNotInEntities, async json => {
+                    return  await this.getEntityFromJson(json, [
+                        BtfsStatus,
+                        BtfsStatusLike,
+                        BtfsUserSubscription,
+                        BtfsMediaAttachment,
+                        BtfsUser
+                    ]);
+                }))
+                    .filter(entity => Boolean(entity));
+
+                await this.synchronizeEntitiesWhichWereNotSavedProperly(notSavedEntities, btfsHash.peerIp, btfsHash.peerWallet, btfsHash.btfsCid);
                 await this.synchronizeImages(btfsHash.btfsCid, images);
                 await this.synchronizeComments(btfsHash.btfsCid, comments);
                 await this.synchronizeStatusLikes(btfsHash.btfsCid, statusLikes);
@@ -92,6 +109,44 @@ export class BtfsSynchronizer extends NestSchedule {
                 console.log(error);
             }
         })
+    }
+
+    private async synchronizeEntitiesWhichWereNotSavedProperly(entities: any[], peerIp: string, peerWallet: string, btfsCid: string): Promise<void> {
+        await asyncForEach(entities, async entity => {
+            if (entity instanceof BtfsStatus) {
+                await this.mergeStatus(await this.statusesRepository.findById(entity.id), entity, {peerIp, peerWallet, btfsCid});
+            } else if (entity instanceof BtfsStatusLike) {
+                await this.saveBtfsStatusLike(entity, {peerIp, peerWallet, btfsCid});
+            } else if (entity instanceof BtfsUserSubscription) {
+                await this.mergeSubscription(await this.userSubscriptionsRepository.findById(entity.id), entity, {peerIp, peerWallet, btfsCid});
+            } else if (entity instanceof BtfsUser) {
+                await this.mergeUser(await this.usersRepository.findById(entity.id), entity, {peerIp, peerWallet, btfsCid})
+            }
+        })
+    }
+
+    private getJsonNotInEntities(allJson: any[], entities: BtfsEntitiesResponse): any[] {
+        const jsonNotInEntities: any[] = [];
+
+        allJson.forEach(json => {
+            if (json.id) {
+                if (!this.isJsonInEntities(json, entities)) {
+                    jsonNotInEntities.push(json);
+                }
+            }
+        });
+
+        return jsonNotInEntities;
+    }
+
+    private isJsonInEntities(json: {id: any}, entities: BtfsEntitiesResponse): boolean {
+        return (entities.posts && entities.posts.map(post => post.postId).includes(json.id))
+            || (entities.likes && entities.likes.map(like => like.id).includes(json.id))
+            || (entities.unlikes && entities.unlikes.map(unlike => unlike.id).includes(json.id))
+            || (entities.images && entities.images.map(image => image.fileId).includes(json.id))
+            || (entities.subscribes && entities.subscribes.map(subscribe => subscribe.id).includes(json.id))
+            || (entities.unsubscribes && entities.unsubscribes.map(unsubscribe => unsubscribe.id).includes(json.id))
+            || (entities.users && entities.users.map(user => user.userId).includes(json.id))
     }
 
     private async synchronizeImages(cid: string, btfsImages: BtfsImageEntityResponse[]): Promise<void> {
@@ -129,6 +184,17 @@ export class BtfsSynchronizer extends NestSchedule {
                     })
             }
         })
+    }
+
+    private async getEntityFromJson(json: any, entityConstructors: Array<ObjectFromJsonConstructor<any>>): Promise<any | undefined> {
+        for (const constructor of entityConstructors) {
+            const entity = new constructor(json);
+            if ((await validate(entity)).length === 0) {
+                return entity;
+            }
+        }
+
+        return undefined;
     }
 
     private async synchronizeStatuses(cid: string, statuses: BtfsStatusEntityResponse[]): Promise<void> {
@@ -344,7 +410,7 @@ export class BtfsSynchronizer extends NestSchedule {
         return status;
     }
 
-    private async mergeUser(user: User | undefined, btfsUser: BtfsUser): Promise<User> {
+    private async mergeUser(user: User | undefined, btfsUser: BtfsUser, btfsEntityInfo?: BtfsEntityInfo): Promise<User> {
         if (!user) {
             user = {
                 ...btfsUser,
@@ -368,7 +434,7 @@ export class BtfsSynchronizer extends NestSchedule {
         } else {
             mediaAttachment = {
                 ...btfsMediaAttachment,
-                name: `${btfsMediaAttachment.id}.${mediaAttachment.format}`,
+                name: `${btfsMediaAttachment.id}.${btfsMediaAttachment.format}`,
                 siaLink: btfsMediaAttachment.siaLink,
                 peerWallet: btfsEntityInfo.peerWallet,
                 peerIp: btfsEntityInfo.peerIp,

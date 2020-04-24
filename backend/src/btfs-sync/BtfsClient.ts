@@ -113,4 +113,8 @@ export class BtfsClient {
                 })
         })
     }
+
+    public getAllJson(cid: string): AxiosPromise<any[]> {
+        return this.axios.get(`/api/v1/soter/all/${cid}`);
+    }
 }
