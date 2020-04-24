@@ -73,43 +73,48 @@ export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberI
     }
 
     public async afterUpdate(event: UpdateEvent<UserSubscription>): Promise<void> {
-        const {subscribedTo, subscribedUser, id} = event.entity;
-        const subscribedToStatistics = await this.userStatisticsRepository.findByUser(subscribedTo);
-        const subscribedUserStatistics = await this.userStatisticsRepository.findByUser(subscribedUser);
+        const subscription = event.entity;
 
-        subscribedToStatistics.followersCount = subscribedToStatistics.followersCount - 1;
-        subscribedUserStatistics.followsCount = subscribedUserStatistics.followsCount - 1;
+        if (subscription.reverted && !subscription.btfsHash) {
+            const {subscribedTo, subscribedUser} = event.entity;
 
-        await this.userStatisticsRepository.save(subscribedToStatistics);
-        await this.userStatisticsRepository.save(subscribedUserStatistics);
+            const subscribedToStatistics = await this.userStatisticsRepository.findByUser(subscribedTo);
+            const subscribedUserStatistics = await this.userStatisticsRepository.findByUser(subscribedUser);
 
-        if (event.entity.revertedAt && event.entity.saveUnsubscriptionToBtfs && config.ENABLE_BTFS_PUSHING) {
-            this.microbloggingBlockchainApiClient.logUnsubscription({
-                id: event.entity.id,
-                user: subscribedUser.ethereumAddress
-            })
-                .then(() => this.log.info(`Unsubscription of ${subscribedUser.ethereumAddress} from ${subscribedTo.ethereumAddress} has been written to blockchain`))
-                .catch(error => {
-                    this.log.error(`Error occurred when tried to write unsubscription of ${subscribedUser.ethereumAddress} from ${subscribedTo.ethereumAddress} to blockchain`);
-                    console.error(error);
-                });
+            subscribedToStatistics.followersCount = subscribedToStatistics.followersCount - 1;
+            subscribedUserStatistics.followsCount = subscribedUserStatistics.followsCount - 1;
 
-            if (!config.ENABLE_BTFS_PUSHING) {
-                return ;
-            }
+            await this.userStatisticsRepository.save(subscribedToStatistics);
+            await this.userStatisticsRepository.save(subscribedUserStatistics);
 
-            this.btfsClient.saveUserUnsubscription({
-                id: event.entity.id,
-                data: this.btfsUserSubscriptionsMapper.fromUserSubscription(event.entity),
-                peerIp: this.ipAddressProvider.getGlobalIpAddress(),
-                peerWallet: (await this.accountService.getDefaultAccount()).address,
-                userId: event.entity.subscribedUser.id
-            })
-                .then(() => `Unsubscription on ${subscribedUser.ethereumAddress} from ${subscribedTo.ethereumAddress} has been saved to BTFS`)
-                .catch(error => {
-                    this.log.error(`Error occurred when tried to save unsubscription of ${subscribedUser.ethereumAddress} from ${subscribedTo.ethereumAddress} to BTFS`);
-                    console.log(error);
+            if (config.ENABLE_BTFS_PUSHING) {
+                this.microbloggingBlockchainApiClient.logUnsubscription({
+                    id: event.entity.id,
+                    user: subscribedUser.ethereumAddress
                 })
+                    .then(() => this.log.info(`Unsubscription of ${subscribedUser.ethereumAddress} from ${subscribedTo.ethereumAddress} has been written to blockchain`))
+                    .catch(error => {
+                        this.log.error(`Error occurred when tried to write unsubscription of ${subscribedUser.ethereumAddress} from ${subscribedTo.ethereumAddress} to blockchain`);
+                        console.error(error);
+                    });
+
+                if (!config.ENABLE_BTFS_PUSHING) {
+                    return ;
+                }
+
+                this.btfsClient.saveUserUnsubscription({
+                    id: event.entity.id,
+                    data: this.btfsUserSubscriptionsMapper.fromUserSubscription(event.entity),
+                    peerIp: this.ipAddressProvider.getGlobalIpAddress(),
+                    peerWallet: (await this.accountService.getDefaultAccount()).address,
+                    userId: event.entity.subscribedUser.id
+                })
+                    .then(() => `Unsubscription on ${subscribedUser.ethereumAddress} from ${subscribedTo.ethereumAddress} has been saved to BTFS`)
+                    .catch(error => {
+                        this.log.error(`Error occurred when tried to save unsubscription of ${subscribedUser.ethereumAddress} from ${subscribedTo.ethereumAddress} to BTFS`);
+                        console.log(error);
+                    })
+            }
         }
     }
 }

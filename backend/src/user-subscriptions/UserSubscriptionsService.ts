@@ -78,7 +78,10 @@ export class UserSubscriptionsService {
             throw new HttpException(`Current user is not subscribed to ${address}`, HttpStatus.FORBIDDEN);
         }
 
-        await this.userSubscriptionsRepository.remove(subscription);
+        subscription.reverted = true;
+        subscription.revertedAt = new Date();
+
+        await this.userSubscriptionsRepository.save(subscription);
 
         const targetUserSubscription = await this.userSubscriptionsRepository.findBySubscribedUserAndSubscribedToNotReverted(targetUser, currentUser);
 
