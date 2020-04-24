@@ -66,4 +66,10 @@ export class EnvConfig {
 
     @Env({type: "boolean", required: false})
     ENABLE_BTFS_PUSHING: boolean = false;
+
+    @Env({type: "string", required: true})
+    APACHE_KAFKA_HOST: string;
+
+    @Env({type: "number", required: true})
+    APACHE_KAFKA_PORT: number;
 }

@@ -8,6 +8,7 @@ import {
     SaveUnlikeRequest,
     SaveUserSubscriptionRequest
 } from "./types/request";
+import {config} from "../config";
 
 @Injectable()
 export class BtfsKafkaClient implements OnModuleInit {
@@ -16,7 +17,7 @@ export class BtfsKafkaClient implements OnModuleInit {
         options: {
             client: {
                 clientId: "ignite_backend_client",
-                brokers: ["localhost:29092"]
+                brokers: [`${config.APACHE_KAFKA_HOST}:${config.APACHE_KAFKA_PORT}`]
             },
             consumer: {
                 groupId: "ignite"
