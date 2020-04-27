@@ -505,6 +505,9 @@ export class BtfsSynchronizer extends NestSchedule {
 
                 if (deletedLike) {
                     deletedLike.saveUnlikeToBtfs = false;
+                    if (!deletedLike.btfsHash) {
+                        deletedLike.btfsHash = cid;
+                    }
                     deletedLike.reverted = true;
                     deletedLike.revertedAt = new Date();
                     await this.statusLikesRepository.save(deletedLike);
