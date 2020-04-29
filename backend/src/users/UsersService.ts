@@ -3,16 +3,34 @@ import {User} from "./entities";
 import {UsersRepository} from "./UsersRepository";
 import {UserStatisticsRepository} from "./UserStatisticsRepository";
 import {UsersMapper} from "./UsersMapper";
-import {CreateUserRequest} from "./types/request";
+import {CreateUserRequest, SignUpForPrivateBetaTestRequest} from "./types/request";
 import {UserResponse} from "./types/response";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
+import {MailerService} from "@nestjs-modules/mailer";
+import {LoggerService} from "nest-logger";
+import {config} from "../config";
 
 @Injectable()
 export class UsersService {
     constructor(private readonly usersRepository: UsersRepository,
                 private readonly userStatisticsRepository: UserStatisticsRepository,
                 private readonly subscriptionsRepository: UserSubscriptionsRepository,
-                private readonly usersMapper: UsersMapper) {
+                private readonly mailerService: MailerService,
+                private readonly usersMapper: UsersMapper,
+                private readonly log: LoggerService) {
+    }
+
+    public async signUpForPrivateBeta(signUpForPrivateBetaTestRequest: SignUpForPrivateBetaTestRequest): Promise<void> {
+        this.mailerService.sendMail({
+            from: config.EMAIL_USERNAME,
+            to: config.EMAIL_ADDRESS_TO_SEND,
+            text: signUpForPrivateBetaTestRequest.email
+        })
+            .then(() => this.log.info(`Email address ${signUpForPrivateBetaTestRequest.email} has been sent`))
+            .catch(error => {
+                this.log.error(`Error occurred when tried send address ${signUpForPrivateBetaTestRequest.email}`);
+                console.log(error);
+            })
     }
 
     public async saveUser(createUserRequest: CreateUserRequest): Promise<UserResponse> {

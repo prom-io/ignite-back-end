@@ -1,5 +1,6 @@
 import {forwardRef, Module} from "@nestjs/common";
 import {TypeOrmModule} from "@nestjs/typeorm";
+import {MailerModule} from "@nestjs-modules/mailer";
 import {UsersService} from "./UsersService";
 import {UsersMapper} from "./UsersMapper";
 import {UsersController} from "./UsersController";
@@ -11,6 +12,7 @@ import {UserStatisticsMapper} from "./UserStatisticsMapper";
 import {StatusesModule} from "../statuses/StatusesModule";
 import {UserSubscriptionsModule} from "../user-subscriptions/UserSubscriptionsModule";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
+import {config} from "../config";
 
 @Module({
     controllers: [UsersController, UserByAddressController],
@@ -19,6 +21,17 @@ import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptio
         TypeOrmModule.forFeature([UsersRepository, UserStatisticsRepository, UserSubscriptionsRepository]),
         forwardRef(() => StatusesModule),
         forwardRef(() => UserSubscriptionsModule),
+        MailerModule.forRoot({
+            transport: {
+                port: config.EMAIL_SMTP_SERVER_PORT,
+                host: config.EMAIL_SMTP_SERVER_HOST,
+                auth: {
+                    user: config.EMAIL_USERNAME,
+                    pass: config.EMAIL_PASSWORD
+                },
+                secure: true
+            },
+        })
     ],
     exports: [UsersService, UsersMapper]
 })

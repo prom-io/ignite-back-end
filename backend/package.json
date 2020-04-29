@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@nebulous/skynet": "^0.0.8",
+    "@nestjs-modules/mailer": "^1.4.2",
     "@nestjs/common": "^6.7.2",
     "@nestjs/core": "^6.7.2",
     "@nestjs/jwt": "^6.1.1",
@@ -38,6 +39,7 @@
     "@types/ip": "^1.1.0",
     "@types/multiaddr": "^7.2.0",
     "@types/nedb": "^1.8.9",
+    "@types/nodemailer": "^6.4.0",
     "@types/passport-jwt": "^3.0.3",
     "@types/passport-local": "^1.0.33",
     "@types/socket.io": "^2.1.4",
@@ -67,6 +69,7 @@
     "nedb": "^1.8.0",
     "nest-logger": "^2.1.0",
     "nest-schedule": "^0.6.4",
+    "nodemailer": "^6.4.6",
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",

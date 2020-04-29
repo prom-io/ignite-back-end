@@ -1,8 +1,9 @@
-import {ClassSerializerInterceptor, Controller, Get, Param, Post, Query, Req, UseGuards, UseInterceptors} from "@nestjs/common";
+import {Body, ClassSerializerInterceptor, Controller, Get, Param, Post, Query, Req, UseGuards, UseInterceptors} from "@nestjs/common";
 import {AuthGuard} from "@nestjs/passport";
 import {Request} from "express";
 import {UsersService} from "./UsersService";
 import {User} from "./entities";
+import {SignUpForPrivateBetaTestRequest} from "./types/request";
 import {UserResponse} from "./types/response";
 import {StatusesService} from "../statuses";
 import {StatusResponse} from "../statuses/types/response";
@@ -16,6 +17,11 @@ export class UsersController {
     constructor(private readonly usersService: UsersService,
                 private readonly statusesService: StatusesService,
                 private readonly userSubscriptionsService: UserSubscriptionsService) {
+    }
+
+    @Post("private-beta")
+    public async signUpForPrivateBeta(@Body() signUpForPrivateBetaTestRequest: SignUpForPrivateBetaTestRequest) {
+        await this.usersService.signUpForPrivateBeta(signUpForPrivateBetaTestRequest);
     }
 
     @UseInterceptors(ClassSerializerInterceptor)

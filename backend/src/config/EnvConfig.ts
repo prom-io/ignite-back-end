@@ -72,4 +72,19 @@ export class EnvConfig {
 
     @Env({type: "number", required: true})
     APACHE_KAFKA_PORT: number;
+
+    @Env({type: "string", required: true})
+    EMAIL_USERNAME: string;
+
+    @Env({type: "string", required: true})
+    EMAIL_PASSWORD: string;
+
+    @Env({type: "string", required: true})
+    EMAIL_SMTP_SERVER_HOST: string;
+
+    @Env({type: "number", required: true})
+    EMAIL_SMTP_SERVER_PORT: number;
+
+    @Env({type: "string", required: true})
+    EMAIL_ADDRESS_TO_SEND: string;
 }
