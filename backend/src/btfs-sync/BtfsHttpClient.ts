@@ -4,7 +4,7 @@ import fileSystem, {PathLike} from "fs";
 import FormData from "form-data";
 import {BtfsCommentsResponse, BtfsEntitiesResponse, BtfsStatusLikesResponse, BtfsUserSubscriptionsResponse} from "./types/response";
 import {SaveCommentRequest, SaveStatusLikeRequest, SaveStatusRequest, SaveUserSubscriptionRequest} from "./types/request";
-import {BtfsStatus} from "./types/btfs-entities";
+import {BtfsStatus, BtfsUser} from "./types/btfs-entities";
 import {SaveUserUnsubscriptionRequest} from "./types/request/SaveUserUnsubscriptionRequest";
 
 interface GetUserSubscriptionsOptions {
@@ -31,6 +31,11 @@ interface DownloadFileOptions {
     path: PathLike,
     id: string,
     cid: string
+}
+
+interface GetUserOptions {
+    cid: string,
+    userId: string
 }
 
 @Injectable()
@@ -112,6 +117,10 @@ export class BtfsHttpClient {
                     reject(error);
                 })
         })
+    }
+
+    public getUser(options: GetUserOptions): AxiosPromise<BtfsUser> {
+        return this.axios.get(`/api/v1/user/${options.cid}/${options.userId}`);
     }
 
     public getAllJson(cid: string): AxiosPromise<any[]> {

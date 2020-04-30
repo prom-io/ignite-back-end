@@ -17,7 +17,7 @@ import {
     BtfsImageEntityResponse,
     BtfsStatusEntityResponse,
     BtfsStatusLikeEntityResponse,
-    BtfsStatusLikesResponse,
+    BtfsStatusLikesResponse, BtfsUserEntityResponse,
     BtfsUserSubscriptionEntityResponse,
     BtfsUserSubscriptionsResponse
 } from "./types/response";
@@ -74,6 +74,7 @@ export class BtfsSynchronizer extends NestSchedule {
                 const entities = (await this.btfsClient.getEntitiesByCid(btfsHash.btfsCid)).data;
                 const allJson = (await this.btfsClient.getAllJson(btfsHash.btfsCid)).data;
                 const jsonNotInEntities = this.getJsonNotInEntities(allJson, entities);
+                const users = entities.users || [];
                 const images = entities.images || [];
                 const comments = entities.comments || [];
                 const statuses = entities.posts || [];
@@ -95,6 +96,7 @@ export class BtfsSynchronizer extends NestSchedule {
 
                 await this.synchronizeEntitiesWhichWereNotSavedProperly(notSavedEntities, btfsHash.peerIp, btfsHash.peerWallet, btfsHash.btfsCid);
                 await this.synchronizeImages(btfsHash.btfsCid, images);
+                await this.synchronizeUsers(btfsHash.btfsCid, users);
                 await this.synchronizeComments(btfsHash.btfsCid, comments);
                 await this.synchronizeStatusLikes(btfsHash.btfsCid, statusLikes);
                 await this.synchronizeStatuses(btfsHash.btfsCid, statuses);
@@ -195,6 +197,21 @@ export class BtfsSynchronizer extends NestSchedule {
         }
 
         return undefined;
+    }
+
+    private async synchronizeUsers(cid: string, users: BtfsUserEntityResponse[]): Promise<void> {
+        await asyncForEach(users, async btfsUser => {
+            const user = new BtfsUser((await this.btfsClient.getUser({cid, userId: btfsUser.userId})).data);
+            await this.mergeUser(
+                await this.usersRepository.findById(btfsUser.userId),
+                user,
+                {
+                    peerIp: btfsUser.peerIp,
+                    peerWallet: btfsUser.peerWallet,
+                    btfsCid: cid
+                }
+            )
+        })
     }
 
     private async synchronizeStatuses(cid: string, statuses: BtfsStatusEntityResponse[]): Promise<void> {

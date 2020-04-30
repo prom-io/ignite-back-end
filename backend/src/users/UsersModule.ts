@@ -13,6 +13,7 @@ import {StatusesModule} from "../statuses/StatusesModule";
 import {UserSubscriptionsModule} from "../user-subscriptions/UserSubscriptionsModule";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {config} from "../config";
+import {DefaultAccountProviderModule} from "../default-account-provider/DefaultAccountProviderModule";
 
 @Module({
     controllers: [UsersController, UserByAddressController],
@@ -31,7 +32,8 @@ import {config} from "../config";
                 },
                 secure: true
             },
-        })
+        }),
+        DefaultAccountProviderModule
     ],
     exports: [UsersService, UsersMapper]
 })
