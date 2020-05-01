@@ -11,19 +11,18 @@ import {BtfsHttpClient} from "./BtfsHttpClient";
 import {BtfsHash} from "./entities";
 import {BtfsMediaAttachment, BtfsStatus, BtfsStatusLike, BtfsUser, BtfsUserSubscription} from "./types/btfs-entities";
 import {
-    BtfsCommentEntityResponse,
-    BtfsCommentsResponse,
     BtfsEntitiesResponse,
     BtfsImageEntityResponse,
     BtfsStatusEntityResponse,
     BtfsStatusLikeEntityResponse,
-    BtfsStatusLikesResponse, BtfsUserEntityResponse,
+    BtfsStatusLikesResponse,
+    BtfsUserEntityResponse,
     BtfsUserSubscriptionEntityResponse,
     BtfsUserSubscriptionsResponse
 } from "./types/response";
 import {asyncForEach} from "../utils/async-foreach";
 import {User} from "../users/entities";
-import {Status} from "../statuses/entities";
+import {Status, StatusReferenceType} from "../statuses/entities";
 import {StatusesRepository} from "../statuses/StatusesRepository";
 import {StatusLikesRepository} from "../statuses/StatusLikesRepository";
 import {UsersRepository} from "../users/UsersRepository";
@@ -33,8 +32,6 @@ import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsR
 import {asyncMap} from "../utils/async-map";
 import {UserSubscription} from "../user-subscriptions/entities";
 import {config} from "../config";
-import {BtfsComment} from "./types/btfs-entities/BtfsComment";
-import {CommentsRepository} from "../statuses/CommentsRepository";
 
 interface BtfsEntityInfo {
     peerIp: string,
@@ -52,7 +49,6 @@ export class BtfsSynchronizer extends NestSchedule {
                 private readonly usersRepository: UsersRepository,
                 private readonly userSubscriptionsRepository: UserSubscriptionsRepository,
                 private readonly mediaAttachmentsRepository: MediaAttachmentsRepository,
-                private readonly commentsRepository: CommentsRepository,
                 private readonly btfsClient: BtfsHttpClient,
                 private readonly log: LoggerService
                 ) {
@@ -76,7 +72,6 @@ export class BtfsSynchronizer extends NestSchedule {
                 const jsonNotInEntities = this.getJsonNotInEntities(allJson, entities);
                 const users = entities.users || [];
                 const images = entities.images || [];
-                const comments = entities.comments || [];
                 const statuses = entities.posts || [];
                 const statusLikes = entities.likes || [];
                 const subscriptions = entities.subscribes || [];
@@ -97,7 +92,6 @@ export class BtfsSynchronizer extends NestSchedule {
                 await this.synchronizeEntitiesWhichWereNotSavedProperly(notSavedEntities, btfsHash.peerIp, btfsHash.peerWallet, btfsHash.btfsCid);
                 await this.synchronizeImages(btfsHash.btfsCid, images);
                 await this.synchronizeUsers(btfsHash.btfsCid, users);
-                await this.synchronizeComments(btfsHash.btfsCid, comments);
                 await this.synchronizeStatusLikes(btfsHash.btfsCid, statusLikes);
                 await this.synchronizeStatuses(btfsHash.btfsCid, statuses);
                 await this.synchronizeSubscriptions(btfsHash.btfsCid, subscriptions);
@@ -232,69 +226,6 @@ export class BtfsSynchronizer extends NestSchedule {
         });
     }
 
-    private async synchronizeComments(cid: string, comments: BtfsCommentEntityResponse[]): Promise<void> {
-        await asyncForEach(comments, async commentData => {
-            const btfsComments: BtfsCommentsResponse = (await this.btfsClient.getCommentsByCid({cid, statusId: commentData.postId})).data;
-            const commentsIds = Object.keys(btfsComments);
-
-            await asyncForEach(commentsIds, async commentId => {
-                const btfsComment: BtfsComment = new BtfsComment(btfsComments[commentId]);
-                const errors = await validate(btfsComment);
-
-                if (errors.length > 0) {
-                    console.log(errors);
-                    return ;
-                }
-
-                await this.saveBtfsComment(btfsComment, {
-                    peerIp: commentData.peerId,
-                    peerWallet: commentData.peerWallet,
-                    btfsCid: cid
-                });
-            })
-        })
-    }
-
-    private async saveBtfsComment(btfsComment: BtfsComment, btfsEntityInfo: BtfsEntityInfo): Promise<void> {
-        let comment = await this.commentsRepository.findById(btfsComment.id);
-
-        if (comment && !comment.btfsHash) {
-            comment.btfsHash = btfsEntityInfo.btfsCid;
-            comment.peerIp = btfsEntityInfo.peerIp;
-            comment.peerWallet = btfsEntityInfo.peerWallet;
-        } else {
-            const mediaAttachments = await asyncMap(
-                btfsComment.mediaAttachments,
-                async btfsMediaAttachment => await this.mergeMediaAttachment(
-                    await this.mediaAttachmentsRepository.findById(btfsMediaAttachment.id),
-                    btfsMediaAttachment,
-                    btfsEntityInfo
-                )
-            );
-            const author = await this.mergeUser(await this.usersRepository.findById(btfsComment.author.id), btfsComment.author);
-            const status = await this.mergeStatus(
-                await this.statusesRepository.findById(btfsComment.status.id),
-                btfsComment.status,
-                btfsEntityInfo
-            );
-
-            comment = {
-                id: btfsComment.id,
-                author,
-                status,
-                createdAt: new Date(btfsComment.createdAt),
-                btfsHash: btfsEntityInfo.btfsCid,
-                peerWallet: btfsEntityInfo.peerWallet,
-                peerIp: btfsEntityInfo.peerIp,
-                text: btfsComment.text,
-                repostedComment: undefined,
-                mediaAttachments,
-                updatedAt: undefined
-            };
-            await this.commentsRepository.save(comment);
-        }
-    }
-
     private async synchronizeStatusLikes(cid: string, likes: BtfsStatusLikeEntityResponse[]): Promise<void> {
        await asyncForEach(likes, async likeData => {
            const btfsLikes: BtfsStatusLikesResponse = (await this.btfsClient.getStatusLikesByCid({commentId: likeData.commentId, cid})).data;
@@ -396,10 +327,12 @@ export class BtfsSynchronizer extends NestSchedule {
                 }
             );
             const author = await this.mergeUser(await this.usersRepository.findById(btfsStatus.author.id), btfsStatus.author);
-            let repostedStatus: Status | undefined;
+            let referredStatus: Status | undefined;
+            let statusReferenceType: StatusReferenceType | undefined;
 
-            if (btfsStatus.repostedStatusId) {
-                repostedStatus = await this.statusesRepository.findById(btfsStatus.id);
+            if (btfsStatus.referredStatusId) {
+                referredStatus= await this.statusesRepository.findById(btfsStatus.id);
+                statusReferenceType = btfsStatus.statusReferenceType || StatusReferenceType.REPOST;
             }
 
             status = {
@@ -410,7 +343,8 @@ export class BtfsSynchronizer extends NestSchedule {
                 updatedAt: undefined,
                 remote: true,
                 btfsHash: btfsEntityInfo.btfsCid,
-                repostedStatus: repostedStatus ? repostedStatus : null,
+                referredStatus: referredStatus ? referredStatus : null,
+                statusReferenceType,
                 peerWallet: btfsEntityInfo.peerWallet,
                 peerIp: btfsEntityInfo.peerIp,
             };

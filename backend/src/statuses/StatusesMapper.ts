@@ -1,9 +1,10 @@
 import {Injectable} from "@nestjs/common";
 import uuid from "uuid/v4";
-import {Comment, Status} from "./entities";
+import {Status, StatusReferenceType} from "./entities";
+import {StatusesRepository} from "./StatusesRepository";
+import {StatusMappingOptionsProvider} from "./StatusMappingOptionsProvider";
 import {StatusResponse} from "./types/response";
 import {CreateStatusRequest} from "./types/request";
-import {CommentsMapper, ToCommentResponseOptions} from "./CommentsMapper";
 import {User, UserStatistics} from "../users/entities";
 import {UsersMapper} from "../users/UsersMapper";
 import {MediaAttachment} from "../media-attachments/entities";
@@ -18,13 +19,13 @@ export interface ToStatusResponseOptions {
     userStatistics?: UserStatistics,
     followingAuthor: boolean,
     followedByAuthor: boolean,
-    mapRepostedStatus: boolean,
-    repostedStatusOptions?: Omit<ToStatusResponseOptions, "mapRepostedStatus" | "repostsCount">,
+    mapReferredStatus: boolean,
+    referredStatusOptions?: Omit<ToStatusResponseOptions, "mapRepostedStatus" | "repostsCount">,
     repostsCount: number,
-    repostedStatusId?: string,
+    referredStatusId?: string,
+    referredStatusReferenceType?: StatusReferenceType,
     btfsHash?: BtfsHash,
-    commentsCount: number,
-    repostedCommentOptions?: ToCommentResponseOptions
+    commentsCount: number
 }
 
 @Injectable()
@@ -32,7 +33,33 @@ export class StatusesMapper {
     constructor(private readonly userMapper: UsersMapper,
                 private readonly mediaAttachmentsMapper: MediaAttachmentsMapper,
                 private readonly btfsHashesMapper: BtfsHashesMapper,
-                private readonly commentsMapper: CommentsMapper) {
+                private readonly statusesRepository: StatusesRepository,
+                private readonly statusMappingOptionsProvider: StatusMappingOptionsProvider) {
+    }
+
+    public async toStatusResponseAsync(status: Status, currentUser?: User): Promise<StatusResponse> {
+        let referredStatusOptions: ToStatusResponseOptions | undefined;
+        const referredStatus = status.referredStatus;
+
+        if (referredStatus) {
+            referredStatusOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
+                referredStatus,
+                undefined,
+                currentUser
+            );
+            const statusAncestors = (await this.statusesRepository.findAncestorsOfStatus(referredStatus))
+                .filter(ancestor => ancestor.id !== referredStatus.id);
+            referredStatusOptions.referredStatusId = statusAncestors[statusAncestors.length - 1].id;
+            referredStatusOptions.referredStatusReferenceType = statusAncestors[statusAncestors.length - 1].statusReferenceType;
+        }
+
+        const statusMappingOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
+            status,
+            referredStatusOptions,
+            currentUser
+        );
+
+        return this.toStatusResponse(statusMappingOptions);
     }
 
     public toStatusResponse(options: ToStatusResponseOptions): StatusResponse {
@@ -43,13 +70,13 @@ export class StatusesMapper {
             followedByAuthor,
             followingAuthor,
             favouritesCount,
-            mapRepostedStatus,
-            repostedStatusOptions,
+            mapReferredStatus,
+            referredStatusOptions,
             repostsCount,
-            repostedStatusId,
+            referredStatusId,
+            referredStatusReferenceType,
             btfsHash,
             commentsCount,
-            repostedCommentOptions
         } = options;
         return new StatusResponse({
             account: this.userMapper.toUserResponse(status.author, userStatistics, followingAuthor, followedByAuthor),
@@ -65,16 +92,17 @@ export class StatusesMapper {
             visibility: "public",
             spoilerText: "",
             revisedAt: null,
-            respostedStatus: mapRepostedStatus ? this.toStatusResponse({
-                ...repostedStatusOptions,
-                mapRepostedStatus: false,
+            referredStatus: mapReferredStatus ? this.toStatusResponse({
+                ...referredStatusOptions,
+                mapReferredStatus: false,
                 repostsCount: 0
             }) : null,
             repostsCount,
-            repostedStatusId,
+            referredStatusId,
             btfsInfo: btfsHash && this.btfsHashesMapper.toBtfsHashResponse(btfsHash),
             commentsCount,
-            repostedComment: repostedCommentOptions && this.commentsMapper.toCommentResponse(repostedCommentOptions)
+            statusReferenceType: status.statusReferenceType,
+            referredStatusReferenceType
         })
     }
 
@@ -82,8 +110,8 @@ export class StatusesMapper {
         createStatusRequest: CreateStatusRequest,
         author: User,
         mediaAttachments: MediaAttachment[],
-        repostedStatus?: Status,
-        repostedComment?: Comment
+        referredStatus?: Status,
+        statusReferenceType?: StatusReferenceType
     ): Status {
         return  {
             id: uuid(),
@@ -93,8 +121,8 @@ export class StatusesMapper {
             updatedAt: null,
             remote: false,
             mediaAttachments,
-            repostedStatus,
-            repostedComment
+            referredStatus,
+            statusReferenceType
         }
     }
 }

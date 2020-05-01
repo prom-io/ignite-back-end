@@ -2,10 +2,8 @@ import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import {StatusesRepository} from "./StatusesRepository";
 import {CreateStatusRequest} from "./types/request";
 import {StatusResponse} from "./types/response";
-import {StatusesMapper, ToStatusResponseOptions} from "./StatusesMapper";
-import {StatusMappingOptionsProvider} from "./StatusMappingOptionsProvider";
-import {CommentsRepository} from "./CommentsRepository";
-import {Comment, Status} from "./entities";
+import {StatusesMapper} from "./StatusesMapper";
+import {Status, StatusReferenceType} from "./entities";
 import {FeedCursors} from "./types/request/FeedCursors";
 import {User} from "../users/entities";
 import {UsersRepository} from "../users/UsersRepository";
@@ -19,72 +17,43 @@ export class StatusesService {
     constructor(private readonly statusesRepository: StatusesRepository,
                 private readonly usersRepository: UsersRepository,
                 private readonly mediaAttachmentRepository: MediaAttachmentsRepository,
-                private readonly commentsRepository: CommentsRepository,
-                private readonly statusesMapper: StatusesMapper,
-                private readonly statusMappingOptionsProvider: StatusMappingOptionsProvider) {
+                private readonly statusesMapper: StatusesMapper) {
     }
 
     public async createStatus(createStatusRequest: CreateStatusRequest, currentUser: User): Promise<StatusResponse> {
         let mediaAttachments: MediaAttachment[] = [];
 
-        if (createStatusRequest.media_attachments && createStatusRequest.media_attachments.length) {
-            mediaAttachments = await this.mediaAttachmentRepository.findAllByIds(createStatusRequest.media_attachments);
+        if (createStatusRequest.mediaAttachments && createStatusRequest.mediaAttachments.length) {
+            mediaAttachments = await this.mediaAttachmentRepository.findAllByIds(createStatusRequest.mediaAttachments);
         }
 
-        let repostedStatus: Status | undefined;
-        let repostedComment: Comment | undefined;
+        let referredStatus: Status | undefined;
 
-        if (createStatusRequest.repostedStatusId) {
-            repostedStatus = await this.statusesRepository.findById(createStatusRequest.repostedStatusId);
+        if (createStatusRequest.referredStatusId) {
+            referredStatus = await this.statusesRepository.findById(createStatusRequest.referredStatusId);
 
-            if (!repostedStatus) {
+            if (!referredStatus) {
                 throw new HttpException(
-                    `Could not find status with id ${createStatusRequest.repostedStatusId}`,
+                    `Could not find status with id ${createStatusRequest.referredStatusId}`,
                     HttpStatus.NOT_FOUND
                 )
             }
         }
 
-        if (createStatusRequest.reposted_comment_id) {
-            repostedComment = await this.commentsRepository.findById(createStatusRequest.reposted_comment_id);
-
-            if (!repostedComment) {
-                throw new HttpException(
-                    `Could not find comment with id ${createStatusRequest.reposted_comment_id}`,
-                    HttpStatus.NOT_FOUND
-                )
-            }
+        if (referredStatus && createStatusRequest.statusReferenceType === StatusReferenceType.REPOST && referredStatus.text.length === 0
+            && referredStatus.mediaAttachments.length === 0 && referredStatus.referredStatus) {
+            referredStatus = referredStatus.referredStatus;
         }
 
         let status = this.statusesMapper.fromCreateStatusRequest(
             createStatusRequest,
             currentUser,
             mediaAttachments,
-            repostedStatus,
-            repostedComment
+            referredStatus,
         );
         status = await this.statusesRepository.save(status);
-        let repostedStatusMappingOptions: ToStatusResponseOptions | undefined;
 
-        if (status.repostedStatus) {
-            repostedStatusMappingOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
-                repostedStatus,
-                undefined,
-                currentUser
-            );
-            const statusAncestors = (await this.statusesRepository.findAncestorsOfStatus(repostedStatus))
-                .map(ancestor => ancestor.id)
-                .filter(ancestorId => ancestorId !== repostedStatus.id);
-            repostedStatusMappingOptions.repostedStatusId = statusAncestors[statusAncestors.length - 1];
-        }
-
-        const statusMappingOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
-            status,
-            repostedStatusMappingOptions,
-            currentUser
-        );
-
-        return this.statusesMapper.toStatusResponse(statusMappingOptions);
+        return this.statusesMapper.toStatusResponseAsync(status, currentUser);
     }
 
     public async findStatusById(id: string, currentUser?: User): Promise<StatusResponse> {
@@ -94,29 +63,7 @@ export class StatusesService {
             throw new HttpException(`Could not find status with id ${id}`, HttpStatus.NOT_FOUND);
         }
 
-        let repostedStatusOptions: ToStatusResponseOptions | undefined;
-        const repostedStatus = status.repostedStatus;
-
-        if (repostedStatus) {
-            repostedStatusOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
-                repostedStatus,
-                undefined,
-                currentUser
-            );
-            let statusAncestors = (await this.statusesRepository.findAncestorsOfStatus(repostedStatus))
-                .map(ancestor => ancestor.id)
-                .filter(ancestorId => ancestorId !== repostedStatus.id);
-            statusAncestors = statusAncestors.filter(ancestorId => ancestorId !== repostedStatus.id);
-            repostedStatusOptions.repostedStatusId = statusAncestors[statusAncestors.length - 1];
-        }
-
-        const statusMappingOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
-            status,
-            repostedStatusOptions,
-            currentUser
-        );
-
-        return this.statusesMapper.toStatusResponse(statusMappingOptions);
+        return this.statusesMapper.toStatusResponseAsync(status, currentUser);
     }
 
     public async findStatusesByUser(
@@ -158,29 +105,7 @@ export class StatusesService {
             statuses = await this.statusesRepository.findByAuthor(user, paginationRequest);
         }
 
-        return asyncMap(statuses, async status => {
-            let repostedStatusOptions: ToStatusResponseOptions | undefined;
-            const repostedStatus = status.repostedStatus;
-
-            if (repostedStatus) {
-                repostedStatusOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
-                    repostedStatus,
-                    undefined,
-                    currentUser
-                );
-                const statusAncestors = (await this.statusesRepository.findAncestorsOfStatus(repostedStatus))
-                    .map(ancestor => ancestor.id)
-                    .filter(ancestorId => ancestorId !== repostedStatus.id);;
-                repostedStatusOptions.repostedStatusId = statusAncestors[statusAncestors.length - 1];
-            }
-
-            const statusMappingOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
-                status,
-                repostedStatusOptions,
-                currentUser
-            );
-            return this.statusesMapper.toStatusResponse(statusMappingOptions);
-        })
+        return asyncMap(statuses, status => this.statusesMapper.toStatusResponseAsync(status))
     }
 
     private async findStatusEntityById(id: string): Promise<Status> {

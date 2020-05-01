@@ -3,21 +3,19 @@ import uuid from "uuid/v4";
 import {StatusLike} from "./entities";
 import {StatusLikesRepository} from "./StatusLikesRepository";
 import {StatusesRepository} from "./StatusesRepository";
-import {StatusesMapper, ToStatusResponseOptions} from "./StatusesMapper";
-import {StatusMappingOptionsProvider} from "./StatusMappingOptionsProvider";
+import {StatusesMapper} from "./StatusesMapper";
 import {StatusResponse} from "./types/response";
 import {User} from "../users/entities";
 
 @Injectable()
 export class StatusLikesService {
     constructor(private readonly statusLikesRepository: StatusLikesRepository,
-                private readonly statusRepository: StatusesRepository,
-                private readonly statusesMapper: StatusesMapper,
-                private readonly statusMappingOptionsProvider: StatusMappingOptionsProvider) {
+                private readonly statusesRepository: StatusesRepository,
+                private readonly statusesMapper: StatusesMapper) {
     }
 
     public async createStatusLike(statusId: string, currentUser: User): Promise<StatusResponse> {
-        const status = await this.statusRepository.findById(statusId);
+        const status = await this.statusesRepository.findById(statusId);
 
         if (!status) {
             throw new HttpException(
@@ -44,33 +42,11 @@ export class StatusLikesService {
 
         await this.statusLikesRepository.save(statusLike);
 
-        let repostedStatusOptions: ToStatusResponseOptions | undefined;
-        const repostedStatus = status.repostedStatus;
-
-        if (repostedStatus) {
-            repostedStatusOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
-                repostedStatus,
-                undefined,
-                currentUser
-            );
-            let statusAncestors = (await this.statusRepository.findAncestorsOfStatus(repostedStatus))
-                .map(ancestor => ancestor.id)
-                .filter(ancestorId => ancestorId !== repostedStatus.id);
-            statusAncestors = statusAncestors.filter(ancestorId => ancestorId !== repostedStatus.id);
-            repostedStatusOptions.repostedStatusId = statusAncestors[statusAncestors.length - 1];
-        }
-
-        const statusMappingOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
-            status,
-            repostedStatusOptions,
-            currentUser
-        );
-
-        return this.statusesMapper.toStatusResponse(statusMappingOptions);
+        return this.statusesMapper.toStatusResponseAsync(status, currentUser);
     }
 
     public async deleteStatusLike(statusId: string, currentUser: User): Promise<StatusResponse> {
-        const status = await this.statusRepository.findById(statusId);
+        const status = await this.statusesRepository.findById(statusId);
 
         if (!status) {
             throw new HttpException(
@@ -94,28 +70,6 @@ export class StatusLikesService {
 
         await this.statusLikesRepository.save(statusLike);
 
-        let repostedStatusOptions: ToStatusResponseOptions | undefined;
-        const repostedStatus = status.repostedStatus;
-
-        if (repostedStatus) {
-            repostedStatusOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
-                repostedStatus,
-                undefined,
-                currentUser
-            );
-            let statusAncestors = (await this.statusRepository.findAncestorsOfStatus(repostedStatus))
-                .map(ancestor => ancestor.id)
-                .filter(ancestorId => ancestorId !== repostedStatus.id);
-            statusAncestors = statusAncestors.filter(ancestorId => ancestorId !== repostedStatus.id);
-            repostedStatusOptions.repostedStatusId = statusAncestors[statusAncestors.length - 1];
-        }
-
-        const statusMappingOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
-            status,
-            repostedStatusOptions,
-            currentUser
-        );
-
-        return this.statusesMapper.toStatusResponse(statusMappingOptions);
+        return this.statusesMapper.toStatusResponseAsync(status, currentUser);
     }
 }
