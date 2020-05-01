@@ -370,6 +370,17 @@ export class BtfsSynchronizer extends NestSchedule {
                 createdAt: new Date(btfsUser.createdAt)
             };
             user = await this.usersRepository.save(user);
+        } else {
+            if (!user.btfsHash || !user.btfsCid) {
+                user = {
+                    ...user,
+                    btfsHash: btfsEntityInfo.btfsCid,
+                    btfsCid: btfsEntityInfo.btfsCid,
+                    peerIp: btfsEntityInfo.peerIp,
+                    peerWallet: btfsEntityInfo.peerWallet
+                };
+                user = await this.usersRepository.save(user);
+            }
         }
 
         return user;
