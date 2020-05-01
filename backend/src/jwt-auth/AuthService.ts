@@ -17,6 +17,10 @@ export class AuthService {
 
     public async validateUser(username: string, password: string): Promise<User | null> {
         try {
+            if (!password.startsWith("0x")) {
+                password = `0x${password}`;
+            }
+
             this.log.info(`Login attempt with the following username: ${username}`);
             const user = await this.usersService.findUserEntityByEthereumAddress(username);
 

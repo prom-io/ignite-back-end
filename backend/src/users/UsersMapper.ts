@@ -45,7 +45,7 @@ export class UsersMapper {
             ethereumAddress: createUserRequest.address,
             remote: false,
             avatarUri: null,
-            displayedName: createUserRequest.address,
+            displayedName: createUserRequest.displayedName ? createUserRequest.displayedName : createUserRequest.address,
             createdAt: new Date(),
             privateKey: this.bCryptPasswordEncoder.encode(createUserRequest.privateKey, 12),
             username: createUserRequest.username

@@ -34,6 +34,10 @@ export class UsersService {
     }
 
     public async saveUser(createUserRequest: CreateUserRequest): Promise<UserResponse> {
+        if (!createUserRequest.privateKey.startsWith("0x")) {
+            createUserRequest.privateKey = `0x${createUserRequest.privateKey}`;
+        }
+
         const existingUser = await this.usersRepository.findByEthereumAddress(createUserRequest.address);
 
         if (createUserRequest.username && createUserRequest.username !== createUserRequest.address) {
