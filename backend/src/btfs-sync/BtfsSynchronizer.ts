@@ -555,7 +555,7 @@ export class BtfsSynchronizer extends NestSchedule {
             await asyncForEach(deletedSubscriptionIds, async deletedSubscriptionId => {
                 const deletedSubscription = await this.userSubscriptionsRepository.findById(deletedSubscriptionId);
 
-                if (deletedSubscription) {
+                if (deletedSubscription && !deletedSubscription.reverted) {
                     deletedSubscription.saveUnsubscriptionToBtfs = false;
                     deletedSubscription.reverted = true;
                     deletedSubscription.revertedAt = new Date();
