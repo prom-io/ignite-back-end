@@ -87,7 +87,7 @@ export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberI
             await this.userStatisticsRepository.save(subscribedToStatistics);
             await this.userStatisticsRepository.save(subscribedUserStatistics);
 
-            if (config.ENABLE_BTFS_PUSHING) {
+            if (config.ENABLE_BTFS_PUSHING && event.entity.saveUnsubscriptionToBtfs) {
                 this.microbloggingBlockchainApiClient.logUnsubscription({
                     id: event.entity.id,
                     user: subscribedUser.ethereumAddress

@@ -68,7 +68,7 @@ export class StatusLikeEntityEventsListener implements EntitySubscriberInterface
 
         this.log.info("Logging status unlike to blockchain");
 
-        if (statusLike.reverted && !statusLike.btfsHash && config.ENABLE_BTFS_PUSHING) {
+        if (statusLike.reverted && statusLike.saveUnlikeToBtfs && config.ENABLE_BTFS_PUSHING) {
             this.microbloggingBlockchainApiClient.logStatusUnlike({
                 id: statusLike.id,
                 messageId: statusLike.status.id,

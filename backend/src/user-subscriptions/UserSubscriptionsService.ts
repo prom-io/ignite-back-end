@@ -80,6 +80,7 @@ export class UserSubscriptionsService {
 
         subscription.reverted = true;
         subscription.revertedAt = new Date();
+        subscription.saveUnsubscriptionToBtfs = true;
 
         await this.userSubscriptionsRepository.save(subscription);
 
