@@ -9,9 +9,7 @@ export class BtfsUser {
     @Matches(new RegExp("^0x[a-fA-F0-9]{40}$"))
     address: string;
 
-    @IsNotEmpty()
-    @IsString()
-    username: string;
+    username?: string;
 
     displayedName: string;
 

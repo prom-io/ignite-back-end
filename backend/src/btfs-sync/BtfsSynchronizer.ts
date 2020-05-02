@@ -432,6 +432,7 @@ export class BtfsSynchronizer extends NestSchedule {
             user = {
                 ...btfsUser,
                 remote: true,
+                username: btfsUser.username ? btfsUser.username : btfsUser.address,
                 ethereumAddress: btfsUser.address,
                 createdAt: new Date(btfsUser.createdAt)
             };
