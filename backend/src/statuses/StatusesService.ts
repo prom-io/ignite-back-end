@@ -105,7 +105,7 @@ export class StatusesService {
             statuses = await this.statusesRepository.findByAuthor(user, paginationRequest);
         }
 
-        return asyncMap(statuses, status => this.statusesMapper.toStatusResponseAsync(status))
+        return asyncMap(statuses, status => this.statusesMapper.toStatusResponseAsync(status, currentUser))
     }
 
     private async findStatusEntityById(id: string): Promise<Status> {
