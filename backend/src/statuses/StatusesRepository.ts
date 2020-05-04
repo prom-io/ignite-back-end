@@ -203,6 +203,87 @@ export class StatusesRepository extends Repository<Status> {
         })
     }
 
+    public findByReferredStatusAndStatusReferenceType(referredStatus: Status,
+                                                      statusReferenceType: StatusReferenceType,
+                                                      paginationRequest: PaginationRequest): Promise<Status[]> {
+        return this.find({
+            where: {
+                referredStatus,
+                statusReferenceType
+            },
+            order: {
+                createdAt: "DESC"
+            },
+            skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
+            take: paginationRequest.pageSize,
+            relations: ["referredStatus"]
+        })
+    }
+
+    public findByReferredStatusAndStatusReferenceTypeAndCreatedAtBefore(
+        referredStatus: Status,
+        statusReferenceType: StatusReferenceType,
+        createdAtBefore: Date,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        return this.find({
+            where: {
+                referredStatus,
+                statusReferenceType,
+                createdAt: LessThan(createdAtBefore)
+            },
+            order: {
+                createdAt: "DESC"
+            },
+            skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
+            take: paginationRequest.pageSize,
+            relations: ["referredStatus"]
+        })
+    }
+
+    public findByReferredStatusAndStatusReferenceTypeAndCreatedAtAfter(
+        referredStatus: Status,
+        statusReferenceType: StatusReferenceType,
+        createdAtAfter: Date,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        return this.find({
+            where: {
+                referredStatus,
+                statusReferenceType,
+                createdAt: MoreThan(createdAtAfter)
+            },
+            order: {
+                createdAt: "DESC"
+            },
+            skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
+            take: paginationRequest.pageSize,
+            relations: ["referredStatus"]
+        })
+    }
+
+    public findByReferredStatusAndStatusReferenceTypeAndCreatedAtBetween(
+        referredStatus: Status,
+        statusReferenceType: StatusReferenceType,
+        createdAtBefore: Date,
+        createdAtAfter: Date,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        return this.find({
+            where: {
+                referredStatus,
+                statusReferenceType,
+                createdAt: Between(createdAtBefore, createdAtAfter)
+            },
+            order: {
+                createdAt: "DESC"
+            },
+            skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
+            take: paginationRequest.pageSize,
+            relations: ["referredStatus"]
+        })
+    }
+
     public countReposts(repostedStatus: Status): Promise<number> {
         return this.countByReferredStatusAndStatusReferenceType(repostedStatus, StatusReferenceType.REPOST);
     }

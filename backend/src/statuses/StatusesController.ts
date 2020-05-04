@@ -1,4 +1,4 @@
-import {Body, ClassSerializerInterceptor, Controller, Get, Param, Post, Req, UseGuards, UseInterceptors} from "@nestjs/common";
+import {Body, ClassSerializerInterceptor, Controller, Get, Param, Post, Query, Req, UseGuards, UseInterceptors} from "@nestjs/common";
 import {AuthGuard} from "@nestjs/passport";
 import {Request} from "express";
 import {StatusesService} from "./StatusesService";
@@ -44,5 +44,15 @@ export class StatusesController {
     public unlikeStatus(@Param("id") id: string,
                         @Req() request: Request): Promise<StatusResponse> {
         return this.statusLikesService.deleteStatusLike(id, request.user as User);
+    }
+
+    @UseInterceptors(ClassSerializerInterceptor)
+    @UseGuards(OptionalJwtAuthGuard)
+    @Get(":id/comments")
+    public findCommentsOfStatus(@Param("id") id: string,
+                                @Req() request: Request,
+                                @Query("since_id") sinceId?: string,
+                                @Query("max_id") maxId?: string): Promise<StatusResponse[]> {
+        return this.statusesService.findCommentsOfStatus(id, {sinceId, maxId}, request.user as User | undefined);
     }
 }

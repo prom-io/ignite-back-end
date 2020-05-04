@@ -49,8 +49,11 @@ export class StatusesMapper {
             );
             const statusAncestors = (await this.statusesRepository.findAncestorsOfStatus(referredStatus))
                 .filter(ancestor => ancestor.id !== referredStatus.id);
-            referredStatusOptions.referredStatusId = statusAncestors[statusAncestors.length - 1].id;
-            referredStatusOptions.referredStatusReferenceType = statusAncestors[statusAncestors.length - 1].statusReferenceType;
+
+            if (statusAncestors.length !== 0) {
+                referredStatusOptions.referredStatusId = statusAncestors[statusAncestors.length - 1].id;
+                referredStatusOptions.referredStatusReferenceType = statusAncestors[statusAncestors.length - 1].statusReferenceType;
+            }
         }
 
         const statusMappingOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
@@ -111,7 +114,6 @@ export class StatusesMapper {
         author: User,
         mediaAttachments: MediaAttachment[],
         referredStatus?: Status,
-        statusReferenceType?: StatusReferenceType
     ): Status {
         return  {
             id: uuid(),
@@ -122,7 +124,7 @@ export class StatusesMapper {
             remote: false,
             mediaAttachments,
             referredStatus,
-            statusReferenceType
+            statusReferenceType: createStatusRequest.statusReferenceType
         }
     }
 }

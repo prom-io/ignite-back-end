@@ -108,6 +108,55 @@ export class StatusesService {
         return asyncMap(statuses, status => this.statusesMapper.toStatusResponseAsync(status, currentUser))
     }
 
+    public async findCommentsOfStatus(statusId: string, cursors: FeedCursors, currentUser?: User): Promise<StatusResponse[]> {
+        const status = await this.findStatusEntityById(statusId);
+
+        const paginationRequest: PaginationRequest = {
+            page: 1,
+            pageSize: 30
+        };
+        let statuses: Status[];
+
+        if (cursors.maxId) {
+            if (cursors.sinceId) {
+                const sinceCursor = await this.findStatusEntityById(cursors.sinceId);
+                const maxCursor = await this.findStatusEntityById(cursors.maxId);
+
+                statuses = await this.statusesRepository.findByReferredStatusAndStatusReferenceTypeAndCreatedAtBetween(
+                    status,
+                    StatusReferenceType.COMMENT,
+                    sinceCursor.createdAt,
+                    maxCursor.createdAt,
+                    paginationRequest
+                );
+            } else {
+                const maxCursor = await  this.findStatusEntityById(cursors.maxId);
+                statuses = await this.statusesRepository.findByReferredStatusAndStatusReferenceTypeAndCreatedAtBefore(
+                    status,
+                    StatusReferenceType.COMMENT,
+                    maxCursor.createdAt,
+                    paginationRequest
+                );
+            }
+        } else if (cursors.sinceId) {
+            const sinceCursor = await this.findStatusEntityById(cursors.sinceId);
+            statuses = await this.statusesRepository.findByReferredStatusAndStatusReferenceTypeAndCreatedAtAfter(
+                status,
+                StatusReferenceType.COMMENT,
+                sinceCursor.createdAt,
+                paginationRequest
+            );
+        } else {
+            statuses = await this.statusesRepository.findByReferredStatusAndStatusReferenceType(
+                status,
+                StatusReferenceType.COMMENT,
+                paginationRequest
+            );
+        }
+
+        return asyncMap(statuses, comment => this.statusesMapper.toStatusResponseAsync(comment, currentUser));
+    }
+
     private async findStatusEntityById(id: string): Promise<Status> {
         const status = await this.statusesRepository.findById(id);
 

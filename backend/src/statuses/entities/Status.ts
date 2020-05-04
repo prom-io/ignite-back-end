@@ -44,7 +44,7 @@ export class Status {
     @TreeParent()
     referredStatus?: Status;
 
-    @Column({nullable: true, type: "varchar"})
+    @Column({nullable: true, type: "varchar", enum: StatusReferenceType})
     statusReferenceType?: StatusReferenceType;
 
     @Column({nullable: true})
