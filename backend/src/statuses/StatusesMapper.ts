@@ -41,6 +41,8 @@ export class StatusesMapper {
         let referredStatusOptions: ToStatusResponseOptions | undefined;
         const referredStatus = status.referredStatus;
 
+        console.log(referredStatus);
+
         if (referredStatus) {
             referredStatusOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
                 referredStatus,
@@ -81,6 +83,7 @@ export class StatusesMapper {
             btfsHash,
             commentsCount,
         } = options;
+        console.log(referredStatusId);
         return new StatusResponse({
             account: this.userMapper.toUserResponse(status.author, userStatistics, followingAuthor, followedByAuthor),
             createdAt: status.createdAt.toISOString(),
