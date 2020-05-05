@@ -142,7 +142,8 @@ export class StatusesService {
                     StatusReferenceType.COMMENT,
                     sinceCursor.createdAt,
                     maxCursor.createdAt,
-                    paginationRequest
+                    paginationRequest,
+                    "ASC"
                 );
             } else {
                 const maxCursor = await  this.findStatusEntityById(cursors.maxId);
@@ -150,7 +151,8 @@ export class StatusesService {
                     status,
                     StatusReferenceType.COMMENT,
                     maxCursor.createdAt,
-                    paginationRequest
+                    paginationRequest,
+                    "ASC"
                 );
             }
         } else if (cursors.sinceId) {
@@ -159,13 +161,15 @@ export class StatusesService {
                 status,
                 StatusReferenceType.COMMENT,
                 sinceCursor.createdAt,
-                paginationRequest
+                paginationRequest,
+                "ASC"
             );
         } else {
             statuses = await this.statusesRepository.findByReferredStatusAndStatusReferenceType(
                 status,
                 StatusReferenceType.COMMENT,
-                paginationRequest
+                paginationRequest,
+                "ASC"
             );
         }
 

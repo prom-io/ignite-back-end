@@ -205,14 +205,16 @@ export class StatusesRepository extends Repository<Status> {
 
     public findByReferredStatusAndStatusReferenceType(referredStatus: Status,
                                                       statusReferenceType: StatusReferenceType,
-                                                      paginationRequest: PaginationRequest): Promise<Status[]> {
+                                                      paginationRequest: PaginationRequest,
+                                                      sortingDirection: "ASC" | "DESC"
+    ): Promise<Status[]> {
         return this.find({
             where: {
                 referredStatus,
                 statusReferenceType
             },
             order: {
-                createdAt: "DESC"
+                createdAt: sortingDirection
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
             take: paginationRequest.pageSize,
@@ -224,7 +226,8 @@ export class StatusesRepository extends Repository<Status> {
         referredStatus: Status,
         statusReferenceType: StatusReferenceType,
         createdAtBefore: Date,
-        paginationRequest: PaginationRequest
+        paginationRequest: PaginationRequest,
+        sortingDirection: "ASC" | "DESC"
     ): Promise<Status[]> {
         return this.find({
             where: {
@@ -233,7 +236,7 @@ export class StatusesRepository extends Repository<Status> {
                 createdAt: LessThan(createdAtBefore)
             },
             order: {
-                createdAt: "DESC"
+                createdAt: sortingDirection
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
             take: paginationRequest.pageSize,
@@ -245,7 +248,8 @@ export class StatusesRepository extends Repository<Status> {
         referredStatus: Status,
         statusReferenceType: StatusReferenceType,
         createdAtAfter: Date,
-        paginationRequest: PaginationRequest
+        paginationRequest: PaginationRequest,
+        sortingDirection: "ASC" | "DESC"
     ): Promise<Status[]> {
         return this.find({
             where: {
@@ -254,7 +258,7 @@ export class StatusesRepository extends Repository<Status> {
                 createdAt: MoreThan(createdAtAfter)
             },
             order: {
-                createdAt: "DESC"
+                createdAt: sortingDirection
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
             take: paginationRequest.pageSize,
@@ -267,7 +271,8 @@ export class StatusesRepository extends Repository<Status> {
         statusReferenceType: StatusReferenceType,
         createdAtBefore: Date,
         createdAtAfter: Date,
-        paginationRequest: PaginationRequest
+        paginationRequest: PaginationRequest,
+        sortingDirection: "ASC" | "DESC"
     ): Promise<Status[]> {
         return this.find({
             where: {
@@ -276,7 +281,7 @@ export class StatusesRepository extends Repository<Status> {
                 createdAt: Between(createdAtBefore, createdAtAfter)
             },
             order: {
-                createdAt: "DESC"
+                createdAt: sortingDirection
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
             take: paginationRequest.pageSize,
