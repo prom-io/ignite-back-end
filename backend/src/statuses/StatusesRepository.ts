@@ -301,6 +301,20 @@ export class StatusesRepository extends Repository<Status> {
         })
     }
 
+    public async existByReferredStatusAndReferenceTypeAndAuthor(
+        referredStatus: Status,
+        statusReferenceType: StatusReferenceType,
+        author: User
+    ): Promise<boolean> {
+        return (await this.count({
+            where: {
+                referredStatus,
+                statusReferenceType,
+                author
+            }
+        })) !== 0
+    }
+
     public countByRepostedStatus(repostedStatus: Status): Promise<number> {
         return this.count({
             where: {

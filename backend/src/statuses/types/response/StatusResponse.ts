@@ -52,6 +52,9 @@ export class StatusResponse {
     @Expose({name: "comments_count"})
     commentsCount: number;
 
+    @Expose({name: "can_be_reposted"})
+    canBeReposted: boolean;
+
     constructor(object: StatusResponse) {
         Object.assign(this, object);
     }

@@ -1,5 +1,5 @@
 import {Injectable} from "@nestjs/common";
-import {Status} from "./entities";
+import {Status, StatusReferenceType} from "./entities";
 import {ToStatusResponseOptions} from "./StatusesMapper";
 import {StatusesRepository} from "./StatusesRepository";
 import {StatusLikesRepository} from "./StatusLikesRepository";
@@ -40,6 +40,21 @@ export class StatusMappingOptionsProvider {
         const repostsCount = await this.statusesRepository.countReposts(status);
         const commentsCount = await this.statusesRepository.countComments(status);
         const btfsHash = status.btfsHash && await this.btfsHashRepository.findByBtfsCid(status.btfsHash);
+        let canBeReposted: boolean;
+
+        if (status.text.length !== 0 || status.mediaAttachments.length !== 0)  {
+            canBeReposted = currentUser && !(await this.statusesRepository.existByReferredStatusAndReferenceTypeAndAuthor(
+                status,
+                StatusReferenceType.REPOST,
+                currentUser
+            ));
+        } else {
+            canBeReposted = currentUser && !(await this.statusesRepository.existByReferredStatusAndReferenceTypeAndAuthor(
+                status.referredStatus,
+                StatusReferenceType.REPOST,
+                currentUser
+            ));
+        }
 
         return {
             status,
@@ -52,7 +67,8 @@ export class StatusMappingOptionsProvider {
             userStatistics,
             repostsCount,
             commentsCount,
-            btfsHash: btfsHash && btfsHash.peerIp && btfsHash.peerWallet ? btfsHash : null
+            btfsHash: btfsHash && btfsHash.peerIp && btfsHash.peerWallet ? btfsHash : null,
+            canBeReposted
         }
     }
 }

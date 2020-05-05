@@ -25,7 +25,8 @@ export interface ToStatusResponseOptions {
     referredStatusId?: string,
     referredStatusReferenceType?: StatusReferenceType,
     btfsHash?: BtfsHash,
-    commentsCount: number
+    commentsCount: number,
+    canBeReposted: boolean
 }
 
 @Injectable()
@@ -40,8 +41,6 @@ export class StatusesMapper {
     public async toStatusResponseAsync(status: Status, currentUser?: User): Promise<StatusResponse> {
         let referredStatusOptions: ToStatusResponseOptions | undefined;
         const referredStatus = status.referredStatus;
-
-        console.log(referredStatus);
 
         if (referredStatus) {
             referredStatusOptions = await this.statusMappingOptionsProvider.getStatusMappingOptions(
@@ -82,8 +81,8 @@ export class StatusesMapper {
             referredStatusReferenceType,
             btfsHash,
             commentsCount,
+            canBeReposted
         } = options;
-        console.log(referredStatusId);
         return new StatusResponse({
             account: this.userMapper.toUserResponse(status.author, userStatistics, followingAuthor, followedByAuthor),
             createdAt: status.createdAt.toISOString(),
@@ -108,7 +107,8 @@ export class StatusesMapper {
             btfsInfo: btfsHash && this.btfsHashesMapper.toBtfsHashResponse(btfsHash),
             commentsCount,
             statusReferenceType: status.statusReferenceType,
-            referredStatusReferenceType
+            referredStatusReferenceType,
+            canBeReposted
         })
     }
 
