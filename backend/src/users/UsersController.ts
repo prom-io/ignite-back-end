@@ -1,9 +1,9 @@
-import {Body, ClassSerializerInterceptor, Controller, Get, Param, Post, Query, Req, UseGuards, UseInterceptors} from "@nestjs/common";
+import {Body, ClassSerializerInterceptor, Controller, Get, Param, Post, Put, Query, Req, UseGuards, UseInterceptors} from "@nestjs/common";
 import {AuthGuard} from "@nestjs/passport";
 import {Request} from "express";
 import {UsersService} from "./UsersService";
 import {User} from "./entities";
-import {CreateUserRequest, SignUpForPrivateBetaTestRequest} from "./types/request";
+import {CreateUserRequest, SignUpForPrivateBetaTestRequest, UpdateUserRequest} from "./types/request";
 import {UserResponse} from "./types/response";
 import {StatusesService} from "../statuses";
 import {StatusResponse} from "../statuses/types/response";
@@ -49,6 +49,15 @@ export class UsersController {
     @Get(":address")
     public findByAddress(@Param("address") address: string): Promise<UserResponse> {
         return this.usersService.findUserByEthereumAddress(address);
+    }
+
+    @UseInterceptors(ClassSerializerInterceptor)
+    @UseGuards(AuthGuard("jwt"))
+    @Put(":address")
+    public updateUser(@Param("address") address: string,
+                      @Body() updateUserRequest: UpdateUserRequest,
+                      @Req() request: Request): Promise<UserResponse> {
+        return this.usersService.updateUser(address, updateUserRequest, request.user as User);
     }
 
     @UseInterceptors(ClassSerializerInterceptor)

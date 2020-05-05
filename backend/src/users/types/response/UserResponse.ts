@@ -39,6 +39,8 @@ export class UserResponse {
     @Expose({name: "followed_by"})
     followedBy: boolean;
 
+    bio?: string;
+
     constructor(object: UserResponse) {
         Object.assign(this, object);
     }

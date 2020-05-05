@@ -42,4 +42,12 @@ export class UsersRepository extends Repository<User> {
             }
         })) !== 0;
     }
+
+    public async existsByEthereumAddress(address: string): Promise<boolean> {
+        return (await this.count({
+            where: {
+                ethereumAddress: address
+            }
+        })) !== 0
+    }
 }

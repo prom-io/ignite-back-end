@@ -17,8 +17,18 @@ export class UsersMapper {
         following: boolean = false,
         followedBy: boolean = false
     ): UserResponse {
+        let avatar: string;
+
+        if (user.avatar) {
+            avatar = `${config.API_HOST}/api/v1/media/${user.avatar.name}`;
+        } else if (user.avatarUri) {
+            avatar = user.avatarUri;
+        } else {
+            avatar = config.DEFAULT_AVATAR_URL;
+        }
+
         return new UserResponse({
-            avatar: user.avatarUri || `${config.DEFAULT_AVATAR_URL}`,
+            avatar,
             displayName: user.displayedName,
             acct: user.displayedName,
             id: user.ethereumAddress,
@@ -35,7 +45,8 @@ export class UsersMapper {
             note: "",
             fields: [],
             following,
-            followedBy
+            followedBy,
+            bio: user.bio
         })
     }
 

@@ -14,12 +14,13 @@ import {UserSubscriptionsModule} from "../user-subscriptions/UserSubscriptionsMo
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {config} from "../config";
 import {DefaultAccountProviderModule} from "../default-account-provider/DefaultAccountProviderModule";
+import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
 
 @Module({
     controllers: [UsersController, UserByAddressController],
     providers: [UsersService, UsersMapper, UserEntityEventsSubscriber, UserStatisticsMapper],
     imports: [
-        TypeOrmModule.forFeature([UsersRepository, UserStatisticsRepository, UserSubscriptionsRepository]),
+        TypeOrmModule.forFeature([UsersRepository, UserStatisticsRepository, UserSubscriptionsRepository, MediaAttachmentsRepository]),
         forwardRef(() => StatusesModule),
         forwardRef(() => UserSubscriptionsModule),
         MailerModule.forRoot({
