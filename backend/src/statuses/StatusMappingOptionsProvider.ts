@@ -1,10 +1,8 @@
 import {Injectable} from "@nestjs/common";
-import {Status} from "./entities";
+import {Status, StatusReferenceType} from "./entities";
 import {ToStatusResponseOptions} from "./StatusesMapper";
 import {StatusesRepository} from "./StatusesRepository";
 import {StatusLikesRepository} from "./StatusLikesRepository";
-import {CommentsRepository} from "./CommentsRepository";
-import {ToCommentResponseOptions} from "./CommentsMapper";
 import {UserStatisticsRepository} from "../users/UserStatisticsRepository";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {User} from "../users/entities";
@@ -16,14 +14,13 @@ export class StatusMappingOptionsProvider {
                 private readonly statusLikesRepository: StatusLikesRepository,
                 private readonly userSubscriptionsRepository: UserSubscriptionsRepository,
                 private readonly userStatisticsRepository: UserStatisticsRepository,
-                private readonly btfsHashRepository: BtfsHashRepository,
-                private readonly commentsRepository: CommentsRepository) {
+                private readonly btfsHashRepository: BtfsHashRepository) {
 
     }
 
     public async getStatusMappingOptions(
         status: Status,
-        mapRepostedStatusOptions?: ToStatusResponseOptions,
+        mapReferredStatusOptions?: ToStatusResponseOptions,
         currentUser?: User,
     ): Promise<ToStatusResponseOptions> {
         const likesCount = await this.statusLikesRepository.countByStatus(status);
@@ -40,17 +37,23 @@ export class StatusMappingOptionsProvider {
             status.author, currentUser
         );
         const userStatistics  = await this.userStatisticsRepository.findByUser(status.author);
-        const repostsCount = await this.statusesRepository.countByRepostedStatus(status);
-        const commentsCount = await this.commentsRepository.countByStatus(status);
+        const repostsCount = await this.statusesRepository.countReposts(status);
+        const commentsCount = await this.statusesRepository.countComments(status);
         const btfsHash = status.btfsHash && await this.btfsHashRepository.findByBtfsCid(status.btfsHash);
+        let canBeReposted: boolean;
 
-        let repostedCommentOptions: ToCommentResponseOptions | undefined;
-
-        if (status.repostedComment) {
-            repostedCommentOptions = {
-                comment: status.repostedComment,
-                repostsCount: await this.statusesRepository.countByRepostedComment(status.repostedComment)
-            }
+        if (status.text.length !== 0 || status.mediaAttachments.length !== 0)  {
+            canBeReposted = currentUser && !(await this.statusesRepository.existByReferredStatusAndReferenceTypeAndAuthor(
+                status,
+                StatusReferenceType.REPOST,
+                currentUser
+            ));
+        } else {
+            canBeReposted = currentUser && !(await this.statusesRepository.existByReferredStatusAndReferenceTypeAndAuthor(
+                status.referredStatus,
+                StatusReferenceType.REPOST,
+                currentUser
+            ));
         }
 
         return {
@@ -59,13 +62,13 @@ export class StatusMappingOptionsProvider {
             favourited: likedByCurrentUser,
             followedByAuthor,
             followingAuthor,
-            mapRepostedStatus: Boolean(mapRepostedStatusOptions),
-            repostedStatusOptions: mapRepostedStatusOptions,
+            mapReferredStatus: Boolean(mapReferredStatusOptions),
+            referredStatusOptions: mapReferredStatusOptions,
             userStatistics,
             repostsCount,
             commentsCount,
-            repostedCommentOptions,
-            btfsHash: btfsHash && btfsHash.peerIp && btfsHash.peerWallet ? btfsHash : null
+            btfsHash: btfsHash && btfsHash.peerIp && btfsHash.peerWallet ? btfsHash : null,
+            canBeReposted
         }
     }
 }

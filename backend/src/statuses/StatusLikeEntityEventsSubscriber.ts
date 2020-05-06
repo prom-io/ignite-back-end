@@ -11,7 +11,7 @@ import {config} from "../config";
 import {BtfsKafkaClient} from "../btfs-sync/BtfsKafkaClient";
 
 @Injectable()
-export class StatusLikeEntityEventsListener implements EntitySubscriberInterface<StatusLike> {
+export class StatusLikeEntityEventsSubscriber implements EntitySubscriberInterface<StatusLike> {
     constructor(@InjectConnection() private readonly connection: Connection,
                 private readonly microbloggingBlockchainApiClient: MicrobloggingBlockchainApiClient,
                 private readonly btfsClient: BtfsKafkaClient,

@@ -87,4 +87,7 @@ export class EnvConfig {
 
     @Env({type: "string", required: true})
     EMAIL_ADDRESS_TO_SEND: string;
+
+    @Env({type: "string", required: true})
+    API_HOST: string;
 }

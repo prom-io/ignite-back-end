@@ -22,7 +22,6 @@ import {StatusLikesRepository} from "../statuses/StatusLikesRepository";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
 import {config} from "../config";
-import {CommentsRepository} from "../statuses/CommentsRepository";
 import {BtfsKafkaClient} from "./BtfsKafkaClient";
 
 @Global()
@@ -56,7 +55,6 @@ import {BtfsKafkaClient} from "./BtfsKafkaClient";
             StatusLikesRepository,
             UserSubscriptionsRepository,
             MediaAttachmentsRepository,
-            CommentsRepository
         ]),
         ScheduleModule.register()
     ],

@@ -1,4 +1,5 @@
-import {Column, Entity, PrimaryColumn} from "typeorm";
+import {Column, Entity, ManyToOne, OneToMany, PrimaryColumn} from "typeorm";
+import {MediaAttachment} from "../../media-attachments/entities";
 
 @Entity()
 export class User {
@@ -26,6 +27,9 @@ export class User {
     @Column({nullable: true})
     avatarUri?: string;
 
+    @ManyToOne(() => MediaAttachment, {nullable: true, eager: true})
+    avatar?: MediaAttachment;
+
     @Column({nullable: true})
     btfsHash?: string = undefined;
 
@@ -37,4 +41,7 @@ export class User {
 
     @Column({nullable: true})
     btfsCid?: string;
+
+    @Column({nullable: true})
+    bio?: string;
 }

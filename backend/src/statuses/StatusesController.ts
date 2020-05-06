@@ -5,18 +5,13 @@ import {StatusesService} from "./StatusesService";
 import {StatusLikesService} from "./StatusLikesService";
 import {CreateStatusRequest} from "./types/request";
 import {StatusResponse} from "./types/response";
-import {CreateCommentRequest} from "./types/request/CreateCommentRequest";
-import {CommentResponse} from "./types/response/CommentResponse";
-import {CommentsService} from "./CommentsService";
 import {OptionalJwtAuthGuard} from "../jwt-auth/OptionalJwtAuthGuard";
 import {User} from "../users/entities";
-import {PaginationRequest} from "../utils/pagination";
 
 @Controller("api/v1/statuses")
 export class StatusesController {
     constructor(private readonly statusesService: StatusesService,
-                private readonly statusLikesService: StatusLikesService,
-                private readonly commentsService: CommentsService) {
+                private readonly statusLikesService: StatusLikesService) {
     }
 
     @UseInterceptors(ClassSerializerInterceptor)
@@ -51,27 +46,13 @@ export class StatusesController {
         return this.statusLikesService.deleteStatusLike(id, request.user as User);
     }
 
-    @Get(":id/context")
-    public getStatusContext(@Param("id") id: string) {
-        return {
-            ancestors: [],
-            descendants: []
-        }
-    }
-
     @UseInterceptors(ClassSerializerInterceptor)
-    @UseGuards(AuthGuard("jwt"))
-    @Post(":id/comments")
-    public createComment(@Param("id") id: string,
-                         @Body() createCommentRequest: CreateCommentRequest,
-                         @Req() request: Request): Promise<CommentResponse> {
-        return this.commentsService.createComment(createCommentRequest, id, request.user as User);
-    }
-
-    @UseInterceptors(ClassSerializerInterceptor)
+    @UseGuards(OptionalJwtAuthGuard)
     @Get(":id/comments")
-    public getCommentsByStatus(@Param("id") id: string,
-                               @Query() paginationRequest: PaginationRequest): Promise<CommentResponse[]> {
-        return this.commentsService.findCommentsByStatus(id, paginationRequest);
+    public findCommentsOfStatus(@Param("id") id: string,
+                                @Req() request: Request,
+                                @Query("since_id") sinceId?: string,
+                                @Query("max_id") maxId?: string): Promise<StatusResponse[]> {
+        return this.statusesService.findCommentsOfStatus(id, {sinceId, maxId}, request.user as User | undefined);
     }
 }

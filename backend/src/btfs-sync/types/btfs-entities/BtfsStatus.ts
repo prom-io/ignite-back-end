@@ -1,6 +1,7 @@
 import {IsArray, IsDateString, IsNotEmpty, IsNotEmptyObject, IsString, ValidateNested} from "class-validator";
 import {BtfsUser} from "./BtfsUser";
 import {BtfsMediaAttachment} from "./BtfsMediaAttachment";
+import {StatusReferenceType} from "../../../statuses/entities";
 
 export class BtfsStatus {
     @IsNotEmpty()
@@ -22,7 +23,9 @@ export class BtfsStatus {
     @IsDateString()
     createdAt: string;
 
-    repostedStatusId?: string;
+    referredStatusId: string;
+
+    statusReferenceType?: StatusReferenceType;
 
     constructor(plainObject: BtfsStatus) {
         this.id = plainObject.id;
@@ -30,6 +33,6 @@ export class BtfsStatus {
         this.author = new BtfsUser(plainObject.author);
         this.mediaAttachments = plainObject.mediaAttachments.map(mediaAttachment => new BtfsMediaAttachment(mediaAttachment));
         this.createdAt = plainObject.createdAt;
-        this.repostedStatusId = plainObject.repostedStatusId;
+        this.referredStatusId = plainObject.referredStatusId;
     }
 }

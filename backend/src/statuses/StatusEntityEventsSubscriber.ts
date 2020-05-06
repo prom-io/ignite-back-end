@@ -39,7 +39,7 @@ export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<S
         userStatistics.statusesCount += 1;
         await this.userStatisticsRepository.save(userStatistics);
 
-        if (!event.entity.btfsHash) {
+        if (!event.entity.btfsHash && config.ENABLE_BTFS_PUSHING) {
             this.log.info("Logging status to blockchain");
             this.microbloggingBlockchainApiClient.logStatus({
                 id: event.entity.id,

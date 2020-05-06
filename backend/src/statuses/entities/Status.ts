@@ -11,7 +11,7 @@ import {
 } from "typeorm";
 import {User} from "../../users/entities/User";
 import {MediaAttachment} from "../../media-attachments/entities";
-import {Comment} from "./Comment";
+import {StatusReferenceType} from "./StatusReferenceType";
 
 @Entity()
 @Tree("materialized-path")
@@ -42,10 +42,10 @@ export class Status {
     btfsHash?: string = undefined;
 
     @TreeParent()
-    repostedStatus?: Status;
+    referredStatus?: Status;
 
-    @ManyToOne(() => Comment, {eager: false, nullable: true})
-    repostedComment?: Comment;
+    @Column({nullable: true, type: "varchar", enum: StatusReferenceType})
+    statusReferenceType?: StatusReferenceType;
 
     @Column({nullable: true})
     peerIp?: string;

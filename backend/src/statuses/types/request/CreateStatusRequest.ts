@@ -1,30 +1,33 @@
-import {ArrayMaxSize, IsNotEmpty, IsString, ValidateIf} from "class-validator";
+import {ArrayMaxSize, IsIn, IsNotEmpty, IsString, ValidateIf} from "class-validator";
 import {Expose} from "class-transformer";
+import {StatusReferenceType} from "../../entities/StatusReferenceType";
 
 export class CreateStatusRequest {
+    @ValidateIf((object: CreateStatusRequest) => {
+        if (object.referredStatusId && object.statusReferenceType === StatusReferenceType.REPOST) {
+            return false;
+        }
+
+        return !(object.mediaAttachments && object.mediaAttachments.length !== 0);
+    })
     @IsNotEmpty({message: "Status text must not be empty"})
     @IsString({message: "Status text must be string"})
-    @ValidateIf(object => {
-        if (object.repostedStatusId) {
-            return false;
-        }
-
-        if (object.reposted_comment_id) {
-            return false;
-        }
-
-        return !(object.media_attachments && object.media_attachments.length !== 0);
-    })
     public status?: string;
 
-    @ValidateIf(object => object.media_attachments)
+    @ValidateIf((object: CreateStatusRequest) => Boolean(object.mediaAttachments))
     @ArrayMaxSize(10, {message: "You can attach up to 10 media attachments to status"})
     @Expose({name: "media_attachments"})
-    // tslint:disable-next-line:variable-name
-    public media_attachments: string[] = [];
+    public mediaAttachments: string[] = [];
 
-    public repostedStatusId?: string;
+    @ValidateIf((object: CreateStatusRequest) => Boolean(object.referredStatusId))
+    @IsString({message: "Referenced status id must be string"})
+    @Expose({name: "referred_status_id"})
+    public referredStatusId?: string;
 
-    // tslint:disable-next-line:variable-name
-    public reposted_comment_id?: string;
+    @ValidateIf((object: CreateStatusRequest) => Boolean(object.referredStatusId))
+    @IsString()
+    @IsNotEmpty()
+    @IsIn([StatusReferenceType.REPOST, StatusReferenceType.COMMENT])
+    @Expose({name: "status_reference_type"})
+    public statusReferenceType?: StatusReferenceType;
 }
