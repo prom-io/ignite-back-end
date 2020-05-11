@@ -3,7 +3,13 @@ import {User} from "./entities";
 import {UsersRepository} from "./UsersRepository";
 import {UserStatisticsRepository} from "./UserStatisticsRepository";
 import {UsersMapper} from "./UsersMapper";
-import {CreateUserRequest, SignUpForPrivateBetaTestRequest, UpdateUserRequest, UsernameAvailabilityResponse} from "./types/request";
+import {
+    CreateUserRequest,
+    SignUpForPrivateBetaTestRequest,
+    UpdatePreferencesRequest,
+    UpdateUserRequest,
+    UsernameAvailabilityResponse
+} from "./types/request";
 import {UserResponse} from "./types/response";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {MailerService} from "@nestjs-modules/mailer";
