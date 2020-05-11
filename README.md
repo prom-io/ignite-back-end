@@ -1,4 +1,4 @@
-# Ignite Front-end
+# Ignite Back-end
 
 ## Table of contents
 
@@ -18,19 +18,11 @@
 
 ## Description
 
-...
+Ignite is a decentralized social network, which allows everyone to share her/his mind freely via texts and media files. All the posts are distributed through Ethereum blockchain and stored immutable in distributed Data Storage.
 
 ## How to test
 
-[Here](http://178.128.240.29/) is an instance of app, which is alreay deployed at the stage environent for the demo purposes. 
-So you can test all the essence features of the application using UI: 
-- upload Data Owners' files with their metadata;
-- browse uploaded Data Owners' files list;
-- browse the sales transactions list;
-- select PROM wallet as the default for the uploads;
-- browse the sales transactions list.
-
-Here is a [manual](https://github.com/Prometeus-Network/data-validator-node/blob/master/test.md) with screenshots: testing guideline for the operations listed above.
+Testing of the current functionality of Ignite can be performed via User Interface implemented in Ignite [front-end](https://github.com/Prometeus-Network/ignite-front-end) repo.
 
 ## License
 
@@ -132,8 +124,6 @@ variables for both backend and front-end applications
 
 ## Current Stage of project
 
-What Validator node can do now:
+Ignite decentralized social network is now in  private beta testing stage. 
 
-- It creates data owners and uploads files to Prometeus network;
-- It allows to prolong file storage duration;
-- It can show history of data sales.
+Please visit Ignite [demo page](http://beta.ignite.so/) to apply for the test account.
