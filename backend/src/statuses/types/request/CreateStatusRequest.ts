@@ -1,4 +1,4 @@
-import {ArrayMaxSize, IsIn, IsNotEmpty, IsString, ValidateIf} from "class-validator";
+import {ArrayMaxSize, IsIn, IsNotEmpty, IsString, MaxLength, ValidateIf} from "class-validator";
 import {Expose} from "class-transformer";
 import {StatusReferenceType} from "../../entities/StatusReferenceType";
 
@@ -12,6 +12,7 @@ export class CreateStatusRequest {
     })
     @IsNotEmpty({message: "Status text must not be empty"})
     @IsString({message: "Status text must be string"})
+    @MaxLength(1000)
     public status?: string;
 
     @ValidateIf((object: CreateStatusRequest) => Boolean(object.mediaAttachments))

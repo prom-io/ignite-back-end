@@ -3,7 +3,7 @@ import {AuthGuard} from "@nestjs/passport";
 import {Request} from "express";
 import {UsersService} from "./UsersService";
 import {User} from "./entities";
-import {CreateUserRequest, SignUpForPrivateBetaTestRequest, UpdateUserRequest} from "./types/request";
+import {CreateUserRequest, SignUpForPrivateBetaTestRequest, UpdateUserRequest, UsernameAvailabilityResponse} from "./types/request";
 import {UserResponse} from "./types/response";
 import {StatusesService} from "../statuses";
 import {StatusResponse} from "../statuses/types/response";
@@ -122,5 +122,10 @@ export class UsersController {
     @Get(":address/following")
     public getFollowingOfUser(@Param("address") address: string): Promise<UserResponse[]> {
         return this.userSubscriptionsService.getFollowingOfUser(address);
+    }
+
+    @Get("username/:username/is-available")
+    public checkUsernameAvailability(@Param("username") username: string): Promise<UsernameAvailabilityResponse> {
+        return this.usersService.isUsernameAvailable(username);
     }
 }

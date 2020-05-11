@@ -3,7 +3,7 @@ import {User} from "./entities";
 import {UsersRepository} from "./UsersRepository";
 import {UserStatisticsRepository} from "./UserStatisticsRepository";
 import {UsersMapper} from "./UsersMapper";
-import {CreateUserRequest, SignUpForPrivateBetaTestRequest, UpdateUserRequest} from "./types/request";
+import {CreateUserRequest, SignUpForPrivateBetaTestRequest, UpdateUserRequest, UsernameAvailabilityResponse} from "./types/request";
 import {UserResponse} from "./types/response";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {MailerService} from "@nestjs-modules/mailer";
@@ -77,6 +77,22 @@ export class UsersService {
         );
     }
 
+    public async isUsernameAvailable(username: string): Promise<UsernameAvailabilityResponse> {
+        const existsByUsername  = await this.usersRepository.existsByUsername(username);
+
+        if (existsByUsername) {
+            return {available: false};
+        }
+
+        const existsByEthereumAddress = await this.usersRepository.existsByEthereumAddress(username);
+
+        if (existsByEthereumAddress) {
+            return {available: false};
+        }
+
+        return {available: true};
+    }
+
     public async getCurrentUser(user: User): Promise<UserResponse> {
         return this.usersMapper.toUserResponse(user, await this.userStatisticsRepository.findByUser(user))
     }
@@ -101,7 +117,7 @@ export class UsersService {
             }
         }
 
-        const avatar = await this.findMediaAttachmentById(updateUserRequest.avatarId);
+        const avatar = updateUserRequest.avatarId && await this.findMediaAttachmentById(updateUserRequest.avatarId);
 
         user.username = updateUserRequest.username;
         user.bio = updateUserRequest.bio;
