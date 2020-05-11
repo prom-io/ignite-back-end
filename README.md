@@ -9,7 +9,7 @@
 - [How to run](#how-to-run)
     - [Prerequisites](#prerequisites)
     - [Build and run process](#build-and-run-process)
-        - [Running outside Docker](#running-outside-docker)
+        - [Running inside Docker](#running-inside-docker)
     - [Environmental variables](#environmental-variables)
 - [Current Stage of project](#current-stage-of-project)
 
