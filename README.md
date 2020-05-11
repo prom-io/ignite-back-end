@@ -146,8 +146,5 @@ If you want to run Data Mart node outside Docker, you will need to to the follow
 
 ## Current Stage of project
 
-What Validator node can do now:
-
-- It creates data owners and uploads files to Prometeus network;
-- It allows to prolong file storage duration;
-- It can show history of data sales.
+Ignite decentralized social network is now in  private beta testing stage. 
+Please visit Ignite [demo page](http://beta.ignite.so/) to apply for the test account.
