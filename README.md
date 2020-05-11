@@ -52,8 +52,9 @@ Ignite is a decentralized microblogging service powered by Bittorrent and public
 3.	Community driven: no centralized administration or governance.
 
 All the posts texts and media attached to them are stored in the Distributed Data Storage (DDS). DDS is secure file storage for able to store necessary data and media for a period of 10-100 years. This ensures information immutability and censorship resistance. Our current version of DDS uses [Soter] (https://gitlab.com/btfs_ignite). It stores all data we need to exchange between nodes. 
+
 ```
-Note: speed of DDS files retrieval is far lower than what is needed to implement smooth UX. We will need to cache the files - but pretty soon we could not cache them on each separate node due to the huge total size of all media files in the system.
+Note: speed of DDS files retrieval is far lower than what is needed to implement smooth UX. 
 ```
 A Content Delivery Network (CDN) is used to resolve this issue. It is a geographically distributed network of proxy servers and their data centers. Its goal is to provide high availability and performance by distributing the service spatially relative to end-users. CND basically serves as a cache that is synched with DDS (which can be considered as an immutable backup in this scheme). 
 
