@@ -9,11 +9,8 @@
 - [How to run](#how-to-run)
     - [Prerequisites](#prerequisites)
     - [Build and run process](#build-and-run-process)
-        - [Running inside Docker](#running-inside-docker)
         - [Running outside Docker](#running-outside-docker)
     - [Environmental variables](#environmental-variables)
-        - [Backend](#backend)
-        - [Front-end](#front-end)
 - [Current Stage of project](#current-stage-of-project)
 
 ## Description
