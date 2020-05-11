@@ -95,13 +95,7 @@ information about bootstrap nodes which help to discover other nodes in network.
 
 Firstly, you need to clone this repository with the following command:
 
-```git clone https://github.com/Prometeus-Network/data-validator-node.git```
-
-After repository is cloned, you need to initialize submodules with the following commands:
-
-```git submodule init```
-
-```git submodule update```
+```git clone https://github.com/Prometeus-Network/ignite-back-end.git```
 
 #### Running inside Docker
 
@@ -114,43 +108,27 @@ variables for both backend and front-end applications
 
 ```docker-compose up --build``` or ```docker-compose up --build -d``` if you want to run the application in detached mode.
 
-#### Running outside Docker
-
-If you want to run Data Mart node outside Docker, you will need to to the following:
-
-- Backend API
-  - Run `yarn global add @nestjs/cli to install NestJS CLI`
-  - Go to `backend` directory and run `yarn istall` command to install all dependencies for backend application
-  - Create `.env` file and configure it with the variables described [below](#backend)
-  - Run `yarn run start` to start up backend application
-- Client application
-  - Go to `front-end` directory and run `yarn run install` command to install all dependencies for front-end application
-  - Create `.env` file and configure it with the variables described [below](#front-end)
-  - Run `yarn run production` to start up client application
-      - If you want to run front-end application in development mode,
-      run `yarn run start`
-
-
 ### Environmental variables
-
-#### Backend 
-
-| Variable                        | Description                                                                                                                                                                                          |
-|---------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `DATA_VALIDATOR_API_PIRT`       | Port which will be used by backend API                                                                                                                                                               |
-| `LOGGING_LEVEL`                 | Level of logging verbosity. Allowed values are debug, info, warn, error                                                                                                                              |
-| `NEDB_DIRECTORY`                | Directory which will be used by local Nedb database                                                                                                                                                  |
-| `ENCRYPTOR_SERVICE_URL`         | URL of Encryptor service                                                                                                                                                                             |
-| `INITIAL_ACCOUNT_PRIVATE_KEY`   | Private key to Ethereum account which will be used for registration upon first startup                                                                                                               |
-| `USE_LOCAL_IP_FOR_REGISTRATION` | Indicates whether local IP address should be used for registering itself to bootstrap node. This may be useful for development purposes or if your bootstrap nodes are located in your local network |
-| `LOCAL_FILES_DIRECTORY`         | Path to directory which is used for initial data upload, before sending data to Service node. Please make sure that you have read and write access to this directory                                 |
-
-#### Front-end
-
-| Variable                                     | Description                                                      |
-|----------------------------------------------|------------------------------------------------------------------|
-| `REACT_APP_DATA_VALIDATOR_NODE_API_BASE_URL` | URL of backend API                                               |
-| `REACT_APP_PRODUCTION_PORT`                  | Port which will be used by client application in production mode |
+| Parameter                         | Type                           | Description                                                        | Required |
+|-----------------------------------|--------------------------------|--------------------------------------------------------------------|----------|
+| DATA_VALIDATOR_API_PORT           | number                         | Port which will be used by API                                     | yes      |
+| LOGGING_EVEL                      | debug \| info \| warn \| error | Level of logging verbosity                                         | no       |
+| INITIAL_ACCOUNT_PRIVATE_KEY       | string                         | Private key of ETH wallet of the node                              | yes      |
+| JWT_SECRET                        | string                         | Private key for signing JWT tokens                                 | yes      |
+| DATABASE_NAME                     | string                         | Name of PostgreSQL database to connect to                          | yes      |
+| DATABASE_USERNAME                 | string                         | Database username which will be used for connection                | yes      |
+| DATABASE_PASSWORD                 | string                         | Database password which will be used for connection                | yes      |
+| DATABASE_HOST                     | string                         | PostgreSQL database host                                           | yes      |
+| DATABASE_PORT                     | number                         | PostgreSQL database port                                           | yes      |
+| RECREATE_DATABASE_SCHEMA          | boolean                        | Passed to "synchronize" option of TypeORM                          | no       |
+| MIRCROBLOGGING_BLOCKCHAIN_API_URL | string                         |                                                                    | yes      |
+| HOST                              | string                         | Fully qualified (schema://host:port) URL of API                    | yes      |
+| MEDIA_ATTACHMENTS_DIRECTORY       | string                         | Directory which will be used to store media attachments            | yes      |
+| DEFAULT_AVATAR_URL                | string                         | URL of default user avatar                                         | yes      |
+| APACHE_KAFKA_PORT                 | number                         | Port which is used by Apacke Kafka. It's used to push data to BTFS | no       |
+| APACHE_KAFKA_HOST                 | string                         | Host of Apache Kafka                                               | no       |
+| ENABLE_BTFS_PUSHING               | boolean                        | Specifies whether pushing data to BTFS is enabled                  | no       |
+| ENABLE_BTFS_PULLING               | boolean                        | Specifies whether pulling data from BTFS is enabled                | no       |
 
 ## Current Stage of project
 
