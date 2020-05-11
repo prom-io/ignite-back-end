@@ -1,4 +1,4 @@
-# Data Validator Node
+# Ignite Front-end
 
 ## Table of contents
 
@@ -14,21 +14,11 @@
     - [Environmental variables](#environmental-variables)
         - [Backend](#backend)
         - [Front-end](#front-end)
-- [Stages of project](#stages-of-project)
-    - [What Data Mart node can do now](#what-data-validator-node-can-do-now)
-    - [What Data mart node will do in the future](#what-data-validator-node-will-do-in-the-future)
-
+- [Current Stage of project](#current-stage-of-project)
 
 ## Description
 
-Data Validator node is an application which is responsible 
-for aggregation and validation of the data from the Data Owners and provide 
-it to Prometeus ecosystem. It provides RESTful API  and user interface for uploading data. 
-The Node uploads data of Data Owners to the Prometeus network using API
-of Service Node so that it can become available for purchase to Data marts. 
-The payment for the storage of that data is charged at the moment of upload 
-via the smart contract. Besides that, Data Validator Node makes initial 
-encryption of uploaded data using the Data Owner's public key.
+...
 
 ## How to test
 
@@ -52,16 +42,24 @@ As such this codebase should be treated as experimental and does not contain all
 
 ## How it works
 
-Upon starting, Data Validator node performs the following steps:
- - Backend API startup
-   - Local database initialization
- - Client application startup
+Ignite is a decentralized microblogging service powered by Bittorrent and public blockchain. In its essence, Ignite represents a set of independent and equitable nodes.Main features of Ignite : 
 
-After startup, Data Validator node exposes RESTful API which allows to perform the following operations:
-- Creation of data owners and uploading their files to Prometeus network
-- Files storage duration prolongation
-- Account registration
-- Transactions history view
+1.	It can not be blocked by any form of barrier or firewall, because it uses: 
+ - BTFS engine stores ALL of its stuff and nobody can block BTT really effectively yet.
+ - We use Ethereum blockchain to authenticate users and nodes and nobody can block it too! 
+ - Authentication is done through blockchain; 
+2.	Ignite is Immutable: data is stored forever on a distributed data storage BTFS/SOTER;
+3.	Community driven: no centralized administration or governance.
+
+All the posts texts and media attached to them are stored in the Distributed Data Storage (DDS). DDS is secure file storage for able to store necessary data and media for a period of 10-100 years. This ensures information immutability and censorship resistance. Our current version of DDS uses [Soter](https://gitlab.com/btfs_ignite). It stores all data we need to exchange between nodes. 
+
+```
+Note: speed of DDS files retrieval is far lower than what is needed to implement smooth UX. 
+```
+A Content Delivery Network (CDN) is used to resolve this issue. It is a geographically distributed network of proxy servers and their data centers. Its goal is to provide high availability and performance by distributing the service spatially relative to end-users. CND basically serves as a cache that is synched with DDS (which can be considered as an immutable backup in this scheme). 
+
+To make CDN censorship-resistant as well, we use [Skynet](https://blog.sia.tech/skynet-bdf0209d6d34) (CDN presented by Sia).
+Due to the blockchain nature of Ignite, authentication is done through a PROM crypto wallet (ERC20). 
 
 ## How to run
 
@@ -154,13 +152,10 @@ If you want to run Data Mart node outside Docker, you will need to to the follow
 | `REACT_APP_DATA_VALIDATOR_NODE_API_BASE_URL` | URL of backend API                                               |
 | `REACT_APP_PRODUCTION_PORT`                  | Port which will be used by client application in production mode |
 
-## Stages of project
+## Current Stage of project
 
-### What Validator node can do now
+What Validator node can do now:
 
 - It creates data owners and uploads files to Prometeus network;
 - It allows to prolong file storage duration;
-- It can show history of data sales;
-
-### What Data Validator node will do in the future
-
+- It can show history of data sales.
