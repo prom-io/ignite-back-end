@@ -24,4 +24,5 @@ import {OptionalJwtAuthGuard} from "./OptionalJwtAuthGuard";
         })
     ]
 })
-export class AuthModule {}
+export class AuthModule {
+}

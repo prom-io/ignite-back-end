@@ -1,9 +1,26 @@
-import {Body, ClassSerializerInterceptor, Controller, Get, Param, Post, Put, Query, Req, UseGuards, UseInterceptors} from "@nestjs/common";
+import {
+    Body,
+    ClassSerializerInterceptor,
+    Controller,
+    Get,
+    Param,
+    Post,
+    Put,
+    Query,
+    Req,
+    UseGuards,
+    UseInterceptors
+} from "@nestjs/common";
 import {AuthGuard} from "@nestjs/passport";
 import {Request} from "express";
 import {UsersService} from "./UsersService";
 import {User} from "./entities";
-import {CreateUserRequest, SignUpForPrivateBetaTestRequest, UpdateUserRequest, UsernameAvailabilityResponse} from "./types/request";
+import {
+    CreateUserRequest,
+    SignUpForPrivateBetaTestRequest,
+    UpdateUserRequest,
+    UsernameAvailabilityResponse
+} from "./types/request";
 import {UserResponse} from "./types/response";
 import {StatusesService} from "../statuses";
 import {StatusResponse} from "../statuses/types/response";

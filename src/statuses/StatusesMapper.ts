@@ -118,7 +118,7 @@ export class StatusesMapper {
         mediaAttachments: MediaAttachment[],
         referredStatus?: Status,
     ): Status {
-        return  {
+        return {
             id: uuid(),
             text: createStatusRequest.status || "",
             createdAt: new Date(),

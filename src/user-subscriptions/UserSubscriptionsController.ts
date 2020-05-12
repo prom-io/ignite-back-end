@@ -16,4 +16,4 @@ export class UserSubscriptionsController {
                               @Req() request: Request): Promise<void> {
         return this.userSubscriptionsService.deleteSubscription(id, request.user as User);
     }
- }
+}

@@ -6,4 +6,5 @@ import {BCryptPasswordEncoder} from "./BCryptPasswordEncoder";
     providers: [BCryptPasswordEncoder],
     exports: [BCryptPasswordEncoder]
 })
-export class BCryptModule {}
+export class BCryptModule {
+}

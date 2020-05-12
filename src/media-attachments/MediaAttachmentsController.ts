@@ -1,4 +1,14 @@
-import {ClassSerializerInterceptor, Controller, Get, Param, Post, Res, UploadedFile, UseGuards, UseInterceptors} from "@nestjs/common";
+import {
+    ClassSerializerInterceptor,
+    Controller,
+    Get,
+    Param,
+    Post,
+    Res,
+    UploadedFile,
+    UseGuards,
+    UseInterceptors
+} from "@nestjs/common";
 import {AuthGuard} from "@nestjs/passport";
 import {FileInterceptor} from "@nestjs/platform-express";
 import {Response} from "express";

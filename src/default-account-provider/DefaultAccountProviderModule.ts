@@ -7,4 +7,5 @@ import {Web3Module} from "../web3";
     imports: [Web3Module],
     exports: [DefaultAccountProviderService],
 })
-export class DefaultAccountProviderModule {}
+export class DefaultAccountProviderModule {
+}

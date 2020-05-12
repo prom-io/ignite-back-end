@@ -38,4 +38,5 @@ import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsR
     ],
     exports: [UsersService, UsersMapper]
 })
-export class UsersModule {}
+export class UsersModule {
+}

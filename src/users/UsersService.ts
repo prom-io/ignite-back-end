@@ -3,7 +3,12 @@ import {User} from "./entities";
 import {UsersRepository} from "./UsersRepository";
 import {UserStatisticsRepository} from "./UserStatisticsRepository";
 import {UsersMapper} from "./UsersMapper";
-import {CreateUserRequest, SignUpForPrivateBetaTestRequest, UpdateUserRequest, UsernameAvailabilityResponse} from "./types/request";
+import {
+    CreateUserRequest,
+    SignUpForPrivateBetaTestRequest,
+    UpdateUserRequest,
+    UsernameAvailabilityResponse
+} from "./types/request";
 import {UserResponse} from "./types/response";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {MailerService} from "@nestjs-modules/mailer";
@@ -78,7 +83,7 @@ export class UsersService {
     }
 
     public async isUsernameAvailable(username: string): Promise<UsernameAvailabilityResponse> {
-        const existsByUsername  = await this.usersRepository.existsByUsername(username);
+        const existsByUsername = await this.usersRepository.existsByUsername(username);
 
         if (existsByUsername) {
             return {available: false};

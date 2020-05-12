@@ -70,4 +70,5 @@ import {BtfsKafkaClient} from "./BtfsKafkaClient";
         BtfsHashesMapper
     ]
 })
-export class BtfsModule {}
+export class BtfsModule {
+}
