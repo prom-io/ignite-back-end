@@ -54,31 +54,9 @@ Due to the blockchain nature of Ignite, authentication is done through a PROM cr
 
 ### Prerequisites
 
-In order to run Data Mart node, you have to install:
+In order to run Ignite, you have to install:
 - Docker. You can find installation instructions on [official website](https://docs.docker.com/install/)
 - Docker-compose, which can be found [here](https://docs.docker.com/compose/install/)
-- Create and configure `bootstrap-nodes.json` file if you don't want to use default bootstrap nodes. This file contains 
-information about bootstrap nodes which help to discover other nodes in network. Below is the content of default `bootstrap-nodes.json` file:
-```
-{
-  "bootstrapNodes": [
-    {
-      "ipAddress": "188.166.37.102",
-      "port": 2000,
-      "libp2pAddress": "/ip4/188.166.37.102/tcp/12345/p2p/QmekndSMXKCGLFXp4peHpf9ynLWno6QFbo1uqMq8HBPqtz"
-    },
-    {
-      "ipAddress": "134.209.95.239",
-      "port": 2000,
-      "libp2pAddress": "/ip4/134.209.95.239/tcp/12346/p2p/QmaF43H5yth1nGWBF4xYEkqaL7X4uUsGNr3vhFbsAWnje6"
-    }
-  ]
-}
-```
-- If you want to run Data Mart node outside of Docker container, you will need to install
-    - NodeJS of latest version, which can be found on the [official website](https://nodejs.org/en/download/current/)
-    - Yarn. Its installation instruction is also available on
-    [Yarn's official website](https://legacy.yarnpkg.com/en/docs/install/#debian-stable).
 
 ### Build and run process
 
@@ -88,36 +66,42 @@ Firstly, you need to clone this repository with the following command:
 
 #### Running inside Docker
 
-In order to run Data Validator node inside Docker container, you need to do the following:
+In order to run Ignite node inside Docker container, you need to do the following:
 
 - Create`.env` file in project's **root** directory and configure environmental variables. It is required to configure environmental 
-variables for both backend and front-end applications
-    - You can find description of environmental variables for [backend](#backend) and [front-end](#front-end) below
+variables to run the application. You can find their description [below](#environmental-variables).
 - While in project directory, run the following command:
 
 ```docker-compose up --build``` or ```docker-compose up --build -d``` if you want to run the application in detached mode.
 
 ### Environmental variables
-| Parameter                         | Type                           | Description                                                        | Required |
-|-----------------------------------|--------------------------------|--------------------------------------------------------------------|----------|
-| DATA_VALIDATOR_API_PORT           | number                         | Port which will be used by API                                     | yes      |
-| LOGGING_EVEL                      | debug \| info \| warn \| error | Level of logging verbosity                                         | no       |
-| INITIAL_ACCOUNT_PRIVATE_KEY       | string                         | Private key of ETH wallet of the node                              | yes      |
-| JWT_SECRET                        | string                         | Private key for signing JWT tokens                                 | yes      |
-| DATABASE_NAME                     | string                         | Name of PostgreSQL database to connect to                          | yes      |
-| DATABASE_USERNAME                 | string                         | Database username which will be used for connection                | yes      |
-| DATABASE_PASSWORD                 | string                         | Database password which will be used for connection                | yes      |
-| DATABASE_HOST                     | string                         | PostgreSQL database host                                           | yes      |
-| DATABASE_PORT                     | number                         | PostgreSQL database port                                           | yes      |
-| RECREATE_DATABASE_SCHEMA          | boolean                        | Passed to "synchronize" option of TypeORM                          | no       |
-| MIRCROBLOGGING_BLOCKCHAIN_API_URL | string                         |                                                                    | yes      |
-| HOST                              | string                         | Fully qualified (schema://host:port) URL of API                    | yes      |
-| MEDIA_ATTACHMENTS_DIRECTORY       | string                         | Directory which will be used to store media attachments            | yes      |
-| DEFAULT_AVATAR_URL                | string                         | URL of default user avatar                                         | yes      |
-| APACHE_KAFKA_PORT                 | number                         | Port which is used by Apacke Kafka. It's used to push data to BTFS | no       |
-| APACHE_KAFKA_HOST                 | string                         | Host of Apache Kafka                                               | no       |
-| ENABLE_BTFS_PUSHING               | boolean                        | Specifies whether pushing data to BTFS is enabled                  | no       |
-| ENABLE_BTFS_PULLING               | boolean                        | Specifies whether pulling data from BTFS is enabled                | no       |
+| Parameter                         | Type                           | Description                                                            | Required |
+|-----------------------------------|--------------------------------|------------------------------------------------------------------------|----------|
+| IGNITE_API_PORT                   | number                         | Port which will be used by API                                         | yes      |
+| LOGGING_EVEL                      | debug \| info \| warn \| error | Level of logging verbosity                                             | no       |
+| INITIAL_ACCOUNT_PRIVATE_KEY       | string                         | Private key of ETH wallet of the node                                  | yes      |
+| JWT_SECRET                        | string                         | Private key for signing JWT tokens                                     | yes      |
+| DATABASE_NAME                     | string                         | Name of PostgreSQL database to connect to                              | yes      |
+| DATABASE_USERNAME                 | string                         | Database username which will be used for connection                    | yes      |
+| DATABASE_PASSWORD                 | string                         | Database password which will be used for connection                    | yes      |
+| DATABASE_HOST                     | string                         | PostgreSQL database host                                               | yes      |
+| DATABASE_PORT                     | number                         | PostgreSQL database port                                               | yes      |
+| RECREATE_DATABASE_SCHEMA          | boolean                        | Passed to "synchronize" option of TypeORM                              | no       |
+| MIRCROBLOGGING_BLOCKCHAIN_API_URL | string                         |                                                                        | yes      |
+| HOST                              | string                         | Fully qualified (schema://host:port) URL of API                        | yes      |
+| MEDIA_ATTACHMENTS_DIRECTORY       | string                         | Directory which will be used to store media attachments                | yes      |
+| DEFAULT_AVATAR_URL                | string                         | URL of default user avatar                                             | yes      |
+| APACHE_KAFKA_PORT                 | number                         | Port which is used by Apacke Kafka. It's used to push data to BTFS     | no       |
+| APACHE_KAFKA_HOST                 | string                         | Host of Apache Kafka                                                   | no       |
+| ENABLE_BTFS_PUSHING               | boolean                        | Specifies whether pushing data to BTFS is enabled                      | no       |
+| ENABLE_BTFS_PULLING               | boolean                        | Specifies whether pulling data from BTFS is enabled                    | no       |
+| EMAIL_USERNAME                    | string                         | Username of email which is used for invites sending                    | yes      |
+| EMAIL_PASSWORD                    | string                         | Password of email which is used for invites sending                    | yes      |
+| EMAIL_USERNAME                    | string                         | Username of email which is used for invites sending                    | yes      |
+| EMAIL_SMTP_SERVER_HOST            | string                         | Host of used SMTP server                                               | yes      |
+| EMAIL_SMTP_SERVER_PORT            | number                         | Port of used SMTP server                                               | yes      |
+| EMAIL_ADDRESS_TO_SEND             | string                         | Email which is used for aggregation of users submitted to private beta | yes      |
+| API_HOST                          | string                         | Fully qualified (schema://host:port) URL of API                        | yes      |
 
 ## Current Stage of project
 
