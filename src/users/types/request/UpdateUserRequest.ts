@@ -10,7 +10,7 @@ export class UpdateUserRequest {
 
     @ValidateIf((object: UpdateUserRequest) => Boolean(object.username))
     @IsString()
-    @Matches(/^[a-zA-Z0-9]+$/)
+    @Matches(/^[a-zA-Z0-9\u3130-\u318F\uAC00-\uD7AF_]+$/)
     @MaxLength(30)
     username?: string;
 
