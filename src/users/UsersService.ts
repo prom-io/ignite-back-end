@@ -8,8 +8,8 @@ import {UsersMapper} from "./UsersMapper";
 import {
     CreateUserRequest,
     SignUpForPrivateBetaTestRequest,
-    UpdatePreferencesRequest,
     UpdateUserRequest,
+    UpdatePreferencesRequest,
     UsernameAvailabilityResponse
 } from "./types/request";
 import {UserResponse, UserPreferencesResponse} from "./types/response";
@@ -87,7 +87,7 @@ export class UsersService {
     }
 
     public async isUsernameAvailable(username: string): Promise<UsernameAvailabilityResponse> {
-        const existsByUsername  = await this.usersRepository.existsByUsername(username);
+        const existsByUsername = await this.usersRepository.existsByUsername(username);
 
         if (existsByUsername) {
             return {available: false};

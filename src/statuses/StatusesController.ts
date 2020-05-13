@@ -1,4 +1,15 @@
-import {Body, ClassSerializerInterceptor, Controller, Get, Param, Post, Query, Req, UseGuards, UseInterceptors} from "@nestjs/common";
+import {
+    Body,
+    ClassSerializerInterceptor,
+    Controller,
+    Get,
+    Param,
+    Post,
+    Query,
+    Req,
+    UseGuards,
+    UseInterceptors
+} from "@nestjs/common";
 import {AuthGuard} from "@nestjs/passport";
 import {Request} from "express";
 import {StatusesService} from "./StatusesService";

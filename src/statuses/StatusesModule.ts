@@ -50,4 +50,5 @@ import {BtfsHashRepository} from "../btfs-sync/BtfsHashRepository";
     ],
     exports: [StatusesService, StatusesMapper]
 })
-export class StatusesModule {}
+export class StatusesModule {
+}

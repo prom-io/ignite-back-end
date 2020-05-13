@@ -12,4 +12,5 @@ import {Web3Wrapper} from "./Web3Wrapper";
     ],
     exports: [Web3Wrapper]
 })
-export class Web3Module {}
+export class Web3Module {
+}

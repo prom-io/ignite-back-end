@@ -1,6 +1,12 @@
 import {Injectable, Inject} from "@nestjs/common";
 import {AxiosInstance, AxiosPromise} from "axios"
-import {LogLikeRequest, LogStatusRequest, LogSubscriptionRequest, LogUnlikeRequest, LogUnsubscriptionRequest} from "./types/request";
+import {
+    LogLikeRequest,
+    LogStatusRequest,
+    LogSubscriptionRequest,
+    LogUnlikeRequest,
+    LogUnsubscriptionRequest
+} from "./types/request";
 
 @Injectable()
 export class MicrobloggingBlockchainApiClient {

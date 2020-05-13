@@ -36,13 +36,13 @@ export class StatusMappingOptionsProvider {
         const followedByAuthor = currentUser && await this.userSubscriptionsRepository.existsBySubscribedUserAndSubscribedToNotReverted(
             status.author, currentUser
         );
-        const userStatistics  = await this.userStatisticsRepository.findByUser(status.author);
+        const userStatistics = await this.userStatisticsRepository.findByUser(status.author);
         const repostsCount = await this.statusesRepository.countReposts(status);
         const commentsCount = await this.statusesRepository.countComments(status);
         const btfsHash = status.btfsHash && await this.btfsHashRepository.findByBtfsCid(status.btfsHash);
         let canBeReposted: boolean;
 
-        if (status.text.length !== 0 || status.mediaAttachments.length !== 0)  {
+        if (status.text.length !== 0 || status.mediaAttachments.length !== 0) {
             canBeReposted = currentUser && !(await this.statusesRepository.existByReferredStatusAndReferenceTypeAndAuthor(
                 status,
                 StatusReferenceType.REPOST,

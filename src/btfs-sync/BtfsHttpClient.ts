@@ -2,8 +2,18 @@ import {Injectable, Inject} from "@nestjs/common";
 import {AxiosInstance, AxiosPromise} from "axios";
 import fileSystem, {PathLike} from "fs";
 import FormData from "form-data";
-import {BtfsCommentsResponse, BtfsEntitiesResponse, BtfsStatusLikesResponse, BtfsUserSubscriptionsResponse} from "./types/response";
-import {SaveCommentRequest, SaveStatusLikeRequest, SaveStatusRequest, SaveUserSubscriptionRequest} from "./types/request";
+import {
+    BtfsCommentsResponse,
+    BtfsEntitiesResponse,
+    BtfsStatusLikesResponse,
+    BtfsUserSubscriptionsResponse
+} from "./types/response";
+import {
+    SaveCommentRequest,
+    SaveStatusLikeRequest,
+    SaveStatusRequest,
+    SaveUserSubscriptionRequest
+} from "./types/request";
 import {BtfsStatus, BtfsUser} from "./types/btfs-entities";
 import {SaveUserUnsubscriptionRequest} from "./types/request/SaveUserUnsubscriptionRequest";
 

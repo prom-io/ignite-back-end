@@ -56,7 +56,7 @@ export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<S
                 });
 
             if (!config.ENABLE_BTFS_PUSHING) {
-                return ;
+                return;
             }
 
             await asyncForEach(event.entity.mediaAttachments, async mediaAttachment => {
