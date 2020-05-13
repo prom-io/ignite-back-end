@@ -36,4 +36,4 @@ services:
 volumes:
   pg-data:
     external:
-      name: data-validator-node_pg-data
+      name: ${PGDATA_EXTERNAL_VOLUME}
