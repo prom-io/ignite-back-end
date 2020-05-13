@@ -27,11 +27,13 @@ services:
     env_file:
       - .env
     ports:
-    - ${DATA_VALIDATOR_API_PORT}:${DATA_VALIDATOR_API_PORT}
+    - ${IGNITE_API_PORT}:${IGNITE_API_PORT}
     depends_on:
       - postgres
     networks:
       - default
       - ignite-dds_kafka-net
 volumes:
-  pg-data: {}
+  pg-data:
+    external:
+      name: ${PGDATA_EXTERNAL_VOLUME}
