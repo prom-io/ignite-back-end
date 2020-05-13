@@ -75,4 +75,13 @@ export class EnvConfig {
 
     @Env({type: "string", required: true})
     API_HOST: string;
+
+    @Env({type: "boolean", required: false})
+    ENABLE_GLOBAL_TIMELINE_FILTERING: boolean = false;
+
+    @Env({type: "string", required: false})
+    KOREAN_FILTERING_USER_ADDRESS: string | undefined;
+
+    @Env({type: "string", required: false})
+    ENGLISH_FILTERING_USER_ADDRESS: string | undefined;
 }
