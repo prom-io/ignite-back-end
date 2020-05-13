@@ -1,4 +1,4 @@
-# Data Validator Node
+# Ignite Back-end
 
 ## Table of contents
 
@@ -10,37 +10,16 @@
     - [Prerequisites](#prerequisites)
     - [Build and run process](#build-and-run-process)
         - [Running inside Docker](#running-inside-docker)
-        - [Running outside Docker](#running-outside-docker)
     - [Environmental variables](#environmental-variables)
-        - [Backend](#backend)
-        - [Front-end](#front-end)
-- [Stages of project](#stages-of-project)
-    - [What Data Mart node can do now](#what-data-validator-node-can-do-now)
-    - [What Data mart node will do in the future](#what-data-validator-node-will-do-in-the-future)
-
+- [Current Stage of project](#current-stage-of-project)
 
 ## Description
 
-Data Validator node is an application which is responsible 
-for aggregation and validation of the data from the Data Owners and provide 
-it to Prometeus ecosystem. It provides RESTful API  and user interface for uploading data. 
-The Node uploads data of Data Owners to the Prometeus network using API
-of Service Node so that it can become available for purchase to Data marts. 
-The payment for the storage of that data is charged at the moment of upload 
-via the smart contract. Besides that, Data Validator Node makes initial 
-encryption of uploaded data using the Data Owner's public key.
+Ignite is a decentralized social network, which allows everyone to share her/his mind freely via texts and media files. All the posts are distributed through Ethereum blockchain and stored immutable in distributed Data Storage.
 
 ## How to test
 
-[Here](http://178.128.240.29/) is an instance of app, which is alreay deployed at the stage environent for the demo purposes. 
-So you can test all the essence features of the application using UI: 
-- upload Data Owners' files with their metadata;
-- browse uploaded Data Owners' files list;
-- browse the sales transactions list;
-- select PROM wallet as the default for the uploads;
-- browse the sales transactions list.
-
-Here is a [manual](https://github.com/Prometeus-Network/data-validator-node/blob/master/test.md) with screenshots: testing guideline for the operations listed above.
+Testing of the current functionality of Ignite can be performed via User Interface implemented in Ignite [front-end](https://github.com/Prometeus-Network/ignite-front-end) repo.
 
 ## License
 
@@ -52,115 +31,80 @@ As such this codebase should be treated as experimental and does not contain all
 
 ## How it works
 
-Upon starting, Data Validator node performs the following steps:
- - Backend API startup
-   - Local database initialization
- - Client application startup
+Ignite is a decentralized microblogging service powered by Bittorrent and public blockchain. In its essence, Ignite represents a set of independent and equitable nodes.Main features of Ignite : 
 
-After startup, Data Validator node exposes RESTful API which allows to perform the following operations:
-- Creation of data owners and uploading their files to Prometeus network
-- Files storage duration prolongation
-- Account registration
-- Transactions history view
+1.	It can not be blocked by any form of barrier or firewall, because it uses: 
+ - BTFS engine stores ALL of its stuff and nobody can block BTT really effectively yet.
+ - We use Ethereum blockchain to authenticate users and nodes and nobody can block it too! 
+ - Authentication is done through blockchain; 
+2.	Ignite is Immutable: data is stored forever on a distributed data storage BTFS/SOTER;
+3.	Community driven: no centralized administration or governance.
+
+All the posts texts and media attached to them are stored in the Distributed Data Storage (DDS). DDS is secure file storage for able to store necessary data and media for a period of 10-100 years. This ensures information immutability and censorship resistance. Our current version of DDS uses [Soter](https://gitlab.com/btfs_ignite). It stores all data we need to exchange between nodes. 
+
+```
+Note: speed of DDS files retrieval is far lower than what is needed to implement smooth UX. 
+```
+A Content Delivery Network (CDN) is used to resolve this issue. It is a geographically distributed network of proxy servers and their data centers. Its goal is to provide high availability and performance by distributing the service spatially relative to end-users. CND basically serves as a cache that is synched with DDS (which can be considered as an immutable backup in this scheme). 
+
+To make CDN censorship-resistant as well, we use [Skynet](https://blog.sia.tech/skynet-bdf0209d6d34) (CDN presented by Sia).
+Due to the blockchain nature of Ignite, authentication is done through a PROM crypto wallet (ERC20). 
 
 ## How to run
 
 ### Prerequisites
 
-In order to run Data Mart node, you have to install:
+In order to run Ignite, you have to install:
 - Docker. You can find installation instructions on [official website](https://docs.docker.com/install/)
 - Docker-compose, which can be found [here](https://docs.docker.com/compose/install/)
-- Create and configure `bootstrap-nodes.json` file if you don't want to use default bootstrap nodes. This file contains 
-information about bootstrap nodes which help to discover other nodes in network. Below is the content of default `bootstrap-nodes.json` file:
-```
-{
-  "bootstrapNodes": [
-    {
-      "ipAddress": "188.166.37.102",
-      "port": 2000,
-      "libp2pAddress": "/ip4/188.166.37.102/tcp/12345/p2p/QmekndSMXKCGLFXp4peHpf9ynLWno6QFbo1uqMq8HBPqtz"
-    },
-    {
-      "ipAddress": "134.209.95.239",
-      "port": 2000,
-      "libp2pAddress": "/ip4/134.209.95.239/tcp/12346/p2p/QmaF43H5yth1nGWBF4xYEkqaL7X4uUsGNr3vhFbsAWnje6"
-    }
-  ]
-}
-```
-- If you want to run Data Mart node outside of Docker container, you will need to install
-    - NodeJS of latest version, which can be found on the [official website](https://nodejs.org/en/download/current/)
-    - Yarn. Its installation instruction is also available on
-    [Yarn's official website](https://legacy.yarnpkg.com/en/docs/install/#debian-stable).
 
 ### Build and run process
 
 Firstly, you need to clone this repository with the following command:
 
-```git clone https://github.com/Prometeus-Network/data-validator-node.git```
-
-After repository is cloned, you need to initialize submodules with the following commands:
-
-```git submodule init```
-
-```git submodule update```
+```git clone https://github.com/Prometeus-Network/ignite-back-end.git```
 
 #### Running inside Docker
 
-In order to run Data Validator node inside Docker container, you need to do the following:
+In order to run Ignite node inside Docker container, you need to do the following:
 
 - Create`.env` file in project's **root** directory and configure environmental variables. It is required to configure environmental 
-variables for both backend and front-end applications
-    - You can find description of environmental variables for [backend](#backend) and [front-end](#front-end) below
+variables to run the application. You can find their description [below](#environmental-variables).
 - While in project directory, run the following command:
 
 ```docker-compose up --build``` or ```docker-compose up --build -d``` if you want to run the application in detached mode.
 
-#### Running outside Docker
-
-If you want to run Data Mart node outside Docker, you will need to to the following:
-
-- Backend API
-  - Run `yarn global add @nestjs/cli to install NestJS CLI`
-  - Go to `backend` directory and run `yarn istall` command to install all dependencies for backend application
-  - Create `.env` file and configure it with the variables described [below](#backend)
-  - Run `yarn run start` to start up backend application
-- Client application
-  - Go to `front-end` directory and run `yarn run install` command to install all dependencies for front-end application
-  - Create `.env` file and configure it with the variables described [below](#front-end)
-  - Run `yarn run production` to start up client application
-      - If you want to run front-end application in development mode,
-      run `yarn run start`
-
-
 ### Environmental variables
+| Parameter                         | Type                           | Description                                                            | Required |
+|-----------------------------------|--------------------------------|------------------------------------------------------------------------|----------|
+| IGNITE_API_PORT                   | number                         | Port which will be used by API                                         | yes      |
+| LOGGING_EVEL                      | debug \| info \| warn \| error | Level of logging verbosity                                             | no       |
+| INITIAL_ACCOUNT_PRIVATE_KEY       | string                         | Private key of ETH wallet of the node                                  | yes      |
+| JWT_SECRET                        | string                         | Private key for signing JWT tokens                                     | yes      |
+| DATABASE_NAME                     | string                         | Name of PostgreSQL database to connect to                              | yes      |
+| DATABASE_USERNAME                 | string                         | Database username which will be used for connection                    | yes      |
+| DATABASE_PASSWORD                 | string                         | Database password which will be used for connection                    | yes      |
+| DATABASE_HOST                     | string                         | PostgreSQL database host                                               | yes      |
+| DATABASE_PORT                     | number                         | PostgreSQL database port                                               | yes      |
+| RECREATE_DATABASE_SCHEMA          | boolean                        | Passed to "synchronize" option of TypeORM                              | no       |
+| MIRCROBLOGGING_BLOCKCHAIN_API_URL | string                         |                                                                        | yes      |
+| HOST                              | string                         | Fully qualified (schema://host:port) URL of API                        | yes      |
+| MEDIA_ATTACHMENTS_DIRECTORY       | string                         | Directory which will be used to store media attachments                | yes      |
+| DEFAULT_AVATAR_URL                | string                         | URL of default user avatar                                             | yes      |
+| APACHE_KAFKA_PORT                 | number                         | Port which is used by Apacke Kafka. It's used to push data to BTFS     | no       |
+| APACHE_KAFKA_HOST                 | string                         | Host of Apache Kafka                                                   | no       |
+| ENABLE_BTFS_PUSHING               | boolean                        | Specifies whether pushing data to BTFS is enabled                      | no       |
+| ENABLE_BTFS_PULLING               | boolean                        | Specifies whether pulling data from BTFS is enabled                    | no       |
+| EMAIL_USERNAME                    | string                         | Username of email which is used for invites sending                    | yes      |
+| EMAIL_PASSWORD                    | string                         | Password of email which is used for invites sending                    | yes      |
+| EMAIL_USERNAME                    | string                         | Username of email which is used for invites sending                    | yes      |
+| EMAIL_SMTP_SERVER_HOST            | string                         | Host of used SMTP server                                               | yes      |
+| EMAIL_SMTP_SERVER_PORT            | number                         | Port of used SMTP server                                               | yes      |
+| EMAIL_ADDRESS_TO_SEND             | string                         | Email which is used for aggregation of users submitted to private beta | yes      |
+| API_HOST                          | string                         | Fully qualified (schema://host:port) URL of API                        | yes      |
 
-#### Backend 
+## Current Stage of project
 
-| Variable                        | Description                                                                                                                                                                                          |
-|---------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `DATA_VALIDATOR_API_PIRT`       | Port which will be used by backend API                                                                                                                                                               |
-| `LOGGING_LEVEL`                 | Level of logging verbosity. Allowed values are debug, info, warn, error                                                                                                                              |
-| `NEDB_DIRECTORY`                | Directory which will be used by local Nedb database                                                                                                                                                  |
-| `ENCRYPTOR_SERVICE_URL`         | URL of Encryptor service                                                                                                                                                                             |
-| `INITIAL_ACCOUNT_PRIVATE_KEY`   | Private key to Ethereum account which will be used for registration upon first startup                                                                                                               |
-| `USE_LOCAL_IP_FOR_REGISTRATION` | Indicates whether local IP address should be used for registering itself to bootstrap node. This may be useful for development purposes or if your bootstrap nodes are located in your local network |
-| `LOCAL_FILES_DIRECTORY`         | Path to directory which is used for initial data upload, before sending data to Service node. Please make sure that you have read and write access to this directory                                 |
+Ignite decentralized social network is now in  private beta testing stage. 
 
-#### Front-end
-
-| Variable                                     | Description                                                      |
-|----------------------------------------------|------------------------------------------------------------------|
-| `REACT_APP_DATA_VALIDATOR_NODE_API_BASE_URL` | URL of backend API                                               |
-| `REACT_APP_PRODUCTION_PORT`                  | Port which will be used by client application in production mode |
-
-## Stages of project
-
-### What Validator node can do now
-
-- It creates data owners and uploads files to Prometeus network;
-- It allows to prolong file storage duration;
-- It can show history of data sales;
-
-### What Data Validator node will do in the future
-
+Please visit Ignite [demo page](http://beta.ignite.so/) to apply for the test account.
