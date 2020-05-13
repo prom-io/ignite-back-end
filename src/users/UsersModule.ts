@@ -9,6 +9,7 @@ import {UsersRepository} from "./UsersRepository";
 import {UserStatisticsRepository} from "./UserStatisticsRepository";
 import {UserEntityEventsSubscriber} from "./UserEntityEventsSubscriber";
 import {UserStatisticsMapper} from "./UserStatisticsMapper";
+import {UserPreferencesRepository} from "./UserPreferencesRepository";
 import {StatusesModule} from "../statuses/StatusesModule";
 import {UserSubscriptionsModule} from "../user-subscriptions/UserSubscriptionsModule";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
@@ -20,7 +21,13 @@ import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsR
     controllers: [UsersController, UserByAddressController],
     providers: [UsersService, UsersMapper, UserEntityEventsSubscriber, UserStatisticsMapper],
     imports: [
-        TypeOrmModule.forFeature([UsersRepository, UserStatisticsRepository, UserSubscriptionsRepository, MediaAttachmentsRepository]),
+        TypeOrmModule.forFeature([
+            UsersRepository,
+            UserStatisticsRepository,
+            UserSubscriptionsRepository,
+            MediaAttachmentsRepository,
+            UserPreferencesRepository
+        ]),
         forwardRef(() => StatusesModule),
         forwardRef(() => UserSubscriptionsModule),
         MailerModule.forRoot({

@@ -1,9 +1,27 @@
-import {Body, ClassSerializerInterceptor, Controller, Get, Param, Post, Put, Query, Req, UseGuards, UseInterceptors} from "@nestjs/common";
+import {
+    Body,
+    ClassSerializerInterceptor,
+    Controller,
+    Get,
+    Param,
+    Post,
+    Put,
+    Query,
+    Req,
+    UseGuards,
+    UseInterceptors
+} from "@nestjs/common";
 import {AuthGuard} from "@nestjs/passport";
 import {Request} from "express";
 import {UsersService} from "./UsersService";
 import {User} from "./entities";
-import {CreateUserRequest, SignUpForPrivateBetaTestRequest, UpdateUserRequest, UsernameAvailabilityResponse} from "./types/request";
+import {
+    CreateUserRequest,
+    SignUpForPrivateBetaTestRequest,
+    UpdatePreferencesRequest,
+    UpdateUserRequest,
+    UsernameAvailabilityResponse
+} from "./types/request";
 import {UserResponse} from "./types/response";
 import {StatusesService} from "../statuses";
 import {StatusResponse} from "../statuses/types/response";
@@ -28,6 +46,13 @@ export class UsersController {
     @Post()
     public async createUser(@Body() createUserRequest: CreateUserRequest): Promise<void> {
         await this.usersService.saveUser(createUserRequest);
+    }
+
+    @UseGuards(AuthGuard("jwt"))
+    @Put("preferences")
+    public async updatePreferences(@Body() updatePreferencesRequest: UpdatePreferencesRequest,
+                                   @Req() request: Request): Promise<UpdatePreferencesRequest> {
+        return this.usersService.updateUserPreferences(updatePreferencesRequest, request.user as User);
     }
 
     @UseInterceptors(ClassSerializerInterceptor)
