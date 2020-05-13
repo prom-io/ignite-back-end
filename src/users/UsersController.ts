@@ -18,6 +18,7 @@ import {User} from "./entities";
 import {
     CreateUserRequest,
     SignUpForPrivateBetaTestRequest,
+    UpdatePreferencesRequest,
     UpdateUserRequest,
     UsernameAvailabilityResponse
 } from "./types/request";
@@ -45,6 +46,13 @@ export class UsersController {
     @Post()
     public async createUser(@Body() createUserRequest: CreateUserRequest): Promise<void> {
         await this.usersService.saveUser(createUserRequest);
+    }
+
+    @UseGuards(AuthGuard("jwt"))
+    @Put("preferences")
+    public async updatePreferences(@Body() updatePreferencesRequest: UpdatePreferencesRequest,
+                                   @Req() request: Request): Promise<UpdatePreferencesRequest> {
+        return this.usersService.updateUserPreferences(updatePreferencesRequest, request.user as User);
     }
 
     @UseInterceptors(ClassSerializerInterceptor)

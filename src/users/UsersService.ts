@@ -1,15 +1,18 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
-import {User} from "./entities";
+import uuid from "uuid/v4";
+import {User, UserPreferences} from "./entities";
 import {UsersRepository} from "./UsersRepository";
 import {UserStatisticsRepository} from "./UserStatisticsRepository";
+import {UserPreferencesRepository} from "./UserPreferencesRepository";
 import {UsersMapper} from "./UsersMapper";
 import {
     CreateUserRequest,
     SignUpForPrivateBetaTestRequest,
     UpdateUserRequest,
+    UpdatePreferencesRequest,
     UsernameAvailabilityResponse
 } from "./types/request";
-import {UserResponse} from "./types/response";
+import {UserResponse, UserPreferencesResponse} from "./types/response";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {MailerService} from "@nestjs-modules/mailer";
 import {LoggerService} from "nest-logger";
@@ -21,6 +24,7 @@ import {MediaAttachment} from "../media-attachments/entities";
 export class UsersService {
     constructor(private readonly usersRepository: UsersRepository,
                 private readonly userStatisticsRepository: UserStatisticsRepository,
+                private readonly userPreferencesRepository: UserPreferencesRepository,
                 private readonly subscriptionsRepository: UserSubscriptionsRepository,
                 private readonly mediaAttachmentsRepository: MediaAttachmentsRepository,
                 private readonly mailerService: MailerService,
@@ -129,6 +133,25 @@ export class UsersService {
         user.displayedName = updateUserRequest.displayName;
         user.avatar = avatar;
 
+        if (updateUserRequest.preferences) {
+            let preferences: UserPreferences;
+
+            if (user.preferences) {
+                preferences = user.preferences;
+                preferences.language = updateUserRequest.preferences.language;
+                preferences = await this.userPreferencesRepository.save(preferences);
+            } else {
+                preferences = {
+                    id: uuid(),
+                    language: updateUserRequest.preferences.language,
+                    user
+                };
+                preferences = await this.userPreferencesRepository.save(preferences);
+            }
+
+            user.preferences = preferences;
+        }
+
         user = await this.usersRepository.save(user);
 
         const userStatistics = await this.userStatisticsRepository.findByUser(user);
@@ -155,6 +178,23 @@ export class UsersService {
         }
 
         return mediaAttachment;
+    }
+
+    public async updateUserPreferences(updatePreferencesRequest: UpdatePreferencesRequest, currentUser: User): Promise<UserPreferencesResponse> {
+        let preferences = currentUser.preferences;
+
+        if (preferences) {
+            preferences.language = updatePreferencesRequest.language;
+        } else {
+            preferences = {
+                id: uuid(),
+                user: currentUser,
+                language: updatePreferencesRequest.language
+            };
+        }
+
+        preferences = await this.userPreferencesRepository.save(preferences);
+        return new UserPreferencesResponse({language: preferences.language});
     }
 
     public async findUserByEthereumAddress(address: string): Promise<UserResponse> {

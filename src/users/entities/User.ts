@@ -1,4 +1,5 @@
-import {Column, Entity, ManyToOne, OneToMany, PrimaryColumn} from "typeorm";
+import {Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryColumn} from "typeorm";
+import {UserPreferences} from "./UserPreferences";
 import {MediaAttachment} from "../../media-attachments/entities";
 
 @Entity()
@@ -44,4 +45,8 @@ export class User {
 
     @Column({nullable: true})
     bio?: string;
+
+    @OneToOne(() => UserPreferences, preferences => preferences.user, {nullable: true, eager: true})
+    @JoinColumn()
+    preferences?: UserPreferences;
 }
