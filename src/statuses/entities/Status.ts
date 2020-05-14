@@ -19,7 +19,7 @@ export class Status {
     @PrimaryColumn()
     id: string;
 
-    @Column({type: "varchar", length: 250})
+    @Column({type: "varchar", length: 10000, nullable: true})
     text: string;
 
     @ManyToOne(type => User, {eager: true})
