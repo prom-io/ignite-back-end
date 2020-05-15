@@ -75,4 +75,7 @@ export class EnvConfig {
 
     @Env({type: "string", required: true})
     API_HOST: string;
+
+    @Env({type: "boolean", required: false})
+    ENABLE_FIREBASE_PUSH_NOTIFICATIONS: boolean = false;
 }

@@ -3,7 +3,7 @@ import {UserSubscription} from "./user-subscriptions/entities";
 import {Status, StatusLike} from "./statuses/entities";
 import {MediaAttachment} from "./media-attachments/entities";
 import {BtfsHash} from "./btfs-sync/entities";
-import {UserDevice} from "./push-notifications/entities";
+import {Notification, UserDevice} from "./push-notifications/entities";
 
 export const entities = [
     User,

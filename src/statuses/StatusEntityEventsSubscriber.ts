@@ -14,6 +14,7 @@ import {config} from "../config";
 import {IpAddressProvider} from "../btfs-sync/IpAddressProvider";
 import {DefaultAccountProviderService} from "../default-account-provider/DefaultAccountProviderService";
 import {BtfsKafkaClient} from "../btfs-sync/BtfsKafkaClient";
+import {PushNotificationsService} from "../push-notifications/PushNotificationsService";
 
 @Injectable()
 export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<Status> {
@@ -25,6 +26,7 @@ export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<S
                 private readonly btfsStatusesMapper: BtfsStatusesMapper,
                 private readonly accountService: DefaultAccountProviderService,
                 private readonly ipAddressProvider: IpAddressProvider,
+                private readonly pushNotificationService: PushNotificationsService,
                 private readonly log: LoggerService) {
         connection.subscribers.push(this);
     }
@@ -38,6 +40,8 @@ export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<S
         const userStatistics = await this.userStatisticsRepository.findByUser(author);
         userStatistics.statusesCount += 1;
         await this.userStatisticsRepository.save(userStatistics);
+
+        this.pushNotificationService.processStatus(event.entity);
 
         if (!event.entity.btfsHash && config.ENABLE_BTFS_PUSHING) {
             this.log.info("Logging status to blockchain");

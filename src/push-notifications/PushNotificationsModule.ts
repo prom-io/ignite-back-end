@@ -10,9 +10,7 @@ import {NotificationsRepository} from "./NotificationsRepository";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {StatusesRepository} from "../statuses/StatusesRepository";
 import {UserDevicesRepository} from "./UserDevicesRepository";
-
-// tslint:disable-next-line:no-var-requires
-const firebaseConfig = require("../../firebase-config.json");
+import {config} from "../config";
 
 @Module({
     controllers: [UserDevicesController],
@@ -20,9 +18,14 @@ const firebaseConfig = require("../../firebase-config.json");
         {
             provide: "firebaseAdmin",
             useValue: () => {
-                return FirebaseAdmin.initializeApp({
-                    credential: FirebaseAdmin.credential.cert(firebaseConfig)
-                });
+                if (config.ENABLE_FIREBASE_PUSH_NOTIFICATIONS) {
+                    const firebaseConfig = require("../../firebase-config.json");
+                    return FirebaseAdmin.initializeApp({
+                        credential: FirebaseAdmin.credential.cert(firebaseConfig)
+                    })
+                } else {
+                    return null;
+                }
             }
         },
         PushNotificationsService,
@@ -30,7 +33,7 @@ const firebaseConfig = require("../../firebase-config.json");
     ],
     imports: [
         forwardRef(() => StatusesModule),
-        UsersModule,
+        forwardRef(() => UsersModule),
         TypeOrmModule.forFeature([
             NotificationsRepository,
             UsersRepository,

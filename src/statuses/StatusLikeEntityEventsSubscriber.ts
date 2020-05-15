@@ -9,6 +9,7 @@ import {IpAddressProvider} from "../btfs-sync/IpAddressProvider";
 import {DefaultAccountProviderService} from "../default-account-provider/DefaultAccountProviderService";
 import {config} from "../config";
 import {BtfsKafkaClient} from "../btfs-sync/BtfsKafkaClient";
+import {PushNotificationsService} from "../push-notifications/PushNotificationsService";
 
 @Injectable()
 export class StatusLikeEntityEventsSubscriber implements EntitySubscriberInterface<StatusLike> {
@@ -18,6 +19,7 @@ export class StatusLikeEntityEventsSubscriber implements EntitySubscriberInterfa
                 private readonly btfsStatusLikesMapper: BtfsStatusLikesMapper,
                 private readonly accountService: DefaultAccountProviderService,
                 private readonly ipAddressProvider: IpAddressProvider,
+                private readonly pushNotificationService: PushNotificationsService,
                 private readonly log: LoggerService) {
         connection.subscribers.push(this);
     }
@@ -28,6 +30,10 @@ export class StatusLikeEntityEventsSubscriber implements EntitySubscriberInterfa
 
     public async afterInsert(event: InsertEvent<StatusLike>): Promise<void> {
         const statusLike = event.entity;
+
+        if (!statusLike.reverted) {
+            this.pushNotificationService.processStatusLike(statusLike);
+        }
 
         if (!statusLike.btfsHash) {
             this.log.info("Logging status like to blockchain");

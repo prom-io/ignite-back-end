@@ -20,6 +20,7 @@ import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsR
 import {MediaAttachmentsModule} from "../media-attachments";
 import {DefaultAccountProviderModule} from "../default-account-provider/DefaultAccountProviderModule";
 import {BtfsHashRepository} from "../btfs-sync/BtfsHashRepository";
+import {PushNotificationsModule} from "../push-notifications/PushNotificationsModule";
 
 @Module({
     controllers: [StatusesController, TimelineController],
@@ -46,7 +47,8 @@ import {BtfsHashRepository} from "../btfs-sync/BtfsHashRepository";
         MicrobloggingBlockchainApiModule,
         MediaAttachmentsModule,
         DefaultAccountProviderModule,
-        forwardRef(() => UsersModule)
+        forwardRef(() => UsersModule),
+        forwardRef(() => PushNotificationsModule)
     ],
     exports: [StatusesService, StatusesMapper]
 })
