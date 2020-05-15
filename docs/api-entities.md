@@ -1,5 +1,12 @@
 # API entities
 
+## Table of contents
+
+- [Account](#account)
+- [MediaAttachment](#mediaattachment)
+- [BtfsInfo](#btfsinfo)
+- [Status](#status)
+
 Note: responses of API may contain other fields that are not specified in this documents, but they are insignificant and should be ignored.
 
 ### Account
@@ -16,7 +23,7 @@ Note: responses of API may contain other fields that are not specified in this d
 | following       | boolean | Whether current user follows this user                                                                               |
 | followed_by     | boolean | Whether current user is followed by this user                                                                        |
 
-### Media attachment
+### MediaAttachment
 
 | Parameter | Type       | Description                                                                                                                                                                                                                                                |
 |-----------|------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -38,18 +45,18 @@ Note: responses of API may contain other fields that are not specified in this d
 
 ### Status
 
-| Parameter             | Type                      | Description                                                                                                                                                                                                                        |
-|-----------------------|---------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| id                    | string                    | ID of status                                                                                                                                                                                                                       |
-| created_at            | string                    | Date of status creation represented as ISO-formatted string                                                                                                                                                                        |
-| account               | Account                   | User who created this status                                                                                                                                                                                                       |
-| content               | string?                   | Text of status                                                                                                                                                                                                                     |
-| favourited            | boolean                   | Indicates whether current user liked this status                                                                                                                                                                                   |
-| favourite_count       | number                    | Number of users who liked this status                                                                                                                                                                                              |
-| media_attachments     | MediaAttachment[]         | Media attachments of this status                                                                                                                                                                                                   |
-| referred_status       | Status?                   | Status which this status refers to                                                                                                                                                                                                 |
-| status_reference_type | enum("REPOST, "COMMENT")? | Type of status reference. If this field is set to "REPOST" then this status reposts status specified in referred_status field. If this field is set to "COMMENT" then this status has been created as a comment to referred status |
-| referred_status_id    | string?                   | ID of referred status. This field is only set to status specified in referred_status field, if this status also refers to other status                                                                                             |
-| reposts_count         | number                    | Number of reposts of this status                                                                                                                                                                                                   |
-| comments_count        | number                    | Number of comments left to this status                                                                                                                                                                                             |
-| btfs_info             | BtfsInfo?                 | Info about BTFS block                                                                                                                                                                                                              |
+| Parameter             | Type                                           | Description                                                                                                                                                                                                                        |
+|-----------------------|------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| id                    | string                                         | ID of status                                                                                                                                                                                                                       |
+| created_at            | string                                         | Date of status creation represented as ISO-formatted string                                                                                                                                                                        |
+| account               | [Account](#account)                            | User who created this status                                                                                                                                                                                                       |
+| content               | string?                                        | Text of status                                                                                                                                                                                                                     |
+| favourited            | boolean                                        | Indicates whether current user liked this status                                                                                                                                                                                   |
+| favourite_count       | number                                         | Number of users who liked this status                                                                                                                                                                                              |
+| media_attachments     | [MediaAttachment[]](#mediaattachment)          | Media attachments of this status                                                                                                                                                                                                   |
+| referred_status       | [Status?](#status)                             | Status which this status refers to                                                                                                                                                                                                 |
+| status_reference_type | enum("REPOST, "COMMENT")?                      | Type of status reference. If this field is set to "REPOST" then this status reposts status specified in referred_status field. If this field is set to "COMMENT" then this status has been created as a comment to referred status |
+| referred_status_id    | string?                                        | ID of referred status. This field is only set to status specified in referred_status field, if this status also refers to other status                                                                                             |
+| reposts_count         | number                                         | Number of reposts of this status                                                                                                                                                                                                   |
+| comments_count        | number                                         | Number of comments left to this status                                                                                                                                                                                             |
+| btfs_info             | [BtfsInfo?](#btfsinfo)                         | Info about BTFS block                                                                                                                                                                                                              |

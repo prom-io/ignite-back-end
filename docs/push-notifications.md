@@ -1,5 +1,15 @@
 # Push notifications API
 
+## Table of contents
+
+- [Register user device](#resister-user-device)
+- [Basic structure of Ignite Firebase push notification](#basic-structure-of-ignite-firebase-push-notification)
+- [Types of notifications](#types-of-notifications)
+  - [Payload types](#payload-types)
+    - [NEW_STATUS](#new_status)
+    - [STATUS_REPLY](#status_reply)
+    - [STATUS_LIKE](#status_like)
+
 ## Resister user device
 
 Register user device. Requires access token to be present in headers
@@ -35,7 +45,7 @@ POST /api/v1/user-devices
 201 CREATED
 ```
 
-## Basic structure of Firebase push notification
+## Basic structure of Ignite Firebase push notification
 
 Ignite Firebase push notifications have the following structure:
 
