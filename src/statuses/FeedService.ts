@@ -83,7 +83,7 @@ export class FeedService {
             }
 
             if (filteringUser) {
-                displayedUsers = (await this.userSubscriptionRepository.findAllBySubscribedToNotReverted(filteringUser))
+                displayedUsers = (await this.userSubscriptionRepository.findAllBySubscribedUserNotReverted(filteringUser))
                     .map(subscription => subscription.subscribedTo);
             }
         }
