@@ -58,11 +58,13 @@ export class WebsocketEventsPublisher implements OnGatewayConnection, OnGatewayD
     }
 
     public publishWebsocketPushNotification(publishWebsocketNotificationRequest: PublishWebsocketNotificationRequest<any>): void {
-        this.connectedUsersMap[publishWebsocketNotificationRequest.receiverEthereumAddress].forEach(client => {
-            client.emit(
-                publishWebsocketNotificationRequest.websocketPushNotification.type,
-                publishWebsocketNotificationRequest.websocketPushNotification
-            );
-        });
+        if (this.connectedUsersMap[publishWebsocketNotificationRequest.receiverEthereumAddress]) {
+            this.connectedUsersMap[publishWebsocketNotificationRequest.receiverEthereumAddress].forEach(client => {
+                client.emit(
+                    publishWebsocketNotificationRequest.websocketPushNotification.type,
+                    publishWebsocketNotificationRequest.websocketPushNotification
+                );
+            });
+        }
     }
 }
