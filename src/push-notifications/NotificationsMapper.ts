@@ -3,7 +3,7 @@ import {Notification, NotificationType} from "./entities";
 import {StatusLikePushNotification, WebsocketPushNotification} from "./types/response";
 import {StatusesRepository} from "../statuses/StatusesRepository";
 import {StatusLikesRepository} from "../statuses/StatusLikesRepository";
-import {StatusesMapper} from "../statuses";
+import {StatusesMapper} from "../statuses/StatusesMapper";
 import {StatusResponse} from "../statuses/types/response";
 import {UsersMapper} from "../users/UsersMapper";
 

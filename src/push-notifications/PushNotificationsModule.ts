@@ -1,8 +1,12 @@
 import {forwardRef, Module} from "@nestjs/common";
+import {JwtModule} from "@nestjs/jwt";
 import FirebaseAdmin from "firebase-admin";
 import {UserDevicesController} from "./UserDevicesController";
 import {PushNotificationsService} from "./PushNotificationsService";
 import {UserDevicesService} from "./UserDevicesService";
+import {NotificationEntityEventsSubscriber} from "./NotificationEntityEventsSubscriber";
+import {WebsocketEventsPublisher} from "./WebsocketEventsPublisher";
+import {NotificationsMapper} from "./NotificationsMapper";
 import {StatusesModule} from "../statuses";
 import {UsersModule, UsersRepository} from "../users";
 import {TypeOrmModule} from "@nestjs/typeorm";
@@ -11,6 +15,7 @@ import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptio
 import {StatusesRepository} from "../statuses/StatusesRepository";
 import {UserDevicesRepository} from "./UserDevicesRepository";
 import {config} from "../config";
+import {StatusLikesRepository} from "../statuses/StatusLikesRepository";
 
 @Module({
     controllers: [UserDevicesController],
@@ -29,7 +34,10 @@ import {config} from "../config";
             }
         },
         PushNotificationsService,
-        UserDevicesService
+        UserDevicesService,
+        NotificationEntityEventsSubscriber,
+        NotificationsMapper,
+        WebsocketEventsPublisher
     ],
     imports: [
         forwardRef(() => StatusesModule),
@@ -39,8 +47,12 @@ import {config} from "../config";
             UsersRepository,
             UserSubscriptionsRepository,
             StatusesRepository,
-            UserDevicesRepository
-        ])
+            UserDevicesRepository,
+            StatusLikesRepository
+        ]),
+        JwtModule.register({
+            secret: config.JWT_SECRET
+        })
     ],
     exports: [PushNotificationsService]
 })
