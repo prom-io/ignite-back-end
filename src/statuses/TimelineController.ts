@@ -25,8 +25,9 @@ export class TimelineController {
     @Get("global")
     public getGlobalFeed(@Req() request: Request,
                          @Query("max_id") maxId?: string,
-                         @Query("since_id") sinceId?: string): Promise<StatusResponse[]> {
-        return this.feedService.getGlobalFeed({maxId, sinceId}, request.user as User | null);
+                         @Query("since_id") sinceId?: string,
+                         @Query("language") language?: string): Promise<StatusResponse[]> {
+        return this.feedService.getGlobalFeed({maxId, sinceId}, request.user as User | null, language);
     }
 
     @UseInterceptors(ClassSerializerInterceptor)

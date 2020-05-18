@@ -8,13 +8,15 @@ import {Status} from "./entities";
 import {User} from "../users/entities";
 import {PaginationRequest} from "../utils/pagination";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
-import {UserStatisticsRepository} from "../users";
+import {UsersRepository, UserStatisticsRepository} from "../users";
 import {asyncMap} from "../utils/async-map";
+import {config} from "../config";
 
 @Injectable()
 export class FeedService {
     constructor(private readonly subscriptionsRepository: UserSubscriptionsRepository,
                 private readonly userStatisticsRepository: UserStatisticsRepository,
+                private readonly usersRepository: UsersRepository,
                 private readonly statusesRepository: StatusesRepository,
                 private readonly statusLikesRepository: StatusLikesRepository,
                 private readonly userSubscriptionRepository: UserSubscriptionsRepository,
@@ -58,33 +60,89 @@ export class FeedService {
         return this.mapStatusesToStatusesResponse(statuses, currentUser)
     }
 
-    public async getGlobalFeed(feedCursors: FeedCursors, currentUser?: User): Promise<StatusResponse[]> {
+    public async getGlobalFeed(feedCursors: FeedCursors, currentUser?: User, language?: string): Promise<StatusResponse[]> {
+        if (language) {
+            language = language === "ko" || language === "en" ? language : "en";
+        }
+
         const paginationRequest: PaginationRequest = {
             page: 1,
             pageSize: 30
         };
 
         let statuses: Status[];
+        let displayedUsers: User[] = [];
+
+        if (config.ENABLE_GLOBAL_TIMELINE_FILTERING && config.KOREAN_FILTERING_USER_ADDRESS && config.ENGLISH_FILTERING_USER_ADDRESS) {
+            let filteringUser: User;
+
+            if (language === "ko") {
+                filteringUser = await this.usersRepository.findByEthereumAddress(config.KOREAN_FILTERING_USER_ADDRESS);
+            } else {
+                filteringUser = await this.usersRepository.findByEthereumAddress(config.ENGLISH_FILTERING_USER_ADDRESS);
+            }
+
+            if (filteringUser) {
+                displayedUsers = (await this.userSubscriptionRepository.findAllBySubscribedUserNotReverted(filteringUser))
+                    .map(subscription => subscription.subscribedTo);
+            }
+        }
+
+        const shouldFilterUsers = displayedUsers.length !== 0;
 
         if (feedCursors.maxId) {
             if (feedCursors.sinceId) {
                 const sinceCursor = await this.findStatusById(feedCursors.sinceId);
                 const maxCursor = await this.findStatusById(feedCursors.maxId);
 
-                statuses = await this.statusesRepository.findByCreatedAtBetween(
-                    sinceCursor.createdAt,
-                    maxCursor.createdAt,
-                    paginationRequest
-                );
+                if (shouldFilterUsers) {
+                    statuses = await this.statusesRepository.findByAuthorInAndCreatedAtBetween(
+                        displayedUsers,
+                        sinceCursor.createdAt,
+                        maxCursor.createdAt,
+                        paginationRequest
+                    );
+                } else {
+                    statuses = await this.statusesRepository.findByCreatedAtBetween(
+                        sinceCursor.createdAt,
+                        maxCursor.createdAt,
+                        paginationRequest
+                    );
+                }
             } else {
                 const maxCursor = await this.findStatusById(feedCursors.maxId);
-                statuses = await this.statusesRepository.findByCreatedAtBefore(maxCursor.createdAt, paginationRequest);
+
+                if (shouldFilterUsers) {
+                    statuses = await this.statusesRepository.findByAuthorInAndCreatedAtBefore(
+                        displayedUsers,
+                        maxCursor.createdAt,
+                        paginationRequest
+                    );
+                } else {
+                    statuses = await this.statusesRepository.findByCreatedAtBefore(maxCursor.createdAt, paginationRequest);
+                }
             }
         } else if (feedCursors.sinceId) {
             const sinceCursor = await this.findStatusById(feedCursors.sinceId);
-            statuses = await this.statusesRepository.findByCreatedAtAfter(sinceCursor.createdAt, paginationRequest);
+
+            if (shouldFilterUsers) {
+                statuses = await this.statusesRepository.findByAuthorInAndCreatedAfter(
+                    displayedUsers,
+                    sinceCursor.createdAt,
+                    paginationRequest
+                );
+            } else {
+                statuses = await this.statusesRepository.findByCreatedAtAfter(sinceCursor.createdAt, paginationRequest);
+            }
         } else {
-            statuses = await this.statusesRepository.findAllBy(paginationRequest);
+            if (shouldFilterUsers) {
+                statuses = await this.statusesRepository.findByAuthorIn(
+                    displayedUsers,
+                    paginationRequest
+                );
+            } else {
+                statuses = await this.statusesRepository.findAllBy(paginationRequest);
+            }
         }
 
         return this.mapStatusesToStatusesResponse(statuses, currentUser);
