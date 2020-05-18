@@ -54,7 +54,7 @@ export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberI
             this.log.info("Saving user subscription to BTFS");
 
             if (!config.ENABLE_BTFS_PUSHING) {
-                return ;
+                return;
             }
 
             this.btfsClient.saveUserSubscription({
@@ -99,7 +99,7 @@ export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberI
                     });
 
                 if (!config.ENABLE_BTFS_PUSHING) {
-                    return ;
+                    return;
                 }
 
                 this.btfsClient.saveUserUnsubscription({

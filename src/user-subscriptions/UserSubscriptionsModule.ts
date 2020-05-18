@@ -22,4 +22,5 @@ import {DefaultAccountProviderModule} from "../default-account-provider/DefaultA
     ],
     exports: [UserSubscriptionsService, UserSubscriptionsMapper]
 })
-export class UserSubscriptionsModule {}
+export class UserSubscriptionsModule {
+}

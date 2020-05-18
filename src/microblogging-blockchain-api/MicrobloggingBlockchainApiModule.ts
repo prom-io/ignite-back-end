@@ -15,4 +15,5 @@ import {MicrobloggingBlockchainApiClient} from "./MicrobloggingBlockchainApiClie
     ],
     exports: [MicrobloggingBlockchainApiClient]
 })
-export class MicrobloggingBlockchainApiModule {}
+export class MicrobloggingBlockchainApiModule {
+}

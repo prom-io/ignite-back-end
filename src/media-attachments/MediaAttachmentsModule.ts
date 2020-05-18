@@ -15,4 +15,5 @@ import {SkynetModule} from "../skynet";
     ],
     exports: [MediaAttachmentsMapper]
 })
-export class MediaAttachmentsModule {}
+export class MediaAttachmentsModule {
+}

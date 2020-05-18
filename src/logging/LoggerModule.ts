@@ -16,4 +16,5 @@ import {config} from "../config";
     ],
     exports: [LoggerService]
 })
-export class LoggerModule {}
+export class LoggerModule {
+}

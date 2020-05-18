@@ -5,4 +5,5 @@ import {SkynetClient} from "./SkynetClient";
     providers: [SkynetClient],
     exports: [SkynetClient]
 })
-export class SkynetModule {}
+export class SkynetModule {
+}

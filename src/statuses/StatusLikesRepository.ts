@@ -26,12 +26,12 @@ export class StatusLikesRepository extends Repository<StatusLike> {
     }
 
     public async countByStatus(status: Status): Promise<number> {
-       return this.count({
-           where: {
-               status,
-               reverted: false
-           }
-       })
+        return this.count({
+            where: {
+                status,
+                reverted: false
+            }
+        })
     }
 
     public async existByStatusAndUserNotReverted(status: Status, user: User): Promise<boolean> {

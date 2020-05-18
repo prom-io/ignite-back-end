@@ -110,7 +110,7 @@ export class StatusesService {
                     paginationRequest
                 );
             } else {
-                const maxCursor = await  this.findStatusEntityById(cursors.maxId);
+                const maxCursor = await this.findStatusEntityById(cursors.maxId);
                 statuses = await this.statusesRepository.findByAuthorAndCreatedAtBefore(user, maxCursor.createdAt, paginationRequest);
             }
         } else if (cursors.sinceId) {
@@ -146,7 +146,7 @@ export class StatusesService {
                     "ASC"
                 );
             } else {
-                const maxCursor = await  this.findStatusEntityById(cursors.maxId);
+                const maxCursor = await this.findStatusEntityById(cursors.maxId);
                 statuses = await this.statusesRepository.findByReferredStatusAndStatusReferenceTypeAndCreatedAtBefore(
                     status,
                     StatusReferenceType.COMMENT,

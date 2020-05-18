@@ -45,7 +45,7 @@ export class StatusLikeEntityEventsSubscriber implements EntitySubscriberInterfa
             this.log.info("Saving status like to BTFS");
 
             if (!config.ENABLE_BTFS_PUSHING) {
-                return ;
+                return;
             }
 
             this.btfsClient.saveStatusLike({
@@ -82,7 +82,7 @@ export class StatusLikeEntityEventsSubscriber implements EntitySubscriberInterfa
                 });
 
             if (!config.ENABLE_BTFS_PUSHING) {
-                return ;
+                return;
             }
 
             this.btfsClient.saveStatusUnlike({

@@ -44,4 +44,5 @@ import {DefaultAccountProviderModule} from "./default-account-provider/DefaultAc
         })
     ]
 })
-export class AppModule {}
+export class AppModule {
+}
