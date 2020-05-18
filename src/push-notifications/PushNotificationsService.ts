@@ -12,9 +12,9 @@ import {asyncForEach} from "../utils/async-foreach";
 import {StatusesMapper} from "../statuses/StatusesMapper";
 import {UsersMapper} from "../users/UsersMapper";
 import {asyncMap} from "../utils/async-map";
+import {config} from "../config";
 import App = admin.app.App;
 import Message = admin.messaging.Message;
-import {config} from "../config";
 
 @Injectable()
 export class PushNotificationsService {

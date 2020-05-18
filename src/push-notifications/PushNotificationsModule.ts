@@ -22,7 +22,7 @@ import {StatusLikesRepository} from "../statuses/StatusLikesRepository";
     providers: [
         {
             provide: "firebaseAdmin",
-            useValue: () => {
+            useFactory: () => {
                 if (config.ENABLE_FIREBASE_PUSH_NOTIFICATIONS) {
                     const firebaseConfig = require("../../firebase-config.json");
                     return FirebaseAdmin.initializeApp({
