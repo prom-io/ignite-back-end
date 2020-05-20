@@ -19,7 +19,6 @@ import {StatusLikesRepository} from "../statuses/StatusLikesRepository";
 import {NotificationsService} from "./NotificationsService";
 import {NotificationsController} from "./NotificationsController";
 
-
 @Module({
     controllers: [UserDevicesController, NotificationsController],
     providers: [

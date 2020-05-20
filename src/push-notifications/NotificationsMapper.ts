@@ -6,11 +6,14 @@ import {StatusLikesRepository} from "../statuses/StatusLikesRepository";
 import {StatusesMapper} from "../statuses/StatusesMapper";
 import {StatusResponse} from "../statuses/types/response";
 import {UsersMapper} from "../users/UsersMapper";
+import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
+import {UserResponse} from "../users/types/response";
 
 @Injectable()
 export class NotificationsMapper {
     constructor(private readonly statusesRepository: StatusesRepository,
                 private readonly statusLikesRepository: StatusLikesRepository,
+                private readonly userSubscriptionsRepository: UserSubscriptionsRepository,
                 private readonly statusesMapper: StatusesMapper,
                 private readonly usersMapper: UsersMapper) {
     }
@@ -38,6 +41,13 @@ export class NotificationsMapper {
                     payload: statusLikePushNotification
                 });
             }
+            case NotificationType.FOLLOW:
+                const subscription = await this.userSubscriptionsRepository.findById(notification.notificationObjectId);
+                return new WebsocketPushNotification<UserResponse>({
+                    id: notification.id,
+                    type: NotificationType.FOLLOW,
+                    payload: this.usersMapper.toUserResponse(subscription.subscribedUser)
+                })
         }
     }
 }

@@ -5,8 +5,8 @@ import admin from "firebase-admin";
 import {serialize} from "class-transformer";
 import {UserDevicesRepository} from "./UserDevicesRepository";
 import {NotificationsRepository} from "./NotificationsRepository";
-import {Notification} from "./entities";
-import {FirebasePushNotification, NotificationType, StatusLikePushNotification} from "./types/response";
+import {Notification, NotificationType} from "./entities";
+import {FirebasePushNotification, StatusLikePushNotification} from "./types/response";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {Status, StatusLike, StatusReferenceType} from "../statuses/entities";
 import {asyncForEach} from "../utils/async-foreach";
@@ -14,6 +14,7 @@ import {StatusesMapper} from "../statuses/StatusesMapper";
 import {UsersMapper} from "../users/UsersMapper";
 import {asyncMap} from "../utils/async-map";
 import {config} from "../config";
+import {UserSubscription} from "../user-subscriptions/entities";
 import App = admin.app.App;
 import Message = admin.messaging.Message;
 
@@ -146,6 +147,39 @@ export class PushNotificationsService {
                 });
                 const message: Message = {
                     token: device.fcmToken,
+                    data: {
+                        ...JSON.parse(serialize(pushNotification))
+                    }
+                };
+                await this.firebaseApp.messaging().send(message);
+            })
+        }
+    }
+
+    public async processUserSubscription(userSubscription: UserSubscription): Promise<void> {
+        const receiver = userSubscription.subscribedTo;
+
+        const notification: Notification = {
+            id: uuid(),
+            createdAt: new Date(),
+            receiver,
+            read: false,
+            notificationObjectId: userSubscription.id,
+            type: NotificationType.FOLLOW
+        };
+        await this.notificationsRepository.save(notification);
+
+        if (config.ENABLE_FIREBASE_PUSH_NOTIFICATIONS) {
+            const notificationReceiverDevices = await this.userDevicesRepository.findByUser(notification.receiver);
+
+            await asyncForEach(notificationReceiverDevices, async userDevice => {
+                const pushNotification = new FirebasePushNotification({
+                    id: notification.id,
+                    jsonPayload: serialize(this.usersMapper.toUserResponse(userSubscription.subscribedUser)),
+                    type: NotificationType.FOLLOW
+                });
+                const message: Message = {
+                    token: userDevice.fcmToken,
                     data: {
                         ...JSON.parse(serialize(pushNotification))
                     }

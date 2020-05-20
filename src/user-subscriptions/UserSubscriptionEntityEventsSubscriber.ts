@@ -10,6 +10,7 @@ import {IpAddressProvider} from "../btfs-sync/IpAddressProvider";
 import {DefaultAccountProviderService} from "../default-account-provider/DefaultAccountProviderService";
 import {config} from "../config";
 import {BtfsKafkaClient} from "../btfs-sync/BtfsKafkaClient";
+import {PushNotificationsService} from "../push-notifications/PushNotificationsService";
 
 @Injectable()
 export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberInterface<UserSubscription> {
@@ -20,6 +21,7 @@ export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberI
                 private readonly btfsUserSubscriptionsMapper: BtfsUserSubscriptionsMapper,
                 private readonly ipAddressProvider: IpAddressProvider,
                 private readonly accountService: DefaultAccountProviderService,
+                private readonly pushNotificationService: PushNotificationsService,
                 private readonly log: LoggerService) {
         connection.subscribers.push(this);
     }
@@ -39,6 +41,8 @@ export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberI
 
         await this.userStatisticsRepository.save(subscribedToStatistics);
         await this.userStatisticsRepository.save(subscribedUserStatistics);
+
+        await this.pushNotificationService.processUserSubscription(event.entity);
 
         if (!event.entity.btfsHash && config.ENABLE_BTFS_PUSHING) {
             this.microbloggingBlockchainApiClient.logSubscription({

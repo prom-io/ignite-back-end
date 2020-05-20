@@ -10,6 +10,7 @@ import {UsersRepository} from "../users/UsersRepository";
 import {UserStatisticsRepository} from "../users/UserStatisticsRepository";
 import {MicrobloggingBlockchainApiModule} from "../microblogging-blockchain-api";
 import {DefaultAccountProviderModule} from "../default-account-provider/DefaultAccountProviderModule";
+import {PushNotificationsModule} from "../push-notifications/PushNotificationsModule";
 
 @Module({
     controllers: [UserSubscriptionsController],
@@ -18,7 +19,8 @@ import {DefaultAccountProviderModule} from "../default-account-provider/DefaultA
         TypeOrmModule.forFeature([UsersRepository, UserStatisticsRepository, UserSubscriptionsRepository]),
         forwardRef(() => UsersModule),
         MicrobloggingBlockchainApiModule,
-        DefaultAccountProviderModule
+        DefaultAccountProviderModule,
+        PushNotificationsModule
     ],
     exports: [UserSubscriptionsService, UserSubscriptionsMapper]
 })
