@@ -2,6 +2,7 @@ import {Inject, Injectable} from "@nestjs/common";
 import {LoggerService} from "nest-logger";
 import uuid from "uuid";
 import admin from "firebase-admin";
+import {serialize} from "class-transformer";
 import {UserDevicesRepository} from "./UserDevicesRepository";
 import {NotificationsRepository} from "./NotificationsRepository";
 import {Notification} from "./entities";
@@ -53,15 +54,15 @@ export class PushNotificationsService {
                 const userDevices = await this.userDevicesRepository.findByUser(user);
 
                 await asyncForEach(userDevices, async userDevice => {
-                    const pushNotification: FirebasePushNotification = {
+                    const pushNotification: FirebasePushNotification = new FirebasePushNotification({
                         id: notification.id,
                         type: NotificationType.NEW_STATUS,
-                        jsonPayload: JSON.stringify(await this.statusesMapper.toStatusResponseAsync(status, userDevice.user))
-                    };
+                        jsonPayload: serialize(await this.statusesMapper.toStatusResponseAsync(status, userDevice.user))
+                    });
                     const message: Message = {
                         token: userDevice.fcmToken,
                         data: {
-                            ...pushNotification
+                            ...JSON.parse(serialize(pushNotification))
                         }
                     };
                     this.log.debug(`Sending push notification for user ${user.id} to device with FCM token ${userDevice.fcmToken}`);
@@ -90,12 +91,12 @@ export class PushNotificationsService {
                     const pushNotification = new FirebasePushNotification({
                         id: notification.id,
                         type: NotificationType.STATUS_REPLY,
-                        jsonPayload: JSON.stringify(await this.statusesMapper.toStatusResponseAsync(status, device.user))
+                        jsonPayload: serialize(await this.statusesMapper.toStatusResponseAsync(status, device.user))
                     });
                     const message: Message = {
                         token: device.fcmToken,
                         data: {
-                            ...pushNotification
+                            ...JSON.parse(serialize(pushNotification))
                         }
                     };
                     this.log.debug(`Sending push notification about status reply for user ${device.user.id} to device with FCM token ${device.fcmToken}`);
@@ -130,12 +131,12 @@ export class PushNotificationsService {
                 const pushNotification = new FirebasePushNotification({
                     id: notification.id,
                     type: NotificationType.STATUS_LIKE,
-                    jsonPayload: JSON.stringify(statusLikePushNotification)
+                    jsonPayload: serialize(statusLikePushNotification)
                 });
                 const message: Message = {
                     token: device.fcmToken,
                     data: {
-                        ...pushNotification
+                        ...JSON.parse(serialize(pushNotification))
                     }
                 };
                 await this.firebaseApp.messaging().send(message);

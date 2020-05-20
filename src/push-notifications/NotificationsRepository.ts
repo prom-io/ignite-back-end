@@ -4,6 +4,17 @@ import {User} from "../users/entities";
 
 @EntityRepository(Notification)
 export class NotificationsRepository extends Repository<Notification> {
+    public findAllByReceiver(receiver: User): Promise<Notification[]> {
+        return this.find({
+            where: {
+                receiver
+            },
+            order: {
+                createdAt: "DESC"
+            }
+        })
+    }
+
     public findNotReadByReceiver(receiver: User): Promise<Notification[]> {
         return this.find({
             where: {

@@ -12,6 +12,14 @@ export class NotificationsService {
                 private readonly notificationsMapper: NotificationsMapper) {
     }
 
+    public async getAllNotificationsOfCurrentUser(currentUser: User): Promise<Array<WebsocketPushNotification<any>>> {
+        const notifications = await this.notificationsRepository.findAllByReceiver(currentUser);
+        return await asyncMap(
+            notifications,
+            async notification => await this.notificationsMapper.toWebsocketNotificationResponse(notification)
+        );
+    }
+
     public async getNotReadNotificationsOfCurrentUser(currentUser: User): Promise<Array<WebsocketPushNotification<any>>> {
         const notReadNotifications = await this.notificationsRepository.findNotReadByReceiver(currentUser);
         return await asyncMap(

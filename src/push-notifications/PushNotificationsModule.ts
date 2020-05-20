@@ -16,9 +16,12 @@ import {StatusesRepository} from "../statuses/StatusesRepository";
 import {UserDevicesRepository} from "./UserDevicesRepository";
 import {config} from "../config";
 import {StatusLikesRepository} from "../statuses/StatusLikesRepository";
+import {NotificationsService} from "./NotificationsService";
+import {NotificationsController} from "./NotificationsController";
+
 
 @Module({
-    controllers: [UserDevicesController],
+    controllers: [UserDevicesController, NotificationsController],
     providers: [
         {
             provide: "firebaseAdmin",
@@ -36,6 +39,7 @@ import {StatusLikesRepository} from "../statuses/StatusLikesRepository";
         PushNotificationsService,
         UserDevicesService,
         NotificationEntityEventsSubscriber,
+        NotificationsService,
         NotificationsMapper,
         WebsocketEventsPublisher
     ],

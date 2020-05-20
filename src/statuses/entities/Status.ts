@@ -20,7 +20,7 @@ export class Status {
     id: string;
 
     @Column({type: "varchar", length: 10000, nullable: true})
-    text: string;
+    text?: string;
 
     @ManyToOne(type => User, {eager: true})
     author: User;

@@ -1,5 +1,6 @@
 import {OnGatewayConnection, OnGatewayDisconnect, WebSocketGateway} from "@nestjs/websockets";
 import {JwtService} from "@nestjs/jwt";
+import {classToPlain} from "class-transformer";
 import {Socket} from "socket.io";
 import {parse} from "querystring";
 import {UserResponse} from "../users/types/response";
@@ -62,7 +63,7 @@ export class WebsocketEventsPublisher implements OnGatewayConnection, OnGatewayD
             this.connectedUsersMap[publishWebsocketNotificationRequest.receiverEthereumAddress].forEach(client => {
                 client.emit(
                     publishWebsocketNotificationRequest.websocketPushNotification.type,
-                    publishWebsocketNotificationRequest.websocketPushNotification
+                    classToPlain(publishWebsocketNotificationRequest.websocketPushNotification)
                 );
             });
         }

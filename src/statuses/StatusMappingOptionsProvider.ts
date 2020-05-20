@@ -42,7 +42,7 @@ export class StatusMappingOptionsProvider {
         const btfsHash = status.btfsHash && await this.btfsHashRepository.findByBtfsCid(status.btfsHash);
         let canBeReposted: boolean;
 
-        if (status.text.length !== 0 || status.mediaAttachments.length !== 0) {
+        if ((status.text && status.text.length !== 0) || status.mediaAttachments.length !== 0) {
             canBeReposted = currentUser && !(await this.statusesRepository.existByReferredStatusAndReferenceTypeAndAuthor(
                 status,
                 StatusReferenceType.REPOST,

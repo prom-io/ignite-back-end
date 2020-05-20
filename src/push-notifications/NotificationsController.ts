@@ -14,6 +14,13 @@ export class NotificationsController {
     @UseGuards(AuthGuard("jwt"))
     @UseInterceptors(ClassSerializerInterceptor)
     @Get()
+    public getAllNotificationsOfCurrentUser(@Req() request: Request): Promise<Array<WebsocketPushNotification<any>>> {
+        return this.notificationsService.getNotReadNotificationsOfCurrentUser(request.user as User);
+    }
+
+    @UseGuards(AuthGuard("jwt"))
+    @UseInterceptors(ClassSerializerInterceptor)
+    @Get("not-read")
     public getNotReadNotificationsOfCurrentUser(@Req() request: Request): Promise<Array<WebsocketPushNotification<any>>> {
         return this.notificationsService.getNotReadNotificationsOfCurrentUser(request.user as User);
     }

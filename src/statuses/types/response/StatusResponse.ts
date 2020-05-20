@@ -11,7 +11,7 @@ export class StatusResponse {
     createdAt: string;
 
     account: UserResponse;
-    content: string;
+    content?: string;
 
     @Expose({name: "favourite_count"})
     favouritesCount: number;
