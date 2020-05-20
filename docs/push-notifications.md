@@ -9,6 +9,7 @@
     - [NEW_STATUS](#new_status)
     - [STATUS_REPLY](#status_reply)
     - [STATUS_LIKE](#status_like)
+    - [FOLLOW](#follow)
 
 ## Resister user device
 
@@ -69,7 +70,9 @@ Currently we have the following types of push notifications:
 
 `STATUS_REPLY` - notifications with this type are sent to authors of statuses which have been replied;
 
-`STATUS_LIKE` - notifications with this type are sent to authors of statuses which have been liked.
+`STATUS_LIKE` - notifications with this type are sent to authors of statuses which have been liked;
+
+`FOLLOW` - notifications with this type are sent to users which have been followed by someone.
 
 ### Payload types
 
@@ -97,3 +100,9 @@ Fields of `STATUS_LIKE` notifications payload are described in the table below.
 |--------------|----------------------------------------------------------------------------------------------------------|
 | liked_status | [Status](https://github.com/Prometeus-Network/ignite-back-end/blob/master/docs/api-entities.md#status)   |
 | liked_by     | [Account](https://github.com/Prometeus-Network/ignite-back-end/blob/master/docs/api-entities.md#account) |
+
+#### FOLLOW
+
+`FOLLOW` notification have a payload with `Account` type which structure is described
+in [api-entities](https://github.com/Prometeus-Network/ignite-back-end/blob/master/docs/api-entities.md#account)
+document.
