@@ -34,7 +34,14 @@ export class PushNotificationsService {
         const statusAuthorSubscribers = (await this.userSubscriptionsRepository.findAllBySubscribedToNotReverted(statusAuthor))
             .map(subscription => subscription.subscribedUser);
 
-        const notifications = await asyncMap(statusAuthorSubscribers, async user => {
+        const notifications: Array<Notification | null> = await asyncMap(statusAuthorSubscribers, async user => {
+            if (status.referredStatus && status.statusReferenceType === StatusReferenceType.COMMENT
+                && status.referredStatus.author.id === user.id) {
+                // Do not create notification if follower is the author of replied status so that
+                // they don't receive two notifications
+                return null;
+            }
+
             const notification: Notification = {
                 id: uuid(),
                 createdAt: new Date(),
@@ -49,29 +56,33 @@ export class PushNotificationsService {
 
         if (config.ENABLE_FIREBASE_PUSH_NOTIFICATIONS) {
             await asyncForEach(notifications, async notification => {
-                const user = notification.receiver;
-                this.log.debug(`Looking for devices of user ${user.id}`);
-                const userDevices = await this.userDevicesRepository.findByUser(user);
+                if (notification !== null) {
+                    const user = notification.receiver;
+                    this.log.debug(`Looking for devices of user ${user.id}`);
+                    const userDevices = await this.userDevicesRepository.findByUser(user);
 
-                await asyncForEach(userDevices, async userDevice => {
-                    const pushNotification: FirebasePushNotification = new FirebasePushNotification({
-                        id: notification.id,
-                        type: NotificationType.NEW_STATUS,
-                        jsonPayload: serialize(await this.statusesMapper.toStatusResponseAsync(status, userDevice.user))
-                    });
-                    const message: Message = {
-                        token: userDevice.fcmToken,
-                        data: {
-                            ...JSON.parse(serialize(pushNotification))
-                        }
-                    };
-                    this.log.debug(`Sending push notification for user ${user.id} to device with FCM token ${userDevice.fcmToken}`);
-                    await this.firebaseApp!.messaging().send(message);
-                })
+                    await asyncForEach(userDevices, async userDevice => {
+                        const pushNotification: FirebasePushNotification = new FirebasePushNotification({
+                            id: notification.id,
+                            type: NotificationType.NEW_STATUS,
+                            jsonPayload: serialize(await this.statusesMapper.toStatusResponseAsync(status, userDevice.user))
+                        });
+                        const message: Message = {
+                            token: userDevice.fcmToken,
+                            data: {
+                                ...JSON.parse(serialize(pushNotification))
+                            }
+                        };
+                        this.log.debug(`Sending push notification for user ${user.id} to device with FCM token ${userDevice.fcmToken}`);
+                        await this.firebaseApp!.messaging().send(message);
+                    })
+                }
             });
         }
 
-        if (status.referredStatus !== null && status.statusReferenceType === StatusReferenceType.COMMENT) {
+        if (status.referredStatus !== null
+            && status.statusReferenceType === StatusReferenceType.COMMENT
+            && status.author.id !== status.referredStatus.author.id) {
             const referredStatusAuthor = status.referredStatus.author;
             const referredStatusAuthorDevices = await this.userDevicesRepository.findByUser(referredStatusAuthor);
 
