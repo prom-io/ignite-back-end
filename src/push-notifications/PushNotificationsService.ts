@@ -5,8 +5,9 @@ import admin from "firebase-admin";
 import {serialize} from "class-transformer";
 import {UserDevicesRepository} from "./UserDevicesRepository";
 import {NotificationsRepository} from "./NotificationsRepository";
+import {WebsocketEventsPublisher} from "./WebsocketEventsPublisher";
 import {Notification, NotificationType} from "./entities";
-import {FirebasePushNotification, StatusLikePushNotification} from "./types/response";
+import {FirebasePushNotification, StatusLikePushNotification, WebsocketPushNotification} from "./types/response";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {Status, StatusLike, StatusReferenceType} from "../statuses/entities";
 import {asyncForEach} from "../utils/async-foreach";
@@ -15,6 +16,8 @@ import {UsersMapper} from "../users/UsersMapper";
 import {asyncMap} from "../utils/async-map";
 import {config} from "../config";
 import {UserSubscription} from "../user-subscriptions/entities";
+import {StatusResponse} from "../statuses/types/response";
+import {UserResponse} from "../users/types/response";
 import App = admin.app.App;
 import Message = admin.messaging.Message;
 
@@ -26,6 +29,7 @@ export class PushNotificationsService {
                 private readonly statusesMapper: StatusesMapper,
                 private readonly usersMapper: UsersMapper,
                 @Inject("firebaseAdmin") private readonly firebaseApp: App | null,
+                private readonly websocketEventsPublisher: WebsocketEventsPublisher,
                 private readonly log: LoggerService) {
     }
 
@@ -59,6 +63,17 @@ export class PushNotificationsService {
             await asyncForEach(notifications, async notification => {
                 if (notification !== null) {
                     const user = notification.receiver;
+                    const payload = await this.statusesMapper.toStatusResponseAsync(status, user);
+                    const websocketPushNotification: WebsocketPushNotification<StatusResponse> = new WebsocketPushNotification<StatusResponse>({
+                        id: notification.id,
+                        payload,
+                        type: NotificationType.NEW_STATUS
+                    });
+                    this.websocketEventsPublisher.publishWebsocketPushNotification({
+                        websocketPushNotification,
+                        receiverEthereumAddress: user.ethereumAddress
+                    });
+
                     this.log.debug(`Looking for devices of user ${user.id}`);
                     const userDevices = await this.userDevicesRepository.findByUser(user);
 
@@ -99,11 +114,21 @@ export class PushNotificationsService {
             await this.notificationsRepository.save(notification);
 
             if (config.ENABLE_FIREBASE_PUSH_NOTIFICATIONS) {
+                const payload = await this.statusesMapper.toStatusResponseAsync(status, notification.receiver);
+                const websocketPushNotification: WebsocketPushNotification<StatusResponse> = new WebsocketPushNotification<StatusResponse>({
+                    id: notification.id,
+                    type: NotificationType.STATUS_REPLY,
+                    payload
+                });
+                this.websocketEventsPublisher.publishWebsocketPushNotification({
+                    receiverEthereumAddress: notification.receiver.ethereumAddress,
+                    websocketPushNotification
+                });
                 await asyncForEach(referredStatusAuthorDevices, async device => {
                     const pushNotification = new FirebasePushNotification({
                         id: notification.id,
                         type: NotificationType.STATUS_REPLY,
-                        jsonPayload: serialize(await this.statusesMapper.toStatusResponseAsync(status, device.user))
+                        jsonPayload: serialize(payload)
                     });
                     const message: Message = {
                         token: device.fcmToken,
@@ -134,16 +159,28 @@ export class PushNotificationsService {
         if (config.ENABLE_FIREBASE_PUSH_NOTIFICATIONS) {
             const statusLikeReceiverDevices = await this.userDevicesRepository.findByUser(statusLikeReceiver);
             const likedBy = this.usersMapper.toUserResponse(statusLike.user);
-            await asyncForEach(statusLikeReceiverDevices, async device => {
-                const likedStatus = await this.statusesMapper.toStatusResponseAsync(statusLike.status);
-                const statusLikePushNotification = new StatusLikePushNotification({
-                    likedBy,
-                    likedStatus
+            const likedStatus = await this.statusesMapper.toStatusResponseAsync(statusLike.status);
+
+            const payload = new StatusLikePushNotification({
+                likedBy,
+                likedStatus
+            });
+            const websocketPushNotification: WebsocketPushNotification<StatusLikePushNotification> =
+                new WebsocketPushNotification<StatusLikePushNotification>({
+                    id: notification.id,
+                    payload,
+                    type: NotificationType.STATUS_LIKE
                 });
+            this.websocketEventsPublisher.publishWebsocketPushNotification({
+                receiverEthereumAddress: notification.receiver.ethereumAddress,
+                websocketPushNotification
+            });
+
+            await asyncForEach(statusLikeReceiverDevices, async device => {
                 const pushNotification = new FirebasePushNotification({
                     id: notification.id,
                     type: NotificationType.STATUS_LIKE,
-                    jsonPayload: serialize(statusLikePushNotification)
+                    jsonPayload: serialize(payload)
                 });
                 const message: Message = {
                     token: device.fcmToken,
@@ -170,12 +207,23 @@ export class PushNotificationsService {
         await this.notificationsRepository.save(notification);
 
         if (config.ENABLE_FIREBASE_PUSH_NOTIFICATIONS) {
+            const payload = this.usersMapper.toUserResponse(userSubscription.subscribedUser);
+            const websocketPushNotification: WebsocketPushNotification<UserResponse> = new WebsocketPushNotification<UserResponse>({
+                id: notification.id,
+                payload,
+                type: NotificationType.FOLLOW
+            });
+            this.websocketEventsPublisher.publishWebsocketPushNotification({
+                receiverEthereumAddress: notification.receiver.ethereumAddress,
+                websocketPushNotification
+            });
+
             const notificationReceiverDevices = await this.userDevicesRepository.findByUser(notification.receiver);
 
             await asyncForEach(notificationReceiverDevices, async userDevice => {
                 const pushNotification = new FirebasePushNotification({
                     id: notification.id,
-                    jsonPayload: serialize(this.usersMapper.toUserResponse(userSubscription.subscribedUser)),
+                    jsonPayload: serialize(payload),
                     type: NotificationType.FOLLOW
                 });
                 const message: Message = {

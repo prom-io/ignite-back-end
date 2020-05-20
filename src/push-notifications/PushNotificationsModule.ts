@@ -4,7 +4,6 @@ import FirebaseAdmin from "firebase-admin";
 import {UserDevicesController} from "./UserDevicesController";
 import {PushNotificationsService} from "./PushNotificationsService";
 import {UserDevicesService} from "./UserDevicesService";
-import {NotificationEntityEventsSubscriber} from "./NotificationEntityEventsSubscriber";
 import {WebsocketEventsPublisher} from "./WebsocketEventsPublisher";
 import {NotificationsMapper} from "./NotificationsMapper";
 import {StatusesModule} from "../statuses";
@@ -37,7 +36,6 @@ import {NotificationsController} from "./NotificationsController";
         },
         PushNotificationsService,
         UserDevicesService,
-        NotificationEntityEventsSubscriber,
         NotificationsService,
         NotificationsMapper,
         WebsocketEventsPublisher
