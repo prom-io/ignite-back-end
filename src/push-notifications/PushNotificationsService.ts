@@ -146,6 +146,12 @@ export class PushNotificationsService {
 
     public async processStatusLike(statusLike: StatusLike): Promise<void> {
         const statusLikeReceiver = statusLike.status.author;
+
+        if (statusLike.user.id === statusLikeReceiver.id) {
+            // Do not create a notification if user liked their own status
+            return ;
+        }
+
         const notification: Notification = {
             id: uuid(),
             createdAt: new Date(),
