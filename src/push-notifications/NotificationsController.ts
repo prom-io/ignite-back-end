@@ -1,4 +1,14 @@
-import {Body, ClassSerializerInterceptor, Controller, Get, Put, Req, UseGuards, UseInterceptors} from "@nestjs/common";
+import {
+    Body,
+    ClassSerializerInterceptor,
+    Controller,
+    Get,
+    Put,
+    Query,
+    Req,
+    UseGuards,
+    UseInterceptors
+} from "@nestjs/common";
 import {AuthGuard} from "@nestjs/passport";
 import {Request} from "express";
 import {NotificationsService} from "./NotificationsService";
@@ -14,15 +24,19 @@ export class NotificationsController {
     @UseGuards(AuthGuard("jwt"))
     @UseInterceptors(ClassSerializerInterceptor)
     @Get()
-    public getAllNotificationsOfCurrentUser(@Req() request: Request): Promise<Array<WebsocketPushNotification<any>>> {
-        return this.notificationsService.getNotReadNotificationsOfCurrentUser(request.user as User);
+    public getAllNotificationsOfCurrentUser(@Req() request: Request,
+                                            @Query("since_id") sinceId?: string,
+                                            @Query("max_id") maxId?: string): Promise<Array<WebsocketPushNotification<any>>> {
+        return this.notificationsService.getAllNotificationsOfCurrentUser(request.user as User, {sinceId, maxId});
     }
 
     @UseGuards(AuthGuard("jwt"))
     @UseInterceptors(ClassSerializerInterceptor)
     @Get("not-read")
-    public getNotReadNotificationsOfCurrentUser(@Req() request: Request): Promise<Array<WebsocketPushNotification<any>>> {
-        return this.notificationsService.getNotReadNotificationsOfCurrentUser(request.user as User);
+    public getNotReadNotificationsOfCurrentUser(@Req() request: Request,
+                                                @Query("since_id") sinceId?: string,
+                                                @Query("max_id") maxId?: string): Promise<Array<WebsocketPushNotification<any>>> {
+        return this.notificationsService.getNotReadNotificationsOfCurrentUser(request.user as User, {sinceId, maxId});
     }
 
     @UseGuards(AuthGuard("jwt"))
