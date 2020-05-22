@@ -31,6 +31,13 @@ export class NotificationsMapper {
             }
             case NotificationType.STATUS_LIKE: {
                 const statusLike = await this.statusLikesRepository.findById(notification.notificationObjectId);
+                let status = statusLike.status;
+
+                if (status.statusReferenceType) {
+                    // This hack is needed to properly load referred status
+                    status = await this.statusesRepository.findById(status.id);
+                }
+
                 const statusLikePushNotification: StatusLikePushNotification = new StatusLikePushNotification({
                     likedStatus: await this.statusesMapper.toStatusResponseAsync(statusLike.status, notification.receiver),
                     likedBy: this.usersMapper.toUserResponse(statusLike.user)
