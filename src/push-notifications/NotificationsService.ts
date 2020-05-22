@@ -1,12 +1,12 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import {NotificationsRepository} from "./NotificationsRepository";
 import {NotificationsMapper} from "./NotificationsMapper";
-import {User} from "../users/entities";
-import {WebsocketPushNotification} from "./types/response";
-import {asyncMap} from "../utils/async-map";
-import {MarkNotificationsReadRequest} from "./types/request";
-import {FeedCursors} from "../statuses/types/request/FeedCursors";
 import {Notification} from "./entities";
+import {MarkNotificationsReadRequest} from "./types/request";
+import {WebsocketPushNotification} from "./types/response";
+import {User} from "../users/entities";
+import {asyncMap} from "../utils/async-map";
+import {FeedCursors} from "../statuses/types/request/FeedCursors";
 import {PaginationRequest} from "../utils/pagination";
 
 @Injectable()
