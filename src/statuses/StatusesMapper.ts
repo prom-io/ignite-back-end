@@ -1,6 +1,6 @@
 import {Injectable} from "@nestjs/common";
 import uuid from "uuid/v4";
-import {Status, StatusReferenceType} from "./entities";
+import {HashTag, Status, StatusReferenceType} from "./entities";
 import {StatusesRepository} from "./StatusesRepository";
 import {StatusMappingOptionsProvider} from "./StatusMappingOptionsProvider";
 import {StatusResponse} from "./types/response";
@@ -108,7 +108,8 @@ export class StatusesMapper {
             commentsCount,
             statusReferenceType: status.statusReferenceType,
             referredStatusReferenceType,
-            canBeReposted
+            canBeReposted,
+            hashTags: status.hashTags.map(hashTag => hashTag.name)
         })
     }
 
@@ -116,6 +117,7 @@ export class StatusesMapper {
         createStatusRequest: CreateStatusRequest,
         author: User,
         mediaAttachments: MediaAttachment[],
+        hashTags: HashTag[],
         referredStatus?: Status,
     ): Status {
         return {
@@ -127,7 +129,8 @@ export class StatusesMapper {
             remote: false,
             mediaAttachments,
             referredStatus,
-            statusReferenceType: createStatusRequest.statusReferenceType
+            statusReferenceType: createStatusRequest.statusReferenceType,
+            hashTags
         }
     }
 }

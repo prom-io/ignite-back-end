@@ -55,6 +55,9 @@ export class StatusResponse {
     @Expose({name: "can_be_reposted"})
     canBeReposted: boolean;
 
+    @Expose({name: "hash_tags"})
+    hashTags: string[];
+
     constructor(object: StatusResponse) {
         Object.assign(this, object);
     }

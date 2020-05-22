@@ -3,8 +3,10 @@ import {StatusesRepository} from "./StatusesRepository";
 import {CreateStatusRequest} from "./types/request";
 import {StatusResponse} from "./types/response";
 import {StatusesMapper} from "./StatusesMapper";
-import {Status, StatusReferenceType} from "./entities";
+import {Status, StatusReferenceType, HashTag} from "./entities";
 import {FeedCursors} from "./types/request/FeedCursors";
+import {HashTagsRepository} from "./HashTagsRepository";
+import {HashTagsRetriever} from "./HashTagsRetriever";
 import {User} from "../users/entities";
 import {UsersRepository} from "../users/UsersRepository";
 import {PaginationRequest} from "../utils/pagination";
@@ -17,6 +19,8 @@ export class StatusesService {
     constructor(private readonly statusesRepository: StatusesRepository,
                 private readonly usersRepository: UsersRepository,
                 private readonly mediaAttachmentRepository: MediaAttachmentsRepository,
+                private readonly hashTagsRepository: HashTagsRepository,
+                private readonly hashTagsRetriever: HashTagsRetriever,
                 private readonly statusesMapper: StatusesMapper) {
     }
 
@@ -60,10 +64,13 @@ export class StatusesService {
             }
         }
 
+        const hashTags = await this.hashTagsRetriever.getHashTagsEntitiesFromText(createStatusRequest.status);
+
         let status = this.statusesMapper.fromCreateStatusRequest(
             createStatusRequest,
             currentUser,
             mediaAttachments,
+            hashTags,
             referredStatus,
         );
         status = await this.statusesRepository.save(status);
