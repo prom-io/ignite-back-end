@@ -39,7 +39,7 @@ export class NotificationsMapper {
                 }
 
                 const statusLikePushNotification: StatusLikePushNotification = new StatusLikePushNotification({
-                    likedStatus: await this.statusesMapper.toStatusResponseAsync(statusLike.status, notification.receiver),
+                    likedStatus: await this.statusesMapper.toStatusResponseAsync(status, notification.receiver),
                     likedBy: this.usersMapper.toUserResponse(statusLike.user)
                 });
                 return new WebsocketPushNotification<StatusLikePushNotification>({
