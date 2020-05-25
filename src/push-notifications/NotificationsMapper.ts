@@ -31,8 +31,14 @@ export class NotificationsMapper {
             }
             case NotificationType.STATUS_LIKE: {
                 const statusLike = await this.statusLikesRepository.findById(notification.notificationObjectId);
+                let status = statusLike.status;
+
+                if (status.statusReferenceType) {
+                    status = await this.statusesRepository.findById(status.id);
+                }
+
                 const statusLikePushNotification: StatusLikePushNotification = new StatusLikePushNotification({
-                    likedStatus: await this.statusesMapper.toStatusResponseAsync(statusLike.status, notification.receiver),
+                    likedStatus: await this.statusesMapper.toStatusResponseAsync(status, notification.receiver),
                     likedBy: this.usersMapper.toUserResponse(statusLike.user)
                 });
                 return new WebsocketPushNotification<StatusLikePushNotification>({
@@ -41,13 +47,22 @@ export class NotificationsMapper {
                     payload: statusLikePushNotification
                 });
             }
-            case NotificationType.FOLLOW:
+            case NotificationType.FOLLOW: {
                 const subscription = await this.userSubscriptionsRepository.findById(notification.notificationObjectId);
                 return new WebsocketPushNotification<UserResponse>({
                     id: notification.id,
                     type: NotificationType.FOLLOW,
                     payload: this.usersMapper.toUserResponse(subscription.subscribedUser)
-                })
+                });
+            }
+            case NotificationType.REPOST: {
+                const status = await this.statusesRepository.findById(notification.notificationObjectId);
+                return new WebsocketPushNotification<StatusResponse>({
+                    id: notification.id,
+                    type: NotificationType.REPOST,
+                    payload: await this.statusesMapper.toStatusResponseAsync(status, notification.receiver)
+                });
+            }
         }
     }
 }

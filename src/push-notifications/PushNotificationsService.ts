@@ -40,9 +40,8 @@ export class PushNotificationsService {
             .map(subscription => subscription.subscribedUser);
 
         const notifications: Array<Notification | null> = await asyncMap(statusAuthorSubscribers, async user => {
-            if (status.referredStatus && status.statusReferenceType === StatusReferenceType.COMMENT
-                && status.referredStatus.author.id === user.id) {
-                // Do not create notification if follower is the author of replied status so that
+            if (status.referredStatus && status.referredStatus.author.id === user.id) {
+                // Do not create notification if follower is the author of replied or resposted status so that
                 // they don't receive two notifications
                 return null;
             }
@@ -96,16 +95,16 @@ export class PushNotificationsService {
             });
         }
 
-        if (status.referredStatus !== null
-            && status.statusReferenceType === StatusReferenceType.COMMENT
-            && status.author.id !== status.referredStatus.author.id) {
+        if (status.referredStatus !== null && status.author.id !== status.referredStatus.author.id) {
             const referredStatusAuthor = status.referredStatus.author;
             const referredStatusAuthorDevices = await this.userDevicesRepository.findByUser(referredStatusAuthor);
 
             const notification: Notification = {
                 id: uuid(),
                 receiver: referredStatusAuthor,
-                type: NotificationType.STATUS_REPLY,
+                type: status.statusReferenceType === StatusReferenceType.COMMENT
+                    ? NotificationType.STATUS_REPLY
+                    : NotificationType.REPOST,
                 notificationObjectId: status.id,
                 read: false,
                 createdAt: new Date()
@@ -117,7 +116,7 @@ export class PushNotificationsService {
                 const payload = await this.statusesMapper.toStatusResponseAsync(status, notification.receiver);
                 const websocketPushNotification: WebsocketPushNotification<StatusResponse> = new WebsocketPushNotification<StatusResponse>({
                     id: notification.id,
-                    type: NotificationType.STATUS_REPLY,
+                    type: notification.type,
                     payload
                 });
                 this.websocketEventsPublisher.publishWebsocketPushNotification({
