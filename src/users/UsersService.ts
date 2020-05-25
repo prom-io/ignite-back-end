@@ -1,6 +1,6 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import uuid from "uuid/v4";
-import {User, UserPreferences} from "./entities";
+import {Language, User, UserPreferences} from "./entities";
 import {UsersRepository} from "./UsersRepository";
 import {UserStatisticsRepository} from "./UserStatisticsRepository";
 import {UserPreferencesRepository} from "./UserPreferencesRepository";
@@ -8,17 +8,19 @@ import {UsersMapper} from "./UsersMapper";
 import {
     CreateUserRequest,
     SignUpForPrivateBetaTestRequest,
-    UpdateUserRequest,
+    SignUpRequest,
     UpdatePreferencesRequest,
+    UpdateUserRequest,
     UsernameAvailabilityResponse
 } from "./types/request";
-import {UserResponse, UserPreferencesResponse} from "./types/response";
+import {UserPreferencesResponse, UserResponse} from "./types/response";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {MailerService} from "@nestjs-modules/mailer";
 import {LoggerService} from "nest-logger";
 import {config} from "../config";
 import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
 import {MediaAttachment} from "../media-attachments/entities";
+import {BCryptPasswordEncoder} from "../bcrypt";
 
 @Injectable()
 export class UsersService {
@@ -29,6 +31,7 @@ export class UsersService {
                 private readonly mediaAttachmentsRepository: MediaAttachmentsRepository,
                 private readonly mailerService: MailerService,
                 private readonly usersMapper: UsersMapper,
+                private readonly passwordEncoder: BCryptPasswordEncoder,
                 private readonly log: LoggerService) {
     }
 
@@ -43,6 +46,43 @@ export class UsersService {
                 this.log.error(`Error occurred when tried send address ${signUpForPrivateBetaTestRequest.email}`);
                 console.log(error);
             })
+    }
+
+    public async signUp(signUpRequest: SignUpRequest): Promise<void> {
+        let user = await this.usersRepository.findByEthereumAddress(signUpRequest.walletAddress);
+
+        if (user) {
+            user.privateKey = this.passwordEncoder.encode(signUpRequest.password, 12);
+            user = await this.usersRepository.save(user);
+
+            if (!user.preferences) {
+                const userPreferences: UserPreferences = {
+                    id: uuid(),
+                    language: signUpRequest.language || Language.ENGLISH,
+                    user
+                };
+                await this.userPreferencesRepository.save(userPreferences)
+            }
+
+        } else {
+            user = {
+                id: uuid(),
+                ethereumAddress: signUpRequest.walletAddress,
+                username: signUpRequest.walletAddress,
+                displayedName: signUpRequest.walletAddress,
+                privateKey: this.passwordEncoder.encode(signUpRequest.password, 12),
+                remote: false,
+                createdAt: new Date()
+            };
+            await this.usersRepository.save(user);
+
+            const userPreferences: UserPreferences = {
+                id: uuid(),
+                user,
+                language: signUpRequest.language || Language.ENGLISH
+            };
+            await this.userPreferencesRepository.save(userPreferences);
+        }
     }
 
     public async saveUser(createUserRequest: CreateUserRequest): Promise<UserResponse> {
