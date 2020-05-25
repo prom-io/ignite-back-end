@@ -46,7 +46,6 @@ export class StatusLikeEntityEventsSubscriber implements EntitySubscriberInterfa
                 .then(() => this.log.info(`Like of ${statusLike.user.ethereumAddress} to status ${statusLike.status.id} has been written to blockchain`))
                 .catch(error => {
                     this.log.error(`Error occurred when tried to write like of ${statusLike.user.ethereumAddress} to status ${statusLike.status.id} to blockchain`);
-                    console.error(error);
                 });
             this.log.info("Saving status like to BTFS");
 

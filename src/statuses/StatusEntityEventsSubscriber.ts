@@ -56,7 +56,6 @@ export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<S
                 })
                 .catch(error => {
                     this.log.error("Error occurred when tried to write status to blockchain");
-                    console.error(error);
                 });
 
             if (!config.ENABLE_BTFS_PUSHING) {
