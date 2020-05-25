@@ -44,20 +44,6 @@ export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<S
         this.pushNotificationService.processStatus(event.entity);
 
         if (!event.entity.btfsHash && config.ENABLE_BTFS_PUSHING) {
-            this.log.info("Logging status to blockchain");
-            this.microbloggingBlockchainApiClient.logStatus({
-                id: event.entity.id,
-                address: author.ethereumAddress,
-                createdAt: event.entity.createdAt.toISOString(),
-                text: event.entity.text
-            })
-                .then(() => {
-                    this.log.info(`Status ${event.entity.id} has been written to blockchain`)
-                })
-                .catch(error => {
-                    this.log.error("Error occurred when tried to write status to blockchain");
-                });
-
             if (!config.ENABLE_BTFS_PUSHING) {
                 return;
             }
