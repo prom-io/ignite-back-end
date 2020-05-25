@@ -37,16 +37,6 @@ export class StatusLikeEntityEventsSubscriber implements EntitySubscriberInterfa
 
         if (!statusLike.btfsHash) {
             this.log.info("Logging status like to blockchain");
-            this.microbloggingBlockchainApiClient.logStatusLike({
-                id: statusLike.id,
-                user: statusLike.user.ethereumAddress,
-                likedAt: statusLike.createdAt.toISOString(),
-                messageId: statusLike.status.id
-            })
-                .then(() => this.log.info(`Like of ${statusLike.user.ethereumAddress} to status ${statusLike.status.id} has been written to blockchain`))
-                .catch(error => {
-                    this.log.error(`Error occurred when tried to write like of ${statusLike.user.ethereumAddress} to status ${statusLike.status.id} to blockchain`);
-                });
             this.log.info("Saving status like to BTFS");
 
             if (!config.ENABLE_BTFS_PUSHING) {
@@ -74,18 +64,6 @@ export class StatusLikeEntityEventsSubscriber implements EntitySubscriberInterfa
         this.log.info("Logging status unlike to blockchain");
 
         if (statusLike.reverted && statusLike.saveUnlikeToBtfs && config.ENABLE_BTFS_PUSHING) {
-            this.microbloggingBlockchainApiClient.logStatusUnlike({
-                id: statusLike.id,
-                messageId: statusLike.status.id,
-                user: statusLike.user.ethereumAddress
-            })
-                // tslint:disable-next-line:max-line-length
-                .then(() => this.log.info(`Unlike of ${statusLike.user.ethereumAddress} to status ${statusLike.status.id} has been written to blockchain`))
-                .catch(error => {
-                    this.log.error(`Error occurred when tried to write unlike of ${statusLike.user.ethereumAddress} to status ${statusLike.status.id} to blockchain client`);
-                    console.error(error);
-                });
-
             if (!config.ENABLE_BTFS_PUSHING) {
                 return;
             }
