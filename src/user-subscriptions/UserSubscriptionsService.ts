@@ -31,6 +31,13 @@ export class UserSubscriptionsService {
             );
         }
 
+        if (targetUser.id === currentUser.id) {
+            throw new HttpException(
+                "Users cannot follow themselves",
+                HttpStatus.FORBIDDEN
+            )
+        }
+
         if (await this.userSubscriptionsRepository.existsBySubscribedUserAndSubscribedToNotReverted(currentUser, targetUser)) {
             throw new HttpException(
                 `Current user is already subscribed to ${targetUser.ethereumAddress}`,
