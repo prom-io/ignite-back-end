@@ -22,7 +22,7 @@ import {
     UpdateUserRequest,
     UsernameAvailabilityResponse
 } from "./types/request";
-import {UserResponse} from "./types/response";
+import {UserPreferencesResponse, UserResponse} from "./types/response";
 import {StatusesService} from "../statuses";
 import {StatusResponse} from "../statuses/types/response";
 import {PaginationRequest} from "../utils/pagination";
@@ -53,6 +53,12 @@ export class UsersController {
     public async updatePreferences(@Body() updatePreferencesRequest: UpdatePreferencesRequest,
                                    @Req() request: Request): Promise<UpdatePreferencesRequest> {
         return this.usersService.updateUserPreferences(updatePreferencesRequest, request.user as User);
+    }
+
+    @UseGuards(AuthGuard("jwt"))
+    @Get("preferences")
+    public async getUserPreferences(@Req() request: Request): Promise<UserPreferencesResponse> {
+        return this.usersService.getPreferencesOfCurrentUser(request.user as User);
     }
 
     @UseInterceptors(ClassSerializerInterceptor)

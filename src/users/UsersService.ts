@@ -85,6 +85,13 @@ export class UsersService {
         }
     }
 
+    public async getPreferencesOfCurrentUser(currentUser: User): Promise<UserPreferencesResponse> {
+        const preferences = await this.userPreferencesRepository.findByUser(currentUser);
+        return new UserPreferencesResponse({
+            language: preferences ? preferences.language : Language.ENGLISH
+        });
+    }
+
     public async saveUser(createUserRequest: CreateUserRequest): Promise<UserResponse> {
         if (!createUserRequest.privateKey.startsWith("0x")) {
             createUserRequest.privateKey = `0x${createUserRequest.privateKey}`;
