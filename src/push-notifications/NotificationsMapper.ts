@@ -26,7 +26,8 @@ export class NotificationsMapper {
                 return new WebsocketPushNotification<StatusResponse>({
                     id: notification.id,
                     payload: await this.statusesMapper.toStatusResponseAsync(status, notification.receiver),
-                    type: notification.type
+                    type: notification.type,
+                    createdAt: notification.createdAt.toISOString()
                 });
             }
             case NotificationType.STATUS_LIKE: {
@@ -44,7 +45,8 @@ export class NotificationsMapper {
                 return new WebsocketPushNotification<StatusLikePushNotification>({
                     id: notification.id,
                     type: NotificationType.STATUS_LIKE,
-                    payload: statusLikePushNotification
+                    payload: statusLikePushNotification,
+                    createdAt: notification.createdAt.toISOString()
                 });
             }
             case NotificationType.FOLLOW: {
@@ -52,7 +54,8 @@ export class NotificationsMapper {
                 return new WebsocketPushNotification<UserResponse>({
                     id: notification.id,
                     type: NotificationType.FOLLOW,
-                    payload: this.usersMapper.toUserResponse(subscription.subscribedUser)
+                    payload: this.usersMapper.toUserResponse(subscription.subscribedUser),
+                    createdAt: notification.createdAt.toISOString()
                 });
             }
             case NotificationType.REPOST: {
@@ -60,7 +63,8 @@ export class NotificationsMapper {
                 return new WebsocketPushNotification<StatusResponse>({
                     id: notification.id,
                     type: NotificationType.REPOST,
-                    payload: await this.statusesMapper.toStatusResponseAsync(status, notification.receiver)
+                    payload: await this.statusesMapper.toStatusResponseAsync(status, notification.receiver),
+                    createdAt: notification.createdAt.toISOString()
                 });
             }
         }

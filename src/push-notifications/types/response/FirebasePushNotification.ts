@@ -8,6 +8,9 @@ export class FirebasePushNotification {
     @Expose({name: "json_payload"})
     jsonPayload: string;
 
+    @Expose({name: "created_at"})
+    createdAt: string;
+
     constructor(plainObject: FirebasePushNotification) {
         Object.assign(this, plainObject);
     }
