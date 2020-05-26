@@ -8,11 +8,11 @@ import {UsersMapper} from "./UsersMapper";
 import {
     CreateUserRequest,
     SignUpForPrivateBetaTestRequest,
-    UpdateUserRequest,
     UpdatePreferencesRequest,
+    UpdateUserRequest,
     UsernameAvailabilityResponse
 } from "./types/request";
-import {UserResponse, UserPreferencesResponse} from "./types/response";
+import {UserPreferencesResponse, UserResponse} from "./types/response";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {MailerService} from "@nestjs-modules/mailer";
 import {LoggerService} from "nest-logger";
@@ -197,11 +197,10 @@ export class UsersService {
         return new UserPreferencesResponse({language: preferences.language});
     }
 
-    public async findUserByEthereumAddress(address: string): Promise<UserResponse> {
+    public async findUserByEthereumAddress(address: string, currentUser?: User): Promise<UserResponse> {
         const user = await this.findUserEntityByEthereumAddress(address);
-        const userStatistics = await this.userStatisticsRepository.findByUser(user);
 
-        return this.usersMapper.toUserResponse(user, userStatistics);
+        return this.usersMapper.toUserResponseAsync(user, currentUser);
     }
 
     public async findUserEntityByEthereumAddress(address: string): Promise<User> {
@@ -225,17 +224,7 @@ export class UsersService {
             throw new HttpException(`Could not find user with address or username ${address}`, HttpStatus.NOT_FOUND);
         }
 
-        const userStatistics = await this.userStatisticsRepository.findByUser(user);
-        const following = currentUser && await this.subscriptionsRepository.existsBySubscribedUserAndSubscribedToNotReverted(
-            currentUser,
-            user
-        );
-        const followed = currentUser && await this.subscriptionsRepository.existsBySubscribedUserAndSubscribedToNotReverted(
-            user,
-            currentUser
-        );
-
-        return this.usersMapper.toUserResponse(user, userStatistics, following, followed);
+        return await this.usersMapper.toUserResponseAsync(user, currentUser);
     }
 
     public async getCurrentUserProfile(currentUser: User): Promise<UserResponse> {
