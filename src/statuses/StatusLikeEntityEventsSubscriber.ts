@@ -3,7 +3,6 @@ import {InjectConnection} from "@nestjs/typeorm";
 import {LoggerService} from "nest-logger";
 import {Connection, EntitySubscriberInterface, InsertEvent, UpdateEvent} from "typeorm";
 import {StatusLike} from "./entities";
-import {MicrobloggingBlockchainApiClient} from "../microblogging-blockchain-api";
 import {BtfsStatusLikesMapper} from "../btfs-sync/mappers";
 import {IpAddressProvider} from "../btfs-sync/IpAddressProvider";
 import {DefaultAccountProviderService} from "../default-account-provider/DefaultAccountProviderService";
@@ -14,7 +13,6 @@ import {PushNotificationsService} from "../push-notifications/PushNotificationsS
 @Injectable()
 export class StatusLikeEntityEventsSubscriber implements EntitySubscriberInterface<StatusLike> {
     constructor(@InjectConnection() private readonly connection: Connection,
-                private readonly microbloggingBlockchainApiClient: MicrobloggingBlockchainApiClient,
                 private readonly btfsClient: BtfsKafkaClient,
                 private readonly btfsStatusLikesMapper: BtfsStatusLikesMapper,
                 private readonly accountService: DefaultAccountProviderService,
@@ -36,7 +34,6 @@ export class StatusLikeEntityEventsSubscriber implements EntitySubscriberInterfa
         }
 
         if (!statusLike.btfsHash) {
-            this.log.info("Logging status like to blockchain");
             this.log.info("Saving status like to BTFS");
 
             if (!config.ENABLE_BTFS_PUSHING) {
@@ -60,8 +57,6 @@ export class StatusLikeEntityEventsSubscriber implements EntitySubscriberInterfa
 
     public async afterUpdate(event: UpdateEvent<StatusLike>): Promise<void> {
         const statusLike = event.entity;
-
-        this.log.info("Logging status unlike to blockchain");
 
         if (statusLike.reverted && statusLike.saveUnlikeToBtfs && config.ENABLE_BTFS_PUSHING) {
             if (!config.ENABLE_BTFS_PUSHING) {
