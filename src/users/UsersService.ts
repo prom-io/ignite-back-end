@@ -19,6 +19,8 @@ import {LoggerService} from "nest-logger";
 import {config} from "../config";
 import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
 import {MediaAttachment} from "../media-attachments/entities";
+import {PaginationRequest} from "../utils/pagination";
+import {asyncMap} from "../utils/async-map";
 
 @Injectable()
 export class UsersService {
@@ -230,5 +232,13 @@ export class UsersService {
     public async getCurrentUserProfile(currentUser: User): Promise<UserResponse> {
         const userStatistics = await this.userStatisticsRepository.findByUser(currentUser);
         return this.usersMapper.toUserResponse(currentUser, userStatistics);
+    }
+
+    public async getFollowRecommendations(paginationRequest: PaginationRequest, currentUser: User): Promise<UserResponse[]> {
+        const subscriptions = await this.subscriptionsRepository.findAllBySubscribedUserNotReverted(currentUser);
+        const users = subscriptions.map(subscription => subscription.subscribedUser);
+        const whoToFollow = await this.usersRepository.findByUserNotIn(users, paginationRequest);
+
+        return asyncMap(whoToFollow, async user => await this.usersMapper.toUserResponseAsync(user, currentUser));
     }
 }

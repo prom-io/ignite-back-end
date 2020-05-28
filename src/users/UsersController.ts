@@ -70,6 +70,14 @@ export class UsersController {
         return this.usersService.getCurrentUser(request.user as User);
     }
 
+    @UseInterceptors(ClassSerializerInterceptor)
+    @UseGuards(AuthGuard("jwt"))
+    @Get("follow-recommendations")
+    public getFollowRecommendations(@Query() paginationRequest: PaginationRequest,
+                                    @Req() request: Request): Promise<UserResponse[]> {
+        return this.usersService.getFollowRecommendations(paginationRequest, request.user as User);
+    }
+
     @UseGuards(OptionalJwtAuthGuard)
     @UseInterceptors(ClassSerializerInterceptor)
     @Get(":address")
