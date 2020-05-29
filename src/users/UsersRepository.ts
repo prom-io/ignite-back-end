@@ -52,7 +52,23 @@ export class UsersRepository extends Repository<User> {
         })) !== 0
     }
 
-    public findByUserNotIn(users: User[], paginationRequest: PaginationRequest): Promise<User[]> {
+    public findMostPopular(paginationRequest: PaginationRequest): Promise<User[]> {
+        return this.createQueryBuilder("user")
+            .leftJoinAndSelect("user.avatar", "avatar")
+            .addSelect(
+                subquery => subquery
+                    .select("count(*)", "subscribers_count")
+                    .from("user_subscription", "user_subscription")
+                    .where("user_subscription.\"subscribedToId\" = \"user\".id"),
+                "subscribers_count"
+            )
+            .orderBy("subscribers_count", "DESC")
+            .skip(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .take(paginationRequest.pageSize)
+            .getMany();
+    }
+
+    public findMostPopularNotIn(users: User[], paginationRequest: PaginationRequest): Promise<User[]> {
         const queryBuilder = this.createQueryBuilder("user");
 
         return queryBuilder

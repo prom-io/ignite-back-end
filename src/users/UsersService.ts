@@ -237,7 +237,14 @@ export class UsersService {
     public async getFollowRecommendations(paginationRequest: PaginationRequest, currentUser: User, language?: Language): Promise<UserResponse[]> {
         const subscriptions = await this.subscriptionsRepository.findAllBySubscribedUserNotReverted(currentUser);
         const users = subscriptions.map(subscription => subscription.subscribedTo);
-        const whoToFollow = await this.usersRepository.findByUserNotIn(users, paginationRequest);
+
+        let whoToFollow: User[];
+
+        if (users.length === 0) {
+            whoToFollow = await this.usersRepository.findMostPopular(paginationRequest);
+        } else {
+            whoToFollow = await this.usersRepository.findMostPopularNotIn(users, paginationRequest);
+        }
 
         return asyncMap(whoToFollow, async user => await this.usersMapper.toUserResponseAsync(user, currentUser));
     }
