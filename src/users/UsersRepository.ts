@@ -56,6 +56,7 @@ export class UsersRepository extends Repository<User> {
         const queryBuilder = this.createQueryBuilder("user");
 
         return queryBuilder
+            .leftJoinAndSelect("user.avatar", "avatar")
             .where({
                 id: Not(In(users.map(user => user.id)))
             })
@@ -70,17 +71,5 @@ export class UsersRepository extends Repository<User> {
             .skip(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
             .take(paginationRequest.pageSize)
             .getMany();
-
-        /*
-        return this.find({
-            where: {
-                id: Not(In(users.map(user => user.id)))
-            },
-            skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
-            take: paginationRequest.pageSize,
-            order: {
-                createdAt: "DESC"
-            }
-        })*/
     }
 }

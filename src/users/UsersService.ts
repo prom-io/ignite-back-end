@@ -1,6 +1,6 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import uuid from "uuid/v4";
-import {User, UserPreferences} from "./entities";
+import {Language, User, UserPreferences} from "./entities";
 import {UsersRepository} from "./UsersRepository";
 import {UserStatisticsRepository} from "./UserStatisticsRepository";
 import {UserPreferencesRepository} from "./UserPreferencesRepository";
@@ -234,7 +234,7 @@ export class UsersService {
         return this.usersMapper.toUserResponse(currentUser, userStatistics);
     }
 
-    public async getFollowRecommendations(paginationRequest: PaginationRequest, currentUser: User): Promise<UserResponse[]> {
+    public async getFollowRecommendations(paginationRequest: PaginationRequest, currentUser: User, language?: Language): Promise<UserResponse[]> {
         const subscriptions = await this.subscriptionsRepository.findAllBySubscribedUserNotReverted(currentUser);
         const users = subscriptions.map(subscription => subscription.subscribedTo);
         const whoToFollow = await this.usersRepository.findByUserNotIn(users, paginationRequest);

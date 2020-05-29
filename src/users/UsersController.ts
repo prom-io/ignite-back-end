@@ -14,7 +14,7 @@ import {
 import {AuthGuard} from "@nestjs/passport";
 import {Request} from "express";
 import {UsersService} from "./UsersService";
-import {User} from "./entities";
+import {Language, User} from "./entities";
 import {
     CreateUserRequest,
     SignUpForPrivateBetaTestRequest,
@@ -74,6 +74,7 @@ export class UsersController {
     @UseGuards(AuthGuard("jwt"))
     @Get("follow-recommendations")
     public getFollowRecommendations(@Query() paginationRequest: PaginationRequest,
+                                    @Query() language: Language | null | undefined,
                                     @Req() request: Request): Promise<UserResponse[]> {
         return this.usersService.getFollowRecommendations(paginationRequest, request.user as User);
     }
