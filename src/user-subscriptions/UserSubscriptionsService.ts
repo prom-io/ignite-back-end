@@ -22,11 +22,15 @@ export class UserSubscriptionsService {
 
     public async followUser(address: string,
                             currentUser: User): Promise<UserResponse> {
-        const targetUser = await this.usersRepository.findByEthereumAddress(address);
+        let targetUser = await this.usersRepository.findByEthereumAddress(address);
+
+        if (!targetUser) {
+            targetUser = await this.usersRepository.findByUsername(address);
+        }
 
         if (!targetUser) {
             throw new HttpException(
-                `Could not find user with address ${address}`,
+                `Could not find user with address or username ${address}`,
                 HttpStatus.NOT_FOUND
             );
         }
@@ -63,10 +67,14 @@ export class UserSubscriptionsService {
     }
 
     public async unfollowUser(address: string, currentUser: User): Promise<UserResponse> {
-        const targetUser = await this.usersRepository.findByEthereumAddress(address);
+        let targetUser = await this.usersRepository.findByEthereumAddress(address);
 
         if (!targetUser) {
-            throw new HttpException(`Could not find user with address ${address}`, HttpStatus.NOT_FOUND);
+            targetUser = await this.usersRepository.findByUsername(address);
+        }
+
+        if (!targetUser) {
+            throw new HttpException(`Could not find user with address or username ${address}`, HttpStatus.NOT_FOUND);
         }
 
         const subscription = await this.userSubscriptionsRepository.findBySubscribedUserAndSubscribedToNotReverted(currentUser, targetUser);
