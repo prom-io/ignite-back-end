@@ -21,6 +21,8 @@ import {config} from "../config";
 import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
 import {MediaAttachment} from "../media-attachments/entities";
 import {BCryptPasswordEncoder} from "../bcrypt";
+import {PaginationRequest} from "../utils/pagination";
+import {asyncMap} from "../utils/async-map";
 
 @Injectable()
 export class UsersService {
@@ -277,5 +279,20 @@ export class UsersService {
     public async getCurrentUserProfile(currentUser: User): Promise<UserResponse> {
         const userStatistics = await this.userStatisticsRepository.findByUser(currentUser);
         return this.usersMapper.toUserResponse(currentUser, userStatistics);
+    }
+
+    public async getFollowRecommendations(paginationRequest: PaginationRequest, currentUser: User, language?: Language): Promise<UserResponse[]> {
+        const subscriptions = await this.subscriptionsRepository.findAllBySubscribedUserNotReverted(currentUser);
+        const users = subscriptions.map(subscription => subscription.subscribedTo);
+
+        let whoToFollow: User[];
+
+        if (users.length === 0) {
+            whoToFollow = await this.usersRepository.findMostPopular(paginationRequest);
+        } else {
+            whoToFollow = await this.usersRepository.findMostPopularNotIn(users, paginationRequest);
+        }
+
+        return asyncMap(whoToFollow, async user => await this.usersMapper.toUserResponseAsync(user, currentUser));
     }
 }

@@ -1,5 +1,6 @@
-import {Repository, EntityRepository, In} from "typeorm";
+import {Repository, EntityRepository, In, Not} from "typeorm";
 import {User} from "./entities";
+import {calculateOffset, PaginationRequest} from "../utils/pagination";
 
 @EntityRepository(User)
 export class UsersRepository extends Repository<User> {
@@ -49,5 +50,42 @@ export class UsersRepository extends Repository<User> {
                 ethereumAddress: address
             }
         })) !== 0
+    }
+
+    public findMostPopular(paginationRequest: PaginationRequest): Promise<User[]> {
+        return this.createQueryBuilder("user")
+            .leftJoinAndSelect("user.avatar", "avatar")
+            .addSelect(
+                subquery => subquery
+                    .select("count(*)", "subscribers_count")
+                    .from("user_subscription", "user_subscription")
+                    .where("user_subscription.\"subscribedToId\" = \"user\".id"),
+                "subscribers_count"
+            )
+            .orderBy("subscribers_count", "DESC")
+            .skip(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .take(paginationRequest.pageSize)
+            .getMany();
+    }
+
+    public findMostPopularNotIn(users: User[], paginationRequest: PaginationRequest): Promise<User[]> {
+        const queryBuilder = this.createQueryBuilder("user");
+
+        return queryBuilder
+            .leftJoinAndSelect("user.avatar", "avatar")
+            .where({
+                id: Not(In(users.map(user => user.id)))
+            })
+            .addSelect(
+                subquery => subquery
+                    .select("count(*)", "subscribers_count")
+                    .from("user_subscription", "user_subscription")
+                    .where("user_subscription.\"subscribedToId\" = \"user\".id"),
+                "subscribers_count"
+            )
+            .orderBy("subscribers_count", "DESC")
+            .skip(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .take(paginationRequest.pageSize)
+            .getMany();
     }
 }
