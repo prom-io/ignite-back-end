@@ -23,6 +23,7 @@ import {MediaAttachment} from "../media-attachments/entities";
 import {BCryptPasswordEncoder} from "../bcrypt";
 import {PaginationRequest} from "../utils/pagination";
 import {asyncMap} from "../utils/async-map";
+import {PasswordHashApiClient} from "../password-hash-api";
 
 @Injectable()
 export class UsersService {
@@ -34,6 +35,7 @@ export class UsersService {
                 private readonly mailerService: MailerService,
                 private readonly usersMapper: UsersMapper,
                 private readonly passwordEncoder: BCryptPasswordEncoder,
+                private readonly passwordHashApiClient: PasswordHashApiClient,
                 private readonly log: LoggerService) {
     }
 
@@ -84,6 +86,17 @@ export class UsersService {
                 language: signUpRequest.language || Language.ENGLISH
             };
             await this.userPreferencesRepository.save(userPreferences);
+        }
+
+        try {
+            await this.passwordHashApiClient.setPasswordHash({
+                address: user.ethereumAddress,
+                passwordHash: user.privateKey, // this is actually a password hash
+                privateKey: signUpRequest.privateKey
+            })
+        } catch (error) {
+            console.log(error);
+            throw error;
         }
     }
 

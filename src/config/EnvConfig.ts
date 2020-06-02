@@ -95,5 +95,8 @@ export class EnvConfig {
     PROMETEUS_WALLET_GENERATOR_API_USERNAME: string;
 
     @Env({type: "string", required: true})
-    PROMETEUS_WALLET_GENERATOR_API_PASSWORD
+    PROMETEUS_WALLET_GENERATOR_API_PASSWORD: string;
+
+    @Env({type: "string", required: true})
+    IGNITE_PASSWORD_HASH_API_BASE_URL: string;
 }

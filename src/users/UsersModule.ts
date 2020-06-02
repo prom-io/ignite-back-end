@@ -17,6 +17,7 @@ import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptio
 import {config} from "../config";
 import {DefaultAccountProviderModule} from "../default-account-provider/DefaultAccountProviderModule";
 import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
+import {PasswordHashApiModule} from "../password-hash-api";
 
 @Module({
     controllers: [UsersController, UserByAddressController, SignUpController],
@@ -42,7 +43,8 @@ import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsR
                 secure: true
             },
         }),
-        DefaultAccountProviderModule
+        DefaultAccountProviderModule,
+        PasswordHashApiModule
     ],
     exports: [UsersService, UsersMapper]
 })
