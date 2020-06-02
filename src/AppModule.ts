@@ -17,6 +17,7 @@ import {BtfsModule} from "./btfs-sync";
 import {DefaultAccountProviderModule} from "./default-account-provider/DefaultAccountProviderModule";
 import {WalletGeneratorModule} from "./wallet-generator";
 import {PasswordHashApiModule} from "./password-hash-api";
+import {PasswordHashGeneratorModule} from "./passsword-hash-generator";
 
 @Module({
     imports: [
@@ -34,6 +35,7 @@ import {PasswordHashApiModule} from "./password-hash-api";
         BtfsModule,
         WalletGeneratorModule,
         PasswordHashApiModule,
+        PasswordHashGeneratorModule,
         TypeOrmModule.forRoot({
             type: "postgres",
             database: config.DATABASE_NAME,

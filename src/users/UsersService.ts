@@ -53,16 +53,28 @@ export class UsersService {
     }
 
     public async signUp(signUpRequest: SignUpRequest): Promise<void> {
-        let user = await this.usersRepository.findByEthereumAddress(signUpRequest.walletAddress);
+        if (!signUpRequest.transactionId) {
+            await this.registerUserWithGeneratedWallet(
+                signUpRequest.walletAddress!,
+                signUpRequest.privateKey!,
+                signUpRequest.password!,
+                signUpRequest.language
+            )
+        } else {
+            await this.registerUserByTransactionId(signUpRequest.transactionId!, signUpRequest.language);
+        }
+    }
 
+    private async registerUserWithGeneratedWallet(ethereumAddress: string, privateKey: string, password: string, language?: Language) {
+        let user = await this.usersRepository.findByEthereumAddress(ethereumAddress);
         if (user) {
-            user.privateKey = this.passwordEncoder.encode(signUpRequest.password, 12);
+            user.privateKey = this.passwordEncoder.encode(password, 12);
             user = await this.usersRepository.save(user);
 
             if (!user.preferences) {
                 const userPreferences: UserPreferences = {
                     id: uuid(),
-                    language: signUpRequest.language || Language.ENGLISH,
+                    language: language || Language.ENGLISH,
                     user
                 };
                 await this.userPreferencesRepository.save(userPreferences)
@@ -71,10 +83,10 @@ export class UsersService {
         } else {
             user = {
                 id: uuid(),
-                ethereumAddress: signUpRequest.walletAddress,
-                username: signUpRequest.walletAddress,
-                displayedName: signUpRequest.walletAddress,
-                privateKey: this.passwordEncoder.encode(signUpRequest.password, 12),
+                ethereumAddress,
+                username: ethereumAddress,
+                displayedName: ethereumAddress,
+                privateKey: this.passwordEncoder.encode(password, 12),
                 remote: false,
                 createdAt: new Date()
             };
@@ -83,7 +95,7 @@ export class UsersService {
             const userPreferences: UserPreferences = {
                 id: uuid(),
                 user,
-                language: signUpRequest.language || Language.ENGLISH
+                language: language || Language.ENGLISH
             };
             await this.userPreferencesRepository.save(userPreferences);
         }
@@ -92,10 +104,64 @@ export class UsersService {
             await this.passwordHashApiClient.setPasswordHash({
                 address: user.ethereumAddress,
                 passwordHash: user.privateKey, // this is actually a password hash
-                privateKey: signUpRequest.privateKey
+                privateKey
             })
         } catch (error) {
             console.log(error);
+            throw error;
+        }
+    }
+
+    private async registerUserByTransactionId(transactionId: string, language?: Language): Promise<void> {
+        try {
+            const passwordHashResponse = (await this.passwordHashApiClient.getPasswordHashByTransaction(transactionId)).data;
+            const {hash, address: ethereumAddress} = passwordHashResponse;
+
+            let user = await this.usersRepository.findByEthereumAddress(ethereumAddress);
+
+            if (!this.passwordEncoder.isHashValid(hash)) {
+                throw new HttpException(
+                    `Provided password hash ${hash} is not a valid BCrypt hash`,
+                    HttpStatus.BAD_REQUEST
+                )
+            }
+
+            if (user) {
+                user.privateKey = hash;
+                user = await this.usersRepository.save(user);
+
+                if (!user.preferences) {
+                    const userPreferences: UserPreferences = {
+                        id: uuid(),
+                        language: language || Language.ENGLISH,
+                        user
+                    };
+                    await this.userPreferencesRepository.save(userPreferences)
+                }
+            } else {
+                user = {
+                    id: uuid(),
+                    ethereumAddress,
+                    username: ethereumAddress,
+                    displayedName: ethereumAddress,
+                    privateKey: hash,
+                    remote: false,
+                    createdAt: new Date()
+                };
+                await this.usersRepository.save(user);
+
+                const userPreferences: UserPreferences = {
+                    id: uuid(),
+                    user,
+                    language: language || Language.ENGLISH
+                };
+                await this.userPreferencesRepository.save(userPreferences);
+            }
+        } catch (error) {
+            if (!(error instanceof HttpException)) {
+                console.log(error);
+            }
+
             throw error;
         }
     }

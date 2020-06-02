@@ -1,3 +1,4 @@
 export interface GetPasswordHashResponse {
-    hash: string
+    hash: string,
+    address: string
 }
