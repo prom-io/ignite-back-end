@@ -1,6 +1,7 @@
 import {Body, Controller, Post} from "@nestjs/common";
 import {UsersService} from "./UsersService";
 import {SignUpRequest} from "./types/request";
+import {UserResponse} from "./types/response";
 
 @Controller("api/v1/sign-up")
 export class SignUpController {
@@ -8,7 +9,7 @@ export class SignUpController {
     }
 
     @Post()
-    public signUp(@Body() signUpRequest: SignUpRequest): Promise<void> {
+    public signUp(@Body() signUpRequest: SignUpRequest): Promise<UserResponse> {
         return this.usersService.signUp(signUpRequest);
     }
 }

@@ -24,6 +24,7 @@ import {BCryptPasswordEncoder} from "../bcrypt";
 import {PaginationRequest} from "../utils/pagination";
 import {asyncMap} from "../utils/async-map";
 import {PasswordHashApiClient} from "../password-hash-api";
+import {InvalidBCryptHashException} from "./exceptions";
 
 @Injectable()
 export class UsersService {
@@ -52,20 +53,25 @@ export class UsersService {
             })
     }
 
-    public async signUp(signUpRequest: SignUpRequest): Promise<void> {
+    public async signUp(signUpRequest: SignUpRequest): Promise<UserResponse> {
         if (!signUpRequest.transactionId) {
-            await this.registerUserWithGeneratedWallet(
+            return await this.registerUserWithGeneratedWallet(
                 signUpRequest.walletAddress!,
                 signUpRequest.privateKey!,
                 signUpRequest.password!,
                 signUpRequest.language
             )
         } else {
-            await this.registerUserByTransactionId(signUpRequest.transactionId!, signUpRequest.language);
+            return await this.registerUserByTransactionId(signUpRequest.transactionId!, signUpRequest.language);
         }
     }
 
-    private async registerUserWithGeneratedWallet(ethereumAddress: string, privateKey: string, password: string, language?: Language) {
+    private async registerUserWithGeneratedWallet(
+        ethereumAddress: string,
+        privateKey: string,
+        password: string,
+        language?: Language
+    ): Promise<UserResponse> {
         let user = await this.usersRepository.findByEthereumAddress(ethereumAddress);
         if (user) {
             user.privateKey = this.passwordEncoder.encode(password, 12);
@@ -105,14 +111,15 @@ export class UsersService {
                 address: user.ethereumAddress,
                 passwordHash: user.privateKey, // this is actually a password hash
                 privateKey
-            })
+            });
+            return this.usersMapper.toUserResponseAsync(user, undefined, true);
         } catch (error) {
             console.log(error);
             throw error;
         }
     }
 
-    private async registerUserByTransactionId(transactionId: string, language?: Language): Promise<void> {
+    private async registerUserByTransactionId(transactionId: string, language?: Language): Promise<UserResponse> {
         try {
             const passwordHashResponse = (await this.passwordHashApiClient.getPasswordHashByTransaction(transactionId)).data;
             const {hash, address: ethereumAddress} = passwordHashResponse;
@@ -120,10 +127,7 @@ export class UsersService {
             let user = await this.usersRepository.findByEthereumAddress(ethereumAddress);
 
             if (!this.passwordEncoder.isHashValid(hash)) {
-                throw new HttpException(
-                    `Provided password hash ${hash} is not a valid BCrypt hash`,
-                    HttpStatus.BAD_REQUEST
-                )
+                throw new InvalidBCryptHashException(hash)
             }
 
             if (user) {
@@ -157,6 +161,8 @@ export class UsersService {
                 };
                 await this.userPreferencesRepository.save(userPreferences);
             }
+
+            return this.usersMapper.toUserResponseAsync(user, undefined, true);
         } catch (error) {
             if (!(error instanceof HttpException)) {
                 console.log(error);
