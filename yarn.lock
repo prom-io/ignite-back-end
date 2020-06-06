@@ -468,10 +468,10 @@
   resolved "https://registry.yarnpkg.com/@jonkemp/package-utils/-/package-utils-1.0.5.tgz#a49dcbd649b0c83d4aaade2fcd15d074a5bf9932"
   integrity sha512-3gpXj6ZK9/ZDruwCNTUgsGTobER8oSdudQBGp/VpawxaOrKuTzdwWQ0kocB1o5ohJbdTDUfqlLrHJ5busqObiA==
 
-"@nebulous/skynet@^0.0.8":
-  version "0.0.8"
-  resolved "https://registry.yarnpkg.com/@nebulous/skynet/-/skynet-0.0.8.tgz#b47196b60c8076d711be4815d0834d7bf529c68d"
-  integrity sha512-S1hacIFOS73ouPFaiW2mgiFCBdgINEQa8pIu2OSTZW8yzGgjBbk8R8//eokt3Q56Tupx9ZtYFLCxHX/G/0L6oA==
+"@nebulous/skynet@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@nebulous/skynet/-/skynet-1.0.1.tgz#14fff13b5a8f32d23c0340b25bd2251a32da2d19"
+  integrity sha512-UDZh2XTO3IPT2omRfzAv7offpwFkbk9qb6FLla+BNqYfW2xc8rrQT3CVrJ1lBn/THy1jX/oa/f/c6grRB5RXsg==
   dependencies:
     axios "^0.19.2"
     form-data "^3.0.0"
