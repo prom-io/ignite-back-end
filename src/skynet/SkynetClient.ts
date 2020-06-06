@@ -7,7 +7,13 @@ import axios, {AxiosResponse} from "axios";
 @Injectable()
 export class SkynetClient {
     public async uploadFile(path: PathLike): Promise<string> {
-        return await Skynet.UploadFile(path, Skynet.DefaultUploadOptions);
+        try {
+            console.log("Trying to upload file to skynet");
+            return await Skynet.UploadFile(path, Skynet.DefaultUploadOptions);
+        } catch (error) {
+            console.log(error);
+            throw error;
+        }
     }
 
     public async downloadFile(path: PathLike, skylink: string): Promise<void> {

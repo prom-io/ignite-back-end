@@ -41,7 +41,12 @@ export class MediaAttachmentsService {
 
                             const permanentFilePath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, `${id}.${file.ext}`);
                             fileSystem.renameSync(temporaryFilePath, permanentFilePath);
-                            const siaLink = await this.skynetClient.uploadFile(permanentFilePath);
+                            let siaLink = null;
+
+                            if (config.ENABLE_UPLOADING_IMAGES_TO_SIA) {
+                                siaLink = await this.skynetClient.uploadFile(permanentFilePath)
+                            }
+
                             const mediaAttachment: MediaAttachment = {
                                 id,
                                 format: file.ext,
