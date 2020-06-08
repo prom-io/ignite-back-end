@@ -18,6 +18,7 @@ import {Language, User} from "./entities";
 import {
     CreateUserRequest,
     SignUpForPrivateBetaTestRequest,
+    UpdatePasswordRequest,
     UpdatePreferencesRequest,
     UpdateUserRequest,
     UsernameAvailabilityResponse
@@ -91,6 +92,12 @@ export class UsersController {
     public findByAddress(@Param("address") address: string,
                          @Req() request: Request): Promise<UserResponse> {
         return this.usersService.findUserByEthereumAddress(address, request.user as User | null);
+    }
+
+    @UseInterceptors(ClassSerializerInterceptor)
+    @Put("password")
+    public updatePassword(@Body() updatePasswordRequest: UpdatePasswordRequest): Promise<void> {
+        return this.usersService.updatePassword(updatePasswordRequest);
     }
 
     @UseInterceptors(ClassSerializerInterceptor)

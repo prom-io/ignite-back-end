@@ -8,7 +8,7 @@ import {UsersMapper} from "./UsersMapper";
 import {
     CreateUserRequest,
     SignUpForPrivateBetaTestRequest,
-    SignUpRequest,
+    SignUpRequest, UpdatePasswordRequest,
     UpdatePreferencesRequest,
     UpdateUserRequest,
     UsernameAvailabilityResponse
@@ -379,5 +379,26 @@ export class UsersService {
         }
 
         return asyncMap(whoToFollow, async user => await this.usersMapper.toUserResponseAsync(user, currentUser));
+    }
+
+    public async updatePassword(updatePasswordRequest: UpdatePasswordRequest): Promise<void> {
+        const user = await this.usersRepository.findByEthereumAddress(updatePasswordRequest.walletAddress);
+
+        if (!user) {
+            throw new HttpException(
+                `Could not find user with address ${updatePasswordRequest.walletAddress}`,
+                HttpStatus.NOT_FOUND
+            )
+        }
+
+        user.privateKey = this.passwordEncoder.encode(updatePasswordRequest.password);
+
+        await this.passwordHashApiClient.setPasswordHash({
+            address: user.ethereumAddress,
+            privateKey: updatePasswordRequest.privateKey,
+            passwordHash: user.privateKey
+        });
+
+        await this.usersRepository.save(user);
     }
 }
