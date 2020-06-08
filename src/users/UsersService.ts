@@ -8,7 +8,8 @@ import {UsersMapper} from "./UsersMapper";
 import {
     CreateUserRequest,
     SignUpForPrivateBetaTestRequest,
-    SignUpRequest, UpdatePasswordRequest,
+    SignUpRequest,
+    UpdatePasswordRequest,
     UpdatePreferencesRequest,
     UpdateUserRequest,
     UsernameAvailabilityResponse
@@ -382,22 +383,55 @@ export class UsersService {
     }
 
     public async updatePassword(updatePasswordRequest: UpdatePasswordRequest): Promise<void> {
-        const user = await this.usersRepository.findByEthereumAddress(updatePasswordRequest.walletAddress);
+        if (updatePasswordRequest.transactionId) {
+            await this.updatePasswordWithTransactionId(updatePasswordRequest);
+        } else {
+            await this.updatePasswordWithPrivateKey(updatePasswordRequest);
+        }
+    }
+
+    private async updatePasswordWithPrivateKey(updatePasswordRequest: UpdatePasswordRequest) {
+        const user = await this.usersRepository.findByEthereumAddress(updatePasswordRequest.walletAddress!);
 
         if (!user) {
             throw new HttpException(
-                `Could not find user with address ${updatePasswordRequest.walletAddress}`,
+                `Could not find user with address ${updatePasswordRequest.walletAddress!}`,
                 HttpStatus.NOT_FOUND
             )
         }
 
-        user.privateKey = this.passwordEncoder.encode(updatePasswordRequest.password);
+        user.privateKey = this.passwordEncoder.encode(updatePasswordRequest.password!);
 
         await this.passwordHashApiClient.setPasswordHash({
             address: user.ethereumAddress,
-            privateKey: updatePasswordRequest.privateKey,
+            privateKey: updatePasswordRequest.privateKey!,
             passwordHash: user.privateKey
         });
+
+        await this.usersRepository.save(user);
+    }
+
+    private async updatePasswordWithTransactionId(updatePasswordRequest: UpdatePasswordRequest) {
+        const transactionId = updatePasswordRequest.transactionId!;
+        const getHashResponse = (await this.passwordHashApiClient.getPasswordHashByTransaction(transactionId)).data;
+
+        if (!this.passwordEncoder.isHashValid(getHashResponse.hash)) {
+            throw new HttpException(
+                `Hash ${getHashResponse.hash} is invalid`,
+                HttpStatus.BAD_REQUEST
+            );
+        }
+
+        const user = await this.usersRepository.findByEthereumAddress(getHashResponse.address);
+
+        if (!user) {
+            throw new HttpException(
+                `Could not find user with ${getHashResponse.address} address`,
+                HttpStatus.NOT_FOUND
+            );
+        }
+
+        user.privateKey = getHashResponse.hash;
 
         await this.usersRepository.save(user);
     }
