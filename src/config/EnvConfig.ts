@@ -101,5 +101,5 @@ export class EnvConfig {
     IGNITE_PASSWORD_HASH_API_BASE_URL: string;
 
     @Env({type: "boolean", required: false})
-    ENABLE_UPLOADING_IMAGES_TO_SIA: boolean = false;
+    ENABLE_UPLOADING_IMAGES_TO_SIA: boolean = true;
 }
