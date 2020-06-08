@@ -1,6 +1,11 @@
 import {Expose} from "class-transformer";
 import {IsIn, IsNotEmpty, IsString, Matches, MinLength, ValidateIf} from "class-validator";
-import {IsValidEthereumAddress, IsValidEthereumPrivateKey, MustMatch} from "../../../utils/validation";
+import {
+    IsStrongPassword,
+    IsValidEthereumAddress,
+    IsValidEthereumPrivateKey,
+    MustMatch
+} from "../../../utils/validation";
 import {Language} from "../../entities";
 
 export class SignUpRequest {
@@ -22,10 +27,7 @@ export class SignUpRequest {
     @MinLength(8)
     @IsString()
     @IsNotEmpty()
-    @Matches(
-        new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9!@#\$%\^&\*])(?=.{8,})"),
-        {message: "Password isn't strong enough"}
-    )
+    @IsStrongPassword()
     password: string | undefined;
 
     @ValidateIf((object: SignUpRequest) => !Boolean(object.transactionId))

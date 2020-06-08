@@ -7,6 +7,7 @@ import {UserPreferencesRepository} from "./UserPreferencesRepository";
 import {UsersMapper} from "./UsersMapper";
 import {
     CreateUserRequest,
+    RecoverPasswordRequest,
     SignUpForPrivateBetaTestRequest,
     SignUpRequest,
     UpdatePasswordRequest,
@@ -382,15 +383,15 @@ export class UsersService {
         return asyncMap(whoToFollow, async user => await this.usersMapper.toUserResponseAsync(user, currentUser));
     }
 
-    public async updatePassword(updatePasswordRequest: UpdatePasswordRequest): Promise<void> {
+    public async recoverPassword(updatePasswordRequest: RecoverPasswordRequest): Promise<UserResponse> {
         if (updatePasswordRequest.transactionId) {
-            await this.updatePasswordWithTransactionId(updatePasswordRequest);
+            return await this.updatePasswordWithTransactionId(updatePasswordRequest);
         } else {
-            await this.updatePasswordWithPrivateKey(updatePasswordRequest);
+            return await this.updatePasswordWithPrivateKey(updatePasswordRequest);
         }
     }
 
-    private async updatePasswordWithPrivateKey(updatePasswordRequest: UpdatePasswordRequest) {
+    private async updatePasswordWithPrivateKey(updatePasswordRequest: RecoverPasswordRequest): Promise<UserResponse> {
         const user = await this.usersRepository.findByEthereumAddress(updatePasswordRequest.walletAddress!);
 
         if (!user) {
@@ -409,9 +410,11 @@ export class UsersService {
         });
 
         await this.usersRepository.save(user);
+
+        return await this.usersMapper.toUserResponseAsync(user);
     }
 
-    private async updatePasswordWithTransactionId(updatePasswordRequest: UpdatePasswordRequest) {
+    private async updatePasswordWithTransactionId(updatePasswordRequest: RecoverPasswordRequest): Promise<UserResponse> {
         const transactionId = updatePasswordRequest.transactionId!;
         const getHashResponse = (await this.passwordHashApiClient.getPasswordHashByTransaction(transactionId)).data;
 
@@ -434,5 +437,20 @@ export class UsersService {
         user.privateKey = getHashResponse.hash;
 
         await this.usersRepository.save(user);
+
+        return await this.usersMapper.toUserResponseAsync(user);
+    }
+
+    public async updatePassword(updatePasswordRequest: UpdatePasswordRequest, currentUser: User): Promise<void> {
+        if (!this.passwordEncoder.matches(updatePasswordRequest.currentPassword, currentUser.privateKey)) {
+            throw new HttpException(
+                `Provided current password does not match with one saved in database`,
+                HttpStatus.FORBIDDEN
+            );
+        }
+
+        currentUser.privateKey = this.passwordEncoder.encode(updatePasswordRequest.updatedPassword);
+
+        await this.usersRepository.save(currentUser);
     }
 }

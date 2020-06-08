@@ -5,4 +5,5 @@ export * from "./UsernameAvailabilityResponse";
 export * from "./UpdatePreferencesRequest";
 export * from "./SignUpRequest";
 export * from "./UpdatePreferencesRequest";
+export * from "./RecoverPasswordRequest";
 export * from "./UpdatePasswordRequest";
