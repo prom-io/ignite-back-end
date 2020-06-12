@@ -133,7 +133,11 @@ export class UsersService {
         user.username = updateUserRequest.username;
         user.bio = updateUserRequest.bio;
         user.displayedName = updateUserRequest.displayName;
-        user.avatar = avatar;
+        user.avatar = avatar ? avatar : user.avatar;
+
+        if (updateUserRequest.resetAvatar) {
+            user.avatar = null;
+        }
 
         if (updateUserRequest.preferences) {
             let preferences: UserPreferences;

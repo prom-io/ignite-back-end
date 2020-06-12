@@ -1,5 +1,5 @@
 import {Expose} from "class-transformer";
-import {IsObject, IsString, Matches, MaxLength, ValidateIf, ValidateNested} from "class-validator";
+import {IsBoolean, IsObject, IsString, Matches, MaxLength, ValidateIf, ValidateNested} from "class-validator";
 import {UpdatePreferencesRequest} from "./UpdatePreferencesRequest";
 
 export class UpdateUserRequest {
@@ -28,4 +28,9 @@ export class UpdateUserRequest {
     @IsObject()
     @ValidateNested()
     preferences?: UpdatePreferencesRequest;
+
+    @ValidateIf((object: UpdateUserRequest) => object.resetAvatar !== undefined && object.resetAvatar !== null)
+    @IsBoolean()
+    @Expose({name: "reset_avatar"})
+    resetAvatar?: boolean;
 }
