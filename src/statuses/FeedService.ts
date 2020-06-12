@@ -23,7 +23,7 @@ export class FeedService {
                 private readonly statusesMapper: StatusesMapper) {
     }
 
-    public async getFeedOfCurrentUserAfter(currentUser: User, feedCursors: FeedCursors): Promise<StatusResponse[]> {
+    public async getFeedOfCurrentUserAfter(currentUser: User, feedCursors: FeedCursors, useNewRetrievingMethod: boolean = false): Promise<StatusResponse[]> {
         const subscriptions = await this.subscriptionsRepository.findAllBySubscribedUserNotReverted(currentUser);
         const authors = subscriptions.map(subscription => subscription.subscribedTo);
         authors.push(currentUser);
@@ -57,24 +57,27 @@ export class FeedService {
             statuses = await this.statusesRepository.findByAuthorIn(authors, paginationRequest);
         }
 
-        const statusesIds = [];
+        if (useNewRetrievingMethod) {
+            const statusesIds = [];
 
-        statuses.forEach(status => {
-            statusesIds.push(status.id);
+            statuses.forEach(status => {
+                statusesIds.push(status.id);
 
-            if (status.referredStatus) {
-                statusesIds.push(status.referredStatus.id);
-            }
-        });
+                if (status.referredStatus) {
+                    statusesIds.push(status.referredStatus.id);
+                }
+            });
 
-        const statusInfoList = await this.statusesRepository.findStatusInfoByStatusIdIn(statusesIds, currentUser);
+            const statusInfoList = await this.statusesRepository.findStatusInfoByStatusIdIn(statusesIds, currentUser);
 
-        const statusInfoMap: StatusInfoMap = {};
+            const statusInfoMap: StatusInfoMap = {};
 
-        statusInfoList.forEach(statusInfo => statusInfoMap[statusInfo.id] = statusInfo);
+            statusInfoList.forEach(statusInfo => statusInfoMap[statusInfo.id] = statusInfo);
 
-        return this.mapStatusesToStatusesResponseByStatusInfo(statuses, statusInfoMap);
-        // return this.mapStatusesToStatusesResponse(statuses, currentUser);
+            return this.mapStatusesToStatusesResponseByStatusInfo(statuses, statusInfoMap);
+        } else {
+            return this.mapStatusesToStatusesResponse(statuses, currentUser);
+        }
     }
 
     public async getGlobalFeed(feedCursors: FeedCursors, currentUser?: User, language?: string): Promise<StatusResponse[]> {

@@ -16,8 +16,9 @@ export class TimelineController {
     @Get("home")
     public getFeedOfCurrentUser(@Req() request: Request,
                                 @Query("max_id") maxId?: string,
-                                @Query("since_id") sinceId?: string): Promise<StatusResponse[]> {
-        return this.feedService.getFeedOfCurrentUserAfter(request.user as User, {sinceId, maxId});
+                                @Query("since_id") sinceId?: string,
+                                @Query("use_new_retrieving_method") useNewRetrievingMethod?: string): Promise<StatusResponse[]> {
+        return this.feedService.getFeedOfCurrentUserAfter(request.user as User, {sinceId, maxId}, Boolean(useNewRetrievingMethod));
     }
 
     @UseInterceptors(ClassSerializerInterceptor)
