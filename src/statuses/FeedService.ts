@@ -4,7 +4,7 @@ import {StatusLikesRepository} from "./StatusLikesRepository";
 import {StatusesMapper} from "./StatusesMapper";
 import {StatusResponse} from "./types/response";
 import {FeedCursors} from "./types/request/FeedCursors";
-import {Status} from "./entities";
+import {Status, StatusAdditionalInfo, StatusInfoMap} from "./entities";
 import {User} from "../users/entities";
 import {PaginationRequest} from "../utils/pagination";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
@@ -57,7 +57,24 @@ export class FeedService {
             statuses = await this.statusesRepository.findByAuthorIn(authors, paginationRequest);
         }
 
-        return this.mapStatusesToStatusesResponse(statuses, currentUser)
+        const statusesIds = [];
+
+        statuses.forEach(status => {
+            statusesIds.push(status.id);
+
+            if (status.referredStatus) {
+                statusesIds.push(status.referredStatus.id);
+            }
+        });
+
+        const statusInfoList = await this.statusesRepository.findStatusInfoByStatusIdIn(statusesIds, currentUser);
+
+        const statusInfoMap: StatusInfoMap = {};
+
+        statusInfoList.forEach(statusInfo => statusInfoMap[statusInfo.id] = statusInfo);
+
+        return this.mapStatusesToStatusesResponseByStatusInfo(statuses, statusInfoMap);
+        // return this.mapStatusesToStatusesResponse(statuses, currentUser);
     }
 
     public async getGlobalFeed(feedCursors: FeedCursors, currentUser?: User, language?: string): Promise<StatusResponse[]> {
@@ -146,6 +163,14 @@ export class FeedService {
         }
 
         return this.mapStatusesToStatusesResponse(statuses, currentUser);
+    }
+
+    private async mapStatusesToStatusesResponseByStatusInfo(statuses: Status[], statusInfoMap: StatusInfoMap): Promise<StatusResponse[]> {
+        return asyncMap(statuses, status => this.statusesMapper.toStatusResponseByStatusInfo(
+            status,
+            statusInfoMap[status.id],
+            status.referredStatus && statusInfoMap[status.referredStatus.id]
+        ))
     }
 
     private async mapStatusesToStatusesResponse(statuses: Status[], currentUser?: User): Promise<StatusResponse[]> {

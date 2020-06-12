@@ -1,6 +1,6 @@
 import {Injectable} from "@nestjs/common";
 import uuid from "uuid/v4";
-import {Status, StatusReferenceType} from "./entities";
+import {Status, StatusAdditionalInfo, StatusReferenceType} from "./entities";
 import {StatusesRepository} from "./StatusesRepository";
 import {StatusMappingOptionsProvider} from "./StatusMappingOptionsProvider";
 import {StatusResponse} from "./types/response";
@@ -16,7 +16,7 @@ export interface ToStatusResponseOptions {
     status: Status,
     favouritesCount: number,
     favourited: boolean,
-    userStatistics?: UserStatistics,
+    userStatistics?: UserStatistics | Omit<UserStatistics, "user">
     followingAuthor: boolean,
     followedByAuthor: boolean,
     mapReferredStatus: boolean,
@@ -36,6 +36,36 @@ export class StatusesMapper {
                 private readonly btfsHashesMapper: BtfsHashesMapper,
                 private readonly statusesRepository: StatusesRepository,
                 private readonly statusMappingOptionsProvider: StatusMappingOptionsProvider) {
+    }
+
+    public async toStatusResponseByStatusInfo(status: Status,
+                                              statusInfo: StatusAdditionalInfo,
+                                              referredStatusInfo?: StatusAdditionalInfo): Promise<StatusResponse> {
+        let referredStatusOptions: ToStatusResponseOptions | undefined;
+        const referredStatus = status.referredStatus;
+
+        if (referredStatus && referredStatusInfo) {
+            referredStatusOptions = await this.statusMappingOptionsProvider.getStatusMappingOptionsByStatusInfo(
+                referredStatus,
+                referredStatusInfo,
+                undefined
+            );
+            const statusAncestors = (await this.statusesRepository.findAncestorsOfStatus(referredStatus))
+                .filter(ancestor => ancestor.id !== referredStatus.id);
+
+            if (statusAncestors.length !== 0) {
+                referredStatusOptions.referredStatusId = statusAncestors[statusAncestors.length - 1].id;
+                referredStatusOptions.referredStatusReferenceType = statusAncestors[statusAncestors.length - 1].statusReferenceType;
+            }
+        }
+
+        const statusMapppingOptions = await this.statusMappingOptionsProvider.getStatusMappingOptionsByStatusInfo(
+            status,
+            statusInfo,
+            referredStatusOptions
+        );
+
+        return this.toStatusResponse(statusMapppingOptions);
     }
 
     public async toStatusResponseAsync(status: Status, currentUser?: User): Promise<StatusResponse> {
