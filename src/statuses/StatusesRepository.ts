@@ -339,9 +339,11 @@ export class StatusesRepository extends Repository<Status> {
     public async findStatusInfoByStatusIdIn(ids: string[], currentUser?: User): Promise<StatusAdditionalInfo[]> {
         let queryBuilder = this.createQueryBuilder("status");
 
-        queryBuilder = queryBuilder.where({
-            id: In(ids)
-        })
+        queryBuilder = queryBuilder
+            .select("status.id")
+            .where({
+                id: In(ids)
+            })
             .innerJoinAndSelect(
                 UserStatistics,
                 "author_statistics",
