@@ -349,20 +349,20 @@ export class StatusesRepository extends Repository<Status> {
             )
             .addSelect(
                 subquery => subquery
-                    .select("count(*)", "likes_count")
+                    .select("count(id)", "likes_count")
                     .from(StatusLike, "status_like")
                     .where(`status_like."statusId" = status.id`)
             )
             .addSelect(
                 subquery => subquery
-                    .select("count (*)", "comments_count")
+                    .select("count (id)", "comments_count")
                     .from(Status, "compared_status")
                     .where(`"referredStatusId" = status.id`)
                     .andWhere(`"statusReferenceType" = 'COMMENT'`)
             )
             .addSelect(
                 subquery => subquery
-                    .select("count (*)", "reposts_count")
+                    .select("count (id)", "reposts_count")
                     .from(Status, "compared_status")
                     .where(`"referredStatusId" = status.id`)
                     .andWhere(`"statusReferenceType" = 'REPOST'`)
@@ -372,14 +372,14 @@ export class StatusesRepository extends Repository<Status> {
             queryBuilder = queryBuilder
                 .addSelect(
                     subquery => subquery
-                        .select("count (*)", "current_user_likes_count")
+                        .select("count (id)", "current_user_likes_count")
                         .from(StatusLike, "status_like")
                         .where(`status_like."userId" = '${currentUser.id}'`)
                         .andWhere(`status_like."statusId" = status.id`)
             )
                 .addSelect(
                     subquery => subquery
-                        .select("count (*)", "current_user_comments_count")
+                        .select("count (id)", "current_user_comments_count")
                         .from(Status, "compared_status")
                         .where(`"authorId" = '${currentUser.id}'`)
                         .andWhere(`"referredStatusId" = status.id`)
@@ -387,7 +387,7 @@ export class StatusesRepository extends Repository<Status> {
                 )
                 .addSelect(
                     subquery => subquery
-                        .select("count (*)", "current_user_reposts_count")
+                        .select("count (id)", "current_user_reposts_count")
                         .from(Status, "compared_status")
                         .where(`"authorId" = '${currentUser.id}'`)
                         .andWhere(`"referredStatusId" = status.id`)
@@ -395,7 +395,7 @@ export class StatusesRepository extends Repository<Status> {
                 )
                 .addSelect(
                     subquery => subquery
-                        .select("count (*)", "subscriptions_of_current_user_to_status_author_count")
+                        .select("count (id)", "subscriptions_of_current_user_to_status_author_count")
                         .from(UserSubscription, "user_subscription")
                         .where(`user_subscription."subscribedToId" = status."authorId"`)
                         .andWhere(`user_subscription."subscribedUserId" = '${currentUser.id}'`)
@@ -403,7 +403,7 @@ export class StatusesRepository extends Repository<Status> {
                 )
                 .addSelect(
                     subquery => subquery
-                        .select("count (*)", "subscriptions_of_status_author_to_current_user_count")
+                        .select("count (id)", "subscriptions_of_status_author_to_current_user_count")
                         .from(UserSubscription, "user_subscription")
                         .where(`user_subscription."subscribedToId" = '${currentUser.id}'`)
                         .andWhere(`user_subscription."subscribedUserId" = status."authorId"`)
