@@ -1,6 +1,7 @@
 import {Repository, EntityRepository, In, Not} from "typeorm";
-import {User} from "./entities";
+import {Language, User} from "./entities";
 import {calculateOffset, PaginationRequest} from "../utils/pagination";
+import {FollowRecommendationFilters} from "./types/request";
 
 @EntityRepository(User)
 export class UsersRepository extends Repository<User> {
@@ -52,30 +53,16 @@ export class UsersRepository extends Repository<User> {
         })) !== 0
     }
 
-    public findMostPopular(paginationRequest: PaginationRequest): Promise<User[]> {
-        return this.createQueryBuilder("user")
-            .leftJoinAndSelect("user.avatar", "avatar")
-            .addSelect(
-                subquery => subquery
-                    .select("count(*)", "subscribers_count")
-                    .from("user_subscription", "user_subscription")
-                    .where("user_subscription.\"subscribedToId\" = \"user\".id"),
-                "subscribers_count"
-            )
-            .orderBy("subscribers_count", "DESC")
-            .skip(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
-            .take(paginationRequest.pageSize)
-            .getMany();
-    }
-
-    public findMostPopularNotIn(users: User[], paginationRequest: PaginationRequest): Promise<User[]> {
+    public findMostPopularNotIn(users: User[], filters: FollowRecommendationFilters): Promise<User[]> {
         const queryBuilder = this.createQueryBuilder("user");
 
         return queryBuilder
             .leftJoinAndSelect("user.avatar", "avatar")
+            .leftJoinAndSelect("user.preferences", "preferences")
             .where({
-                id: Not(In(users.map(user => user.id)))
+                id: Not(In(users.map(user => user.id))),
             })
+            .andWhere(`preferences.language = :language`, {language: filters.language})
             .addSelect(
                 subquery => subquery
                     .select("count(*)", "subscribers_count")
@@ -84,8 +71,8 @@ export class UsersRepository extends Repository<User> {
                 "subscribers_count"
             )
             .orderBy("subscribers_count", "DESC")
-            .skip(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
-            .take(paginationRequest.pageSize)
+            .skip(calculateOffset(filters.page, filters.pageSize))
+            .take(filters.pageSize)
             .getMany();
     }
 }
