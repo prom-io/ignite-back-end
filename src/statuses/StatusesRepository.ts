@@ -337,6 +337,10 @@ export class StatusesRepository extends Repository<Status> {
     }
 
     public async getStatusesAdditionalInfoMap(statuses: Status[], currentUser?: User): Promise<StatusInfoMap> {
+        if (statuses.length === 0) {
+            return {};
+        }
+
         const statusesIds = [];
 
         statuses.forEach(status => {
