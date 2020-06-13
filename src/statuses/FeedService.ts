@@ -58,22 +58,7 @@ export class FeedService {
         }
 
         if (useNewRetrievingMethod) {
-            const statusesIds = [];
-
-            statuses.forEach(status => {
-                statusesIds.push(status.id);
-
-                if (status.referredStatus) {
-                    statusesIds.push(status.referredStatus.id);
-                }
-            });
-
-            const statusInfoList = await this.statusesRepository.findStatusInfoByStatusIdIn(statusesIds, currentUser);
-
-            const statusInfoMap: StatusInfoMap = {};
-
-            statusInfoList.forEach(statusInfo => statusInfoMap[statusInfo.id] = statusInfo);
-
+            const statusInfoMap = await this.statusesRepository.getStatusesAdditionalInfoMap(statuses, currentUser);
             return this.mapStatusesToStatusesResponseByStatusInfo(statuses, statusInfoMap);
         } else {
             return this.mapStatusesToStatusesResponse(statuses, currentUser);

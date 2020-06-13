@@ -1,5 +1,5 @@
 import {Between, EntityRepository, In, LessThan, MoreThan, Repository} from "typeorm";
-import {Status, StatusAdditionalInfo, StatusLike, StatusReferenceType} from "./entities";
+import {Status, StatusAdditionalInfo, StatusInfoMap, StatusLike, StatusReferenceType} from "./entities";
 import {User, UserStatistics} from "../users/entities";
 import {calculateOffset, PaginationRequest} from "../utils/pagination";
 import {from} from "rxjs";
@@ -335,6 +335,26 @@ export class StatusesRepository extends Repository<Status> {
         const treeRepository = this.manager.getTreeRepository<Status>(Status);
         return treeRepository.findAncestors(status);
     }
+
+    public async getStatusesAdditionalInfoMap(statuses: Status[], currentUser?: User): Promise<StatusInfoMap> {
+        const statusesIds = [];
+
+        statuses.forEach(status => {
+            statusesIds.push(status.id);
+
+            if (status.referredStatus) {
+                statusesIds.push(status.referredStatus.id);
+            }
+        });
+
+        const statusInfoList = await this.findStatusInfoByStatusIdIn(statusesIds, currentUser);
+
+        const statusInfoMap: StatusInfoMap = {};
+
+        statusInfoList.forEach(statusInfo => statusInfoMap[statusInfo.id] = statusInfo);
+
+        return statusInfoMap;
+    };
 
     public async findStatusInfoByStatusIdIn(ids: string[], currentUser?: User): Promise<StatusAdditionalInfo[]> {
         let queryBuilder = this.createQueryBuilder("status");
