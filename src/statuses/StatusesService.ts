@@ -179,14 +179,14 @@ export class StatusesService {
             );
         }
 
-        const statusInfoMap = this.statusesRepository.getStatusesAdditionalInfoMap(statuses, currentUser);
+        const statusInfoMap = await this.statusesRepository.getStatusesAdditionalInfoMap(statuses, currentUser);
 
         return asyncMap(
             statuses,
             comment => this.statusesMapper.toStatusResponseByStatusInfo(
-                status,
-                statusInfoMap[status.id],
-                status.referredStatus && statusInfoMap[status.referredStatus.id]
+                comment,
+                statusInfoMap[comment.id],
+                comment.referredStatus && statusInfoMap[comment.referredStatus.id]
             )
         );
     }
