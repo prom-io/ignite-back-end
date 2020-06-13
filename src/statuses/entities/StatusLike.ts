@@ -1,4 +1,4 @@
-import {Column, Entity, ManyToOne, PrimaryColumn} from "typeorm";
+import {Column, Entity, Index, ManyToOne, PrimaryColumn} from "typeorm";
 import {Status} from "./Status";
 import {User} from "../../users/entities/User";
 
@@ -8,9 +8,11 @@ export class StatusLike {
     id: string;
 
     @ManyToOne(type => Status, {eager: true})
+    @Index()
     status: Status;
 
     @ManyToOne(type => User, {eager: true})
+    @Index()
     user: User;
 
     @Column()

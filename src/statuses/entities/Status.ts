@@ -1,6 +1,6 @@
 import {
     Column,
-    Entity,
+    Entity, Index,
     JoinTable,
     ManyToMany,
     ManyToOne,
@@ -23,6 +23,7 @@ export class Status {
     text?: string;
 
     @ManyToOne(type => User, {eager: true})
+    @Index()
     author: User;
 
     @Column()
@@ -39,12 +40,15 @@ export class Status {
     mediaAttachments: MediaAttachment[];
 
     @Column({nullable: true})
+    @Index()
     btfsHash?: string = undefined;
 
     @TreeParent()
+    @Index()
     referredStatus?: Status;
 
     @Column({nullable: true, type: "varchar", enum: StatusReferenceType})
+    @Index()
     statusReferenceType?: StatusReferenceType;
 
     @Column({nullable: true})
