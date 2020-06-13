@@ -1,5 +1,3 @@
-import {UserStatistics} from "../../users/entities";
-
 export class StatusAdditionalInfo {
     id: string;
     likesCount: number;
@@ -10,5 +8,4 @@ export class StatusAdditionalInfo {
     currentUserFollowsAuthor: boolean;
     currentUserFollowedByAuthor: boolean;
     commentedByCurrentUser: boolean;
-    statusAuthorStatistics: Omit<UserStatistics, "user">
 }

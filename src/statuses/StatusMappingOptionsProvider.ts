@@ -27,7 +27,7 @@ export class StatusMappingOptionsProvider {
         const favourited = statusInfo.likedByCurrentUser;
         const followingAuthor = statusInfo.currentUserFollowsAuthor;
         const followedByAuthor = statusInfo.currentUserFollowedByAuthor;
-        const userStatistics = statusInfo.statusAuthorStatistics;
+        const userStatistics = status.author.statistics!;
         const repostsCount = statusInfo.repostsCount;
         const commentsCount = statusInfo.commentsCount;
         const canBeReposted = true;
