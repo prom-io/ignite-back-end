@@ -23,7 +23,7 @@ export class FeedService {
                 private readonly statusesMapper: StatusesMapper) {
     }
 
-    public async getFeedOfCurrentUserAfter(currentUser: User, feedCursors: FeedCursors, useNewRetrievingMethod: boolean = false): Promise<StatusResponse[]> {
+    public async getFeedOfCurrentUserAfter(currentUser: User, feedCursors: FeedCursors): Promise<StatusResponse[]> {
         const subscriptions = await this.subscriptionsRepository.findAllBySubscribedUserNotReverted(currentUser);
         const authors = subscriptions.map(subscription => subscription.subscribedTo);
         authors.push(currentUser);
@@ -57,12 +57,9 @@ export class FeedService {
             statuses = await this.statusesRepository.findByAuthorIn(authors, paginationRequest);
         }
 
-        if (useNewRetrievingMethod) {
-            const statusInfoMap = await this.statusesRepository.getStatusesAdditionalInfoMap(statuses, currentUser);
-            return this.mapStatusesToStatusesResponseByStatusInfo(statuses, statusInfoMap);
-        } else {
-            return this.mapStatusesToStatusesResponse(statuses, currentUser);
-        }
+        const statusInfoMap = await this.statusesRepository.getStatusesAdditionalInfoMap(statuses, currentUser);
+
+        return this.mapStatusesToStatusesResponseByStatusInfo(statuses, statusInfoMap);
     }
 
     public async getGlobalFeed(feedCursors: FeedCursors, currentUser?: User, language?: string): Promise<StatusResponse[]> {
@@ -150,7 +147,9 @@ export class FeedService {
             }
         }
 
-        return this.mapStatusesToStatusesResponse(statuses, currentUser);
+        const statusInfoMap = await this.statusesRepository.getStatusesAdditionalInfoMap(statuses, currentUser);
+
+        return this.mapStatusesToStatusesResponseByStatusInfo(statuses, statusInfoMap);
     }
 
     private async mapStatusesToStatusesResponseByStatusInfo(statuses: Status[], statusInfoMap: StatusInfoMap): Promise<StatusResponse[]> {

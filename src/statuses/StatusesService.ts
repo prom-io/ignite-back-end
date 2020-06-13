@@ -120,7 +120,13 @@ export class StatusesService {
             statuses = await this.statusesRepository.findByAuthor(user, paginationRequest);
         }
 
-        return asyncMap(statuses, status => this.statusesMapper.toStatusResponseAsync(status, currentUser))
+        const statusInfoMap = await this.statusesRepository.getStatusesAdditionalInfoMap(statuses, currentUser);
+
+        return asyncMap(statuses, status => this.statusesMapper.toStatusResponseByStatusInfo(
+            status,
+            statusInfoMap[status.id],
+            status.referredStatus && statusInfoMap[status.referredStatus.id]
+        ));
     }
 
     public async findCommentsOfStatus(statusId: string, cursors: FeedCursors, currentUser?: User): Promise<StatusResponse[]> {
@@ -173,7 +179,16 @@ export class StatusesService {
             );
         }
 
-        return asyncMap(statuses, comment => this.statusesMapper.toStatusResponseAsync(comment, currentUser));
+        const statusInfoMap = this.statusesRepository.getStatusesAdditionalInfoMap(statuses, currentUser);
+
+        return asyncMap(
+            statuses,
+            comment => this.statusesMapper.toStatusResponseByStatusInfo(
+                status,
+                statusInfoMap[status.id],
+                status.referredStatus && statusInfoMap[status.referredStatus.id]
+            )
+        );
     }
 
     private async findStatusEntityById(id: string): Promise<Status> {
