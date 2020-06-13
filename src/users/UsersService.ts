@@ -8,6 +8,7 @@ import {UsersMapper} from "./UsersMapper";
 import {
     CreateUserRequest,
     RecoverPasswordRequest,
+    FollowRecommendationFilters,
     SignUpForPrivateBetaTestRequest,
     SignUpRequest,
     UpdatePasswordRequest,
@@ -23,7 +24,6 @@ import {config} from "../config";
 import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
 import {MediaAttachment} from "../media-attachments/entities";
 import {BCryptPasswordEncoder} from "../bcrypt";
-import {PaginationRequest} from "../utils/pagination";
 import {asyncMap} from "../utils/async-map";
 import {PasswordHashApiClient} from "../password-hash-api";
 import {InvalidBCryptHashException} from "./exceptions";
@@ -267,7 +267,11 @@ export class UsersService {
         user.username = updateUserRequest.username;
         user.bio = updateUserRequest.bio;
         user.displayedName = updateUserRequest.displayName;
-        user.avatar = avatar;
+        user.avatar = avatar ? avatar : user.avatar;
+
+        if (updateUserRequest.resetAvatar) {
+            user.avatar = null;
+        }
 
         if (updateUserRequest.preferences) {
             let preferences: UserPreferences;
@@ -368,17 +372,25 @@ export class UsersService {
         return this.usersMapper.toUserResponse(currentUser, userStatistics);
     }
 
-    public async getFollowRecommendations(paginationRequest: PaginationRequest, currentUser: User, language?: Language): Promise<UserResponse[]> {
+    public async getFollowRecommendations(filters: FollowRecommendationFilters, currentUser: User): Promise<UserResponse[]> {
         const subscriptions = await this.subscriptionsRepository.findAllBySubscribedUserNotReverted(currentUser);
         const users = subscriptions.map(subscription => subscription.subscribedTo);
 
-        let whoToFollow: User[];
+        let filteringLanguage: Language;
 
-        if (users.length === 0) {
-            whoToFollow = await this.usersRepository.findMostPopular(paginationRequest);
+        if (filters.language) {
+            filteringLanguage = filters.language;
+        } else if (currentUser.preferences && currentUser.preferences.language) {
+            filteringLanguage = currentUser.preferences.language
         } else {
-            whoToFollow = await this.usersRepository.findMostPopularNotIn(users, paginationRequest);
+            filteringLanguage = Language.ENGLISH;
         }
+
+        filters.language = filteringLanguage;
+
+        users.push(currentUser);
+
+        const whoToFollow = await this.usersRepository.findMostPopularNotIn(users, filters);
 
         return asyncMap(whoToFollow, async user => await this.usersMapper.toUserResponseAsync(user, currentUser));
     }

@@ -14,9 +14,10 @@ import {
 import {AuthGuard} from "@nestjs/passport";
 import {Request} from "express";
 import {UsersService} from "./UsersService";
-import {Language, User} from "./entities";
+import {User} from "./entities";
 import {
     CreateUserRequest,
+    FollowRecommendationFilters,
     SignUpForPrivateBetaTestRequest,
     RecoverPasswordRequest,
     UpdatePreferencesRequest,
@@ -81,10 +82,9 @@ export class UsersController {
     @UseInterceptors(ClassSerializerInterceptor)
     @UseGuards(AuthGuard("jwt"))
     @Get("follow-recommendations")
-    public getFollowRecommendations(@Query() paginationRequest: PaginationRequest,
-                                    @Query() language: Language | null | undefined,
+    public getFollowRecommendations(@Query() filters: FollowRecommendationFilters,
                                     @Req() request: Request): Promise<UserResponse[]> {
-        return this.usersService.getFollowRecommendations(paginationRequest, request.user as User);
+        return this.usersService.getFollowRecommendations(filters, request.user as User);
     }
 
     @UseGuards(OptionalJwtAuthGuard)
