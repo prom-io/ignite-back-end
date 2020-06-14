@@ -18,12 +18,11 @@ import {User} from "./entities";
 import {
     CreateUserRequest,
     FollowRecommendationFilters,
-    SignUpForPrivateBetaTestRequest,
     RecoverPasswordRequest,
+    SignUpForPrivateBetaTestRequest,
     UpdatePreferencesRequest,
     UpdateUserRequest,
-    UsernameAvailabilityResponse,
-    UpdatePasswordRequest
+    UsernameAvailabilityResponse
 } from "./types/request";
 import {UserPreferencesResponse, UserResponse} from "./types/response";
 import {StatusesService} from "../statuses";
@@ -95,16 +94,8 @@ export class UsersController {
         return this.usersService.findUserByEthereumAddress(address, request.user as User | null);
     }
 
-    @UseGuards(AuthGuard("jwt"))
     @UseInterceptors(ClassSerializerInterceptor)
     @Put("password")
-    public updatePassword(@Body() updatePasswordRequest: UpdatePasswordRequest,
-                          @Req() request: Request): Promise<void> {
-        return this.usersService.updatePassword(updatePasswordRequest, request.user as User);
-    }
-
-    @UseInterceptors(ClassSerializerInterceptor)
-    @Put("password-recovery")
     public recoverPassword(@Body() updatePasswordRequest: RecoverPasswordRequest): Promise<UserResponse> {
         return this.usersService.recoverPassword(updatePasswordRequest);
     }

@@ -452,17 +452,4 @@ export class UsersService {
 
         return await this.usersMapper.toUserResponseAsync(user);
     }
-
-    public async updatePassword(updatePasswordRequest: UpdatePasswordRequest, currentUser: User): Promise<void> {
-        if (!this.passwordEncoder.matches(updatePasswordRequest.currentPassword, currentUser.privateKey)) {
-            throw new HttpException(
-                `Provided current password does not match with one saved in database`,
-                HttpStatus.FORBIDDEN
-            );
-        }
-
-        currentUser.privateKey = this.passwordEncoder.encode(updatePasswordRequest.updatedPassword);
-
-        await this.usersRepository.save(currentUser);
-    }
 }
