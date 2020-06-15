@@ -40,6 +40,6 @@ export class RecoverPasswordRequest {
     @ValidateIf((object: RecoverPasswordRequest) => Boolean(object.transactionId))
     @IsNotEmpty()
     @IsString()
-    @Expose({name: "transaction_od"})
+    @Expose({name: "transaction_id"})
     transactionId?: string
 }
