@@ -69,7 +69,11 @@ export class User {
     @JoinColumn()
     preferences?: UserPreferences;
 
-    @OneToMany(() => UserDynamicFields, dynamicFields => dynamicFields.user, {eager: true, cascade: true})
+    @OneToMany(
+        () => UserDynamicFields,
+            dynamicFields => dynamicFields.user,
+        {eager: true, cascade: true}
+        )
     dynamicFields: UserDynamicFields[];
 
     latestDynamicFields?: UserDynamicFields;
@@ -80,10 +84,7 @@ export class User {
 
     @AfterLoad()
     public setLatestDynamicFields() {
-        if (this.dynamicFields === undefined) {
-            console.log(this);
-        }
-        this.latestDynamicFields = this.dynamicFields[this.dynamicFields.length - 1];
+        this.latestDynamicFields = this.dynamicFields[0];
     }
 
     public getLatestDynamicFields(): UserDynamicFields {

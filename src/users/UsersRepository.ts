@@ -1,11 +1,11 @@
-import {Repository, EntityRepository, In, Not, getRepository} from "typeorm";
-import {Language, User, UserDynamicFields} from "./entities";
-import {calculateOffset, PaginationRequest} from "../utils/pagination";
+import {EntityRepository, getRepository, In, Not, Repository} from "typeorm";
+import {User, UserDynamicFields} from "./entities";
+import {calculateOffset} from "../utils/pagination";
 import {FollowRecommendationFilters} from "./types/request";
 
 @EntityRepository(User)
 export class UsersRepository extends Repository<User> {
-    public async findByUsername(username: string): Promise<User | null> {
+    public async findByUsername(username: string): Promise<User | undefined> {
         const userDynamicFieldsRepository = getRepository<UserDynamicFields>(UserDynamicFields);
 
         const userDynamicFields = await userDynamicFieldsRepository.find({
@@ -15,8 +15,10 @@ export class UsersRepository extends Repository<User> {
             relations: ["user"]
         });
 
+        console.log(userDynamicFields);
+
         if (userDynamicFields.length === 0) {
-            return null;
+            return undefined;
         }
 
         return userDynamicFields
@@ -49,7 +51,7 @@ export class UsersRepository extends Repository<User> {
     }
 
     public async existsByUsername(username: string): Promise<boolean> {
-        return await this.findByUsername(username) !== null;
+        return Boolean(await this.findByUsername(username));
     }
 
     public async existsByEthereumAddress(address: string): Promise<boolean> {
