@@ -1,16 +1,27 @@
-import {Repository, EntityRepository, In, Not} from "typeorm";
-import {Language, User} from "./entities";
+import {Repository, EntityRepository, In, Not, getRepository} from "typeorm";
+import {Language, User, UserDynamicFields} from "./entities";
 import {calculateOffset, PaginationRequest} from "../utils/pagination";
 import {FollowRecommendationFilters} from "./types/request";
 
 @EntityRepository(User)
 export class UsersRepository extends Repository<User> {
-    public findByUsername(username: string): Promise<User | undefined> {
-        return this.findOne({
+    public async findByUsername(username: string): Promise<User | null> {
+        const userDynamicFieldsRepository = getRepository<UserDynamicFields>(UserDynamicFields);
+
+        const userDynamicFields = await userDynamicFieldsRepository.find({
             where: {
                 username
-            }
-        })
+            },
+            relations: ["user"]
+        });
+
+        if (userDynamicFields.length === 0) {
+            return null;
+        }
+
+        return userDynamicFields
+            .filter(fields => fields.username === username && fields.user.getLatestDynamicFields().id === fields.id)
+            .map(fields => fields.user)[0];
     }
 
     public findByEthereumAddress(ethereumAddress: string): Promise<User | undefined> {
@@ -38,11 +49,7 @@ export class UsersRepository extends Repository<User> {
     }
 
     public async existsByUsername(username: string): Promise<boolean> {
-        return (await this.count({
-            where: {
-                username
-            }
-        })) !== 0;
+        return await this.findByUsername(username) !== null;
     }
 
     public async existsByEthereumAddress(address: string): Promise<boolean> {
@@ -59,6 +66,7 @@ export class UsersRepository extends Repository<User> {
         return queryBuilder
             .leftJoinAndSelect("user.avatar", "avatar")
             .leftJoinAndSelect("user.preferences", "preferences")
+            .leftJoinAndSelect("user.dynamicFields", "dynamicFields")
             .where({
                 id: Not(In(users.map(user => user.id))),
             })

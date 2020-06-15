@@ -2,7 +2,7 @@ import {Injectable} from "@nestjs/common";
 import uuid from "uuid";
 import {UserResponse} from "./types/response";
 import {CreateUserRequest} from "./types/request";
-import {User, UserStatistics} from "./entities";
+import {User, UserDynamicFields, UserStatistics} from "./entities";
 import {BCryptPasswordEncoder} from "../bcrypt";
 import {config} from "../config";
 import {UserStatisticsRepository} from "./UserStatisticsRepository";
@@ -48,8 +48,8 @@ export class UsersMapper {
 
         return new UserResponse({
             avatar,
-            displayName: user.displayedName,
-            acct: user.displayedName,
+            displayName: user.getLatestDynamicFields().displayedName,
+            acct: user.getLatestDynamicFields().displayedName,
             id: user.ethereumAddress,
             avatarStatic: user.avatarUri,
             createdAt: user.createdAt.toISOString(),
@@ -57,7 +57,7 @@ export class UsersMapper {
             followingCount: userStatistics ? userStatistics.followsCount : 0,
             header: user.avatarUri || `${config.HOST}/api/v1/media/b653997e-7a4a-482f-a9fc-ea546729da5e.png`,
             headerStatic: user.avatarUri || `${config.HOST}/api/v1/media/b653997e-7a4a-482f-a9fc-ea546729da5e.png`,
-            username: user.username || user.ethereumAddress,
+            username: user.getLatestDynamicFields().username || user.ethereumAddress,
             remote: user.remote,
             statusesCount: userStatistics ? userStatistics.statusesCount : 0,
             emojis: [],
@@ -66,20 +66,29 @@ export class UsersMapper {
             following,
             followedBy,
             bio: user.bio,
-            passwordHash: includePasswordHash ? user.privateKey : undefined
+            passwordHash: includePasswordHash ? user.getLatestDynamicFields().passwordHash : undefined
         })
     }
 
     public fromCreateUserRequest(createUserRequest: CreateUserRequest): User {
-        return {
+        const dynamicFields: UserDynamicFields = {
+            id: uuid(),
+            bio: null,
+            createdAt: new Date(),
+            passwordHash: this.bCryptPasswordEncoder.encode(createUserRequest.privateKey),
+            avatar: null,
+            displayedName: createUserRequest.displayedName,
+            username: createUserRequest.username,
+        };
+        return new User({
             id: uuid(),
             ethereumAddress: createUserRequest.address,
             remote: false,
-            avatarUri: null,
             displayedName: createUserRequest.displayedName ? createUserRequest.displayedName : createUserRequest.address,
             createdAt: new Date(),
             privateKey: this.bCryptPasswordEncoder.encode(createUserRequest.privateKey, 12),
-            username: createUserRequest.username
-        }
+            username: createUserRequest.username,
+            dynamicFields: [dynamicFields]
+        });
     }
 }

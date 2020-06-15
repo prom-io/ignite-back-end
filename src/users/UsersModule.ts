@@ -28,7 +28,7 @@ import {PasswordHashApiModule} from "../password-hash-api";
             UserStatisticsRepository,
             UserSubscriptionsRepository,
             MediaAttachmentsRepository,
-            UserPreferencesRepository
+            UserPreferencesRepository,
         ]),
         forwardRef(() => StatusesModule),
         forwardRef(() => UserSubscriptionsModule),

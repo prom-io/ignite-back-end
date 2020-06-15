@@ -384,23 +384,24 @@ export class BtfsSynchronizer extends NestSchedule {
 
     private async mergeUser(user: User | undefined, btfsUser: BtfsUser, btfsEntityInfo?: BtfsEntityInfo): Promise<User> {
         if (!user) {
-            user = {
+            user = new User({
                 ...btfsUser,
                 remote: true,
                 username: btfsUser.username ? btfsUser.username : btfsUser.address,
                 ethereumAddress: btfsUser.address,
-                createdAt: new Date(btfsUser.createdAt)
-            };
+                createdAt: new Date(btfsUser.createdAt),
+                dynamicFields: []
+            });
             user = await this.usersRepository.save(user);
         } else {
             if (!user.btfsHash || !user.btfsCid) {
-                user = {
+                user = new User({
                     ...user,
                     btfsHash: btfsEntityInfo.btfsCid,
                     btfsCid: btfsEntityInfo.btfsCid,
                     peerIp: btfsEntityInfo.peerIp,
                     peerWallet: btfsEntityInfo.peerWallet
-                };
+                });
                 user = await this.usersRepository.save(user);
             }
         }

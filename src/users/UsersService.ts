@@ -1,6 +1,6 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import uuid from "uuid/v4";
-import {Language, User, UserPreferences} from "./entities";
+import {Language, User, UserDynamicFields, UserPreferences} from "./entities";
 import {UsersRepository} from "./UsersRepository";
 import {UserStatisticsRepository} from "./UserStatisticsRepository";
 import {UserPreferencesRepository} from "./UserPreferencesRepository";
@@ -89,15 +89,25 @@ export class UsersService {
             }
 
         } else {
-            user = {
+            const userDynamicFields: UserDynamicFields = {
+                id: uuid(),
+                username: ethereumAddress,
+                displayedName: ethereumAddress,
+                passwordHash: this.passwordEncoder.encode(password, 12),
+                avatar: null,
+                bio: null,
+                createdAt: new Date()
+            };
+            user = new User({
                 id: uuid(),
                 ethereumAddress,
                 username: ethereumAddress,
                 displayedName: ethereumAddress,
                 privateKey: this.passwordEncoder.encode(password, 12),
                 remote: false,
-                createdAt: new Date()
-            };
+                createdAt: userDynamicFields.createdAt,
+                dynamicFields: [userDynamicFields]
+            });
             await this.usersRepository.save(user);
 
             const userPreferences: UserPreferences = {
@@ -145,15 +155,25 @@ export class UsersService {
                     await this.userPreferencesRepository.save(userPreferences)
                 }
             } else {
-                user = {
+                const userDynamicFields: UserDynamicFields = {
+                    id: uuid(),
+                    avatar: null,
+                    bio: null,
+                    createdAt: new Date(),
+                    displayedName: ethereumAddress,
+                    username: ethereumAddress,
+                    passwordHash: hash
+                };
+                user = new User({
                     id: uuid(),
                     ethereumAddress,
                     username: ethereumAddress,
                     displayedName: ethereumAddress,
                     privateKey: hash,
                     remote: false,
-                    createdAt: new Date()
-                };
+                    createdAt: new Date(),
+                    dynamicFields: [userDynamicFields]
+                });
                 await this.usersRepository.save(user);
 
                 const userPreferences: UserPreferences = {
@@ -264,13 +284,19 @@ export class UsersService {
 
         const avatar = updateUserRequest.avatarId && await this.findMediaAttachmentById(updateUserRequest.avatarId);
 
-        user.username = updateUserRequest.username;
-        user.bio = updateUserRequest.bio;
-        user.displayedName = updateUserRequest.displayName;
-        user.avatar = avatar ? avatar : user.avatar;
+        const userDynamicFields: UserDynamicFields = {
+            id: uuid(),
+            passwordHash: user.getLatestDynamicFields().passwordHash,
+            username: updateUserRequest.username,
+            displayedName: updateUserRequest.displayName,
+            avatar: avatar ? avatar : user.getLatestDynamicFields().avatar,
+            createdAt: new Date(),
+            bio: updateUserRequest.bio,
+            user
+        };
 
         if (updateUserRequest.resetAvatar) {
-            user.avatar = null;
+            userDynamicFields.avatar = null;
         }
 
         if (updateUserRequest.preferences) {
@@ -292,6 +318,7 @@ export class UsersService {
             user.preferences = preferences;
         }
 
+        user.dynamicFields.push(userDynamicFields);
         user = await this.usersRepository.save(user);
 
         const userStatistics = await this.userStatisticsRepository.findByUser(user);
@@ -354,7 +381,9 @@ export class UsersService {
     }
 
     public async getUserProfile(address: string, currentUser?: User): Promise<UserResponse> {
-        let user = await this.usersRepository.findByUsername(address);
+        let user: User | null;
+
+        user = await this.usersRepository.findByUsername(address);
 
         if (!user) {
             user = await this.usersRepository.findByEthereumAddress(address);
@@ -413,7 +442,13 @@ export class UsersService {
             )
         }
 
+        const userDynamicFields: UserDynamicFields = {
+            ...user.getLatestDynamicFields(),
+            passwordHash: this.passwordEncoder.encode(updatePasswordRequest.password!)
+        };
+
         user.privateKey = this.passwordEncoder.encode(updatePasswordRequest.password!);
+        user.dynamicFields.push(userDynamicFields);
 
         await this.passwordHashApiClient.setPasswordHash({
             address: user.ethereumAddress,
@@ -443,7 +478,14 @@ export class UsersService {
             );
         }
 
+        const userDynamicFields: UserDynamicFields = {
+            ...user.getLatestDynamicFields(),
+            id: uuid(),
+            passwordHash: getHashResponse.hash
+        };
+
         user.privateKey = getHashResponse.hash;
+        user.dynamicFields.push(userDynamicFields);
 
         await this.usersRepository.save(user);
 
