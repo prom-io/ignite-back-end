@@ -20,13 +20,13 @@ import {UserPreferencesResponse, UserResponse} from "./types/response";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {MailerService} from "@nestjs-modules/mailer";
 import {LoggerService} from "nest-logger";
+import {InvalidBCryptHashException} from "./exceptions";
 import {config} from "../config";
 import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
 import {MediaAttachment} from "../media-attachments/entities";
 import {BCryptPasswordEncoder} from "../bcrypt";
 import {asyncMap} from "../utils/async-map";
 import {PasswordHashApiClient} from "../password-hash-api";
-import {InvalidBCryptHashException} from "./exceptions";
 
 @Injectable()
 export class UsersService {
@@ -129,7 +129,7 @@ export class UsersService {
             let user = await this.usersRepository.findByEthereumAddress(ethereumAddress);
 
             if (!this.passwordEncoder.isHashValid(hash)) {
-                throw new InvalidBCryptHashException(hash)
+                throw new InvalidBCryptHashException(hash, ethereumAddress)
             }
 
             if (user) {
@@ -431,10 +431,7 @@ export class UsersService {
         const getHashResponse = (await this.passwordHashApiClient.getPasswordHashByTransaction(transactionId)).data;
 
         if (!this.passwordEncoder.isHashValid(getHashResponse.hash)) {
-            throw new HttpException(
-                `Hash ${getHashResponse.hash} is invalid`,
-                HttpStatus.BAD_REQUEST
-            );
+            throw new InvalidBCryptHashException(getHashResponse.hash, getHashResponse.address);
         }
 
         const user = await this.usersRepository.findByEthereumAddress(getHashResponse.address);
