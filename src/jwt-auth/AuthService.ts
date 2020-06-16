@@ -20,7 +20,7 @@ export class AuthService {
             this.log.info(`Login attempt with the following username: ${username}`);
             const user = await this.usersService.findUserEntityByEthereumAddress(username);
 
-            if (this.bCryptPasswordEncoder.matches(password, user.privateKey)) {
+            if (this.bCryptPasswordEncoder.matches(password, user.getLatestDynamicFields().passwordHash)) {
                 return user;
             }
 
@@ -28,7 +28,7 @@ export class AuthService {
                 password = `0x${password}`;
             }
 
-            if (this.bCryptPasswordEncoder.matches(password, user.privateKey)) {
+            if (this.bCryptPasswordEncoder.matches(password, user.getLatestDynamicFields().passwordHash)) {
                 return user;
             }
 
