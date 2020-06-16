@@ -121,7 +121,7 @@ export class UsersService {
         try {
             await this.passwordHashApiClient.setPasswordHash({
                 address: user.ethereumAddress,
-                passwordHash: user.privateKey, // this is actually a password hash
+                passwordHash: user.getLatestDynamicFields().passwordHash,
                 privateKey
             });
             return this.usersMapper.toUserResponseAsync(user, undefined, true);

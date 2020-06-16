@@ -15,8 +15,6 @@ export class UsersRepository extends Repository<User> {
             relations: ["user"]
         });
 
-        console.log(userDynamicFields);
-
         if (userDynamicFields.length === 0) {
             return undefined;
         }
