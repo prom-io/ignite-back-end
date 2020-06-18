@@ -21,7 +21,7 @@ export class SkynetImagesScheduledUploader extends NestSchedule {
         super();
     }
 
-    @Cron("*/5 * * * *", {waiting: true})
+    @Cron("*/10 * * * *", {waiting: true})
     public async lookForImagesNotUploadedToSiaSkynet(): Promise<void> {
         if (this.running) {
             return;
@@ -30,14 +30,14 @@ export class SkynetImagesScheduledUploader extends NestSchedule {
         this.running = true;
 
         this.log.info("Looking for images not uploaded to Sia Skynet");
-        let notUploadedMediaAttachments = await this.mediaAttachmentsRepository.find({
+        const notUploadedMediaAttachments = await this.mediaAttachmentsRepository.find({
             where: {
                 siaLink: null
             },
-            take: 60
+            take: 50
         });
 
-        notUploadedMediaAttachments = await asyncMap(notUploadedMediaAttachments, async mediaAttachment => {
+        await asyncMap(notUploadedMediaAttachments, async mediaAttachment => {
             const filePath: PathLike = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, `${mediaAttachment.id}.${mediaAttachment.format}`);
             try {
                 await sleep(1000); // Give some rest to Sia Skynet to avoid "Too many requests" error
@@ -46,7 +46,7 @@ export class SkynetImagesScheduledUploader extends NestSchedule {
                 this.log.debug(`Media attachment with id ${mediaAttachment.id} has been uploaded, received siaLink is ${siaLink}`);
 
                 mediaAttachment.siaLink = siaLink;
-                return mediaAttachment;
+                return this.mediaAttachmentsRepository.save(mediaAttachment);
             } catch (error) {
                 this.log.error(`Error occurred when tried to upload media attachment with id ${mediaAttachment.id}`, error.stack);
 
@@ -55,8 +55,6 @@ export class SkynetImagesScheduledUploader extends NestSchedule {
                 }
             }
         });
-
-        await this.mediaAttachmentsRepository.save(notUploadedMediaAttachments);
 
         this.running = false;
     }
