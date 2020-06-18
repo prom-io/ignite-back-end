@@ -4,6 +4,7 @@ import {MailerModule} from "@nestjs-modules/mailer";
 import {UsersService} from "./UsersService";
 import {UsersMapper} from "./UsersMapper";
 import {UsersController} from "./UsersController";
+import {SignUpController} from "./SignUpController";
 import {UserByAddressController} from "./UserByAddressController";
 import {UsersRepository} from "./UsersRepository";
 import {UserStatisticsRepository} from "./UserStatisticsRepository";
@@ -16,9 +17,10 @@ import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptio
 import {config} from "../config";
 import {DefaultAccountProviderModule} from "../default-account-provider/DefaultAccountProviderModule";
 import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
+import {PasswordHashApiModule} from "../password-hash-api";
 
 @Module({
-    controllers: [UsersController, UserByAddressController],
+    controllers: [UsersController, UserByAddressController, SignUpController],
     providers: [UsersService, UsersMapper, UserEntityEventsSubscriber, UserStatisticsMapper],
     imports: [
         TypeOrmModule.forFeature([
@@ -41,7 +43,8 @@ import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsR
                 secure: true
             },
         }),
-        DefaultAccountProviderModule
+        DefaultAccountProviderModule,
+        PasswordHashApiModule
     ],
     exports: [UsersService, UsersMapper]
 })

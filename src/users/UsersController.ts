@@ -18,12 +18,13 @@ import {User} from "./entities";
 import {
     CreateUserRequest,
     FollowRecommendationFilters,
+    RecoverPasswordRequest,
     SignUpForPrivateBetaTestRequest,
     UpdatePreferencesRequest,
     UpdateUserRequest,
     UsernameAvailabilityResponse
 } from "./types/request";
-import {UserResponse} from "./types/response";
+import {UserPreferencesResponse, UserResponse} from "./types/response";
 import {StatusesService} from "../statuses";
 import {StatusResponse} from "../statuses/types/response";
 import {PaginationRequest} from "../utils/pagination";
@@ -56,6 +57,12 @@ export class UsersController {
         return this.usersService.updateUserPreferences(updatePreferencesRequest, request.user as User);
     }
 
+    @UseGuards(AuthGuard("jwt"))
+    @Get("preferences")
+    public async getUserPreferences(@Req() request: Request): Promise<UserPreferencesResponse> {
+        return this.usersService.getPreferencesOfCurrentUser(request.user as User);
+    }
+
     @UseInterceptors(ClassSerializerInterceptor)
     @UseGuards(AuthGuard("jwt"))
     @Get("relationships")
@@ -85,6 +92,12 @@ export class UsersController {
     public findByAddress(@Param("address") address: string,
                          @Req() request: Request): Promise<UserResponse> {
         return this.usersService.findUserByEthereumAddress(address, request.user as User | null);
+    }
+
+    @UseInterceptors(ClassSerializerInterceptor)
+    @Put("password")
+    public recoverPassword(@Body() updatePasswordRequest: RecoverPasswordRequest): Promise<UserResponse> {
+        return this.usersService.recoverPassword(updatePasswordRequest);
     }
 
     @UseInterceptors(ClassSerializerInterceptor)

@@ -17,12 +17,16 @@ export class AuthService {
 
     public async validateUser(username: string, password: string): Promise<User | null> {
         try {
+            this.log.info(`Login attempt with the following username: ${username}`);
+            const user = await this.usersService.findUserEntityByEthereumAddress(username);
+
+            if (this.bCryptPasswordEncoder.matches(password, user.privateKey)) {
+                return user;
+            }
+
             if (!password.startsWith("0x")) {
                 password = `0x${password}`;
             }
-
-            this.log.info(`Login attempt with the following username: ${username}`);
-            const user = await this.usersService.findUserEntityByEthereumAddress(username);
 
             if (this.bCryptPasswordEncoder.matches(password, user.privateKey)) {
                 return user;
