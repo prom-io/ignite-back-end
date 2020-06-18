@@ -43,10 +43,6 @@ export class MediaAttachmentsService {
                             fileSystem.renameSync(temporaryFilePath, permanentFilePath);
                             let siaLink = null;
 
-                            if (config.ENABLE_UPLOADING_IMAGES_TO_SIA) {
-                                siaLink = await this.skynetClient.uploadFile(permanentFilePath);
-                            }
-
                             const mediaAttachment: MediaAttachment = {
                                 id,
                                 format: file.ext,

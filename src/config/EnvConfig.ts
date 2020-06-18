@@ -87,7 +87,4 @@ export class EnvConfig {
 
     @Env({type: "string", required: false})
     ENGLISH_FILTERING_USER_ADDRESS: string | undefined;
-
-    @Env({type: "boolean", required: false})
-    ENABLE_UPLOADING_IMAGES_TO_SIA: boolean = true;
 }
