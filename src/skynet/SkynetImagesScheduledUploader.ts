@@ -21,7 +21,7 @@ export class SkynetImagesScheduledUploader extends NestSchedule {
         super();
     }
 
-    @Cron("*/10 * * * *", {waiting: true})
+    @Cron("*/5 * * * *", {waiting: true})
     public async lookForImagesNotUploadedToSiaSkynet(): Promise<void> {
         if (this.running) {
             return;
@@ -33,7 +33,8 @@ export class SkynetImagesScheduledUploader extends NestSchedule {
         let notUploadedMediaAttachments = await this.mediaAttachmentsRepository.find({
             where: {
                 siaLink: null
-            }
+            },
+            take: 60
         });
 
         notUploadedMediaAttachments = await asyncMap(notUploadedMediaAttachments, async mediaAttachment => {
