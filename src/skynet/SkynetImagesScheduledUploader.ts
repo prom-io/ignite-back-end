@@ -9,6 +9,7 @@ import {asyncForEach} from "../utils/async-foreach";
 import {config} from "../config";
 import {isDebug} from "../utils/is-debug";
 import {sleep} from "../utils/sleep";
+import {asyncMap} from "../utils/async-map";
 
 @Injectable()
 export class SkynetImagesScheduledUploader extends NestSchedule {
@@ -21,15 +22,14 @@ export class SkynetImagesScheduledUploader extends NestSchedule {
     @Cron("*/10 * * * *")
     public async lookForImagesNotUploadedToSiaSkynet(): Promise<void> {
         this.log.info("Looking for images not uploaded to Sia Skynet");
-        const notUploadedMediaAttachments = await this.mediaAttachmentsRepository.find({
+        let notUploadedMediaAttachments = await this.mediaAttachmentsRepository.find({
             where: {
                 siaLink: null
             }
         });
 
-        await asyncForEach(notUploadedMediaAttachments, async mediaAttachment => {
+        notUploadedMediaAttachments = await asyncMap(notUploadedMediaAttachments, async mediaAttachment => {
             const filePath: PathLike = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, `${mediaAttachment.id}.${mediaAttachment.format}`);
-
             try {
                 await sleep(1000); // Give some rest to Sia Skynet to avoid "Too many requests" error
                 this.log.debug(`Uploading media attachment with id ${mediaAttachment.id}`);
@@ -37,8 +37,7 @@ export class SkynetImagesScheduledUploader extends NestSchedule {
                 this.log.debug(`Media attachment with id ${mediaAttachment.id} has been uploaded, received siaLink is ${siaLink}`);
 
                 mediaAttachment.siaLink = siaLink;
-                await this.mediaAttachmentsRepository.save(mediaAttachment);
-                this.log.debug(`siaLink of media attachment with id ${mediaAttachment.id} has been saved to database`);
+                return mediaAttachment;
             } catch (error) {
                 this.log.error(`Error occurred when tried to upload media attachment with id ${mediaAttachment.id}`, error.stack);
 
@@ -46,6 +45,8 @@ export class SkynetImagesScheduledUploader extends NestSchedule {
                     console.log(error);
                 }
             }
-        })
+        });
+
+        await this.mediaAttachmentsRepository.save(notUploadedMediaAttachments);
     }
 }
