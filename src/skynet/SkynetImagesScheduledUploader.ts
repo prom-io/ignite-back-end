@@ -13,6 +13,8 @@ import {asyncMap} from "../utils/async-map";
 
 @Injectable()
 export class SkynetImagesScheduledUploader extends NestSchedule {
+    private running: boolean = false;
+
     constructor(private readonly mediaAttachmentsRepository: MediaAttachmentsRepository,
                 private readonly skynetClient: SkynetClient,
                 private readonly log: LoggerService) {
@@ -21,6 +23,12 @@ export class SkynetImagesScheduledUploader extends NestSchedule {
 
     @Cron("*/10 * * * *", {waiting: true})
     public async lookForImagesNotUploadedToSiaSkynet(): Promise<void> {
+        if (this.running) {
+            return;
+        }
+
+        this.running = true;
+
         this.log.info("Looking for images not uploaded to Sia Skynet");
         let notUploadedMediaAttachments = await this.mediaAttachmentsRepository.find({
             where: {
@@ -48,5 +56,7 @@ export class SkynetImagesScheduledUploader extends NestSchedule {
         });
 
         await this.mediaAttachmentsRepository.save(notUploadedMediaAttachments);
+
+        this.running = false;
     }
 }
