@@ -115,7 +115,16 @@ export class UsersService {
 
         this.log.debug(`Follows count after registration is: ${userStatistics.followsCount}`);
 
+        setTimeout(() => this.forceRecalculateUserFollowsCount(user), 2000);
+
         return this.usersMapper.toUserResponse(user, userStatistics, false, false);
+    }
+
+    private async forceRecalculateUserFollowsCount(user: User): Promise<void> {
+        const userStatistics = await this.userStatisticsRepository.findByUser(user);
+        userStatistics.followsCount = await this.subscriptionsRepository.countBySubscribedUserAndNotReverted(user);
+
+        await this.userStatisticsRepository.save(userStatistics);
     }
 
     private async registerUserWithGeneratedWallet(
