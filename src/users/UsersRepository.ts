@@ -21,6 +21,14 @@ export class UsersRepository extends Repository<User> {
         })
     }
 
+    public findByEthereumAddressIn(addresses: string[]): Promise<User[]> {
+        return this.find({
+            where: {
+                ethereumAddress: In(addresses)
+            }
+        })
+    }
+
     public findAllByEthereumAddresses(addresses: string[]): Promise<User[]> {
         return this.find({
             where: {
