@@ -16,7 +16,6 @@ import {PushNotificationsService} from "../push-notifications/PushNotificationsS
 export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberInterface<UserSubscription> {
     constructor(@InjectConnection() private readonly connection: Connection,
                 private readonly userStatisticsRepository: UserStatisticsRepository,
-                private readonly microbloggingBlockchainApiClient: MicrobloggingBlockchainApiClient,
                 private readonly btfsClient: BtfsKafkaClient,
                 private readonly btfsUserSubscriptionsMapper: BtfsUserSubscriptionsMapper,
                 private readonly ipAddressProvider: IpAddressProvider,
@@ -45,16 +44,6 @@ export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberI
         await this.pushNotificationService.processUserSubscription(event.entity);
 
         if (!event.entity.btfsHash && config.ENABLE_BTFS_PUSHING) {
-            this.microbloggingBlockchainApiClient.logSubscription({
-                id: event.entity.id,
-                subscribeAt: event.entity.createdAt.toISOString(),
-                user: event.entity.subscribedUser.ethereumAddress,
-                whoSubscribe: event.entity.subscribedTo.ethereumAddress
-            })
-                .then(() => this.log.info(`Subscription of ${subscribedUser.ethereumAddress} to ${subscribedTo.ethereumAddress} has been written to blockchain`))
-                .catch(error => {
-                    this.log.error(`Error occurred when tried to write subscription of ${subscribedUser.ethereumAddress} to ${subscribedTo.ethereumAddress} to blockchain`);
-                });
             this.log.info("Saving user subscription to BTFS");
 
             if (!config.ENABLE_BTFS_PUSHING) {
@@ -92,16 +81,6 @@ export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberI
             await this.userStatisticsRepository.save(subscribedUserStatistics);
 
             if (config.ENABLE_BTFS_PUSHING && event.entity.saveUnsubscriptionToBtfs) {
-                this.microbloggingBlockchainApiClient.logUnsubscription({
-                    id: event.entity.id,
-                    user: subscribedUser.ethereumAddress
-                })
-                    .then(() => this.log.info(`Unsubscription of ${subscribedUser.ethereumAddress} from ${subscribedTo.ethereumAddress} has been written to blockchain`))
-                    .catch(error => {
-                        this.log.error(`Error occurred when tried to write unsubscription of ${subscribedUser.ethereumAddress} from ${subscribedTo.ethereumAddress} to blockchain`);
-                        console.error(error);
-                    });
-
                 if (!config.ENABLE_BTFS_PUSHING) {
                     return;
                 }

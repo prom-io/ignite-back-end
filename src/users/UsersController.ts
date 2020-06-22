@@ -17,6 +17,7 @@ import {UsersService} from "./UsersService";
 import {User} from "./entities";
 import {
     CreateUserRequest,
+    FollowRecommendationFilters,
     SignUpForPrivateBetaTestRequest,
     UpdatePreferencesRequest,
     UpdateUserRequest,
@@ -71,9 +72,19 @@ export class UsersController {
     }
 
     @UseInterceptors(ClassSerializerInterceptor)
+    @UseGuards(AuthGuard("jwt"))
+    @Get("follow-recommendations")
+    public getFollowRecommendations(@Query() filters: FollowRecommendationFilters,
+                                    @Req() request: Request): Promise<UserResponse[]> {
+        return this.usersService.getFollowRecommendations(filters, request.user as User);
+    }
+
+    @UseGuards(OptionalJwtAuthGuard)
+    @UseInterceptors(ClassSerializerInterceptor)
     @Get(":address")
-    public findByAddress(@Param("address") address: string): Promise<UserResponse> {
-        return this.usersService.findUserByEthereumAddress(address);
+    public findByAddress(@Param("address") address: string,
+                         @Req() request: Request): Promise<UserResponse> {
+        return this.usersService.findUserByEthereumAddress(address, request.user as User | null);
     }
 
     @UseInterceptors(ClassSerializerInterceptor)
@@ -125,7 +136,7 @@ export class UsersController {
     @UseGuards(AuthGuard("jwt"))
     @Post(":address/follow")
     public followUser(@Param("address") address: string,
-                      @Req() request: Request): Promise<RelationshipsResponse> {
+                      @Req() request: Request): Promise<UserResponse> {
         return this.userSubscriptionsService.followUser(address, request.user as User)
     }
 
@@ -133,7 +144,7 @@ export class UsersController {
     @UseGuards(AuthGuard("jwt"))
     @Post(":address/unfollow")
     public unfollowUser(@Param("address") address: string,
-                        @Req() request: Request): Promise<RelationshipsResponse> {
+                        @Req() request: Request): Promise<UserResponse> {
         return this.userSubscriptionsService.unfollowUser(address, request.user as User);
     }
 

@@ -21,14 +21,25 @@ export class UserSubscriptionsService {
     }
 
     public async followUser(address: string,
-                            currentUser: User): Promise<RelationshipsResponse> {
-        const targetUser = await this.usersRepository.findByEthereumAddress(address);
+                            currentUser: User): Promise<UserResponse> {
+        let targetUser = await this.usersRepository.findByEthereumAddress(address);
+
+        if (!targetUser) {
+            targetUser = await this.usersRepository.findByUsername(address);
+        }
 
         if (!targetUser) {
             throw new HttpException(
-                `Could not find user with address ${address}`,
+                `Could not find user with address or username ${address}`,
                 HttpStatus.NOT_FOUND
             );
+        }
+
+        if (targetUser.id === currentUser.id) {
+            throw new HttpException(
+                "Users cannot follow themselves",
+                HttpStatus.FORBIDDEN
+            )
         }
 
         if (await this.userSubscriptionsRepository.existsBySubscribedUserAndSubscribedToNotReverted(currentUser, targetUser)) {
@@ -48,28 +59,22 @@ export class UserSubscriptionsService {
         };
         await this.userSubscriptionsRepository.save(subscription);
 
-        const targetUserSubscription = await this.userSubscriptionsRepository.findBySubscribedUserAndSubscribedToNotReverted(targetUser, currentUser);
+        const targetUserSubscription = await this.userSubscriptionsRepository
+            .findBySubscribedUserAndSubscribedToNotReverted(targetUser, currentUser);
+        const userStatistics = await this.userStatisticsRepository.findByUser(targetUser);
 
-        return {
-            id: targetUser.id,
-            following: true,
-            followedBy: Boolean(targetUserSubscription),
-            showingReblogs: false,
-            blockedBy: false,
-            blocking: false,
-            muting: false,
-            requested: false,
-            domainBlocking: false,
-            endorsed: false,
-            mutingNotifications: false
-        }
+        return this.usersMapper.toUserResponse(targetUser, userStatistics, true, Boolean(targetUserSubscription));
     }
 
-    public async unfollowUser(address: string, currentUser: User): Promise<RelationshipsResponse> {
-        const targetUser = await this.usersRepository.findByEthereumAddress(address);
+    public async unfollowUser(address: string, currentUser: User): Promise<UserResponse> {
+        let targetUser = await this.usersRepository.findByEthereumAddress(address);
 
         if (!targetUser) {
-            throw new HttpException(`Could not find user with address ${address}`, HttpStatus.NOT_FOUND);
+            targetUser = await this.usersRepository.findByUsername(address);
+        }
+
+        if (!targetUser) {
+            throw new HttpException(`Could not find user with address or username ${address}`, HttpStatus.NOT_FOUND);
         }
 
         const subscription = await this.userSubscriptionsRepository.findBySubscribedUserAndSubscribedToNotReverted(currentUser, targetUser);
@@ -84,21 +89,11 @@ export class UserSubscriptionsService {
 
         await this.userSubscriptionsRepository.save(subscription);
 
-        const targetUserSubscription = await this.userSubscriptionsRepository.findBySubscribedUserAndSubscribedToNotReverted(targetUser, currentUser);
+        const targetUserSubscription = await this.userSubscriptionsRepository
+            .findBySubscribedUserAndSubscribedToNotReverted(targetUser, currentUser);
+        const userStatistics = await this.userStatisticsRepository.findByUser(targetUser);
 
-        return {
-            id: targetUser.id,
-            following: false,
-            followedBy: Boolean(targetUserSubscription),
-            showingReblogs: false,
-            blockedBy: false,
-            blocking: false,
-            muting: false,
-            requested: false,
-            domainBlocking: false,
-            endorsed: false,
-            mutingNotifications: false
-        }
+        return this.usersMapper.toUserResponse(targetUser, userStatistics, false, Boolean(targetUserSubscription));
     }
 
     public async getSubscriptionsOfCurrentUser(currentUser: User, paginationRequest: PaginationRequest): Promise<UserSubscriptionResponse[]> {

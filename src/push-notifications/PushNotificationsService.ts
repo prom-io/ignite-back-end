@@ -40,9 +40,8 @@ export class PushNotificationsService {
             .map(subscription => subscription.subscribedUser);
 
         const notifications: Array<Notification | null> = await asyncMap(statusAuthorSubscribers, async user => {
-            if (status.referredStatus && status.statusReferenceType === StatusReferenceType.COMMENT
-                && status.referredStatus.author.id === user.id) {
-                // Do not create notification if follower is the author of replied status so that
+            if (status.referredStatus && status.referredStatus.author.id === user.id) {
+                // Do not create notification if follower is the author of replied or resposted status so that
                 // they don't receive two notifications
                 return null;
             }
@@ -67,7 +66,8 @@ export class PushNotificationsService {
                     const websocketPushNotification: WebsocketPushNotification<StatusResponse> = new WebsocketPushNotification<StatusResponse>({
                         id: notification.id,
                         payload,
-                        type: NotificationType.NEW_STATUS
+                        type: NotificationType.NEW_STATUS,
+                        createdAt: notification.createdAt.toISOString()
                     });
                     this.websocketEventsPublisher.publishWebsocketPushNotification({
                         websocketPushNotification,
@@ -81,7 +81,8 @@ export class PushNotificationsService {
                         const pushNotification: FirebasePushNotification = new FirebasePushNotification({
                             id: notification.id,
                             type: NotificationType.NEW_STATUS,
-                            jsonPayload: serialize(await this.statusesMapper.toStatusResponseAsync(status, userDevice.user))
+                            jsonPayload: serialize(await this.statusesMapper.toStatusResponseAsync(status, userDevice.user)),
+                            createdAt: notification.createdAt.toISOString()
                         });
                         const message: Message = {
                             token: userDevice.fcmToken,
@@ -96,16 +97,16 @@ export class PushNotificationsService {
             });
         }
 
-        if (status.referredStatus !== null
-            && status.statusReferenceType === StatusReferenceType.COMMENT
-            && status.author.id !== status.referredStatus.author.id) {
+        if (status.referredStatus !== null && status.author.id !== status.referredStatus.author.id) {
             const referredStatusAuthor = status.referredStatus.author;
             const referredStatusAuthorDevices = await this.userDevicesRepository.findByUser(referredStatusAuthor);
 
             const notification: Notification = {
                 id: uuid(),
                 receiver: referredStatusAuthor,
-                type: NotificationType.STATUS_REPLY,
+                type: status.statusReferenceType === StatusReferenceType.COMMENT
+                    ? NotificationType.STATUS_REPLY
+                    : NotificationType.REPOST,
                 notificationObjectId: status.id,
                 read: false,
                 createdAt: new Date()
@@ -117,8 +118,9 @@ export class PushNotificationsService {
                 const payload = await this.statusesMapper.toStatusResponseAsync(status, notification.receiver);
                 const websocketPushNotification: WebsocketPushNotification<StatusResponse> = new WebsocketPushNotification<StatusResponse>({
                     id: notification.id,
-                    type: NotificationType.STATUS_REPLY,
-                    payload
+                    type: notification.type,
+                    payload,
+                    createdAt: notification.createdAt.toISOString()
                 });
                 this.websocketEventsPublisher.publishWebsocketPushNotification({
                     receiverEthereumAddress: notification.receiver.ethereumAddress,
@@ -128,7 +130,8 @@ export class PushNotificationsService {
                     const pushNotification = new FirebasePushNotification({
                         id: notification.id,
                         type: NotificationType.STATUS_REPLY,
-                        jsonPayload: serialize(payload)
+                        jsonPayload: serialize(payload),
+                        createdAt: notification.createdAt.toISOString()
                     });
                     const message: Message = {
                         token: device.fcmToken,
@@ -175,7 +178,8 @@ export class PushNotificationsService {
                 new WebsocketPushNotification<StatusLikePushNotification>({
                     id: notification.id,
                     payload,
-                    type: NotificationType.STATUS_LIKE
+                    type: NotificationType.STATUS_LIKE,
+                    createdAt: notification.createdAt.toISOString()
                 });
             this.websocketEventsPublisher.publishWebsocketPushNotification({
                 receiverEthereumAddress: notification.receiver.ethereumAddress,
@@ -186,7 +190,8 @@ export class PushNotificationsService {
                 const pushNotification = new FirebasePushNotification({
                     id: notification.id,
                     type: NotificationType.STATUS_LIKE,
-                    jsonPayload: serialize(payload)
+                    jsonPayload: serialize(payload),
+                    createdAt: notification.createdAt.toISOString()
                 });
                 const message: Message = {
                     token: device.fcmToken,
@@ -217,7 +222,8 @@ export class PushNotificationsService {
             const websocketPushNotification: WebsocketPushNotification<UserResponse> = new WebsocketPushNotification<UserResponse>({
                 id: notification.id,
                 payload,
-                type: NotificationType.FOLLOW
+                type: NotificationType.FOLLOW,
+                createdAt: notification.createdAt.toISOString()
             });
             this.websocketEventsPublisher.publishWebsocketPushNotification({
                 receiverEthereumAddress: notification.receiver.ethereumAddress,
@@ -230,7 +236,8 @@ export class PushNotificationsService {
                 const pushNotification = new FirebasePushNotification({
                     id: notification.id,
                     jsonPayload: serialize(payload),
-                    type: NotificationType.FOLLOW
+                    type: NotificationType.FOLLOW,
+                    createdAt: notification.createdAt.toISOString()
                 });
                 const message: Message = {
                     token: userDevice.fcmToken,

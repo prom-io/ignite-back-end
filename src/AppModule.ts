@@ -37,7 +37,7 @@ import {DefaultAccountProviderModule} from "./default-account-provider/DefaultAc
             port: config.DATABASE_PORT,
             username: config.DATABASE_USERNAME,
             password: config.DATABASE_PASSWORD,
-            logging: false,
+            logging: "all",
             entities,
             subscribers,
             synchronize: config.RECREATE_DATABASE_SCHEMA

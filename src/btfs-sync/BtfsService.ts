@@ -28,7 +28,7 @@ export class BtfsService {
                 cid: btfsHash.btfsCid,
                 soterLink: `https://sandbox.btfssoter.io/btfs/${btfsHash.btfsCid}`,
                 createdAt: btfsHash.createdAt.toISOString(),
-                synced: btfsHash.synced,
+                synced: true,
                 peerIp: btfsHash.peerIp,
                 peerWallet: btfsHash.peerWallet
             }))

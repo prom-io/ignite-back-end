@@ -15,7 +15,8 @@
 
 ## Description
 
-Ignite is a decentralized social network, which allows everyone to share her/his mind freely via texts and media files. All the posts are distributed through Ethereum blockchain and stored immutable in distributed Data Storage.
+Ignite is a decentralized social network, which allows everyone to share her/his mind freely via texts and media files. 
+All the posts are distributed through Ethereum blockchain and stored immutable in Distributed Data Storage (our current version of DDS uses [Soter](https://gitlab.com/btfs_ignite)).
 
 ## How to test
 
@@ -36,8 +37,10 @@ Ignite is a decentralized microblogging service powered by Bittorrent and public
 1.	It can not be blocked by any form of barrier or firewall, because it uses: 
  - BTFS engine stores ALL of its stuff and nobody can block BTT really effectively yet.
  - We use Ethereum blockchain to authenticate users and nodes and nobody can block it too! 
- - Authentication is done through blockchain; 
+ - Authentication is done through blockchain;
+ 
 2.	Ignite is Immutable: data is stored forever on a distributed data storage BTFS/SOTER;
+
 3.	Community driven: no centralized administration or governance.
 
 All the posts texts and media attached to them are stored in the Distributed Data Storage (DDS). DDS is secure file storage for able to store necessary data and media for a period of 10-100 years. This ensures information immutability and censorship resistance. Our current version of DDS uses [Soter](https://gitlab.com/btfs_ignite). It stores all data we need to exchange between nodes. 

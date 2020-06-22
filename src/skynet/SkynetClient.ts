@@ -3,11 +3,21 @@ import Skynet from "@nebulous/skynet";
 import {Response} from "express";
 import {PathLike} from "fs";
 import axios, {AxiosResponse} from "axios";
+import {LoggerService} from "nest-logger";
 
 @Injectable()
 export class SkynetClient {
+    constructor(private log: LoggerService) {
+    }
+
     public async uploadFile(path: PathLike): Promise<string> {
-        return await Skynet.UploadFile(path, Skynet.DefaultUploadOptions);
+        try {
+            this.log.debug(`Trying to upload image ${path} to SIA`);
+            return await Skynet.UploadFile(path, Skynet.DefaultUploadOptions);
+        } catch (error) {
+            this.log.error(`Error occurred when tried to upload file ${path} to SIA`);
+            console.log(error);
+        }
     }
 
     public async downloadFile(path: PathLike, skylink: string): Promise<void> {

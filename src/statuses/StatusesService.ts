@@ -49,22 +49,10 @@ export class StatusesService {
             referredStatus = referredStatus.referredStatus;
         }
 
-        if (createStatusRequest.statusReferenceType === StatusReferenceType.REPOST) {
-            const canBeReposted = !(await this.statusesRepository.existByReferredStatusAndReferenceTypeAndAuthor(
-                referredStatus,
-                StatusReferenceType.REPOST,
-                currentUser
-            ));
-
-            if (!canBeReposted) {
-                throw new HttpException(
-                    `Cannot create a repost because current user has already reposted this status`,
-                    HttpStatus.FORBIDDEN
-                )
-            }
-        }
-
-        const hashTags = await this.hashTagsRetriever.getHashTagsEntitiesFromText(createStatusRequest.status);
+        const hashTags = await this.hashTagsRetriever.getHashTagsEntitiesFromText(
+            createStatusRequest.status,
+            currentUser.preferences.language
+        );
 
         let status = this.statusesMapper.fromCreateStatusRequest(
             createStatusRequest,

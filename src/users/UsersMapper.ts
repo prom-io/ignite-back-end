@@ -5,10 +5,28 @@ import {CreateUserRequest} from "./types/request";
 import {User, UserStatistics} from "./entities";
 import {BCryptPasswordEncoder} from "../bcrypt";
 import {config} from "../config";
+import {UserStatisticsRepository} from "./UserStatisticsRepository";
+import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 
 @Injectable()
 export class UsersMapper {
-    constructor(private readonly bCryptPasswordEncoder: BCryptPasswordEncoder) {
+    constructor(private readonly bCryptPasswordEncoder: BCryptPasswordEncoder,
+                private readonly userStatisticsRepository: UserStatisticsRepository,
+                private readonly userSubscriptionsRepository: UserSubscriptionsRepository) {
+    }
+
+    public async toUserResponseAsync(user: User, currentUser?: User): Promise<UserResponse> {
+        const userStatistics = await this.userStatisticsRepository.findByUser(user);
+        const following = currentUser && await this.userSubscriptionsRepository.existsBySubscribedUserAndSubscribedToNotReverted(
+            currentUser,
+            user
+        );
+        const followed = currentUser && await this.userSubscriptionsRepository.existsBySubscribedUserAndSubscribedToNotReverted(
+            user,
+            currentUser
+        );
+
+        return this.toUserResponse(user, userStatistics, following, followed);
     }
 
     public toUserResponse(

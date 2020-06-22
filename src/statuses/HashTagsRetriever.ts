@@ -3,6 +3,7 @@ import uuid from "uuid/v4";
 import {HashTagsRepository} from "./HashTagsRepository";
 import {HashTag} from "./entities";
 import {asyncMap} from "../utils/async-map";
+import {Language} from "../users/entities";
 
 const HASH_TAG_REGEXP = /([#|＃][^\s]+)/g;
 
@@ -17,14 +18,14 @@ export class HashTagsRetriever {
             .map(chunk => chunk.substring(1, chunk.length));
     }
 
-    public async getHashTagsEntitiesFromText(text: string): Promise<HashTag[]> {
+    public async getHashTagsEntitiesFromText(text: string, language: Language | undefined = Language.ENGLISH): Promise<HashTag[]> {
         const hashTagsStrings = this.getHashTagsStringsFromText(text);
 
         if (hashTagsStrings.length === 0) {
             return [];
         } else {
             return asyncMap(hashTagsStrings, async hashTagString => {
-                let hashTag = await this.hashTagsRepository.findByName(hashTagString);
+                let hashTag = await this.hashTagsRepository.findByNameAndLanguage(hashTagString, language);
 
                 if (hashTag) {
                     return hashTag;
@@ -32,7 +33,9 @@ export class HashTagsRetriever {
                     hashTag = {
                         id: uuid(),
                         name: hashTagString,
-                        createdAt: new Date()
+                        createdAt: new Date(),
+                        language,
+                        postsCount: 0
                     };
                     hashTag = await this.hashTagsRepository.save(hashTag);
                     return hashTag;

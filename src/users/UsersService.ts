@@ -1,24 +1,26 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import uuid from "uuid/v4";
-import {User, UserPreferences} from "./entities";
+import {Language, User, UserPreferences} from "./entities";
 import {UsersRepository} from "./UsersRepository";
 import {UserStatisticsRepository} from "./UserStatisticsRepository";
 import {UserPreferencesRepository} from "./UserPreferencesRepository";
 import {UsersMapper} from "./UsersMapper";
 import {
     CreateUserRequest,
+    FollowRecommendationFilters,
     SignUpForPrivateBetaTestRequest,
-    UpdateUserRequest,
     UpdatePreferencesRequest,
+    UpdateUserRequest,
     UsernameAvailabilityResponse
 } from "./types/request";
-import {UserResponse, UserPreferencesResponse} from "./types/response";
+import {UserPreferencesResponse, UserResponse} from "./types/response";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {MailerService} from "@nestjs-modules/mailer";
 import {LoggerService} from "nest-logger";
 import {config} from "../config";
 import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
 import {MediaAttachment} from "../media-attachments/entities";
+import {asyncMap} from "../utils/async-map";
 
 @Injectable()
 export class UsersService {
@@ -131,7 +133,11 @@ export class UsersService {
         user.username = updateUserRequest.username;
         user.bio = updateUserRequest.bio;
         user.displayedName = updateUserRequest.displayName;
-        user.avatar = avatar;
+        user.avatar = avatar ? avatar : user.avatar;
+
+        if (updateUserRequest.resetAvatar) {
+            user.avatar = null;
+        }
 
         if (updateUserRequest.preferences) {
             let preferences: UserPreferences;
@@ -197,11 +203,10 @@ export class UsersService {
         return new UserPreferencesResponse({language: preferences.language});
     }
 
-    public async findUserByEthereumAddress(address: string): Promise<UserResponse> {
+    public async findUserByEthereumAddress(address: string, currentUser?: User): Promise<UserResponse> {
         const user = await this.findUserEntityByEthereumAddress(address);
-        const userStatistics = await this.userStatisticsRepository.findByUser(user);
 
-        return this.usersMapper.toUserResponse(user, userStatistics);
+        return this.usersMapper.toUserResponseAsync(user, currentUser);
     }
 
     public async findUserEntityByEthereumAddress(address: string): Promise<User> {
@@ -225,21 +230,34 @@ export class UsersService {
             throw new HttpException(`Could not find user with address or username ${address}`, HttpStatus.NOT_FOUND);
         }
 
-        const userStatistics = await this.userStatisticsRepository.findByUser(user);
-        const following = currentUser && await this.subscriptionsRepository.existsBySubscribedUserAndSubscribedToNotReverted(
-            currentUser,
-            user
-        );
-        const followed = currentUser && await this.subscriptionsRepository.existsBySubscribedUserAndSubscribedToNotReverted(
-            user,
-            currentUser
-        );
-
-        return this.usersMapper.toUserResponse(user, userStatistics, following, followed);
+        return await this.usersMapper.toUserResponseAsync(user, currentUser);
     }
 
     public async getCurrentUserProfile(currentUser: User): Promise<UserResponse> {
         const userStatistics = await this.userStatisticsRepository.findByUser(currentUser);
         return this.usersMapper.toUserResponse(currentUser, userStatistics);
+    }
+
+    public async getFollowRecommendations(filters: FollowRecommendationFilters, currentUser: User): Promise<UserResponse[]> {
+        const subscriptions = await this.subscriptionsRepository.findAllBySubscribedUserNotReverted(currentUser);
+        const users = subscriptions.map(subscription => subscription.subscribedTo);
+
+        let filteringLanguage: Language;
+
+        if (filters.language) {
+            filteringLanguage = filters.language;
+        } else if (currentUser.preferences && currentUser.preferences.language) {
+            filteringLanguage = currentUser.preferences.language
+        } else {
+            filteringLanguage = Language.ENGLISH;
+        }
+
+        filters.language = filteringLanguage;
+
+        users.push(currentUser);
+
+        const whoToFollow = await this.usersRepository.findMostPopularNotIn(users, filters);
+
+        return asyncMap(whoToFollow, async user => await this.usersMapper.toUserResponseAsync(user, currentUser));
     }
 }

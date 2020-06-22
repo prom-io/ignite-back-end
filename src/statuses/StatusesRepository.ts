@@ -1,5 +1,5 @@
 import {Between, EntityRepository, In, LessThan, MoreThan, Repository} from "typeorm";
-import {Status, StatusReferenceType} from "./entities";
+import {HashTag, Status, StatusReferenceType} from "./entities";
 import {User} from "../users/entities";
 import {calculateOffset, PaginationRequest} from "../utils/pagination";
 
@@ -332,5 +332,61 @@ export class StatusesRepository extends Repository<Status> {
     public findAncestorsOfStatus(status: Status): Promise<Status[]> {
         const treeRepository = this.manager.getTreeRepository<Status>(Status);
         return treeRepository.findAncestors(status);
+    }
+
+    public async findByHashTag(hashTag: HashTag, paginationRequest: PaginationRequest): Promise<Status[]> {
+        return this.createQueryBuilder("status")
+            .leftJoinAndSelect("status.hashTags", "hashTag")
+            .leftJoinAndSelect("status.author", "author")
+            .leftJoinAndSelect("status.mediaAttachments", "mediaAttachment")
+            .leftJoinAndSelect("status.referredStatus", "referredStatus")
+            .where(`"hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+            .skip(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .take(paginationRequest.pageSize)
+            .getMany();
+    }
+
+    public findByHashTagAndCreatedAtBefore(hashTag: HashTag, createdAt: Date, paginationRequest: PaginationRequest): Promise<Status[]> {
+        return this.createQueryBuilder("status")
+            .leftJoinAndSelect("status.hashTags", "hashTag")
+            .leftJoinAndSelect("status.author", "author")
+            .leftJoinAndSelect("status.mediaAttachments", "mediaAttachment")
+            .leftJoinAndSelect("status.referredStatus", "referredStatus")
+            .where(`"hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+            .andWhere(`status."createdAt" < :createdAt`, {createdAt})
+            .skip(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .take(paginationRequest.pageSize)
+            .getMany()
+    }
+
+    public findByHashTagAndCreatedAtAfter(hashTag: HashTag, createdAt: Date, paginationRequest: PaginationRequest): Promise<Status[]> {
+        return this.createQueryBuilder("status")
+            .leftJoinAndSelect("status.hashTags", "hashTag")
+            .leftJoinAndSelect("status.author", "author")
+            .leftJoinAndSelect("status.mediaAttachments", "mediaAttachment")
+            .leftJoinAndSelect("status.referredStatus", "referredStatus")
+            .where(`"hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+            .andWhere(`status."createdAt" > :createdAt`, {createdAt})
+            .skip(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .take(paginationRequest.pageSize)
+            .getMany()
+    }
+
+    public findByHashTagAndCreatedAtBetween(
+        hashTag: HashTag,
+        createdAtBefore: Date,
+        createdAtAfter: Date,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        return this.createQueryBuilder("status")
+            .leftJoinAndSelect("status.hashTags", "hashTag")
+            .leftJoinAndSelect("status.author", "author")
+            .leftJoinAndSelect("status.mediaAttachments", "mediaAttachment")
+            .leftJoinAndSelect("status.referredStatus", "referredStatus")
+            .where(`"hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+            .andWhere(`status."createdAt" between(:createdAtBefore, :createdAtAfter)`, {createdAtBefore, createdAtAfter})
+            .skip(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .take(paginationRequest.pageSize)
+            .getMany()
     }
 }

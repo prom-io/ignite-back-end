@@ -1,5 +1,7 @@
-import {Repository, EntityRepository, In} from "typeorm";
+import {EntityRepository, In, Not, Repository} from "typeorm";
 import {User} from "./entities";
+import {calculateOffset} from "../utils/pagination";
+import {FollowRecommendationFilters} from "./types/request";
 
 @EntityRepository(User)
 export class UsersRepository extends Repository<User> {
@@ -49,5 +51,28 @@ export class UsersRepository extends Repository<User> {
                 ethereumAddress: address
             }
         })) !== 0
+    }
+
+    public findMostPopularNotIn(users: User[], filters: FollowRecommendationFilters): Promise<User[]> {
+        const queryBuilder = this.createQueryBuilder("user");
+
+        return queryBuilder
+            .leftJoinAndSelect("user.avatar", "avatar")
+            .leftJoinAndSelect("user.preferences", "preferences")
+            .where({
+                id: Not(In(users.map(user => user.id))),
+            })
+            .andWhere(`preferences.language = :language`, {language: filters.language})
+            .addSelect(
+                subquery => subquery
+                    .select("count(*)", "subscribers_count")
+                    .from("user_subscription", "user_subscription")
+                    .where("user_subscription.\"subscribedToId\" = \"user\".id"),
+                "subscribers_count"
+            )
+            .orderBy("subscribers_count", "DESC")
+            .skip(calculateOffset(filters.page, filters.pageSize))
+            .take(filters.pageSize)
+            .getMany();
     }
 }

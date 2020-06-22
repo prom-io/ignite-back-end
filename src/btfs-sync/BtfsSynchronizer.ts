@@ -55,7 +55,7 @@ export class BtfsSynchronizer extends NestSchedule {
         super();
     }
 
-    @Cron("* * * *", {waiting: true})
+    @Cron("*/10 * * * *", {waiting: true})
     public async synchronizeEntities(): Promise<void> {
         if (!config.ENABLE_BTFS_PULLING) {
             return;

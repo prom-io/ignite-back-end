@@ -23,9 +23,11 @@ import {BtfsHashRepository} from "../btfs-sync/BtfsHashRepository";
 import {PushNotificationsModule} from "../push-notifications/PushNotificationsModule";
 import {HashTagsRepository} from "./HashTagsRepository";
 import {HashTagsRetriever} from "./HashTagsRetriever";
+import {TopicsController} from "./TopicsController";
+import {TopicsService} from "./TopicsService";
 
 @Module({
-    controllers: [StatusesController, TimelineController],
+    controllers: [StatusesController, TimelineController, TopicsController],
     providers: [
         StatusesService,
         StatusesMapper,
@@ -34,7 +36,8 @@ import {HashTagsRetriever} from "./HashTagsRetriever";
         StatusEntityEventsSubscriber,
         StatusLikeEntityEventsSubscriber,
         StatusMappingOptionsProvider,
-        HashTagsRetriever
+        HashTagsRetriever,
+        TopicsService
     ],
     imports: [
         TypeOrmModule.forFeature([
