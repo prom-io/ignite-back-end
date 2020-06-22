@@ -86,6 +86,10 @@ export class FeedService {
                 displayedUsers = (await this.userSubscriptionRepository.findAllBySubscribedUserNotReverted(filteringUser))
                     .map(subscription => subscription.subscribedTo);
             }
+
+            if (currentUser) {
+                displayedUsers.push(currentUser);
+            }
         }
 
         const shouldFilterUsers = displayedUsers.length !== 0;

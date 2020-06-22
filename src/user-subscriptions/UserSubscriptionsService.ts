@@ -102,7 +102,11 @@ export class UserSubscriptionsService {
     }
 
     public async getSubscriptionsByUser(userAddress: string, paginationRequest: PaginationRequest): Promise<UserSubscriptionResponse[]> {
-        const user = await this.usersRepository.findByEthereumAddress(userAddress);
+        let user = await this.usersRepository.findByUsername(userAddress);
+
+        if (!user) {
+            user = await this.usersRepository.findByEthereumAddress(userAddress);
+        }
 
         if (!user) {
             throw new HttpException(
@@ -162,7 +166,8 @@ export class UserSubscriptionsService {
     }
 
     public async getFollowersOfUser(address: string): Promise<UserResponse[]> {
-        const subscribedTo = await this.findUserByAddress(address);
+        const subscribedTo = await this.findUserByAddressOrUsername(address);
+
         const subscriptions = await this.userSubscriptionsRepository.findAllBySubscribedToNotReverted(subscribedTo);
 
         const userStatisticsMap: {
@@ -181,7 +186,7 @@ export class UserSubscriptionsService {
     }
 
     public async getFollowingOfUser(address: string): Promise<UserResponse[]> {
-        const subscribedUser = await this.findUserByAddress(address);
+        const subscribedUser = await this.findUserByAddressOrUsername(address);
         const subscriptions = await this.userSubscriptionsRepository.findAllBySubscribedUserNotReverted(subscribedUser);
 
         const userStatisticsMap: {
@@ -199,11 +204,15 @@ export class UserSubscriptionsService {
             ));
     }
 
-    private async findUserByAddress(address: string): Promise<User> {
-        const user = await this.usersRepository.findByEthereumAddress(address);
+    private async findUserByAddressOrUsername(addressOrUsername: string): Promise<User> {
+        let user = await this.usersRepository.findByEthereumAddress(addressOrUsername);
 
         if (!user) {
-            throw new HttpException(`Could not find user with address ${address}`, HttpStatus.NOT_FOUND);
+            user = await this.usersRepository.findByUsername(addressOrUsername);
+        }
+
+        if (!user) {
+            throw new HttpException(`Could not find user with address or username ${addressOrUsername}`, HttpStatus.NOT_FOUND);
         }
 
         return user;
