@@ -44,6 +44,8 @@ export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberI
         }
 
         if (subscribedUserStatistics) {
+            this.log.debug("Subscribed user statistics found");
+            this.log.debug(`Follows count is ${subscribedUserStatistics.followsCount}`);
             const subscribedUserFollowsCount = await this.userSubscriptionsRepository.countBySubscribedUserAndNotReverted(subscribedUser);
             subscribedUserStatistics.followsCount = subscribedUserFollowsCount + 1;
             await this.userStatisticsRepository.save(subscribedUserStatistics);

@@ -113,6 +113,8 @@ export class UsersService {
         userStatistics.followsCount = followsCount;
         await this.userStatisticsRepository.save(userStatistics);
 
+        this.log.debug(`Follows count after registration is: ${userStatistics.followsCount}`);
+
         return this.usersMapper.toUserResponse(user, userStatistics, false, false);
     }
 
