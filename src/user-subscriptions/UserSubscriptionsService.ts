@@ -10,6 +10,7 @@ import {User, UserStatistics} from "../users/entities";
 import {PaginationRequest} from "../utils/pagination";
 import {UserResponse} from "../users/types/response";
 import {UsersMapper} from "../users/UsersMapper";
+import {asyncMap} from "../utils/async-map";
 
 @Injectable()
 export class UserSubscriptionsService {
@@ -165,43 +166,23 @@ export class UserSubscriptionsService {
         return relationships;
     }
 
-    public async getFollowersOfUser(address: string): Promise<UserResponse[]> {
+    public async getFollowersOfUser(address: string, currentUser?: User): Promise<UserResponse[]> {
         const subscribedTo = await this.findUserByAddressOrUsername(address);
 
         const subscriptions = await this.userSubscriptionsRepository.findAllBySubscribedToNotReverted(subscribedTo);
 
-        const userStatisticsMap: {
-            [userId: string]: UserStatistics
-        } = {};
-
-        for (const subscription of subscriptions) {
-            userStatisticsMap[subscription.subscribedUser.id] = await this.userStatisticsRepository.findByUser(subscription.subscribedUser);
-        }
-
-        return subscriptions.map(subscription => subscription.subscribedUser)
-            .map(user => this.usersMapper.toUserResponse(
-                user,
-                userStatisticsMap[user.id]
-            ));
+        return asyncMap(subscriptions, async subscription => {
+            return await this.usersMapper.toUserResponseAsync(subscription.subscribedUser, currentUser);
+        })
     }
 
-    public async getFollowingOfUser(address: string): Promise<UserResponse[]> {
+    public async getFollowingOfUser(address: string, currentUser?: User): Promise<UserResponse[]> {
         const subscribedUser = await this.findUserByAddressOrUsername(address);
         const subscriptions = await this.userSubscriptionsRepository.findAllBySubscribedUserNotReverted(subscribedUser);
 
-        const userStatisticsMap: {
-            [userId: string]: UserStatistics
-        } = {};
-
-        for (const subscription of subscriptions) {
-            userStatisticsMap[subscription.subscribedUser.id] = await this.userStatisticsRepository.findByUser(subscription.subscribedTo);
-        }
-
-        return subscriptions.map(subscription => subscription.subscribedTo)
-            .map(user => this.usersMapper.toUserResponse(
-                user,
-                userStatisticsMap[user.id]
-            ));
+        return asyncMap(subscriptions, async subscription => {
+            return await this.usersMapper.toUserResponseAsync(subscription.subscribedTo, currentUser);
+        })
     }
 
     private async findUserByAddressOrUsername(addressOrUsername: string): Promise<User> {

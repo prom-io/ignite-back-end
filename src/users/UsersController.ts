@@ -161,16 +161,18 @@ export class UsersController {
         return this.userSubscriptionsService.unfollowUser(address, request.user as User);
     }
 
+    @UseGuards(OptionalJwtAuthGuard)
     @UseInterceptors(ClassSerializerInterceptor)
     @Get(":address/followers")
-    public getFollowersOfUser(@Param("address") address: string): Promise<UserResponse[]> {
-        return this.userSubscriptionsService.getFollowersOfUser(address);
+    public getFollowersOfUser(@Param("address") address: string, @Req() request: Request): Promise<UserResponse[]> {
+        return this.userSubscriptionsService.getFollowersOfUser(address, request.user as User | null);
     }
 
+    @UseGuards(OptionalJwtAuthGuard)
     @UseInterceptors(ClassSerializerInterceptor)
     @Get(":address/following")
-    public getFollowingOfUser(@Param("address") address: string): Promise<UserResponse[]> {
-        return this.userSubscriptionsService.getFollowingOfUser(address);
+    public getFollowingOfUser(@Param("address") address: string, @Req() request: Request): Promise<UserResponse[]> {
+        return this.userSubscriptionsService.getFollowingOfUser(address, request.user as User | null);
     }
 
     @Get("username/:username/is-available")
