@@ -1,4 +1,4 @@
-import {Expose} from "class-transformer";
+import {Expose, Transform, Type} from "class-transformer";
 import {IsIn, IsNotEmpty, IsString, Matches, MinLength, ValidateIf} from "class-validator";
 import {
     IsStrongPassword,
@@ -6,7 +6,7 @@ import {
     IsValidEthereumPrivateKey,
     MustMatch
 } from "../../../utils/validation";
-import {Language} from "../../entities";
+import {getLanguageFromString, Language} from "../../entities";
 
 export class SignUpRequest {
     @ValidateIf((object: SignUpRequest) => !Boolean(object.transactionId))
@@ -38,9 +38,10 @@ export class SignUpRequest {
     @Expose({name: "password_confirmation"})
     passwordConfirmation: string | undefined;
 
+    @Transform(value => getLanguageFromString(value as string))
     @ValidateIf((object: SignUpRequest) => Boolean(object.language))
     @IsString()
-    @IsIn([Language.KOREAN, Language.ENGLISH])
+    @IsIn([Language.KOREAN, Language.ENGLISH, "kr"])
     language: Language | undefined;
 
     @ValidateIf((object: SignUpRequest) => Boolean(object.transactionId))
