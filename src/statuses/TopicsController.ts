@@ -8,10 +8,10 @@ import {
     UseGuards,
     UseInterceptors
 } from "@nestjs/common";
-import {TopicsService} from "./TopicsService";
 import {Request} from "express";
+import {TopicsService} from "./TopicsService";
 import {StatusResponse} from "./types/response";
-import {parseLanguageFromString, User} from "../users/entities";
+import {getLanguageFromString, User} from "../users/entities";
 import {OptionalJwtAuthGuard} from "../jwt-auth/OptionalJwtAuthGuard";
 
 @Controller("api/v1/topics")
@@ -27,6 +27,11 @@ export class TopicsController {
                                  @Query("since_id") sinceId?: string,
                                  @Query("max_id") maxId?: string,
                                  @Query("language") language?: string): Promise<StatusResponse[]> {
-        return this.topicsService.findStatusesByHashTag(hashTag, {sinceId, maxId}, parseLanguageFromString(language), request.user as User | null);
+        return this.topicsService.findStatusesByHashTag(
+            hashTag,
+            {sinceId, maxId},
+            getLanguageFromString(language),
+            request.user as User | null
+        );
     }
 }

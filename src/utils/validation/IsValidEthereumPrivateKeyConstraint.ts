@@ -15,7 +15,13 @@ export class IsValidEthereumPrivateKeyConstraint implements ValidatorConstraintI
             const web3 = new Web3();
             const [relatedPropertyName] = validationArguments.constraints;
             const address = (validationArguments.object as any)[relatedPropertyName];
-            const wallet = web3.eth.accounts.privateKeyToAccount(value);
+            let privateKey = value;
+
+            if (!privateKey.startsWith("0x")) {
+                privateKey = `0x${privateKey}`;
+            }
+
+            const wallet = web3.eth.accounts.privateKeyToAccount(privateKey);
             return wallet.address === address;
         } catch (error) {
             return false;

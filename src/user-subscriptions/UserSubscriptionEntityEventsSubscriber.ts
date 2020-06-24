@@ -11,11 +11,13 @@ import {DefaultAccountProviderService} from "../default-account-provider/Default
 import {config} from "../config";
 import {BtfsKafkaClient} from "../btfs-sync/BtfsKafkaClient";
 import {PushNotificationsService} from "../push-notifications/PushNotificationsService";
+import {UserSubscriptionsRepository} from "./UserSubscriptionsRepository";
 
 @Injectable()
 export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberInterface<UserSubscription> {
     constructor(@InjectConnection() private readonly connection: Connection,
                 private readonly userStatisticsRepository: UserStatisticsRepository,
+                private readonly userSubscriptionsRepository: UserSubscriptionsRepository,
                 private readonly btfsClient: BtfsKafkaClient,
                 private readonly btfsUserSubscriptionsMapper: BtfsUserSubscriptionsMapper,
                 private readonly ipAddressProvider: IpAddressProvider,
@@ -35,11 +37,19 @@ export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberI
         const subscribedToStatistics = await this.userStatisticsRepository.findByUser(subscribedTo);
         const subscribedUserStatistics = await this.userStatisticsRepository.findByUser(subscribedUser);
 
-        subscribedToStatistics.followersCount = subscribedToStatistics.followersCount + 1;
-        subscribedUserStatistics.followsCount = subscribedUserStatistics.followsCount + 1;
+        if (subscribedToStatistics) {
+            const subscribedToFollowersCount = await this.userSubscriptionsRepository.countBySubscribedToAndNotReverted(subscribedTo);
+            subscribedToStatistics.followersCount = subscribedToFollowersCount + 1;
+            await this.userStatisticsRepository.save(subscribedToStatistics);
+        }
 
-        await this.userStatisticsRepository.save(subscribedToStatistics);
-        await this.userStatisticsRepository.save(subscribedUserStatistics);
+        if (subscribedUserStatistics) {
+            this.log.debug("Subscribed user statistics found");
+            this.log.debug(`Follows count is ${subscribedUserStatistics.followsCount}`);
+            const subscribedUserFollowsCount = await this.userSubscriptionsRepository.countBySubscribedUserAndNotReverted(subscribedUser);
+            subscribedUserStatistics.followsCount = subscribedUserFollowsCount + 1;
+            await this.userStatisticsRepository.save(subscribedUserStatistics);
+        }
 
         await this.pushNotificationService.processUserSubscription(event.entity);
 
@@ -74,8 +84,11 @@ export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberI
             const subscribedToStatistics = await this.userStatisticsRepository.findByUser(subscribedTo);
             const subscribedUserStatistics = await this.userStatisticsRepository.findByUser(subscribedUser);
 
-            subscribedToStatistics.followersCount = subscribedToStatistics.followersCount - 1;
-            subscribedUserStatistics.followsCount = subscribedUserStatistics.followsCount - 1;
+            const subscribedToFollowersCount = await this.userSubscriptionsRepository.countBySubscribedUserAndNotReverted(subscribedUser);
+            const subscribedUserFollowsCount = await this.userSubscriptionsRepository.countBySubscribedToAndNotReverted(subscribedTo);
+
+            subscribedToStatistics.followersCount = subscribedToFollowersCount - 1;
+            subscribedUserStatistics.followsCount = subscribedUserFollowsCount - 1;
 
             await this.userStatisticsRepository.save(subscribedToStatistics);
             await this.userStatisticsRepository.save(subscribedUserStatistics);

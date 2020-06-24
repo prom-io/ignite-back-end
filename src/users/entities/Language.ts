@@ -3,7 +3,7 @@ export enum Language {
     KOREAN = "ko"
 }
 
-export const parseLanguageFromString = (language?: string): Language => {
+export const getLanguageFromString = (language?: string): Language => {
     if (!language) {
         return Language.ENGLISH;
     }
@@ -12,6 +12,7 @@ export const parseLanguageFromString = (language?: string): Language => {
         case "en":
             return Language.ENGLISH;
         case "ko":
+        case "kr":
             return Language.KOREAN;
         default:
             return Language.ENGLISH;

@@ -39,6 +39,9 @@ export class UserResponse {
     @Expose({name: "followed_by"})
     followedBy: boolean;
 
+    @Expose({name: "password_hash"})
+    passwordHash = undefined;
+
     bio?: string;
 
     constructor(object: UserResponse) {
