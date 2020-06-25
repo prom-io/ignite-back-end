@@ -13,6 +13,7 @@ import {TopicsService} from "./TopicsService";
 import {StatusResponse} from "./types/response";
 import {getLanguageFromString, User} from "../users/entities";
 import {OptionalJwtAuthGuard} from "../jwt-auth/OptionalJwtAuthGuard";
+import {GetStatusesByTopicRequest} from "./types/request";
 
 @Controller("api/v1/topics")
 export class TopicsController {
@@ -24,13 +25,10 @@ export class TopicsController {
     @Get(":hashTag")
     public findStatusesByHashTag(@Param("hashTag") hashTag: string,
                                  @Req() request: Request,
-                                 @Query("since_id") sinceId?: string,
-                                 @Query("max_id") maxId?: string,
-                                 @Query("language") language?: string): Promise<StatusResponse[]> {
+                                 @Query() getStatusesByTopicRequest: GetStatusesByTopicRequest): Promise<StatusResponse[]> {
         return this.topicsService.findStatusesByHashTag(
             hashTag,
-            {sinceId, maxId},
-            getLanguageFromString(language),
+            getStatusesByTopicRequest,
             request.user as User | null
         );
     }

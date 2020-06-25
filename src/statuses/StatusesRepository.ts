@@ -1,5 +1,5 @@
 import {Between, EntityRepository, In, LessThan, MoreThan, Repository} from "typeorm";
-import {HashTag, Status, StatusReferenceType} from "./entities";
+import {HashTag, Status, StatusLike, StatusReferenceType} from "./entities";
 import {User} from "../users/entities";
 import {calculateOffset, PaginationRequest} from "../utils/pagination";
 
@@ -341,8 +341,9 @@ export class StatusesRepository extends Repository<Status> {
             .leftJoinAndSelect("status.mediaAttachments", "mediaAttachment")
             .leftJoinAndSelect("status.referredStatus", "referredStatus")
             .where(`"hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
-            .skip(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
-            .take(paginationRequest.pageSize)
+            .orderBy(`"createdAt"`, "DESC")
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
             .getMany();
     }
 
@@ -354,8 +355,9 @@ export class StatusesRepository extends Repository<Status> {
             .leftJoinAndSelect("status.referredStatus", "referredStatus")
             .where(`"hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
             .andWhere(`status."createdAt" < :createdAt`, {createdAt})
-            .skip(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
-            .take(paginationRequest.pageSize)
+            .orderBy(`"createdAt"`, "DESC")
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
             .getMany()
     }
 
@@ -367,8 +369,9 @@ export class StatusesRepository extends Repository<Status> {
             .leftJoinAndSelect("status.referredStatus", "referredStatus")
             .where(`"hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
             .andWhere(`status."createdAt" > :createdAt`, {createdAt})
-            .skip(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
-            .take(paginationRequest.pageSize)
+            .orderBy(`"createdAt"`, "DESC")
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
             .getMany()
     }
 
@@ -385,8 +388,60 @@ export class StatusesRepository extends Repository<Status> {
             .leftJoinAndSelect("status.referredStatus", "referredStatus")
             .where(`"hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
             .andWhere(`status."createdAt" between(:createdAtBefore, :createdAtAfter)`, {createdAtBefore, createdAtAfter})
-            .skip(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
-            .take(paginationRequest.pageSize)
+            .orderBy("createdAt", "DESC")
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
+            .getMany()
+    }
+
+    public findByHashTagAndCreatedAtBetweenOrderByNumberOfLikes(
+        hashTag: HashTag,
+        createdAtBefore: Date,
+        createdAtAfter: Date,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        return this.createQueryBuilder("status")
+            .leftJoinAndSelect("status.hashTags", "hashTag")
+            .leftJoinAndSelect("status.author", "author")
+            .leftJoinAndSelect("status.mediaAttachments", "mediaAttachment")
+            .leftJoinAndSelect("status.referredStatus", "referredStatus")
+            .addSelect(
+                subquery => subquery
+                    .select("count(id)", "likes_count")
+                    .from(StatusLike, "status_like")
+                    .where(`status_like."statusId" = status.id`)
+                    .andWhere("status_like.reverted = false")
+            )
+            .where(`"hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+            .andWhere(`status."createdAt" between(:createdAtBefore, :createdAtAfter)`, {createdAtBefore, createdAtAfter})
+            .orderBy("likes_count", "DESC")
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
+            .getMany()
+    }
+
+    public findByHashTagAndCreatedAtAfterOrderByNumberOfLikes(
+        hashTag: HashTag,
+        createdAtAfter: Date,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        return this.createQueryBuilder("status")
+            .leftJoinAndSelect("status.hashTags", "hashTags")
+            .leftJoinAndSelect("status.author", "author")
+            .leftJoinAndSelect("status.mediaAttachments", "mediaAttachment")
+            .leftJoinAndSelect("status.referredStatus", "referredStatus")
+            .addSelect(
+                subquery => subquery
+                    .select("count(id)", "likes_count")
+                    .from(StatusLike, "status_like")
+                    .andWhere("status_like.reverted = false")
+                    .where(`status_like."statusId" = status.id`)
+            )
+            .where(`"hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+            .andWhere(`status."createdAt" > :createdAtAfter`, {createdAtAfter})
+            .orderBy("likes_count", "DESC")
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
             .getMany()
     }
 }

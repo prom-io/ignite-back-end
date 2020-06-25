@@ -1,11 +1,13 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
+import {subDays, isAfter} from "date-fns";
 import {StatusesRepository} from "./StatusesRepository";
 import {HashTagsRepository} from "./HashTagsRepository";
 import {StatusesMapper} from "./StatusesMapper";
 import {Language, User} from "../users/entities";
 import {StatusResponse} from "./types/response";
+import {GetStatusesByTopicRequest, TopicFetchType} from "./types/request";
+import {HashTag, Status} from "./entities";
 import {asyncMap} from "../utils/async-map";
-import {FeedCursors} from "./types/request";
 
 @Injectable()
 export class TopicsService {
@@ -16,10 +18,11 @@ export class TopicsService {
 
     public async findStatusesByHashTag(
         hashTagName: string,
-        feedCursors: FeedCursors,
-        language?: Language,
+        getStatusesByTopicRequest: GetStatusesByTopicRequest,
         currentUser?: User
     ): Promise<StatusResponse[]> {
+        let language = getStatusesByTopicRequest.language;
+
         if (!language) {
             language = currentUser ? currentUser.preferences.language : Language.ENGLISH;
         }
@@ -33,10 +36,103 @@ export class TopicsService {
             );
         }
 
-        const statuses = await this.statusesRepository.findByHashTag(hashTag, {page: 1, pageSize: 30});
+        let statuses: Status[];
 
-        return asyncMap(statuses, async status => {
-            return await this.statusesMapper.toStatusResponseAsync(status, currentUser)
-        })
+        if (getStatusesByTopicRequest.type === TopicFetchType.FRESH) {
+            statuses = await this.getFreshStatusesByHashTag(hashTag, getStatusesByTopicRequest);
+        } else {
+            statuses = await this.getHotStatusesByHashTag(hashTag, getStatusesByTopicRequest);
+        }
+
+        return asyncMap(statuses, async status => await this.statusesMapper.toStatusResponseAsync(status, currentUser));
+    }
+
+    private async getFreshStatusesByHashTag(hashTag: HashTag, getStatusesByTopicRequest: GetStatusesByTopicRequest): Promise<Status[]> {
+        let statuses: Status[];
+
+        if (getStatusesByTopicRequest.maxId) {
+            if (getStatusesByTopicRequest.sinceId) {
+                const sinceCursor = await this.findStatusById(getStatusesByTopicRequest.sinceId);
+                const maxCursor = await this.findStatusById(getStatusesByTopicRequest.maxId);
+                statuses = await this.statusesRepository.findByHashTagAndCreatedAtBetween(
+                    hashTag,
+                    sinceCursor.createdAt,
+                    maxCursor.createdAt,
+                    {page: 1, pageSize: 30}
+                );
+            } else {
+                const maxCursor = await this.findStatusById(getStatusesByTopicRequest.maxId);
+                statuses = await this.statusesRepository.findByHashTagAndCreatedAtBefore(
+                    hashTag,
+                    maxCursor.createdAt,
+                    {page: 1, pageSize: 30}
+                );
+            }
+        } else if (getStatusesByTopicRequest.sinceId) {
+            const sinceCursor = await this.findStatusById(getStatusesByTopicRequest.sinceId);
+            statuses = await this.statusesRepository.findByHashTagAndCreatedAtAfter(
+                hashTag,
+                sinceCursor.createdAt,
+                {page: 1, pageSize: 30}
+            )
+        } else {
+            statuses = await this.statusesRepository.findByHashTag(hashTag, {page: 1, pageSize: 30});
+        }
+
+        return statuses;
+    }
+
+    private async getHotStatusesByHashTag(hashTag: HashTag, getStatusesByTopicRequest: GetStatusesByTopicRequest) {
+        const weekAgo = subDays(new Date(), 7);
+        let statuses: Status[];
+
+        if (getStatusesByTopicRequest.maxId) {
+            if (getStatusesByTopicRequest.sinceId) {
+                const sinceCursor = await this.findStatusById(getStatusesByTopicRequest.sinceId);
+                const maxCursor = await this.findStatusById(getStatusesByTopicRequest.maxId);
+                statuses = await this.statusesRepository.findByHashTagAndCreatedAtBetweenOrderByNumberOfLikes(
+                    hashTag,
+                    isAfter(sinceCursor.createdAt, weekAgo) ? sinceCursor.createdAt : weekAgo,
+                    isAfter(maxCursor.createdAt, weekAgo) ? maxCursor.createdAt : weekAgo,
+                    {page: 1, pageSize: 30}
+                )
+            } else {
+                const sinceCursor = await this.findStatusById(getStatusesByTopicRequest.sinceId);
+                statuses = await this.statusesRepository.findByHashTagAndCreatedAtBetweenOrderByNumberOfLikes(
+                    hashTag,
+                    isAfter(sinceCursor.createdAt, weekAgo) ? sinceCursor.createdAt : weekAgo,
+                    weekAgo,
+                    {page: 1, pageSize: 30}
+                )
+            }
+        } else if (getStatusesByTopicRequest.sinceId) {
+            const maxCursor = await this.findStatusById(getStatusesByTopicRequest.maxId);
+            statuses = await this.statusesRepository.findByHashTagAndCreatedAtAfterOrderByNumberOfLikes(
+                hashTag,
+                isAfter(maxCursor.createdAt, weekAgo) ? maxCursor.createdAt : weekAgo,
+                {page: 1, pageSize: 30}
+            )
+        } else {
+            statuses = await this.statusesRepository.findByHashTagAndCreatedAtAfterOrderByNumberOfLikes(
+                hashTag,
+                weekAgo,
+                {page: 1, pageSize: 30}
+            )
+        }
+
+        return statuses;
+    }
+
+    private async findStatusById(id: string): Promise<Status> {
+        const status = await this.statusesRepository.findById(id);
+
+        if (!status) {
+            throw new HttpException(
+                `Could not find status with id ${id}`,
+                HttpStatus.NOT_FOUND
+            );
+        }
+
+        return status;
     }
 }
