@@ -59,7 +59,7 @@ export class StatusesService {
             currentUser,
             mediaAttachments,
             hashTags,
-            referredStatus,
+            referredStatus
         );
         status = await this.statusesRepository.save(status);
 

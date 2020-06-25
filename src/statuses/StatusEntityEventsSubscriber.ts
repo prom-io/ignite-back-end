@@ -5,6 +5,7 @@ import {Connection, EntitySubscriberInterface, InsertEvent} from "typeorm";
 import path from "path";
 import {readFileSync} from "fs";
 import {Status} from "./entities";
+import {HashTagsRepository} from "./HashTagsRepository";
 import {UserStatisticsRepository} from "../users";
 import {MicrobloggingBlockchainApiClient} from "../microblogging-blockchain-api";
 import {BtfsHttpClient} from "../btfs-sync/BtfsHttpClient";
@@ -15,11 +16,15 @@ import {IpAddressProvider} from "../btfs-sync/IpAddressProvider";
 import {DefaultAccountProviderService} from "../default-account-provider/DefaultAccountProviderService";
 import {BtfsKafkaClient} from "../btfs-sync/BtfsKafkaClient";
 import {PushNotificationsService} from "../push-notifications/PushNotificationsService";
+import {StatusesRepository} from "./StatusesRepository";
+import has = Reflect.has;
 
 @Injectable()
 export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<Status> {
     constructor(@InjectConnection() private readonly connection: Connection,
+                private readonly statusesRepository: StatusesRepository,
                 private readonly userStatisticsRepository: UserStatisticsRepository,
+                private readonly hashTagsRepository: HashTagsRepository,
                 private readonly microbloggingBlockchainApiClient: MicrobloggingBlockchainApiClient,
                 private readonly btfsClient: BtfsKafkaClient,
                 private readonly btfsHttpClient: BtfsHttpClient,
@@ -39,6 +44,17 @@ export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<S
         const author = event.entity.author;
         const userStatistics = await this.userStatisticsRepository.findByUser(author);
         userStatistics.statusesCount += 1;
+
+        if (event.entity.hashTags && event.entity.hashTags.length !== 0) {
+            await asyncForEach(event.entity.hashTags, async hashTag => {
+                console.log(`Increasing posts count for hash tag ${hashTag.name}`)
+                const statusesCount = await this.statusesRepository.countByHashTag(hashTag);
+                hashTag.postsCount = statusesCount + 1;
+                console.log(`Posts count is ${hashTag.postsCount}`);
+            });
+            await this.hashTagsRepository.save(event.entity.hashTags);
+        }
+
         await this.userStatisticsRepository.save(userStatistics);
 
         this.pushNotificationService.processStatus(event.entity);

@@ -334,114 +334,153 @@ export class StatusesRepository extends Repository<Status> {
         return treeRepository.findAncestors(status);
     }
 
+    public findAllByIds(ids: string[]): Promise<Status[]> {
+        return this.find({
+            where: {
+                id: In(ids)
+            }
+        })
+    }
+
+    public async findIdsByHashTag(hashTag: HashTag, paginationRequest: PaginationRequest): Promise<string[]> {
+        return (await this.createQueryBuilder("status")
+            .leftJoinAndSelect("status.hashTags", "hashTag")
+            .where(`"hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+            .orderBy(`status."createdAt"`, "DESC")
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
+            .getMany()
+        )
+            .map(status => status.id)
+    }
+
     public async findByHashTag(hashTag: HashTag, paginationRequest: PaginationRequest): Promise<Status[]> {
         return this.createQueryBuilder("status")
             .leftJoinAndSelect("status.hashTags", "hashTag")
             .leftJoinAndSelect("status.author", "author")
             .leftJoinAndSelect("status.mediaAttachments", "mediaAttachment")
             .leftJoinAndSelect("status.referredStatus", "referredStatus")
-            .where(`"hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
-            .orderBy(`"createdAt"`, "DESC")
+            .leftJoinAndSelect("referredStatus.author", "referredStatusAuthor")
+            .leftJoinAndSelect("referredStatus.mediaAttachments", "referredStatusMediaAttachment")
+            .leftJoinAndSelect("referredStatus.hashTags", "referredStatusHashTags")
+            .where(`"statusHashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+            .orderBy(`status."createdAt"`, "DESC")
             .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
             .limit(paginationRequest.pageSize)
             .getMany();
     }
 
-    public findByHashTagAndCreatedAtBefore(hashTag: HashTag, createdAt: Date, paginationRequest: PaginationRequest): Promise<Status[]> {
-        return this.createQueryBuilder("status")
+    public async findIdsByHashTagAndCreatedAtBefore(
+        hashTag: HashTag,
+        createdAtBefore: Date,
+        paginationRequest: PaginationRequest
+    ): Promise<string[]> {
+        return (await this.createQueryBuilder("status")
             .leftJoinAndSelect("status.hashTags", "hashTag")
-            .leftJoinAndSelect("status.author", "author")
-            .leftJoinAndSelect("status.mediaAttachments", "mediaAttachment")
-            .leftJoinAndSelect("status.referredStatus", "referredStatus")
             .where(`"hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
-            .andWhere(`status."createdAt" < :createdAt`, {createdAt})
-            .orderBy(`"createdAt"`, "DESC")
+            .andWhere(`status."createdAt" < :createdAt`, {createdAt: createdAtBefore})
+            .orderBy(`status."createdAt"`, "DESC")
             .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
             .limit(paginationRequest.pageSize)
             .getMany()
+        )
+            .map(status => status.id)
     }
 
-    public findByHashTagAndCreatedAtAfter(hashTag: HashTag, createdAt: Date, paginationRequest: PaginationRequest): Promise<Status[]> {
-        return this.createQueryBuilder("status")
-            .leftJoinAndSelect("status.hashTags", "hashTag")
-            .leftJoinAndSelect("status.author", "author")
-            .leftJoinAndSelect("status.mediaAttachments", "mediaAttachment")
-            .leftJoinAndSelect("status.referredStatus", "referredStatus")
-            .where(`"hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
-            .andWhere(`status."createdAt" > :createdAt`, {createdAt})
-            .orderBy(`"createdAt"`, "DESC")
-            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
-            .limit(paginationRequest.pageSize)
-            .getMany()
+    public async findIdsByHashTagAndCreatedAtAfter(
+        hashTag: HashTag,
+        createdAtAfter: Date,
+        paginationRequest: PaginationRequest
+    ): Promise<string[]> {
+        return (await this.createQueryBuilder("status")
+                .leftJoinAndSelect("status.hashTags", "hashTag")
+                .where(`"hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+                .andWhere(`status."createdAt" > :createdAt`, {createdAt: createdAtAfter})
+                .orderBy(`status."createdAt"`, "DESC")
+                .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+                .limit(paginationRequest.pageSize)
+                .getMany()
+        )
+            .map(status => status.id)
     }
 
-    public findByHashTagAndCreatedAtBetween(
+    public async findIdsByHashTagAndCreatedAtBetween(
         hashTag: HashTag,
         createdAtBefore: Date,
         createdAtAfter: Date,
         paginationRequest: PaginationRequest
-    ): Promise<Status[]> {
-        return this.createQueryBuilder("status")
-            .leftJoinAndSelect("status.hashTags", "hashTag")
-            .leftJoinAndSelect("status.author", "author")
-            .leftJoinAndSelect("status.mediaAttachments", "mediaAttachment")
-            .leftJoinAndSelect("status.referredStatus", "referredStatus")
-            .where(`"hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
-            .andWhere(`status."createdAt" between(:createdAtBefore, :createdAtAfter)`, {createdAtBefore, createdAtAfter})
-            .orderBy("createdAt", "DESC")
-            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
-            .limit(paginationRequest.pageSize)
-            .getMany()
+    ): Promise<string[]> {
+        return (await this.createQueryBuilder("status")
+                .leftJoinAndSelect("status.hashTags", "hashTag")
+                .where(`"hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+                .andWhere(`status."createdAt" between(:createdAtBefore, :createdAtAfter)`, {createdAtBefore, createdAtAfter})
+                .orderBy(`status."createdAt"`, "DESC")
+                .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+                .limit(paginationRequest.pageSize)
+                .getMany()
+        )
+            .map(status => status.id)
     }
 
-    public findByHashTagAndCreatedAtBetweenOrderByNumberOfLikes(
+    public async findIdsByHashTagAndCreatedAtBetweenOrderByNumberOfLikes(
         hashTag: HashTag,
         createdAtBefore: Date,
         createdAtAfter: Date,
         paginationRequest: PaginationRequest
-    ): Promise<Status[]> {
-        return this.createQueryBuilder("status")
-            .leftJoinAndSelect("status.hashTags", "hashTag")
-            .leftJoinAndSelect("status.author", "author")
-            .leftJoinAndSelect("status.mediaAttachments", "mediaAttachment")
-            .leftJoinAndSelect("status.referredStatus", "referredStatus")
-            .addSelect(
-                subquery => subquery
-                    .select("count(id)", "likes_count")
-                    .from(StatusLike, "status_like")
-                    .where(`status_like."statusId" = status.id`)
-                    .andWhere("status_like.reverted = false")
-            )
-            .where(`"hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
-            .andWhere(`status."createdAt" between(:createdAtBefore, :createdAtAfter)`, {createdAtBefore, createdAtAfter})
-            .orderBy("likes_count", "DESC")
-            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
-            .limit(paginationRequest.pageSize)
-            .getMany()
+    ): Promise<string[]> {
+        return (await this.createQueryBuilder("status")
+                .leftJoinAndSelect("status.hashTags", "hashTag")
+                .addSelect(
+                    subquery => subquery
+                        .select("count(id)", "likes_count")
+                        .from(StatusLike, "status_like")
+                        .where(`status_like."status_id" = status.id`)
+                        .andWhere("status_like.reverted = false")
+                )
+                .where(`"hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+                .andWhere(`status."createdAt" between(:createdAtBefore, createdAtAfter)`, {createdAtBefore, createdAtAfter})
+                .orderBy({
+                    "likes_count": "DESC",
+                    "status.\"createdAt\"": "DESC"
+                })
+                .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+                .limit(paginationRequest.pageSize)
+                .getMany()
+        )
+            .map(status => status.id)
     }
 
-    public findByHashTagAndCreatedAtAfterOrderByNumberOfLikes(
+    public async findIdsByHashTagAndCreatedAtAfterOrderByNumberOfLikes(
         hashTag: HashTag,
         createdAtAfter: Date,
         paginationRequest: PaginationRequest
-    ): Promise<Status[]> {
+    ): Promise<string[]> {
+        return (await this.createQueryBuilder("status")
+                .leftJoinAndSelect("status.hashTags", "hashTag")
+                .addSelect(
+                    subquery => subquery.
+                        select("count(id)", "likes_count")
+                        .from(StatusLike, "status_like")
+                        .where(`status_like."statusId" = status.id`)
+                        .andWhere("status_like.reverted = false")
+                )
+                .where(`"hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+                .andWhere(`status."createdAt" > :createdAtAfter`, {createdAtAfter})
+                .orderBy({
+                    "likes_count": "DESC",
+                    "status.\"createdAt\"": "DESC"
+                })
+                .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+                .limit(paginationRequest.pageSize)
+                .getMany()
+        )
+            .map(status => status.id)
+    }
+
+    public countByHashTag(hashTag: HashTag): Promise<number> {
         return this.createQueryBuilder("status")
-            .leftJoinAndSelect("status.hashTags", "hashTags")
-            .leftJoinAndSelect("status.author", "author")
-            .leftJoinAndSelect("status.mediaAttachments", "mediaAttachment")
-            .leftJoinAndSelect("status.referredStatus", "referredStatus")
-            .addSelect(
-                subquery => subquery
-                    .select("count(id)", "likes_count")
-                    .from(StatusLike, "status_like")
-                    .andWhere("status_like.reverted = false")
-                    .where(`status_like."statusId" = status.id`)
-            )
+            .leftJoinAndSelect("status.hashTags", "hashTag")
             .where(`"hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
-            .andWhere(`status."createdAt" > :createdAtAfter`, {createdAtAfter})
-            .orderBy("likes_count", "DESC")
-            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
-            .limit(paginationRequest.pageSize)
-            .getMany()
+            .getCount()
     }
 }

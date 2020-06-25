@@ -3,6 +3,7 @@ import {StatusReferenceType} from "../../entities";
 import {UserResponse} from "../../../users/types/response";
 import {MediaAttachmentResponse} from "../../../media-attachments/types";
 import {BtfsHashResponse} from "../../../btfs-sync/types/response";
+import {HashTagResponse} from "./HashTagResponse";
 
 export class StatusResponse {
     id: string;
@@ -56,7 +57,7 @@ export class StatusResponse {
     canBeReposted: boolean;
 
     @Expose({name: "hash_tags"})
-    hashTags: string[];
+    hashTags: HashTagResponse[];
 
     constructor(object: StatusResponse) {
         Object.assign(this, object);

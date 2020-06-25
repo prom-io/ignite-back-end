@@ -25,6 +25,7 @@ import {HashTagsRepository} from "./HashTagsRepository";
 import {HashTagsRetriever} from "./HashTagsRetriever";
 import {TopicsController} from "./TopicsController";
 import {TopicsService} from "./TopicsService";
+import {HashTagsMapper} from "./HashTagsMapper";
 
 @Module({
     controllers: [StatusesController, TimelineController, TopicsController],
@@ -37,7 +38,8 @@ import {TopicsService} from "./TopicsService";
         StatusLikeEntityEventsSubscriber,
         StatusMappingOptionsProvider,
         HashTagsRetriever,
-        TopicsService
+        TopicsService,
+        HashTagsMapper
     ],
     imports: [
         TypeOrmModule.forFeature([

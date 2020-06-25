@@ -12,4 +12,25 @@ export class HashTagsRepository extends Repository<HashTag> {
             }
         });
     }
+
+    public findByLanguageOrderByPostsCount(language: Language, count: number) {
+        return this.find({
+            where: {
+                language
+            },
+            order: {
+                postsCount: "DESC"
+            },
+            take: count
+        })
+    }
+
+    public findAllOrderByPostsCount(count: number) {
+        return this.find({
+            order: {
+                postsCount: "DESC"
+            },
+            take: count
+        })
+    }
 }

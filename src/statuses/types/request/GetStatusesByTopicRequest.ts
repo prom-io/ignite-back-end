@@ -8,8 +8,14 @@ export class GetStatusesByTopicRequest implements FeedCursors {
     @ValidateIf((object: GetStatusesByTopicRequest) => Boolean(object.language))
     @IsString()
     @IsIn([Language.ENGLISH, Language.KOREAN, "kr"])
-    @Transform(value => getLanguageFromString(value))
-    language: Language;
+    @Transform(value => {
+        if (value) {
+            return getLanguageFromString(value);
+        } else {
+            return undefined;
+        }
+    })
+    language?: Language;
 
     @ValidateIf((object: GetStatusesByTopicRequest) => Boolean(object.type))
     @IsString()
