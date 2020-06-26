@@ -18,13 +18,92 @@ export class TopicsService {
     }
 
     public async getStatusesContainingHashTags(getStatusesRequest: GetStatusesRequest, currentUser?: User): Promise<StatusResponse[]> {
-        const language = getLanguageFromString(getStatusesRequest.language);
+        getStatusesRequest.language = getLanguageFromString(getStatusesRequest.language);
+        let statuses: Status[];
 
-        const statuses: Status[] = await this.statusesRepository.findContainingHashTagsByLanguage(
-            language,
-            {page: 1, pageSize: 30}
-        );
+        if (getStatusesRequest.type === TopicFetchType.HOT) {
+            statuses = await this.getHotStatusesContainingHashTags(getStatusesRequest);
+        } else {
+            statuses = await this.getFreshStatusesContainingHashTags(getStatusesRequest);
+        }
+
         return asyncMap(statuses, async status => await this.statusesMapper.toStatusResponseAsync(status, currentUser));
+    }
+
+    private async getFreshStatusesContainingHashTags(getStatusesRequest: GetStatusesRequest): Promise<Status[]> {
+        let statuses: Status[];
+
+        if (getStatusesRequest.maxId) {
+            if (getStatusesRequest.sinceId) {
+                const sinceCursor = await this.findStatusById(getStatusesRequest.sinceId);
+                const maxCursor = await this.findStatusById(getStatusesRequest.maxId);
+                statuses = await this.statusesRepository.findContainingHashTagsByLanguageAndCreatedAtBetween(
+                    getStatusesRequest.language,
+                    sinceCursor.createdAt,
+                    maxCursor.createdAt,
+                    {page: 1, pageSize: 30}
+                )
+            } else {
+                const maxCursor = await this.findStatusById(getStatusesRequest.maxId);
+                statuses = await this.statusesRepository.findContainingHashTagsByLanguageAndCreatedAtBefore(
+                    getStatusesRequest.language,
+                    maxCursor.createdAt,
+                    {page: 1, pageSize: 30}
+                );
+            }
+        } else if (getStatusesRequest.sinceId) {
+            const sinceCursor = await this.findStatusById(getStatusesRequest.sinceId);
+            statuses = await this.statusesRepository.findContainingHashTagsByLanguageAndCreatedAtAfter(
+                getStatusesRequest.language,
+                sinceCursor.createdAt,
+                {page: 1, pageSize: 30}
+            );
+        } else {
+            statuses = await this.statusesRepository.findContainingHashTagsByLanguage(
+                getStatusesRequest.language,
+                {page: 1, pageSize: 30}
+            );
+        }
+
+        return statuses;
+    }
+
+    private async getHotStatusesContainingHashTags(getStatusesRequest: GetStatusesRequest): Promise<Status[]> {
+        let statuses: Status[];
+
+        if (getStatusesRequest.maxId) {
+            if (getStatusesRequest.sinceId) {
+                const sinceCursor = await this.findStatusById(getStatusesRequest.sinceId);
+                const maxCursor = await this.findStatusById(getStatusesRequest.maxId);
+                statuses = await this.statusesRepository.findContainingHashTagsByLanguageAndCreatedAtBetweenOrderByNumberOfLikesForLastWeek(
+                    getStatusesRequest.language,
+                    sinceCursor.createdAt,
+                    maxCursor.createdAt,
+                    {page: 1, pageSize: 30}
+                );
+            } else {
+                const maxCursor = await this.findStatusById(getStatusesRequest.maxId);
+                statuses = await this.statusesRepository.findContainingHashTagsByLanguageAndCreatedAtBeforeOrderByNumberOfLikesForLastWeek(
+                    getStatusesRequest.language,
+                    maxCursor.createdAt,
+                    {page: 1, pageSize: 30}
+                )
+            }
+        } else if (getStatusesRequest.sinceId) {
+            const sinceCursor = await this.findStatusById(getStatusesRequest.sinceId);
+            statuses = await this.statusesRepository.findContainingHashTagsByLanguageAndCreatedAtAfterOrderByNumberOfLikesForLastWeek(
+                getStatusesRequest.language,
+                sinceCursor.createdAt,
+                {page: 1, pageSize: 30}
+            );
+        } else {
+            statuses = await this.statusesRepository.findContainingHashTagsByLanguageOrderByNumberOfLikesForLastWeek(
+                getStatusesRequest.language,
+                {page: 1, pageSize: 30}
+            )
+        }
+
+        return statuses;
     }
 
     public async getHashTagByNameAndLanguage(name: string, languageString?: string, currentUser?: User): Promise<HashTagResponse> {

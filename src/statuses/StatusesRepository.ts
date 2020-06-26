@@ -349,7 +349,7 @@ export class StatusesRepository extends Repository<Status> {
 
     public async findByHashTag(hashTag: HashTag, paginationRequest: PaginationRequest): Promise<Status[]> {
         return this.createStatusQueryBuilder()
-            .where(`"status_hashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+            .where(`"status_filteredHashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
             .orderBy(`status."createdAt"`, "DESC")
             .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
             .limit(paginationRequest.pageSize)
@@ -363,7 +363,7 @@ export class StatusesRepository extends Repository<Status> {
         paginationRequest: PaginationRequest
     ): Promise<Status[]> {
         return this.createStatusQueryBuilder()
-            .where(`"status_hashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+            .where(`"status_filteredHashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
             .andWhere(`status."createdAt" < :createdAt`, {createdAt: createdAtBefore})
             .orderBy(`status."createdAt"`, "DESC")
             .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
@@ -377,7 +377,7 @@ export class StatusesRepository extends Repository<Status> {
         paginationRequest: PaginationRequest
     ): Promise<Status[]> {
         return this.createStatusQueryBuilder()
-            .where(`"status_hashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+            .where(`"status_filteredHashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
             .andWhere(`status."createdAt" > :createdAt`, {createdAt: createdAtAfter})
             .orderBy(`status."createdAt"`, "DESC")
             .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
@@ -392,7 +392,7 @@ export class StatusesRepository extends Repository<Status> {
         paginationRequest: PaginationRequest
     ): Promise<Status[]> {
         return this.createStatusQueryBuilder().where(`"status_hashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
-            .andWhere(`status."createdAt" between(:createdAtBefore, :createdAtAfter)`, {createdAtBefore, createdAtAfter})
+            .where(`"status_filteredHashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
             .orderBy(`status."createdAt"`, "DESC")
             .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
             .limit(paginationRequest.pageSize)
@@ -414,7 +414,7 @@ export class StatusesRepository extends Repository<Status> {
                     .andWhere(`status_like."createdAt" > :weekAgo`, {weekAgo})
                     .andWhere("status_like.reverted = false")
             )
-            .where(`"status_hashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+            .where(`"status_filteredHashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
             .orderBy({
                 "likes_count": "DESC",
                 "status.\"createdAt\"": "DESC"
@@ -441,7 +441,7 @@ export class StatusesRepository extends Repository<Status> {
                     .andWhere(`status_like."createdAt" > :weekAgo`, {weekAgo})
                     .andWhere("status_like.reverted = false")
             )
-            .where(`"status_hashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+            .where(`"status_filteredHashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
             .andWhere(`status."createdAt" between(:createdAtBefore, createdAtAfter)`, {createdAtBefore, createdAtAfter})
             .orderBy({
                 "likes_count": "DESC",
@@ -468,7 +468,7 @@ export class StatusesRepository extends Repository<Status> {
                     .andWhere(`status_like."createdAt" > :weekAgo`, {weekAgo})
                     .andWhere("status_like.reverted = false")
             )
-            .where(`"status_hashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+            .where(`"status_filteredHashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
             .andWhere(`status."createdAt" < :createdAtBefore`, {createdAtBefore})
             .orderBy({
                 "likes_count": "DESC",
@@ -495,7 +495,7 @@ export class StatusesRepository extends Repository<Status> {
                     .andWhere(`statusLike."createdAt" > :weekAgo`, {weekAgo})
                     .andWhere("status_like.reverted = false")
             )
-            .where(`"status_hashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+            .where(`"status_filteredHashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
             .andWhere(`status."createdAt" > :createdAtAfter`, {createdAtAfter})
             .orderBy({
                 "likes_count": "DESC",
@@ -512,7 +512,7 @@ export class StatusesRepository extends Repository<Status> {
     ): Promise<Status[]> {
         return this.createStatusQueryBuilder()
             .where(`"status_hashTag"."hashTagId" is not null`)
-            .andWhere(`"status_hashTag".language = :language`, {language})
+            .andWhere(`"hashTag"."language" = :language`, {language})
             .orderBy(`status."createdAt"`, "DESC")
             .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
             .limit(paginationRequest.pageSize)
@@ -526,7 +526,7 @@ export class StatusesRepository extends Repository<Status> {
     ): Promise<Status[]> {
         return this.createStatusQueryBuilder()
             .where(`"status_hashTag"."hashTagId" is not null`)
-            .andWhere(`"status_hashTag".language = :language`, {language})
+            .andWhere(`"hashTag"."language" = :language`, {language})
             .andWhere(`status."createdAt" < :createdAtBefore`, {createdAtBefore})
             .orderBy(`status."createdAt"`, "DESC")
             .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
@@ -541,7 +541,7 @@ export class StatusesRepository extends Repository<Status> {
     ): Promise<Status[]> {
         return this.createStatusQueryBuilder()
             .where(`"status_hashTag"."hashTagId" is not null`)
-            .andWhere(`"status_hashTag".language = :language`, {language})
+            .andWhere(`"hashTag"."language" = :language`, {language})
             .andWhere(`status."createdAt" > :createdAtAfter`, {createdAtAfter})
             .orderBy(`status."createdAt"`, "DESC")
             .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
@@ -557,7 +557,7 @@ export class StatusesRepository extends Repository<Status> {
     ): Promise<Status[]> {
         return this.createStatusQueryBuilder()
             .where(`"status_hashTag"."hashTagId" is not null`)
-            .andWhere(`"status_hashTag".language = :language`, {language})
+            .andWhere(`"hashTag"."language" = :language`, {language})
             .andWhere(`status."createdAt" between(:createdAtBefore, :createdAtAfter)`, {createdAtBefore, createdAtAfter})
             .orderBy(`status."createdAt"`, "DESC")
             .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
@@ -581,7 +581,7 @@ export class StatusesRepository extends Repository<Status> {
                     .andWhere(`status_like."createdAt" > :weekAgo`, {weekAgo})
             )
             .where(`"status_hashTag"."hashTagId" is not null`)
-            .andWhere(`"status_hashTag".language = :language`, {language})
+            .andWhere(`"hashTag"."language" = :language`, {language})
             .orderBy({
                 "last_week_likes_count": "DESC",
                 "status.\"createdAt\"": "DESC"
@@ -607,8 +607,7 @@ export class StatusesRepository extends Repository<Status> {
                     .andWhere("status_like.reverted = false")
                     .andWhere(`status_like."createdAt" > :weekAgo`, {weekAgo})
             )
-            .where(`"status_hashTag"."hashTagId" is not null`)
-            .andWhere(`"status_hashTag".language = :language`, {language})
+            .andWhere(`"hashTag"."language" = :language`, {language})
             .andWhere(`status."createdAt" < :createdAtBefore`, {createdAtBefore})
             .orderBy({
                 "last_week_likes_count": "DESC",
@@ -636,7 +635,7 @@ export class StatusesRepository extends Repository<Status> {
                     .andWhere(`status_like."createdAt" > :weekAgo`, {weekAgo})
             )
             .where(`"status_hashTag"."hashTagId" is not null`)
-            .andWhere(`"status_hashTag".language = :language`, {language})
+            .andWhere(`"hashTag"."language" = :language`, {language})
             .andWhere(`status."createdAt" > :createdAtAfter`, {createdAtAfter})
             .orderBy({
                 "last_week_likes_count": "DESC",
@@ -665,7 +664,7 @@ export class StatusesRepository extends Repository<Status> {
                     .andWhere(`status_like."createdAt" > :weekAgo`, {weekAgo})
             )
             .where(`"status_hashTag"."hashTagId" is not null`)
-            .andWhere(`"status_hashTag".language = :language`, {language})
+            .andWhere(`"hashTag"."language" = :language`, {language})
             .andWhere(`status."createdAt" between(:createdAtBefore, :createdAtAfter)`, {createdAtBefore, createdAtAfter})
             .orderBy({
                 "last_week_likes_count": "DESC",
@@ -678,6 +677,7 @@ export class StatusesRepository extends Repository<Status> {
 
     private createStatusQueryBuilder(): SelectQueryBuilder<Status> {
         return this.createQueryBuilder("status")
+            .leftJoinAndSelect("status.hashTags", "filteredHashTag")
             .leftJoinAndSelect("status.hashTags", "hashTag")
             .leftJoinAndSelect("status.author", "author")
             .leftJoinAndSelect("author.avatar", "authorAvatar")

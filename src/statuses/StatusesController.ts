@@ -33,7 +33,6 @@ export class StatusesController {
     @UseGuards(OptionalJwtAuthGuard)
     @Get()
     public getStatuses(@Req() request: Request, @Query() getStatusesRequest: GetStatusesRequest): Promise<StatusResponse[]> {
-        console.log(getStatusesRequest);
         if (getStatusesRequest.onlyWithHashTags) {
             return this.topicsService.getStatusesContainingHashTags(getStatusesRequest, request.user as User | null);
         } else {
