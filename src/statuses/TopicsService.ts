@@ -1,10 +1,9 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
-import {isAfter, subDays} from "date-fns";
 import {StatusesRepository} from "./StatusesRepository";
 import {HashTagsRepository} from "./HashTagsRepository";
 import {StatusesMapper} from "./StatusesMapper";
 import {HashTagResponse, StatusResponse} from "./types/response";
-import {GetStatusesByTopicRequest, TopicFetchType, GetHashTagsRequest} from "./types/request";
+import {GetHashTagsRequest, GetStatusesByTopicRequest, GetStatusesRequest, TopicFetchType} from "./types/request";
 import {HashTag, Status} from "./entities";
 import {HashTagsMapper} from "./HashTagsMapper";
 import {getLanguageFromString, Language, User} from "../users/entities";
@@ -16,6 +15,16 @@ export class TopicsService {
                 private readonly hashTagsRepository: HashTagsRepository,
                 private readonly hashTagsMapper: HashTagsMapper,
                 private readonly statusesMapper: StatusesMapper) {
+    }
+
+    public async getStatusesContainingHashTags(getStatusesRequest: GetStatusesRequest, currentUser?: User): Promise<StatusResponse[]> {
+        const language = getLanguageFromString(getStatusesRequest.language);
+
+        const statuses: Status[] = await this.statusesRepository.findContainingHashTagsByLanguage(
+            language,
+            {page: 1, pageSize: 30}
+        );
+        return asyncMap(statuses, async status => await this.statusesMapper.toStatusResponseAsync(status, currentUser));
     }
 
     public async getHashTagByNameAndLanguage(name: string, languageString?: string, currentUser?: User): Promise<HashTagResponse> {
@@ -83,13 +92,13 @@ export class TopicsService {
     }
 
     private async getFreshStatusesByHashTag(hashTag: HashTag, getStatusesByTopicRequest: GetStatusesByTopicRequest): Promise<Status[]> {
-        let statusesIds: string[];
+        let statuses: Status[];
 
         if (getStatusesByTopicRequest.maxId) {
             if (getStatusesByTopicRequest.sinceId) {
                 const sinceCursor = await this.findStatusById(getStatusesByTopicRequest.sinceId);
                 const maxCursor = await this.findStatusById(getStatusesByTopicRequest.maxId);
-                statusesIds = await this.statusesRepository.findIdsByHashTagAndCreatedAtBetween(
+                statuses = await this.statusesRepository.findByHashTagAndCreatedAtBetween(
                     hashTag,
                     sinceCursor.createdAt,
                     maxCursor.createdAt,
@@ -97,7 +106,7 @@ export class TopicsService {
                 );
             } else {
                 const maxCursor = await this.findStatusById(getStatusesByTopicRequest.maxId);
-                statusesIds = await this.statusesRepository.findIdsByHashTagAndCreatedAtBefore(
+                statuses = await this.statusesRepository.findByHashTagAndCreatedAtBefore(
                     hashTag,
                     maxCursor.createdAt,
                     {page: 1, pageSize: 30}
@@ -105,57 +114,54 @@ export class TopicsService {
             }
         } else if (getStatusesByTopicRequest.sinceId) {
             const sinceCursor = await this.findStatusById(getStatusesByTopicRequest.sinceId);
-            statusesIds = await this.statusesRepository.findIdsByHashTagAndCreatedAtAfter(
+            statuses = await this.statusesRepository.findByHashTagAndCreatedAtAfter(
                 hashTag,
                 sinceCursor.createdAt,
                 {page: 1, pageSize: 30}
             )
         } else {
-            statusesIds = await this.statusesRepository.findIdsByHashTag(hashTag, {page: 1, pageSize: 30});
+            statuses = await this.statusesRepository.findByHashTag(hashTag, {page: 1, pageSize: 30});
         }
 
-        return this.statusesRepository.findAllByIds(statusesIds);
+        return statuses;
     }
 
     private async getHotStatusesByHashTag(hashTag: HashTag, getStatusesByTopicRequest: GetStatusesByTopicRequest) {
-        const weekAgo = subDays(new Date(), 7);
-        let statusesIds: string[];
+        let statuses: Status[];
 
         if (getStatusesByTopicRequest.maxId) {
             if (getStatusesByTopicRequest.sinceId) {
                 const sinceCursor = await this.findStatusById(getStatusesByTopicRequest.sinceId);
                 const maxCursor = await this.findStatusById(getStatusesByTopicRequest.maxId);
-                statusesIds = await this.statusesRepository.findIdsByHashTagAndCreatedAtBetweenOrderByNumberOfLikes(
+                statuses = await this.statusesRepository.findByHashTagAndCreatedAtBetweenOrderByNumberOfLikesForLastWeek(
                     hashTag,
-                    isAfter(sinceCursor.createdAt, weekAgo) ? sinceCursor.createdAt : weekAgo,
-                    isAfter(maxCursor.createdAt, weekAgo) ? maxCursor.createdAt : weekAgo,
+                    sinceCursor.createdAt,
+                    maxCursor.createdAt,
                     {page: 1, pageSize: 30}
                 )
             } else {
-                const sinceCursor = await this.findStatusById(getStatusesByTopicRequest.sinceId);
-                statusesIds = await this.statusesRepository.findIdsByHashTagAndCreatedAtBetweenOrderByNumberOfLikes(
+                const maxCursor = await this.findStatusById(getStatusesByTopicRequest.sinceId);
+                statuses = await this.statusesRepository.findByHashTagAndCreatedAtBeforeOrderByNumberOfLikesForLastWeek(
                     hashTag,
-                    isAfter(sinceCursor.createdAt, weekAgo) ? sinceCursor.createdAt : weekAgo,
-                    weekAgo,
+                    maxCursor.createdAt,
                     {page: 1, pageSize: 30}
                 )
             }
         } else if (getStatusesByTopicRequest.sinceId) {
-            const maxCursor = await this.findStatusById(getStatusesByTopicRequest.maxId);
-            statusesIds = await this.statusesRepository.findIdsByHashTagAndCreatedAtAfterOrderByNumberOfLikes(
+            const sinceCursor = await this.findStatusById(getStatusesByTopicRequest.maxId);
+            statuses = await this.statusesRepository.findByHashTagAndCreatedAtBeforeOrderByNumberOfLikesForLastWeek(
                 hashTag,
-                isAfter(maxCursor.createdAt, weekAgo) ? maxCursor.createdAt : weekAgo,
+                sinceCursor.createdAt,
                 {page: 1, pageSize: 30}
             )
         } else {
-            statusesIds = await this.statusesRepository.findIdsByHashTagAndCreatedAtAfterOrderByNumberOfLikes(
+            statuses = await this.statusesRepository.findByHashTagOrderByNumberOfLikesForLastWeek(
                 hashTag,
-                weekAgo,
                 {page: 1, pageSize: 30}
             )
         }
 
-        return this.statusesRepository.findAllByIds(statusesIds);
+        return statuses;
     }
 
     private async findStatusById(id: string): Promise<Status> {

@@ -3,7 +3,8 @@ import {StatusesRepository} from "./StatusesRepository";
 import {CreateStatusRequest} from "./types/request";
 import {StatusResponse} from "./types/response";
 import {StatusesMapper} from "./StatusesMapper";
-import {Status, StatusReferenceType, HashTag} from "./entities";
+import {Status, StatusReferenceType} from "./entities";
+import {FeedService} from "./FeedService";
 import {FeedCursors} from "./types/request/FeedCursors";
 import {HashTagsRepository} from "./HashTagsRepository";
 import {HashTagsRetriever} from "./HashTagsRetriever";
@@ -21,6 +22,7 @@ export class StatusesService {
                 private readonly mediaAttachmentRepository: MediaAttachmentsRepository,
                 private readonly hashTagsRepository: HashTagsRepository,
                 private readonly hashTagsRetriever: HashTagsRetriever,
+                private readonly feedService: FeedService,
                 private readonly statusesMapper: StatusesMapper) {
     }
 
