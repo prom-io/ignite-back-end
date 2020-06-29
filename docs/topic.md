@@ -1,5 +1,12 @@
 # Topics API
 
+## Table of contents
+
+- [Get list of topics](#get-list-of-topics)
+- [Get topic by title and language](#get-topic-by-title-and-language)
+- [Get statuses by topic](#get-statuses-by-topic)
+- [Get statuses which have hash tags](#get-statuses-which-have-hash-tags)
+
 ### Get list of topics
 
 Returns list of topics sorted by number of statuses.
@@ -323,11 +330,12 @@ Returns statuses which have hash tags
 | Parameter           | Type                    | Description                                                                                                                                                                                                                                                            | Required |
 |---------------------|-------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|
 | only_with_hash_tags | boolean                 | If true than only statuses with hash tags will be returned                                                                                                                                                                                                             | no       |
+| language            | enum("en", "ko", "kr")  | Language of the topic. Default value is "en"                                                                                                                                                                                                                           | no       |
 | type                | enum("hot", "fresh")    | Determines how statuses will be sorted. If type is "fresh" then statuses will be sorted descendingly by their creation date. It type is "hot", then statuses will be sorted descendingly by number of likes they have received for last 7 days. Default value is "hot" | no       |
 | since_id            | string                  | ID of status with minimal creation date                                                                                                                                                                                                                                | no       |
 | max_id              | string                  | ID of status with max creation date                                                                                                                                                                                                                                    | no       |
 
-If `only_with_hash_tags` parameter is not passed or not specified, then the content of `/api/v1/timelines/global` will be returned and `type` parameter will be ignored
+If `only_with_hash_tags` parameter is not passed or not specified, then the content of `/api/v1/timelines/global` will be returned and `type` and `language` parameters will be ignored
 
 #### Response type
 
