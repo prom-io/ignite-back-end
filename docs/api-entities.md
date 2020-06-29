@@ -6,6 +6,7 @@
 - [MediaAttachment](#mediaattachment)
 - [BtfsInfo](#btfsinfo)
 - [Status](#status)
+- [Topic](#topic)
 
 Note: responses of API may contain other fields that are not specified in this documents, but they are insignificant and should be ignored.
 
@@ -60,3 +61,13 @@ Note: responses of API may contain other fields that are not specified in this d
 | reposts_count         | number                                         | Number of reposts of this status                                                                                                                                                                                                   |
 | comments_count        | number                                         | Number of comments left to this status                                                                                                                                                                                             |
 | btfs_info             | [BtfsInfo?](#btfsinfo)                         | Info about BTFS block                                                                                                                                                                                                              |
+| hash_tags             | [Topic](#topic)                                | Array of hash tags                                                                                                                                                                                                                 |
+
+### Topic
+
+| Parameter             | Type                                           | Description                                                                                                                                                                                                                        |
+|-----------------------|------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| id                    | string                                         | ID of topic                                                                                                                                                                                                                        |
+| language              | "EN" | : "KO"                                  | Language of topic                                                                                                                                                                                                                  |
+| title                 | string                                         | Title of the topic                                                                                                                                                                                                                 |
+| posts_count           | number                                         | How many statuses with this topic have been created                                                                                                                                                                                |
