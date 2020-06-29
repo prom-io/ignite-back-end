@@ -141,7 +141,7 @@ Returns array of [Status](https://github.com/Prometeus-Network/ignite-back-end/b
 #### Sample request
 
 ````
-GET /api/v1/topics/HashTags?type=hot
+GET /api/v1/topics/HashTags/statuses?type=hot
 ````
 
 #### Sample response
