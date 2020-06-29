@@ -23,7 +23,7 @@ export class SkynetImagesScheduledUploader extends NestSchedule {
 
     @Cron("*/10 * * * *", {waiting: true})
     public async lookForImagesNotUploadedToSiaSkynet(): Promise<void> {
-        if (this.running) {
+        if (this.running || !config.ENABLE_UPLOADING_IMAGES_TO_SIA){
             return;
         }
 
