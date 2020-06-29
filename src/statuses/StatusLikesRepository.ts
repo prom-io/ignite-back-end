@@ -1,4 +1,4 @@
-import {EntityRepository, Repository} from "typeorm";
+import {EntityRepository, MoreThan, Repository} from "typeorm";
 import {Status, StatusLike} from "./entities";
 import {calculateOffset, PaginationRequest} from "../utils/pagination";
 import {User} from "../users/entities";
@@ -60,5 +60,13 @@ export class StatusLikesRepository extends Repository<StatusLike> {
                 id
             }
         })) !== 0
+    }
+
+    public async countByCreatedAtAfter(createdAtAfter: Date): Promise<number> {
+        return this.count({
+            where: {
+                createdAt: MoreThan(createdAtAfter)
+            }
+        })
     }
 }

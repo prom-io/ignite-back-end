@@ -1,7 +1,10 @@
-import {EntityRepository, In, Not, Repository} from "typeorm";
+import {EntityRepository, In, MoreThan, Not, Repository} from "typeorm";
+import {subDays} from "date-fns";
 import {User} from "./entities";
-import {calculateOffset} from "../utils/pagination";
 import {FollowRecommendationFilters} from "./types/request";
+import {calculateOffset} from "../utils/pagination";
+import {Status, StatusLike} from "../statuses/entities";
+import {UserSubscription} from "../user-subscriptions/entities";
 
 @EntityRepository(User)
 export class UsersRepository extends Repository<User> {
@@ -82,5 +85,31 @@ export class UsersRepository extends Repository<User> {
             .skip(calculateOffset(filters.page, filters.pageSize))
             .take(filters.pageSize)
             .getMany();
+    }
+
+    public countAll(): Promise<number> {
+        return this.count();
+    }
+
+    public countAllByCreatedAtLessAfter(createdAtAfter: Date): Promise<number> {
+        return this.count({
+            where: {
+                createdAt: MoreThan(createdAtAfter)
+            }
+        });
+    }
+
+    public async countAllHavingActivityWithinLastDay(): Promise<number> {
+        const dayAgo = subDays(new Date(), 1);
+
+        return this.createQueryBuilder("user")
+            .select(`count(distinct("user".id))`)
+            .leftJoinAndSelect(StatusLike, "status_like", `status_like."userId" = "user".id`)
+            .leftJoinAndSelect(UserSubscription, "user_subscription", `user_subscription."subscribedUserId" = "user".id`)
+            .leftJoinAndSelect(Status, "status", `status."authorId" = "user".id`)
+            .where(`status_like."createdAt" > :dayAgo`, {dayAgo})
+            .orWhere(`user_subscription."createdAt" > :dayAgo`, {dayAgo})
+            .orWhere(`status."createdAt" > :dayAgo`, {dayAgo})
+            .getCount();
     }
 }

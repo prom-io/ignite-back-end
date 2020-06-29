@@ -18,6 +18,7 @@ import {DefaultAccountProviderModule} from "./default-account-provider/DefaultAc
 import {WalletGeneratorModule} from "./wallet-generator";
 import {PasswordHashApiModule} from "./password-hash-api";
 import {PasswordHashGeneratorModule} from "./passsword-hash-generator";
+import {StatisticsModule} from "./statistics";
 
 @Module({
     imports: [
@@ -36,6 +37,7 @@ import {PasswordHashGeneratorModule} from "./passsword-hash-generator";
         WalletGeneratorModule,
         PasswordHashApiModule,
         PasswordHashGeneratorModule,
+        StatisticsModule,
         TypeOrmModule.forRoot({
             type: "postgres",
             database: config.DATABASE_NAME,

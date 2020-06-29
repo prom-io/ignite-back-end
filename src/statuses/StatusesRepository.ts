@@ -693,6 +693,23 @@ export class StatusesRepository extends Repository<Status> {
         return this.createQueryBuilder("status")
             .leftJoinAndSelect("status.hashTags", "hashTag")
             .where(`"hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
-            .getCount()
+            .getCount();
+    }
+
+    public countByCreatedAtAfter(createdAtAfter: Date): Promise<number> {
+        return this.count({
+            where: {
+                createdAt: MoreThan(createdAtAfter)
+            }
+        });
+    }
+
+    public countByCreatedAtAfterAndStatusReferenceType(createdAtAfter: Date, statusReferenceType: StatusReferenceType): Promise<number> {
+        return this.count({
+            where: {
+                createdAt: MoreThan(createdAtAfter),
+                statusReferenceType
+            }
+        });
     }
 }
