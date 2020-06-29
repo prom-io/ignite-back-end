@@ -99,4 +99,10 @@ export class EnvConfig {
 
     @Env({type: "string", required: true})
     IGNITE_PASSWORD_HASH_API_BASE_URL: string;
+
+    @Env({type: "boolean", required: false})
+    ENABLE_UPLOADING_IMAGES_TO_SIA: boolean = true;
+
+    @Env({type: "boolean", required: false})
+    ENABLE_ACCOUNTS_SUBSCRIPTION_UPON_SIGN_UP: boolean = false;
 }

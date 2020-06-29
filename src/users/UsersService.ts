@@ -1,17 +1,16 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import uuid from "uuid/v4";
-import {Language, User, UserPreferences} from "./entities";
+import {Language, User, UserPreferences, UserStatistics} from "./entities";
 import {UsersRepository} from "./UsersRepository";
 import {UserStatisticsRepository} from "./UserStatisticsRepository";
 import {UserPreferencesRepository} from "./UserPreferencesRepository";
 import {UsersMapper} from "./UsersMapper";
 import {
     CreateUserRequest,
-    RecoverPasswordRequest,
     FollowRecommendationFilters,
+    RecoverPasswordRequest,
     SignUpForPrivateBetaTestRequest,
     SignUpRequest,
-    UpdatePasswordRequest,
     UpdatePreferencesRequest,
     UpdateUserRequest,
     UsernameAvailabilityResponse
@@ -27,6 +26,9 @@ import {MediaAttachment} from "../media-attachments/entities";
 import {BCryptPasswordEncoder} from "../bcrypt";
 import {asyncMap} from "../utils/async-map";
 import {PasswordHashApiClient} from "../password-hash-api";
+import {AccountsToSubscribe} from "./types/AccountsToSubscribe";
+import {asyncForEach} from "../utils/async-foreach";
+import {UserSubscription} from "../user-subscriptions/entities";
 
 @Injectable()
 export class UsersService {
@@ -56,16 +58,73 @@ export class UsersService {
     }
 
     public async signUp(signUpRequest: SignUpRequest): Promise<UserResponse> {
+        let user: User;
         if (!signUpRequest.transactionId) {
-            return await this.registerUserWithGeneratedWallet(
+            user =  await this.registerUserWithGeneratedWallet(
                 signUpRequest.walletAddress!,
                 signUpRequest.privateKey!,
                 signUpRequest.password!,
                 signUpRequest.language
             )
         } else {
-            return await this.registerUserByTransactionId(signUpRequest.transactionId!, signUpRequest.language);
+            user = await this.registerUserByTransactionId(signUpRequest.transactionId!, signUpRequest.language);
         }
+
+        let followsCount: number = 0;
+
+        if (config.ENABLE_ACCOUNTS_SUBSCRIPTION_UPON_SIGN_UP) {
+            const accountsToSubscribe = require("../../accounts-to-subscribe.json") as AccountsToSubscribe;
+            let addresses: string[];
+
+            if (signUpRequest.language === Language.ENGLISH) {
+                addresses = accountsToSubscribe.english;
+            } else {
+                addresses = accountsToSubscribe.korean;
+            }
+
+            const usersToSubscribe = await this.usersRepository.findByEthereumAddressIn(addresses);
+
+            if (usersToSubscribe.length !== 0) {
+                await asyncForEach(usersToSubscribe, async subscribedTo => {
+                    const userSubscription: UserSubscription = {
+                        id: uuid(),
+                        subscribedUser: user,
+                        subscribedTo,
+                        reverted: false,
+                        saveUnsubscriptionToBtfs: true,
+                        createdAt: new Date()
+                    };
+                    await this.subscriptionsRepository.save(userSubscription);
+                });
+                followsCount = usersToSubscribe.length;
+            }
+        }
+
+        let userStatistics: UserStatistics | undefined = await this.userStatisticsRepository.findByUser(user);
+        if (!userStatistics) {
+            userStatistics = {
+                id: uuid(),
+                user,
+                statusesCount: 0,
+                followsCount: 0,
+                followersCount: 0
+            };
+        }
+        userStatistics.followsCount = followsCount;
+        await this.userStatisticsRepository.save(userStatistics);
+
+        this.log.debug(`Follows count after registration is: ${userStatistics.followsCount}`);
+
+        setTimeout(() => this.forceRecalculateUserFollowsCount(user), 2000);
+
+        return this.usersMapper.toUserResponse(user, userStatistics, false, false);
+    }
+
+    private async forceRecalculateUserFollowsCount(user: User): Promise<void> {
+        const userStatistics = await this.userStatisticsRepository.findByUser(user);
+        userStatistics.followsCount = await this.subscriptionsRepository.countBySubscribedUserAndNotReverted(user);
+
+        await this.userStatisticsRepository.save(userStatistics);
     }
 
     private async registerUserWithGeneratedWallet(
@@ -73,7 +132,7 @@ export class UsersService {
         privateKey: string,
         password: string,
         language?: Language
-    ): Promise<UserResponse> {
+    ): Promise<User> {
         let user = await this.usersRepository.findByEthereumAddress(ethereumAddress);
         if (user) {
             user.privateKey = this.passwordEncoder.encode(password, 12);
@@ -114,14 +173,14 @@ export class UsersService {
                 passwordHash: user.privateKey, // this is actually a password hash
                 privateKey
             });
-            return this.usersMapper.toUserResponseAsync(user, undefined, true);
+            return user;
         } catch (error) {
             console.log(error);
             throw error;
         }
     }
 
-    private async registerUserByTransactionId(transactionId: string, language?: Language): Promise<UserResponse> {
+    private async registerUserByTransactionId(transactionId: string, language?: Language): Promise<User> {
         try {
             const passwordHashResponse = (await this.passwordHashApiClient.getPasswordHashByTransaction(transactionId)).data;
             const {hash, address: ethereumAddress} = passwordHashResponse;
@@ -164,7 +223,7 @@ export class UsersService {
                 await this.userPreferencesRepository.save(userPreferences);
             }
 
-            return this.usersMapper.toUserResponseAsync(user, undefined, true);
+            return user;
         } catch (error) {
             if (!(error instanceof HttpException)) {
                 console.log(error);

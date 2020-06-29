@@ -5,7 +5,7 @@ import {StatusesMapper} from "./StatusesMapper";
 import {StatusResponse} from "./types/response";
 import {FeedCursors} from "./types/request/FeedCursors";
 import {Status} from "./entities";
-import {User} from "../users/entities";
+import {getLanguageFromString, User} from "../users/entities";
 import {PaginationRequest} from "../utils/pagination";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {UsersRepository, UserStatisticsRepository} from "../users";
@@ -61,9 +61,7 @@ export class FeedService {
     }
 
     public async getGlobalFeed(feedCursors: FeedCursors, currentUser?: User, language?: string): Promise<StatusResponse[]> {
-        if (language) {
-            language = language === "ko" || language === "en" ? language : "en";
-        }
+        language = getLanguageFromString(language);
 
         const paginationRequest: PaginationRequest = {
             page: 1,
@@ -85,6 +83,10 @@ export class FeedService {
             if (filteringUser) {
                 displayedUsers = (await this.userSubscriptionRepository.findAllBySubscribedUserNotReverted(filteringUser))
                     .map(subscription => subscription.subscribedTo);
+            }
+
+            if (currentUser) {
+                displayedUsers.push(currentUser);
             }
         }
 
