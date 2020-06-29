@@ -80,10 +80,10 @@ GET /api/v1/topics/{title}?language={language}
 
 #### Request parameters
 
-| Parameter | Type               | Description                                                                          | Required |
-|-----------|--------------------|--------------------------------------------------------------------------------------|----------|
-| title     | string             | Title of the topic                                                                   | yes      |
-| language  | "EN" | "KO" | "KR" | Language of the topic. If no language is passed, then "EN" will be used as default.  | no       |
+| Parameter | Type                    | Description                                                                          | Required |
+|-----------|------------------------|--------------------------------------------------------------------------------------|----------|
+| title     | string                 | Title of the topic                                                                   | yes      |
+| language  | enum("en", "ko", "kr") | Language of the topic. If no language is passed, then "EN" will be used as default.  | no       |
 
 #### Response type
 
