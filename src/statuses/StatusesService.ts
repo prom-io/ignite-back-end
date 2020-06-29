@@ -8,7 +8,7 @@ import {FeedService} from "./FeedService";
 import {FeedCursors} from "./types/request/FeedCursors";
 import {HashTagsRepository} from "./HashTagsRepository";
 import {HashTagsRetriever} from "./HashTagsRetriever";
-import {User} from "../users/entities";
+import {Language, User} from "../users/entities";
 import {UsersRepository} from "../users/UsersRepository";
 import {PaginationRequest} from "../utils/pagination";
 import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
@@ -53,7 +53,7 @@ export class StatusesService {
 
         const hashTags = await this.hashTagsRetriever.getHashTagsEntitiesFromText(
             createStatusRequest.status,
-            currentUser.preferences.language
+            (currentUser.preferences && currentUser.preferences.language) ? currentUser.preferences.language : Language.ENGLISH
         );
 
         let status = this.statusesMapper.fromCreateStatusRequest(
