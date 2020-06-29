@@ -4,8 +4,11 @@ import {CreateStatusRequest} from "./types/request";
 import {StatusResponse} from "./types/response";
 import {StatusesMapper} from "./StatusesMapper";
 import {Status, StatusReferenceType} from "./entities";
+import {FeedService} from "./FeedService";
 import {FeedCursors} from "./types/request/FeedCursors";
-import {User} from "../users/entities";
+import {HashTagsRepository} from "./HashTagsRepository";
+import {HashTagsRetriever} from "./HashTagsRetriever";
+import {Language, User} from "../users/entities";
 import {UsersRepository} from "../users/UsersRepository";
 import {PaginationRequest} from "../utils/pagination";
 import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
@@ -17,6 +20,9 @@ export class StatusesService {
     constructor(private readonly statusesRepository: StatusesRepository,
                 private readonly usersRepository: UsersRepository,
                 private readonly mediaAttachmentRepository: MediaAttachmentsRepository,
+                private readonly hashTagsRepository: HashTagsRepository,
+                private readonly hashTagsRetriever: HashTagsRetriever,
+                private readonly feedService: FeedService,
                 private readonly statusesMapper: StatusesMapper) {
     }
 
@@ -45,11 +51,17 @@ export class StatusesService {
             referredStatus = referredStatus.referredStatus;
         }
 
+        const hashTags = await this.hashTagsRetriever.getHashTagsEntitiesFromText(
+            createStatusRequest.status,
+            (currentUser.preferences && currentUser.preferences.language) ? currentUser.preferences.language : Language.ENGLISH
+        );
+
         let status = this.statusesMapper.fromCreateStatusRequest(
             createStatusRequest,
             currentUser,
             mediaAttachments,
-            referredStatus,
+            hashTags,
+            referredStatus
         );
         status = await this.statusesRepository.save(status);
 

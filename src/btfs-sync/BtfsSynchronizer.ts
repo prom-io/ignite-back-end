@@ -368,6 +368,7 @@ export class BtfsSynchronizer extends NestSchedule {
                 statusReferenceType,
                 peerWallet: btfsEntityInfo.peerWallet,
                 peerIp: btfsEntityInfo.peerIp,
+                hashTags: []
             };
             status = await this.statusesRepository.save(status);
         } else {

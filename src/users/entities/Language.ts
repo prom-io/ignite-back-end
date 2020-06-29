@@ -5,7 +5,7 @@ export enum Language {
 
 export const getLanguageFromString = (language?: string): Language => {
     if (!language) {
-        return Language.KOREAN;
+        return Language.ENGLISH;
     }
 
     switch (language.toLowerCase().trim()) {

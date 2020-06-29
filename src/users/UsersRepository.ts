@@ -1,6 +1,6 @@
-import {Repository, EntityRepository, In, Not} from "typeorm";
-import {Language, User} from "./entities";
-import {calculateOffset, PaginationRequest} from "../utils/pagination";
+import {EntityRepository, In, Not, Repository} from "typeorm";
+import {User} from "./entities";
+import {calculateOffset} from "../utils/pagination";
 import {FollowRecommendationFilters} from "./types/request";
 
 @EntityRepository(User)
