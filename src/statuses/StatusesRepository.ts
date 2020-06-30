@@ -424,25 +424,31 @@ export class StatusesRepository extends Repository<Status> {
             .getMany();
     }
 
-    public async findByHashTagAndCreatedAtBetweenOrderByNumberOfLikesForLastWeek(
+    public async findByHashTagAndCreatedAtBetweenAndLikesForLastWeekBetweenOrderByNumberOfLikesForLastWeek(
         hashTag: HashTag,
         createdAtBefore: Date,
         createdAtAfter: Date,
+        minLikes: number,
+        maxLikes: number,
         paginationRequest: PaginationRequest
     ): Promise<Status[]> {
-        const weekAgo = subDays(new Date(), 7)
+        const weekAgo = subDays(new Date(), 7);
 
         return this.createStatusQueryBuilder()
-            .addSelect(
+            .leftJoinAndSelect(
                 subquery => subquery
-                    .select("count(id)", "likes_count")
+                    .select(`count(id) as likes_count, "statusId"`)
                     .from(StatusLike, "status_like")
-                    .where(`status_like."statusId" = status.id`)
-                    .andWhere(`status_like."createdAt" > :weekAgo`, {weekAgo})
-                    .andWhere("status_like.reverted = false")
+                    .andWhere(`"createdAt" > :weekAgo`, {weekAgo})
+                    .andWhere("reverted = false")
+                    .groupBy(`"statusId"`),
+                "status_like",
+                `status_like."statusId" = status.id`
             )
             .where(`"status_filteredHashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
-            .andWhere(`status."createdAt" between(:createdAtBefore, createdAtAfter)`, {createdAtBefore, createdAtAfter})
+            .andWhere(
+                `status."createdAt" between(:createdAtBefore, :createdAtAfter) and (likes_count between(:minLikes, :maxLikes) or likes_count is null)`,
+                {createdAtBefore, createdAtAfter, minLikes, maxLikes})
             .orderBy({
                 "likes_count": "DESC",
                 "status.\"createdAt\"": "DESC"
@@ -452,26 +458,32 @@ export class StatusesRepository extends Repository<Status> {
             .getMany();
     }
 
-    public async findByHashTagAndCreatedAtBeforeOrderByNumberOfLikesForLastWeek(
+    public async findByHashTagAndCreatedAtBeforeAndLikesForLastWeekLessThanOrderByNumberOfLikesForLastWeek(
         hashTag: HashTag,
         createdAtBefore: Date,
+        maxLikes: number,
         paginationRequest: PaginationRequest
     ): Promise<Status[]> {
         const weekAgo = subDays(new Date(), 7);
 
         return this.createStatusQueryBuilder()
-            .addSelect(
+            .leftJoinAndSelect(
                 subquery => subquery
-                    .select("count(id)")
+                    .select(`count(id) as likes_count, "statusId"`)
                     .from(StatusLike, "status_like")
-                    .where(`status_like."statusId" = status.id`)
-                    .andWhere(`status_like."createdAt" > :weekAgo`, {weekAgo})
-                    .andWhere("status_like.reverted = false")
+                    .andWhere(`"createdAt" > :weekAgo`, {weekAgo})
+                    .andWhere("reverted = false")
+                    .groupBy(`"statusId"`),
+                "status_like",
+                `status_like."statusId" = status.id`
             )
             .where(`"status_filteredHashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
-            .andWhere(`status."createdAt" < :createdAtBefore`, {createdAtBefore})
+            .andWhere(`status."createdAt" < :createdAtBefore and (likes_count <= :maxLikes or likes_count is null)`, {createdAtBefore, maxLikes})
             .orderBy({
-                "likes_count": "DESC",
+                "likes_count": {
+                    order: "DESC",
+                    nulls: "NULLS LAST"
+                },
                 "status.\"createdAt\"": "DESC"
             })
             .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
@@ -479,26 +491,32 @@ export class StatusesRepository extends Repository<Status> {
             .getMany();
     }
 
-    public async findByHashTagAndCreatedAtAfterOrderByNumberOfLikesForLastWeek(
+    public async findByHashTagAndCreatedAtAfterAndLikesForLastWeekMoreThanOrderByNumberOfLikesForLastWeek(
         hashTag: HashTag,
         createdAtAfter: Date,
+        minLikes: number,
         paginationRequest: PaginationRequest
     ): Promise<Status[]> {
         const weekAgo = subDays(new Date(), 7);
 
         return this.createStatusQueryBuilder()
-            .addSelect(
-                subquery => subquery.
-                select("count(id)", "likes_count")
+            .leftJoinAndSelect(
+                subquery => subquery
+                    .select(`count(id) as likes_count, "statusId"`)
                     .from(StatusLike, "status_like")
-                    .where(`status_like."statusId" = status.id`)
-                    .andWhere(`statusLike."createdAt" > :weekAgo`, {weekAgo})
-                    .andWhere("status_like.reverted = false")
+                    .andWhere(`"createdAt" > :weekAgo`, {weekAgo})
+                    .andWhere("reverted = false")
+                    .groupBy(`"statusId"`),
+                "status_like",
+                `status_like."statusId" = status.id`
             )
             .where(`"status_filteredHashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
-            .andWhere(`status."createdAt" > :createdAtAfter`, {createdAtAfter})
+            .andWhere(`status."createdAt" > :createdAtAfter and (likes_count >= :minLikes or likes_count is null)`, {createdAtAfter, minLikes})
             .orderBy({
-                "likes_count": "DESC",
+                "likes_count": {
+                    order: "DESC",
+                    nulls: "NULLS LAST"
+                },
                 "status.\"createdAt\"": "DESC"
             })
             .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))

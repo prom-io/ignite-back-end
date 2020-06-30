@@ -11,7 +11,7 @@ import {
 import {Request} from "express";
 import {TopicsService} from "./TopicsService";
 import {HashTagResponse, StatusResponse} from "./types/response";
-import {GetStatusesByTopicRequest, GetHashTagsRequest} from "./types/request";
+import {GetStatusesByTopicRequest, GetHashTagsRequest, fromString} from "./types/request";
 import {getLanguageFromString, User} from "../users/entities";
 import {OptionalJwtAuthGuard} from "../jwt-auth/OptionalJwtAuthGuard";
 
@@ -40,10 +40,18 @@ export class TopicsController {
     @Get(":hashTag/statuses")
     public findStatusesByHashTag(@Param("hashTag") hashTag: string,
                                  @Req() request: Request,
-                                 @Query() getStatusesByTopicRequest: GetStatusesByTopicRequest): Promise<StatusResponse[]> {
+                                 @Query("since_id") sinceId?: string,
+                                 @Query("max_id") maxId?: string,
+                                 @Query("type") type?: string,
+                                 @Query("language") language?: string): Promise<StatusResponse[]> {
         return this.topicsService.findStatusesByHashTag(
             hashTag,
-            getStatusesByTopicRequest,
+            {
+                sinceId,
+                maxId,
+                type: fromString(type),
+                language: getLanguageFromString(language)
+            },
             request.user as User | null
         );
     }
