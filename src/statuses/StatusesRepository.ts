@@ -511,7 +511,7 @@ export class StatusesRepository extends Repository<Status> {
                 `status_like."statusId" = status.id`
             )
             .where(`"status_filteredHashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
-            .andWhere(`status."createdAt" > :createdAtAfter and (likes_count >= :minLikes or likes_count is null)`, {createdAtAfter, minLikes})
+            .andWhere(`status."createdAt" > :createdAtAfter and ${minLikes !== 0 ? "likes_count >= :minLikes" : "likes_count is null"}`, {createdAtAfter, minLikes})
             .orderBy({
                 "likes_count": {
                     order: "DESC",
