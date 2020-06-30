@@ -6,6 +6,7 @@ import {asyncMap} from "../utils/async-map";
 import {Language} from "../users/entities";
 
 const HASH_TAG_REGEXP = /([#|＃][^\s]+)/g;
+const REPEATED_HASH_CHARACTER_REGEXP = /([#])\1+/;
 
 @Injectable()
 export class HashTagsRetriever {
@@ -14,7 +15,7 @@ export class HashTagsRetriever {
 
     public getHashTagsStringsFromText(text: string): string[] {
         return text.split(HASH_TAG_REGEXP)
-            .filter(chunk => HASH_TAG_REGEXP.test(chunk))
+            .filter(chunk => HASH_TAG_REGEXP.test(chunk) && !REPEATED_HASH_CHARACTER_REGEXP.test(chunk))
             .map(chunk => chunk.substring(1, chunk.length));
     }
 
