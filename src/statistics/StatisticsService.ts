@@ -56,6 +56,16 @@ export class StatisticsService extends NestSchedule {
 
         const weeklyActivitiesCount = lastWeekLikesCount + lastWeekStatusesCount + lastWeekCommentsCount + lastWeekRepostsCount;
 
+        this.log.debug(`Users count is ${usersCount}`);
+        this.log.debug(`Daily active users count is ${dailyActiveUsersCount}`);
+        this.log.debug(`Last month users count is ${lastMonthUsersCount}`);
+        this.log.debug(`DDS chunks count is ${ddsChunksCount}`);
+        this.log.debug(`Last week likes count is ${lastWeekLikesCount}`);
+        this.log.debug(`Last week statuses count is ${lastWeekStatusesCount}`);
+        this.log.debug(`Last week comments count is ${lastWeekCommentsCount}`);
+        this.log.debug(`Last week reposts count is ${lastWeekRepostsCount}`);
+        this.log.debug(`Weekly activities count is ${weeklyActivitiesCount}`);
+
         this.cachedStatistics = new IgniteStatisticsResponse({
             usersCount,
             dailyActiveUsersCount,
