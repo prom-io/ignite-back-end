@@ -705,6 +705,7 @@ export class StatusesRepository extends Repository<Status> {
             .leftJoinAndSelect("referredStatus.author", "referredStatusAuthor")
             .leftJoinAndSelect("referredStatusAuthor.avatar", "referredStatusAuthorAvatar")
             .leftJoinAndSelect("referredStatus.hashTags", "referredStatusHashTags")
+            .leftJoinAndSelect("referredStatus.referredStatus", "referredStatusReferredStatus");
     }
 
     public countByHashTag(hashTag: HashTag): Promise<number> {
