@@ -603,7 +603,10 @@ export class StatusesRepository extends Repository<Status> {
             .where(`"status_hashTag"."hashTagId" is not null`)
             .andWhere(`"hashTag"."language" = :language`, {language})
             .orderBy({
-                "likes_count": "DESC",
+                "likes_count": {
+                    order: "DESC",
+                    nulls: "NULLS LAST"
+                },
                 "status.\"createdAt\"": "DESC"
             })
             .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
