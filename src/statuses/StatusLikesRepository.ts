@@ -14,6 +14,14 @@ export class StatusLikesRepository extends Repository<StatusLike> {
         })
     }
 
+    public findAllByCreatedAtAfter(createdAtAfter: Date): Promise<StatusLike[]> {
+        return this.find({
+            where: {
+                createdAt: MoreThan(createdAtAfter)
+            }
+        })
+    }
+
     public findByStatus(status: Status, paginationRequest: PaginationRequest): Promise<StatusLike[]> {
         return this.find({
             where: {
