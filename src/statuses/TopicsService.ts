@@ -31,7 +31,13 @@ export class TopicsService {
             statuses = await this.getFreshStatusesContainingHashTags(getStatusesRequest);
         }
 
-        return asyncMap(statuses, async status => await this.statusesMapper.toStatusResponseAsync(status, currentUser));
+        const statusInfoMap = await this.statusesRepository.getStatusesAdditionalInfoMap(statuses, currentUser);
+
+        return asyncMap(statuses, async status => await this.statusesMapper.toStatusResponseByStatusInfo(
+            status,
+            statusInfoMap[status.id],
+            status.referredStatus && statusInfoMap[status.referredStatus.id]
+        ));
     }
 
     private async getFreshStatusesContainingHashTags(getStatusesRequest: GetStatusesRequest): Promise<Status[]> {
@@ -172,7 +178,13 @@ export class TopicsService {
             statuses = await this.getHotStatusesByHashTag(hashTag, getStatusesByTopicRequest);
         }
 
-        return asyncMap(statuses, async status => await this.statusesMapper.toStatusResponseAsync(status, currentUser));
+        const statusInfoMap = await this.statusesRepository.getStatusesAdditionalInfoMap(statuses, currentUser);
+
+        return asyncMap(statuses, async status => await this.statusesMapper.toStatusResponseByStatusInfo(
+            status,
+            statusInfoMap[status.id],
+            status.referredStatus && statusInfoMap[status.referredStatus.id]
+        ));
     }
 
     private async getFreshStatusesByHashTag(hashTag: HashTag, getStatusesByTopicRequest: GetStatusesByTopicRequest): Promise<Status[]> {
