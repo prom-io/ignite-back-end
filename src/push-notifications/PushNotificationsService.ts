@@ -91,13 +91,24 @@ export class PushNotificationsService {
                             }
                         };
                         this.log.debug(`Sending push notification for user ${user.id} to device with FCM token ${userDevice.fcmToken}`);
-                        await this.firebaseApp!.messaging().send(message);
+                        try {
+                            await this.firebaseApp!.messaging().send(message);
+                        } catch (error) {
+                            if (error.code === "messaging/registration-token-not-registered") {
+                                this.log.debug(`FCM token ${userDevice.fcmToken} is expired`);
+                                userDevice.fcmTokenExpired = true;
+                                await this.userDevicesRepository.save(userDevice);
+                            } else {
+                                this.log.error(`Error occurred when tried to send push notification to device with FCM token ${userDevice.fcmToken}`);
+                                this.log.error(error.message);
+                            }
+                        }
                     })
                 }
             });
         }
 
-        if (status.referredStatus !== null && status.author.id !== status.referredStatus.author.id) {
+        if (status.referredStatus && status.author.id !== status.referredStatus.author.id) {
             const referredStatusAuthor = status.referredStatus.author;
             const referredStatusAuthorDevices = await this.userDevicesRepository.findByUser(referredStatusAuthor);
 

@@ -14,7 +14,8 @@ export class UserDevicesService {
         const userDevice: UserDevice = {
             id: uuid(),
             fcmToken: createUserDeviceRequest.fcmToken,
-            user
+            user,
+            fcmTokenExpired: false
         };
         await this.userDevicesRepository.save(userDevice);
     }
