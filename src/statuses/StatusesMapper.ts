@@ -1,6 +1,6 @@
 import {Injectable} from "@nestjs/common";
 import uuid from "uuid/v4";
-import {Status, StatusAdditionalInfo, StatusReferenceType} from "./entities";
+import {Status, StatusAdditionalInfo, StatusReferenceType,  HashTag} from "./entities";
 import {StatusesRepository} from "./StatusesRepository";
 import {StatusMappingOptionsProvider} from "./StatusMappingOptionsProvider";
 import {StatusResponse} from "./types/response";
@@ -11,6 +11,7 @@ import {MediaAttachment} from "../media-attachments/entities";
 import {MediaAttachmentsMapper} from "../media-attachments/MediaAttachmentsMapper";
 import {BtfsHash} from "../btfs-sync/entities";
 import {BtfsHashesMapper} from "../btfs-sync/mappers";
+import {HashTagsMapper} from "./HashTagsMapper";
 
 export interface ToStatusResponseOptions {
     status: Status,
@@ -35,6 +36,7 @@ export class StatusesMapper {
                 private readonly mediaAttachmentsMapper: MediaAttachmentsMapper,
                 private readonly btfsHashesMapper: BtfsHashesMapper,
                 private readonly statusesRepository: StatusesRepository,
+                private readonly hashTagsMapper: HashTagsMapper,
                 private readonly statusMappingOptionsProvider: StatusMappingOptionsProvider) {
     }
 
@@ -138,7 +140,8 @@ export class StatusesMapper {
             commentsCount,
             statusReferenceType: status.statusReferenceType,
             referredStatusReferenceType,
-            canBeReposted
+            canBeReposted,
+            hashTags: status.hashTags.map(hashTag => this.hashTagsMapper.toHashTagResponse(hashTag))
         })
     }
 
@@ -146,6 +149,7 @@ export class StatusesMapper {
         createStatusRequest: CreateStatusRequest,
         author: User,
         mediaAttachments: MediaAttachment[],
+        hashTags: HashTag[],
         referredStatus?: Status,
     ): Status {
         return {
@@ -157,7 +161,8 @@ export class StatusesMapper {
             remote: false,
             mediaAttachments,
             referredStatus,
-            statusReferenceType: createStatusRequest.statusReferenceType
+            statusReferenceType: createStatusRequest.statusReferenceType,
+            hashTags
         }
     }
 }

@@ -15,7 +15,7 @@ export class UsersMapper {
                 private readonly userSubscriptionsRepository: UserSubscriptionsRepository) {
     }
 
-    public async toUserResponseAsync(user: User, currentUser?: User): Promise<UserResponse> {
+    public async toUserResponseAsync(user: User, currentUser?: User, includePasswordHash: boolean = false): Promise<UserResponse> {
         const userStatistics = await this.userStatisticsRepository.findByUser(user);
         const following = currentUser && await this.userSubscriptionsRepository.existsBySubscribedUserAndSubscribedToNotReverted(
             currentUser,
@@ -33,7 +33,8 @@ export class UsersMapper {
         user: User,
         userStatistics?: UserStatistics | Omit<UserStatistics, "user">,
         following: boolean = false,
-        followedBy: boolean = false
+        followedBy: boolean = false,
+        includePasswordHash: boolean = false
     ): UserResponse {
         let avatar: string;
 
@@ -64,7 +65,8 @@ export class UsersMapper {
             fields: [],
             following,
             followedBy,
-            bio: user.bio
+            bio: user.bio,
+            passwordHash: includePasswordHash ? user.privateKey : undefined
         })
     }
 

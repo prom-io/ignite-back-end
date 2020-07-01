@@ -1,7 +1,11 @@
-import {IteratingCallback} from "./internal/callback-types";
+import {IteratingAsyncCallback} from "./internal/callback-types";
 
-export const asyncForEach = async <T>(array: T[], callback: IteratingCallback<T>): Promise<void> => {
+export const asyncForEach = async <T>(array: T[], callback: IteratingAsyncCallback<T>, awaitForCallback: boolean = true): Promise<void> => {
     for (let index = 0; index < array.length; index++) {
-        callback(array[index], index, array);
+        if (awaitForCallback) {
+            await callback(array[index], index, array);
+        } else {
+            callback(array[index], index, array);
+        }
     }
 };

@@ -1,8 +1,8 @@
-import {Between, EntityRepository, In, LessThan, MoreThan, Repository} from "typeorm";
-import {Status, StatusAdditionalInfo, StatusInfoMap, StatusLike, StatusReferenceType} from "./entities";
-import {User, UserStatistics} from "../users/entities";
+import {Between, EntityRepository, In, LessThan, MoreThan, Repository, SelectQueryBuilder} from "typeorm";
+import {Status, StatusAdditionalInfo, StatusInfoMap, StatusLike, StatusReferenceType, HashTag} from "./entities";
+import {subDays} from "date-fns";
+import {Language, User, UserStatistics} from "../users/entities";
 import {calculateOffset, PaginationRequest} from "../utils/pagination";
-import {from} from "rxjs";
 import {UserSubscription} from "../user-subscriptions/entities";
 
 @EntityRepository(Status)
@@ -445,5 +445,414 @@ export class StatusesRepository extends Repository<Status> {
             commentedByCurrentUser: currentUser && Boolean(Number(raw.current_user_comments_count)),
             repostedByCurrentUser: currentUser && Boolean(Number(raw.current_user_reposts_count))
         }))
+    }
+
+    public findAllByIds(ids: string[]): Promise<Status[]> {
+        return this.find({
+            where: {
+                id: In(ids),
+            },
+            order: {
+                createdAt: "DESC",
+            },
+            relations: ["referredStatus"]
+        })
+    }
+
+    public async findByHashTag(hashTag: HashTag, paginationRequest: PaginationRequest): Promise<Status[]> {
+        return this.createStatusQueryBuilder()
+            .where(`"status_filteredHashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+            .orderBy(`status."createdAt"`, "DESC")
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
+            .getMany()
+
+    }
+
+    public async findByHashTagAndCreatedAtBefore(
+        hashTag: HashTag,
+        createdAtBefore: Date,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        return this.createStatusQueryBuilder()
+            .where(`"status_filteredHashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+            .andWhere(`status."createdAt" < :createdAt`, {createdAt: createdAtBefore})
+            .orderBy(`status."createdAt"`, "DESC")
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
+            .getMany();
+    }
+
+    public async findByHashTagAndCreatedAtAfter(
+        hashTag: HashTag,
+        createdAtAfter: Date,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        return this.createStatusQueryBuilder()
+            .where(`"status_filteredHashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+            .andWhere(`status."createdAt" > :createdAt`, {createdAt: createdAtAfter})
+            .orderBy(`status."createdAt"`, "DESC")
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
+            .getMany();
+    }
+
+    public async findByHashTagAndCreatedAtBetween(
+        hashTag: HashTag,
+        createdAtBefore: Date,
+        createdAtAfter: Date,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        return this.createStatusQueryBuilder().where(`"status_hashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+            .where(`"status_filteredHashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+            .orderBy(`status."createdAt"`, "DESC")
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
+            .getMany();
+    }
+
+    public async findByHashTagOrderByNumberOfLikesForLastWeek(
+        hashTag: HashTag,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        const weekAgo = subDays(new Date(), 7);
+
+        return this.createStatusQueryBuilder()
+            .addSelect(
+                subquery => subquery
+                    .select("count(id)", "likes_count")
+                    .from(StatusLike, "status_like")
+                    .where(`status_like."statusId" = status.id`)
+                    .andWhere(`status_like."createdAt" > :weekAgo`, {weekAgo})
+                    .andWhere("status_like.reverted = false")
+            )
+            .where(`"status_filteredHashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+            .orderBy({
+                "likes_count": "DESC",
+                "status.\"createdAt\"": "DESC"
+            })
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
+            .getMany();
+    }
+
+    public async findByHashTagAndCreatedAtBetweenAndLikesForLastWeekBetweenOrderByNumberOfLikesForLastWeek(
+        hashTag: HashTag,
+        createdAtBefore: Date,
+        createdAtAfter: Date,
+        minLikes: number,
+        maxLikes: number,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        const weekAgo = subDays(new Date(), 7);
+
+        return this.createStatusQueryBuilder()
+            .leftJoinAndSelect(
+                subquery => subquery
+                    .select(`count(id) as likes_count, "statusId"`)
+                    .from(StatusLike, "status_like")
+                    .andWhere(`"createdAt" > :weekAgo`, {weekAgo})
+                    .andWhere("reverted = false")
+                    .groupBy(`"statusId"`),
+                "status_like",
+                `status_like."statusId" = status.id`
+            )
+            .where(`"status_filteredHashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+            .andWhere(
+                `status."createdAt" between(:createdAtBefore, :createdAtAfter) and (likes_count between(:minLikes, :maxLikes) or likes_count is null)`,
+                {createdAtBefore, createdAtAfter, minLikes, maxLikes})
+            .orderBy({
+                "likes_count": "DESC",
+                "status.\"createdAt\"": "DESC"
+            })
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
+            .getMany();
+    }
+
+    public async findByHashTagAndCreatedAtBeforeAndLikesForLastWeekLessThanOrderByNumberOfLikesForLastWeek(
+        hashTag: HashTag,
+        createdAtBefore: Date,
+        maxLikes: number,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        const weekAgo = subDays(new Date(), 7);
+
+        return this.createStatusQueryBuilder()
+            .leftJoinAndSelect(
+                subquery => subquery
+                    .select(`count(id) as likes_count, "statusId"`)
+                    .from(StatusLike, "status_like")
+                    .andWhere(`"createdAt" > :weekAgo`, {weekAgo})
+                    .andWhere("reverted = false")
+                    .groupBy(`"statusId"`),
+                "status_like",
+                `status_like."statusId" = status.id`
+            )
+            .where(`"status_filteredHashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+            .andWhere(`status."createdAt" < :createdAtBefore and (likes_count <= :maxLikes or likes_count is null)`, {createdAtBefore, maxLikes})
+            .orderBy({
+                "likes_count": {
+                    order: "DESC",
+                    nulls: "NULLS LAST"
+                },
+                "status.\"createdAt\"": "DESC"
+            })
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
+            .getMany();
+    }
+
+    public async findByHashTagAndCreatedAtAfterAndLikesForLastWeekMoreThanOrderByNumberOfLikesForLastWeek(
+        hashTag: HashTag,
+        createdAtAfter: Date,
+        minLikes: number,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        const weekAgo = subDays(new Date(), 7);
+
+        return this.createStatusQueryBuilder()
+            .leftJoinAndSelect(
+                subquery => subquery
+                    .select(`count(id) as likes_count, "statusId"`)
+                    .from(StatusLike, "status_like")
+                    .andWhere(`"createdAt" > :weekAgo`, {weekAgo})
+                    .andWhere("reverted = false")
+                    .groupBy(`"statusId"`),
+                "status_like",
+                `status_like."statusId" = status.id`
+            )
+            .where(`"status_filteredHashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+            .andWhere(`status."createdAt" > :createdAtAfter and ${minLikes !== 0 ? "likes_count >= :minLikes" : "likes_count is null"}`, {createdAtAfter, minLikes})
+            .orderBy({
+                "likes_count": {
+                    order: "DESC",
+                    nulls: "NULLS LAST"
+                },
+                "status.\"createdAt\"": "DESC"
+            })
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
+            .getMany();
+    }
+
+    public async findContainingHashTagsByLanguage(
+        language: Language,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        return this.createStatusQueryBuilder()
+            .where(`"status_hashTag"."hashTagId" is not null`)
+            .andWhere(`"hashTag"."language" = :language`, {language})
+            .orderBy(`status."createdAt"`, "DESC")
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
+            .getMany();
+    }
+
+    public async findContainingHashTagsByLanguageAndCreatedAtBefore(
+        language: Language,
+        createdAtBefore: Date,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        return this.createStatusQueryBuilder()
+            .where(`"status_hashTag"."hashTagId" is not null`)
+            .andWhere(`"hashTag"."language" = :language`, {language})
+            .andWhere(`status."createdAt" < :createdAtBefore`, {createdAtBefore})
+            .orderBy(`status."createdAt"`, "DESC")
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
+            .getMany();
+    }
+
+    public async findContainingHashTagsByLanguageAndCreatedAtAfter(
+        language: Language,
+        createdAtAfter: Date,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        return this.createStatusQueryBuilder()
+            .where(`"status_hashTag"."hashTagId" is not null`)
+            .andWhere(`"hashTag"."language" = :language`, {language})
+            .andWhere(`status."createdAt" > :createdAtAfter`, {createdAtAfter})
+            .orderBy(`status."createdAt"`, "DESC")
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
+            .getMany();
+    }
+
+    public async findContainingHashTagsByLanguageAndCreatedAtBetween(
+        language: Language,
+        createdAtBefore: Date,
+        createdAtAfter: Date,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        return this.createStatusQueryBuilder()
+            .where(`"status_hashTag"."hashTagId" is not null`)
+            .andWhere(`"hashTag"."language" = :language`, {language})
+            .andWhere(`status."createdAt" between(:createdAtBefore, :createdAtAfter)`, {createdAtBefore, createdAtAfter})
+            .orderBy(`status."createdAt"`, "DESC")
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
+            .getMany();
+    }
+
+    public async findContainingHashTagsByLanguageOrderByNumberOfLikesForLastWeek(
+        language: Language,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        const weekAgo = subDays(new Date(), 7);
+
+        return this.createStatusQueryBuilder()
+            .leftJoinAndSelect(
+                subquery => subquery
+                    .select(`count(id) as likes_count, "statusId"`)
+                    .from(StatusLike, "status_like")
+                    .andWhere(`"createdAt" > :weekAgo`, {weekAgo})
+                    .andWhere("reverted = false")
+                    .groupBy(`"statusId"`),
+                "status_like",
+                `status_like."statusId" = status.id`
+            )
+            .where(`"status_hashTag"."hashTagId" is not null`)
+            .andWhere(`"hashTag"."language" = :language`, {language})
+            .orderBy({
+                "likes_count": {
+                    order: "DESC",
+                    nulls: "NULLS LAST"
+                },
+                "status.\"createdAt\"": "DESC"
+            })
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
+            .getMany();
+    }
+
+    public async findContainingHashTagsByLanguageAndCreatedAtBeforeAndLikesForLastWeekLessThanOrderByNumberOfLikesForLastWeek(
+        language: Language,
+        createdAtBefore: Date,
+        maxLikes: number,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        const weekAgo = subDays(new Date(), 7);
+
+        return this.createStatusQueryBuilder()
+            .leftJoinAndSelect(
+                subquery => subquery
+                    .select(`count(id) as likes_count, "statusId"`)
+                    .from(StatusLike, "status_like")
+                    .andWhere(`"createdAt" > :weekAgo`, {weekAgo})
+                    .andWhere("reverted = false")
+                    .groupBy(`"statusId"`),
+                "status_like",
+                `status_like."statusId" = status.id`
+            )
+            .where(`"status_hashTag"."hashTagId" is not null`)
+            .andWhere(`"hashTag"."language" = :language`, {language})
+            .andWhere(`status."createdAt" < :createdAtBefore and (likes_count <= :maxLikes or likes_count is null)`, {createdAtBefore, maxLikes})
+            .orderBy({
+                "likes_count": {
+                    order: "DESC",
+                    nulls: "NULLS LAST"
+                },
+                "status.\"createdAt\"": "DESC"
+            })
+            .limit(paginationRequest.pageSize)
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .getMany();
+    }
+
+    public async findContainingHashTagsByLanguageAndCreatedAtAfterOrderByNumberOfLikesForLastWeek(
+        language: Language,
+        createdAtAfter: Date,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        const weekAgo = subDays(new Date(), 7);
+
+        return this.createStatusQueryBuilder()
+            .addSelect(
+                subquery => subquery.
+                select("count(id)", "last_week_likes_count")
+                    .from(StatusLike, "status_like")
+                    .where(`status_like."statusId" = status.id`)
+                    .andWhere("status_like.reverted = false")
+                    .andWhere(`status_like."createdAt" > :weekAgo`, {weekAgo})
+            )
+            .where(`"status_hashTag"."hashTagId" is not null`)
+            .andWhere(`"hashTag"."language" = :language`, {language})
+            .andWhere(`status."createdAt" > :createdAtAfter`, {createdAtAfter})
+            .orderBy({
+                "last_week_likes_count": "DESC",
+                "status.\"createdAt\"": "DESC"
+            })
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
+            .getMany();
+    }
+
+    public async findContainingHashTagsByLanguageAndCreatedAtBetweenOrderByNumberOfLikesForLastWeek(
+        language: Language,
+        createdAtBefore: Date,
+        createdAtAfter: Date,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        const weekAgo = subDays(new Date(), 7);
+
+        return this.createStatusQueryBuilder()
+            .addSelect(
+                subquery => subquery
+                    .select("count(id)", "last_week_likes_count")
+                    .from(StatusLike, "status_like")
+                    .where(`status_like."statusId" = status.id`)
+                    .andWhere("status_like.reverted = false")
+                    .andWhere(`status_like."createdAt" > :weekAgo`, {weekAgo})
+            )
+            .where(`"status_hashTag"."hashTagId" is not null`)
+            .andWhere(`"hashTag"."language" = :language`, {language})
+            .andWhere(`status."createdAt" between(:createdAtBefore, :createdAtAfter)`, {createdAtBefore, createdAtAfter})
+            .orderBy({
+                "last_week_likes_count": "DESC",
+                "status.\"createdAt\"": "DESC"
+            })
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
+            .getMany();
+    }
+
+    private createStatusQueryBuilder(): SelectQueryBuilder<Status> {
+        return this.createQueryBuilder("status")
+            .leftJoinAndSelect("status.hashTags", "filteredHashTag")
+            .leftJoinAndSelect("status.hashTags", "hashTag")
+            .leftJoinAndSelect("status.author", "author")
+            .leftJoinAndSelect("author.avatar", "authorAvatar")
+            .leftJoinAndSelect("status.mediaAttachments", "mediaAttachments")
+            .leftJoinAndSelect("status.referredStatus", "referredStatus")
+            .leftJoinAndSelect("referredStatus.mediaAttachments", "referredStatusMediaAttachments")
+            .leftJoinAndSelect("referredStatus.author", "referredStatusAuthor")
+            .leftJoinAndSelect("referredStatusAuthor.avatar", "referredStatusAuthorAvatar")
+            .leftJoinAndSelect("referredStatus.hashTags", "referredStatusHashTags")
+            .leftJoinAndSelect("referredStatus.referredStatus", "referredStatusReferredStatus");
+    }
+
+    public countByHashTag(hashTag: HashTag): Promise<number> {
+        return this.createQueryBuilder("status")
+            .leftJoinAndSelect("status.hashTags", "hashTag")
+            .where(`"hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+            .getCount();
+    }
+
+    public countByCreatedAtAfter(createdAtAfter: Date): Promise<number> {
+        return this.count({
+            where: {
+                createdAt: MoreThan(createdAtAfter)
+            }
+        });
+    }
+
+    public countByCreatedAtAfterAndStatusReferenceType(createdAtAfter: Date, statusReferenceType: StatusReferenceType): Promise<number> {
+        return this.count({
+            where: {
+                createdAt: MoreThan(createdAtAfter),
+                statusReferenceType
+            }
+        });
     }
 }

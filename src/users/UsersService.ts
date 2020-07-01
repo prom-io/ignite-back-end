@@ -1,6 +1,6 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import uuid from "uuid/v4";
-import {Language, User, UserPreferences} from "./entities";
+import {Language, User, UserPreferences, UserStatistics} from "./entities";
 import {UsersRepository} from "./UsersRepository";
 import {UserStatisticsRepository} from "./UserStatisticsRepository";
 import {UserPreferencesRepository} from "./UserPreferencesRepository";
@@ -8,7 +8,9 @@ import {UsersMapper} from "./UsersMapper";
 import {
     CreateUserRequest,
     FollowRecommendationFilters,
+    RecoverPasswordRequest,
     SignUpForPrivateBetaTestRequest,
+    SignUpRequest,
     UpdatePreferencesRequest,
     UpdateUserRequest,
     UsernameAvailabilityResponse
@@ -17,10 +19,16 @@ import {UserPreferencesResponse, UserResponse} from "./types/response";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {MailerService} from "@nestjs-modules/mailer";
 import {LoggerService} from "nest-logger";
+import {InvalidBCryptHashException} from "./exceptions";
 import {config} from "../config";
 import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
 import {MediaAttachment} from "../media-attachments/entities";
+import {BCryptPasswordEncoder} from "../bcrypt";
 import {asyncMap} from "../utils/async-map";
+import {PasswordHashApiClient} from "../password-hash-api";
+import {AccountsToSubscribe} from "./types/AccountsToSubscribe";
+import {asyncForEach} from "../utils/async-foreach";
+import {UserSubscription} from "../user-subscriptions/entities";
 
 @Injectable()
 export class UsersService {
@@ -31,6 +39,8 @@ export class UsersService {
                 private readonly mediaAttachmentsRepository: MediaAttachmentsRepository,
                 private readonly mailerService: MailerService,
                 private readonly usersMapper: UsersMapper,
+                private readonly passwordEncoder: BCryptPasswordEncoder,
+                private readonly passwordHashApiClient: PasswordHashApiClient,
                 private readonly log: LoggerService) {
     }
 
@@ -45,6 +55,189 @@ export class UsersService {
                 this.log.error(`Error occurred when tried send address ${signUpForPrivateBetaTestRequest.email}`);
                 console.log(error);
             })
+    }
+
+    public async signUp(signUpRequest: SignUpRequest): Promise<UserResponse> {
+        let user: User;
+        if (!signUpRequest.transactionId) {
+            user =  await this.registerUserWithGeneratedWallet(
+                signUpRequest.walletAddress!,
+                signUpRequest.privateKey!,
+                signUpRequest.password!,
+                signUpRequest.language
+            )
+        } else {
+            user = await this.registerUserByTransactionId(signUpRequest.transactionId!, signUpRequest.language);
+        }
+
+        let followsCount: number = 0;
+
+        if (config.ENABLE_ACCOUNTS_SUBSCRIPTION_UPON_SIGN_UP) {
+            const accountsToSubscribe = require("../../accounts-to-subscribe.json") as AccountsToSubscribe;
+            let addresses: string[];
+
+            if (signUpRequest.language === Language.ENGLISH) {
+                addresses = accountsToSubscribe.english;
+            } else {
+                addresses = accountsToSubscribe.korean;
+            }
+
+            const usersToSubscribe = await this.usersRepository.findByEthereumAddressIn(addresses);
+
+            if (usersToSubscribe.length !== 0) {
+                await asyncForEach(usersToSubscribe, async subscribedTo => {
+                    const userSubscription: UserSubscription = {
+                        id: uuid(),
+                        subscribedUser: user,
+                        subscribedTo,
+                        reverted: false,
+                        saveUnsubscriptionToBtfs: true,
+                        createdAt: new Date()
+                    };
+                    await this.subscriptionsRepository.save(userSubscription);
+                });
+                followsCount = usersToSubscribe.length;
+            }
+        }
+
+        let userStatistics: UserStatistics | undefined = await this.userStatisticsRepository.findByUser(user);
+        if (!userStatistics) {
+            userStatistics = {
+                id: uuid(),
+                user,
+                statusesCount: 0,
+                followsCount: 0,
+                followersCount: 0
+            };
+        }
+        userStatistics.followsCount = followsCount;
+        await this.userStatisticsRepository.save(userStatistics);
+
+        this.log.debug(`Follows count after registration is: ${userStatistics.followsCount}`);
+
+        setTimeout(() => this.forceRecalculateUserFollowsCount(user), 2000);
+
+        return this.usersMapper.toUserResponse(user, userStatistics, false, false);
+    }
+
+    private async forceRecalculateUserFollowsCount(user: User): Promise<void> {
+        const userStatistics = await this.userStatisticsRepository.findByUser(user);
+        userStatistics.followsCount = await this.subscriptionsRepository.countBySubscribedUserAndNotReverted(user);
+
+        await this.userStatisticsRepository.save(userStatistics);
+    }
+
+    private async registerUserWithGeneratedWallet(
+        ethereumAddress: string,
+        privateKey: string,
+        password: string,
+        language?: Language
+    ): Promise<User> {
+        let user = await this.usersRepository.findByEthereumAddress(ethereumAddress);
+        if (user) {
+            user.privateKey = this.passwordEncoder.encode(password, 12);
+            user = await this.usersRepository.save(user);
+
+            if (!user.preferences) {
+                const userPreferences: UserPreferences = {
+                    id: uuid(),
+                    language: language || Language.ENGLISH,
+                    user
+                };
+                await this.userPreferencesRepository.save(userPreferences)
+            }
+
+        } else {
+            user = {
+                id: uuid(),
+                ethereumAddress,
+                username: ethereumAddress,
+                displayedName: ethereumAddress,
+                privateKey: this.passwordEncoder.encode(password, 12),
+                remote: false,
+                createdAt: new Date()
+            };
+            await this.usersRepository.save(user);
+
+            const userPreferences: UserPreferences = {
+                id: uuid(),
+                user,
+                language: language || Language.ENGLISH
+            };
+            await this.userPreferencesRepository.save(userPreferences);
+        }
+
+        try {
+            await this.passwordHashApiClient.setPasswordHash({
+                address: user.ethereumAddress,
+                passwordHash: user.privateKey, // this is actually a password hash
+                privateKey
+            });
+            return user;
+        } catch (error) {
+            console.log(error);
+            throw error;
+        }
+    }
+
+    private async registerUserByTransactionId(transactionId: string, language?: Language): Promise<User> {
+        try {
+            const passwordHashResponse = (await this.passwordHashApiClient.getPasswordHashByTransaction(transactionId)).data;
+            const {hash, address: ethereumAddress} = passwordHashResponse;
+
+            let user = await this.usersRepository.findByEthereumAddress(ethereumAddress);
+
+            if (!this.passwordEncoder.isHashValid(hash)) {
+                throw new InvalidBCryptHashException(hash, ethereumAddress)
+            }
+
+            if (user) {
+                user.privateKey = hash;
+                user = await this.usersRepository.save(user);
+
+                if (!user.preferences) {
+                    const userPreferences: UserPreferences = {
+                        id: uuid(),
+                        language: language || Language.ENGLISH,
+                        user
+                    };
+                    await this.userPreferencesRepository.save(userPreferences)
+                }
+            } else {
+                user = {
+                    id: uuid(),
+                    ethereumAddress,
+                    username: ethereumAddress,
+                    displayedName: ethereumAddress,
+                    privateKey: hash,
+                    remote: false,
+                    createdAt: new Date()
+                };
+                await this.usersRepository.save(user);
+
+                const userPreferences: UserPreferences = {
+                    id: uuid(),
+                    user,
+                    language: language || Language.ENGLISH
+                };
+                await this.userPreferencesRepository.save(userPreferences);
+            }
+
+            return user;
+        } catch (error) {
+            if (!(error instanceof HttpException)) {
+                console.log(error);
+            }
+
+            throw error;
+        }
+    }
+
+    public async getPreferencesOfCurrentUser(currentUser: User): Promise<UserPreferencesResponse> {
+        const preferences = await this.userPreferencesRepository.findByUser(currentUser);
+        return new UserPreferencesResponse({
+            language: preferences ? preferences.language : Language.ENGLISH
+        });
     }
 
     public async saveUser(createUserRequest: CreateUserRequest): Promise<UserResponse> {
@@ -259,5 +452,60 @@ export class UsersService {
         const whoToFollow = await this.usersRepository.findMostPopularNotIn(users, filters);
 
         return asyncMap(whoToFollow, async user => await this.usersMapper.toUserResponseAsync(user, currentUser));
+    }
+
+    public async recoverPassword(updatePasswordRequest: RecoverPasswordRequest): Promise<UserResponse> {
+        if (updatePasswordRequest.transactionId) {
+            return await this.updatePasswordWithTransactionId(updatePasswordRequest);
+        } else {
+            return await this.updatePasswordWithPrivateKey(updatePasswordRequest);
+        }
+    }
+
+    private async updatePasswordWithPrivateKey(updatePasswordRequest: RecoverPasswordRequest): Promise<UserResponse> {
+        const user = await this.usersRepository.findByEthereumAddress(updatePasswordRequest.walletAddress!);
+
+        if (!user) {
+            throw new HttpException(
+                `Could not find user with address ${updatePasswordRequest.walletAddress!}`,
+                HttpStatus.NOT_FOUND
+            )
+        }
+
+        user.privateKey = this.passwordEncoder.encode(updatePasswordRequest.password!);
+
+        await this.passwordHashApiClient.setPasswordHash({
+            address: user.ethereumAddress,
+            privateKey: updatePasswordRequest.privateKey!,
+            passwordHash: user.privateKey
+        });
+
+        await this.usersRepository.save(user);
+
+        return await this.usersMapper.toUserResponseAsync(user);
+    }
+
+    private async updatePasswordWithTransactionId(updatePasswordRequest: RecoverPasswordRequest): Promise<UserResponse> {
+        const transactionId = updatePasswordRequest.transactionId!;
+        const getHashResponse = (await this.passwordHashApiClient.getPasswordHashByTransaction(transactionId)).data;
+
+        if (!this.passwordEncoder.isHashValid(getHashResponse.hash)) {
+            throw new InvalidBCryptHashException(getHashResponse.hash, getHashResponse.address);
+        }
+
+        const user = await this.usersRepository.findByEthereumAddress(getHashResponse.address);
+
+        if (!user) {
+            throw new HttpException(
+                `Could not find user with ${getHashResponse.address} address`,
+                HttpStatus.NOT_FOUND
+            );
+        }
+
+        user.privateKey = getHashResponse.hash;
+
+        await this.usersRepository.save(user);
+
+        return await this.usersMapper.toUserResponseAsync(user);
     }
 }

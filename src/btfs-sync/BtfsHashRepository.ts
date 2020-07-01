@@ -31,4 +31,8 @@ export class BtfsHashRepository extends Repository<BtfsHash> {
             }
         });
     }
+
+    public countAll(): Promise<number> {
+        return this.count();
+    }
 }

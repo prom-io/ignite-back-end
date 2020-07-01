@@ -21,9 +21,14 @@ import {MediaAttachmentsModule} from "../media-attachments";
 import {DefaultAccountProviderModule} from "../default-account-provider/DefaultAccountProviderModule";
 import {BtfsHashRepository} from "../btfs-sync/BtfsHashRepository";
 import {PushNotificationsModule} from "../push-notifications/PushNotificationsModule";
+import {HashTagsRepository} from "./HashTagsRepository";
+import {HashTagsRetriever} from "./HashTagsRetriever";
+import {TopicsController} from "./TopicsController";
+import {TopicsService} from "./TopicsService";
+import {HashTagsMapper} from "./HashTagsMapper";
 
 @Module({
-    controllers: [StatusesController, TimelineController],
+    controllers: [StatusesController, TimelineController, TopicsController],
     providers: [
         StatusesService,
         StatusesMapper,
@@ -32,6 +37,9 @@ import {PushNotificationsModule} from "../push-notifications/PushNotificationsMo
         StatusEntityEventsSubscriber,
         StatusLikeEntityEventsSubscriber,
         StatusMappingOptionsProvider,
+        HashTagsRetriever,
+        TopicsService,
+        HashTagsMapper
     ],
     imports: [
         TypeOrmModule.forFeature([
@@ -42,6 +50,7 @@ import {PushNotificationsModule} from "../push-notifications/PushNotificationsMo
             UserStatisticsRepository,
             MediaAttachmentsRepository,
             BtfsHashRepository,
+            HashTagsRepository,
         ]),
         UserSubscriptionsModule,
         MicrobloggingBlockchainApiModule,
@@ -50,7 +59,7 @@ import {PushNotificationsModule} from "../push-notifications/PushNotificationsMo
         forwardRef(() => UsersModule),
         forwardRef(() => PushNotificationsModule)
     ],
-    exports: [StatusesService, StatusesMapper]
+    exports: [StatusesService, StatusesMapper, HashTagsRetriever]
 })
 export class StatusesModule {
 }

@@ -72,4 +72,22 @@ export class UserSubscriptionsRepository extends Repository<UserSubscription> {
             }
         })) !== 0;
     }
+
+    public async countBySubscribedUserAndNotReverted(subscribedUser: User): Promise<number> {
+        return this.count({
+            where: {
+                subscribedUser,
+                reverted: false
+            }
+        });
+    }
+
+    public async countBySubscribedToAndNotReverted(subscribedTo: User): Promise<number> {
+        return this.count({
+            where: {
+                subscribedTo,
+                reverted: false
+            }
+        });
+    }
 }

@@ -12,6 +12,7 @@ import {
 import {User} from "../../users/entities/User";
 import {MediaAttachment} from "../../media-attachments/entities";
 import {StatusReferenceType} from "./StatusReferenceType";
+import {HashTag} from "./HashTag";
 
 @Entity()
 @Tree("materialized-path")
@@ -56,4 +57,8 @@ export class Status {
 
     @Column({nullable: true})
     peerWallet?: string;
+
+    @ManyToMany(() => HashTag, {eager: true})
+    @JoinTable()
+    hashTags: HashTag[];
 }

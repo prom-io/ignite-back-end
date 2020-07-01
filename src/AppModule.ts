@@ -15,6 +15,10 @@ import {MediaAttachmentsModule} from "./media-attachments";
 import {SkynetModule} from "./skynet";
 import {BtfsModule} from "./btfs-sync";
 import {DefaultAccountProviderModule} from "./default-account-provider/DefaultAccountProviderModule";
+import {WalletGeneratorModule} from "./wallet-generator";
+import {PasswordHashApiModule} from "./password-hash-api";
+import {PasswordHashGeneratorModule} from "./passsword-hash-generator";
+import {StatisticsModule} from "./statistics";
 
 @Module({
     imports: [
@@ -30,6 +34,10 @@ import {DefaultAccountProviderModule} from "./default-account-provider/DefaultAc
         MediaAttachmentsModule,
         SkynetModule,
         BtfsModule,
+        WalletGeneratorModule,
+        PasswordHashApiModule,
+        PasswordHashGeneratorModule,
+        StatisticsModule,
         TypeOrmModule.forRoot({
             type: "postgres",
             database: config.DATABASE_NAME,
