@@ -4,6 +4,7 @@ import {LoggerService} from "nest-logger";
 import {Connection, EntitySubscriberInterface, InsertEvent} from "typeorm";
 import path from "path";
 import {readFileSync} from "fs";
+import {promises} from "fs";
 import {Status} from "./entities";
 import {HashTagsRepository} from "./HashTagsRepository";
 import {UserStatisticsRepository} from "../users";
@@ -62,20 +63,19 @@ export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<S
             await asyncForEach(event.entity.mediaAttachments, async mediaAttachment => {
                 this.log.info(`Saving media attachment ${mediaAttachment.id} to BTFS`);
                 const filePath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, mediaAttachment.name);
-                try {
-                    await this.btfsClient.uploadFile({
-                        id: mediaAttachment.id,
-                        peerIp: this.ipAddressProvider.getGlobalIpAddress(),
-                        peerWallet: (await this.accountService.getDefaultAccount()).address,
-                        file: {
-                            buffer: readFileSync(filePath)
-                        }
+                this.btfsClient.uploadFile({
+                    id: mediaAttachment.id,
+                    peerIp: this.ipAddressProvider.getGlobalIpAddress(),
+                    peerWallet: (await this.accountService.getDefaultAccount()).address,
+                    file: {
+                        buffer: await promises.readFile(filePath)
+                    }
+                })
+                    .then(() => this.log.info(`Media attachment ${mediaAttachment.id} has been saved to BTFS`))
+                    .catch(error => {
+                        this.log.error(`Error occurred when tried to save media attachment ${mediaAttachment.id} to BTFS`);
+                        console.log(error);
                     });
-                    this.log.info(`Media attachment ${mediaAttachment.id} has been saved to BTFS`);
-                } catch (error) {
-                    this.log.error(`Error occurred when tried to save media attachment ${mediaAttachment.id} to BTFS`);
-                    console.log(error);
-                }
             });
             this.btfsClient.saveStatus({
                 id: event.entity.id,
