@@ -6,6 +6,7 @@ import {StatusesRepository} from "../statuses/StatusesRepository";
 import {StatusLikesRepository} from "../statuses/StatusLikesRepository";
 import {BtfsHashRepository} from "../btfs-sync/BtfsHashRepository";
 import {UsersRepository} from "../users";
+import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 
 @Module({
     controllers: [StatisticsController],
@@ -15,7 +16,9 @@ import {UsersRepository} from "../users";
             StatusesRepository,
             StatusLikesRepository,
             BtfsHashRepository,
-            UsersRepository
+            UsersRepository,
+            StatusLikesRepository,
+            UserSubscriptionsRepository
         ])
     ]
 

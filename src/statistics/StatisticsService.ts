@@ -2,12 +2,15 @@ import {Injectable} from "@nestjs/common";
 import {LoggerService} from "nest-logger";
 import {differenceInMinutes} from "date-fns";
 import {subDays, subMonths} from "date-fns";
+import {uniqBy} from "lodash";
 import {UsersRepository} from "../users";
 import {BtfsHashRepository} from "../btfs-sync/BtfsHashRepository";
 import {IgniteStatisticsResponse} from "./types/response";
 import {StatusesRepository} from "../statuses/StatusesRepository";
 import {StatusLikesRepository} from "../statuses/StatusLikesRepository";
 import {StatusReferenceType} from "../statuses/entities";
+import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
+import {User} from "../users/entities";
 
 @Injectable()
 export class StatisticsService {
@@ -18,6 +21,7 @@ export class StatisticsService {
                 private readonly btfsHashRepository: BtfsHashRepository,
                 private readonly statusesRepository: StatusesRepository,
                 private readonly statusLikesRepository: StatusLikesRepository,
+                private readonly userSubscriptionsRepository: UserSubscriptionsRepository,
                 private readonly log: LoggerService) {
     }
 
@@ -36,7 +40,7 @@ export class StatisticsService {
     private async updateStatistics(): Promise<void> {
         this.log.info("Calculating Ignite statistics");
         const usersCount = await this.usersRepository.countAll();
-        const dailyActiveUsersCount = await this.usersRepository.countAllHavingActivityWithinLastDay();
+        // const dailyActiveUsersCount = await this.usersRepository.countAllHavingActivityWithinLastDay();
         const lastMonthUsersCount = await this.usersRepository.countAllByCreatedAtLessAfter(subMonths(new Date(), 1));
         const ddsChunksCount = await this.btfsHashRepository.countAll();
 
@@ -55,8 +59,21 @@ export class StatisticsService {
 
         const weeklyActivitiesCount = lastWeekLikesCount + lastWeekStatusesCount + lastWeekCommentsCount + lastWeekRepostsCount;
 
+        const dayAgo = subDays(new Date(), 1);
+        const statusesForLastDay = await this.statusesRepository.findAllByCreatedAtAfter(dayAgo);
+        const statusLikesForLastDay = await this.statusLikesRepository.findAllByCreatedAtAfter(dayAgo);
+        const userSubscriptionsForLastDay = await this.userSubscriptionsRepository.findAllByCreatedAtAfter(dayAgo);
+
+        let dailyActiveUsers: User[] = [];
+
+        statusesForLastDay.map(status => dailyActiveUsers.push(status.author));
+        statusLikesForLastDay.map(statusLike => dailyActiveUsers.push(statusLike.user));
+        userSubscriptionsForLastDay.map(userSubscription => dailyActiveUsers.push(userSubscription.subscribedUser));
+
+        dailyActiveUsers = uniqBy(dailyActiveUsers, "id");
+
         this.log.debug(`Users count is ${usersCount}`);
-        this.log.debug(`Daily active users count is ${dailyActiveUsersCount}`);
+        this.log.debug(`Daily active users count is ${dailyActiveUsers.length}`);
         this.log.debug(`Last month users count is ${lastMonthUsersCount}`);
         this.log.debug(`DDS chunks count is ${ddsChunksCount}`);
         this.log.debug(`Last week likes count is ${lastWeekLikesCount}`);
@@ -67,7 +84,7 @@ export class StatisticsService {
 
         this.cachedStatistics = new IgniteStatisticsResponse({
             usersCount,
-            dailyActiveUsersCount,
+            dailyActiveUsersCount: dailyActiveUsers.length,
             lastMonthUsersCount,
             ddsChunksCount,
             weeklyActivitiesCount,

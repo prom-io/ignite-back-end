@@ -177,6 +177,14 @@ export class StatusesRepository extends Repository<Status> {
         })
     }
 
+    public findAllByCreatedAtAfter(createdAtAfter: Date): Promise<Status[]> {
+        return this.find({
+            where: {
+                createdAt: MoreThan(createdAtAfter)
+            }
+        });
+    }
+
     public findByCreatedAtAfter(createdAtAfter: Date, paginationRequest: PaginationRequest): Promise<Status[]> {
         return this.find({
             where: {
