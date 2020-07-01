@@ -1,6 +1,6 @@
 import {Injectable} from "@nestjs/common";
-import {Cron, NestSchedule} from "nest-schedule";
 import {LoggerService} from "nest-logger";
+import {differenceInMinutes} from "date-fns";
 import {subDays, subMonths} from "date-fns";
 import {UsersRepository} from "../users";
 import {BtfsHashRepository} from "../btfs-sync/BtfsHashRepository";
@@ -10,20 +10,20 @@ import {StatusLikesRepository} from "../statuses/StatusLikesRepository";
 import {StatusReferenceType} from "../statuses/entities";
 
 @Injectable()
-export class StatisticsService extends NestSchedule {
+export class StatisticsService {
     private cachedStatistics?: IgniteStatisticsResponse = undefined;
+    private lastCalculationDate?: Date = undefined;
 
     constructor(private readonly usersRepository: UsersRepository,
                 private readonly btfsHashRepository: BtfsHashRepository,
                 private readonly statusesRepository: StatusesRepository,
                 private readonly statusLikesRepository: StatusLikesRepository,
                 private readonly log: LoggerService) {
-        super();
     }
 
     public async getStatistics(): Promise<IgniteStatisticsResponse> {
         this.log.debug("Getting Ignite statistics");
-        if (this.cachedStatistics) {
+        if (this.cachedStatistics && this.lastCalculationDate && differenceInMinutes(new Date(), this.lastCalculationDate) < 30) {
             this.log.debug("Getting cached version of Ignite statistics");
             return this.cachedStatistics;
         } else {
@@ -33,8 +33,7 @@ export class StatisticsService extends NestSchedule {
         }
     }
 
-    @Cron("*/30 * * * *", {immediate: true, waiting: true})
-    public async updateStatistics(): Promise<void> {
+    private async updateStatistics(): Promise<void> {
         this.log.info("Calculating Ignite statistics");
         const usersCount = await this.usersRepository.countAll();
         const dailyActiveUsersCount = await this.usersRepository.countAllHavingActivityWithinLastDay();
@@ -74,5 +73,6 @@ export class StatisticsService extends NestSchedule {
             weeklyActivitiesCount,
             transactionsCount: 0
         });
+        this.lastCalculationDate = new Date();
     }
 }
