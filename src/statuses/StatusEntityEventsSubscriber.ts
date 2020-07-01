@@ -17,7 +17,6 @@ import {DefaultAccountProviderService} from "../default-account-provider/Default
 import {BtfsKafkaClient} from "../btfs-sync/BtfsKafkaClient";
 import {PushNotificationsService} from "../push-notifications/PushNotificationsService";
 import {StatusesRepository} from "./StatusesRepository";
-import has = Reflect.has;
 
 @Injectable()
 export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<Status> {
@@ -47,17 +46,13 @@ export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<S
 
         if (event.entity.hashTags && event.entity.hashTags.length !== 0) {
             await asyncForEach(event.entity.hashTags, async hashTag => {
-                console.log(`Increasing posts count for hash tag ${hashTag.name}`)
                 const statusesCount = await this.statusesRepository.countByHashTag(hashTag);
                 hashTag.postsCount = statusesCount + 1;
-                console.log(`Posts count is ${hashTag.postsCount}`);
             });
             await this.hashTagsRepository.save(event.entity.hashTags);
         }
 
         await this.userStatisticsRepository.save(userStatistics);
-
-        this.pushNotificationService.processStatus(event.entity);
 
         if (!event.entity.btfsHash && config.ENABLE_BTFS_PUSHING) {
             if (!config.ENABLE_BTFS_PUSHING) {
@@ -94,5 +89,7 @@ export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<S
                     console.log(error);
                 })
         }
+
+        this.pushNotificationService.processStatus(event.entity);
     }
 }
