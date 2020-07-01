@@ -10,6 +10,7 @@ import {HashTagsMapper} from "./HashTagsMapper";
 import {getLanguageFromString, Language, User} from "../users/entities";
 import {asyncMap} from "../utils/async-map";
 import {StatusLikesRepository} from "./StatusLikesRepository";
+import {max} from "rxjs/operators";
 
 @Injectable()
 export class TopicsService {
@@ -85,9 +86,11 @@ export class TopicsService {
                 );
             } else {
                 const maxCursor = await this.findStatusById(getStatusesRequest.maxId);
-                statuses = await this.statusesRepository.findContainingHashTagsByLanguageAndCreatedAtBeforeOrderByNumberOfLikesForLastWeek(
+                const maxLikes = await this.statusLikesRepository.countByStatus(maxCursor);
+                statuses = await this.statusesRepository.findContainingHashTagsByLanguageAndCreatedAtBeforeAndLikesForLastWeekLessThanOrderByNumberOfLikesForLastWeek(
                     getStatusesRequest.language,
                     maxCursor.createdAt,
+                    maxLikes,
                     {page: 1, pageSize: 30}
                 )
             }
