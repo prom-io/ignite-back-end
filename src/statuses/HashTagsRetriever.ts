@@ -1,5 +1,6 @@
 import {Injectable} from "@nestjs/common";
 import uuid from "uuid/v4";
+import {uniq} from "lodash";
 import {HashTagsRepository} from "./HashTagsRepository";
 import {HashTag} from "./entities";
 import {asyncMap} from "../utils/async-map";
@@ -20,7 +21,7 @@ export class HashTagsRetriever {
     }
 
     public async getHashTagsEntitiesFromText(text: string, language: Language | undefined = Language.ENGLISH): Promise<HashTag[]> {
-        const hashTagsStrings = this.getHashTagsStringsFromText(text);
+        const hashTagsStrings = uniq(this.getHashTagsStringsFromText(text));
 
         if (hashTagsStrings.length === 0) {
             return [];
