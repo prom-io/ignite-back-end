@@ -1,4 +1,5 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
+import {LoggerService} from "nest-logger";
 import {Response} from "express";
 import fileSystem from "fs";
 import path from "path";
@@ -18,7 +19,8 @@ const gm = graphicsMagic.subClass({imageMagick: true});
 export class MediaAttachmentsService {
     constructor(private readonly mediaAttachmentRepository: MediaAttachmentsRepository,
                 private readonly mediaAttachmentsMapper: MediaAttachmentsMapper,
-                private readonly skynetClient: SkynetClient) {
+                private readonly skynetClient: SkynetClient,
+                private readonly log: LoggerService) {
     }
 
     public saveMediaAttachment(multipartFile: MultipartFile): Promise<MediaAttachmentResponse> {
@@ -41,11 +43,6 @@ export class MediaAttachmentsService {
 
                             const permanentFilePath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, `${id}.${file.ext}`);
                             fileSystem.renameSync(temporaryFilePath, permanentFilePath);
-                            let siaLink = null;
-
-                            if (config.ENABLE_UPLOADING_IMAGES_TO_SIA) {
-                                siaLink = await this.skynetClient.uploadFile(permanentFilePath);
-                            }
 
                             const mediaAttachment: MediaAttachment = {
                                 id,
@@ -54,9 +51,24 @@ export class MediaAttachmentsService {
                                 height: size.height,
                                 width: size.width,
                                 name: `${id}.${file.ext}`,
-                                siaLink
+                                siaLink: null
                             };
                             await this.mediaAttachmentRepository.save(mediaAttachment);
+
+                            if (config.ENABLE_UPLOADING_IMAGES_TO_SIA) {
+                                this.skynetClient.uploadFile(permanentFilePath)
+                                    .then(async siaLink => {
+                                        this.log.info(`Media attachment ${mediaAttachment.name} has been uploaded to SIA`);
+                                        this.log.debug(`Media attachment ${mediaAttachment.name} received ${siaLink} SIA link`);
+                                        mediaAttachment.siaLink = siaLink;
+                                        await this.mediaAttachmentRepository.save(mediaAttachment);
+                                    })
+                                    .catch(error => {
+                                        this.log.error(`Error occurred when tried to upload media attachment ${mediaAttachment.name} to SIA`);
+                                        console.log(error);
+                                    });
+                            }
+
                             resolve(this.mediaAttachmentsMapper.toMediaAttachmentResponse(mediaAttachment));
                         })
                 }

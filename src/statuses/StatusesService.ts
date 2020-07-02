@@ -4,8 +4,11 @@ import {CreateStatusRequest} from "./types/request";
 import {StatusResponse} from "./types/response";
 import {StatusesMapper} from "./StatusesMapper";
 import {Status, StatusReferenceType} from "./entities";
+import {FeedService} from "./FeedService";
 import {FeedCursors} from "./types/request/FeedCursors";
-import {User} from "../users/entities";
+import {HashTagsRepository} from "./HashTagsRepository";
+import {HashTagsRetriever} from "./HashTagsRetriever";
+import {Language, User} from "../users/entities";
 import {UsersRepository} from "../users/UsersRepository";
 import {PaginationRequest} from "../utils/pagination";
 import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
@@ -17,6 +20,9 @@ export class StatusesService {
     constructor(private readonly statusesRepository: StatusesRepository,
                 private readonly usersRepository: UsersRepository,
                 private readonly mediaAttachmentRepository: MediaAttachmentsRepository,
+                private readonly hashTagsRepository: HashTagsRepository,
+                private readonly hashTagsRetriever: HashTagsRetriever,
+                private readonly feedService: FeedService,
                 private readonly statusesMapper: StatusesMapper) {
     }
 
@@ -45,11 +51,17 @@ export class StatusesService {
             referredStatus = referredStatus.referredStatus;
         }
 
+        const hashTags = await this.hashTagsRetriever.getHashTagsEntitiesFromText(
+            createStatusRequest.status,
+            (currentUser.preferences && currentUser.preferences.language) ? currentUser.preferences.language : Language.ENGLISH
+        );
+
         let status = this.statusesMapper.fromCreateStatusRequest(
             createStatusRequest,
             currentUser,
             mediaAttachments,
-            referredStatus,
+            hashTags,
+            referredStatus
         );
         status = await this.statusesRepository.save(status);
 
@@ -105,7 +117,13 @@ export class StatusesService {
             statuses = await this.statusesRepository.findByAuthor(user, paginationRequest);
         }
 
-        return asyncMap(statuses, status => this.statusesMapper.toStatusResponseAsync(status, currentUser))
+        const statusInfoMap = await this.statusesRepository.getStatusesAdditionalInfoMap(statuses, currentUser);
+
+        return asyncMap(statuses, status => this.statusesMapper.toStatusResponseByStatusInfo(
+            status,
+            statusInfoMap[status.id],
+            status.referredStatus && statusInfoMap[status.referredStatus.id]
+        ));
     }
 
     public async findCommentsOfStatus(statusId: string, cursors: FeedCursors, currentUser?: User): Promise<StatusResponse[]> {
@@ -158,7 +176,16 @@ export class StatusesService {
             );
         }
 
-        return asyncMap(statuses, comment => this.statusesMapper.toStatusResponseAsync(comment, currentUser));
+        const statusInfoMap = await this.statusesRepository.getStatusesAdditionalInfoMap(statuses, currentUser);
+
+        return asyncMap(
+            statuses,
+            comment => this.statusesMapper.toStatusResponseByStatusInfo(
+                comment,
+                statusInfoMap[comment.id],
+                comment.referredStatus && statusInfoMap[comment.referredStatus.id]
+            )
+        );
     }
 
     private async findStatusEntityById(id: string): Promise<Status> {

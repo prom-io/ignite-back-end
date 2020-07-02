@@ -1,6 +1,6 @@
 import {
     Column,
-    Entity,
+    Entity, Index,
     JoinTable,
     ManyToMany,
     ManyToOne,
@@ -12,6 +12,7 @@ import {
 import {User} from "../../users/entities/User";
 import {MediaAttachment} from "../../media-attachments/entities";
 import {StatusReferenceType} from "./StatusReferenceType";
+import {HashTag} from "./HashTag";
 
 @Entity()
 @Tree("materialized-path")
@@ -23,6 +24,7 @@ export class Status {
     text?: string;
 
     @ManyToOne(type => User, {eager: true})
+    @Index()
     author: User;
 
     @Column()
@@ -39,12 +41,15 @@ export class Status {
     mediaAttachments: MediaAttachment[];
 
     @Column({nullable: true})
+    @Index()
     btfsHash?: string = undefined;
 
     @TreeParent()
+    @Index()
     referredStatus?: Status;
 
     @Column({nullable: true, type: "varchar", enum: StatusReferenceType})
+    @Index()
     statusReferenceType?: StatusReferenceType;
 
     @Column({nullable: true})
@@ -52,4 +57,8 @@ export class Status {
 
     @Column({nullable: true})
     peerWallet?: string;
+
+    @ManyToMany(() => HashTag, {eager: true})
+    @JoinTable()
+    hashTags: HashTag[];
 }

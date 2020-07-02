@@ -4,8 +4,8 @@ import {StatusLikesRepository} from "./StatusLikesRepository";
 import {StatusesMapper} from "./StatusesMapper";
 import {StatusResponse} from "./types/response";
 import {FeedCursors} from "./types/request/FeedCursors";
-import {Status} from "./entities";
-import {User} from "../users/entities";
+import {Status, StatusInfoMap} from "./entities";
+import {getLanguageFromString, User} from "../users/entities";
 import {PaginationRequest} from "../utils/pagination";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {UsersRepository, UserStatisticsRepository} from "../users";
@@ -57,13 +57,13 @@ export class FeedService {
             statuses = await this.statusesRepository.findByAuthorIn(authors, paginationRequest);
         }
 
-        return this.mapStatusesToStatusesResponse(statuses, currentUser)
+        const statusInfoMap = await this.statusesRepository.getStatusesAdditionalInfoMap(statuses, currentUser);
+
+        return this.mapStatusesToStatusesResponseByStatusInfo(statuses, statusInfoMap);
     }
 
     public async getGlobalFeed(feedCursors: FeedCursors, currentUser?: User, language?: string): Promise<StatusResponse[]> {
-        if (language) {
-            language = language === "ko" || language === "en" ? language : "en";
-        }
+        language = getLanguageFromString(language);
 
         const paginationRequest: PaginationRequest = {
             page: 1,
@@ -85,6 +85,10 @@ export class FeedService {
             if (filteringUser) {
                 displayedUsers = (await this.userSubscriptionRepository.findAllBySubscribedUserNotReverted(filteringUser))
                     .map(subscription => subscription.subscribedTo);
+            }
+
+            if (currentUser) {
+                displayedUsers.push(currentUser);
             }
         }
 
@@ -145,7 +149,17 @@ export class FeedService {
             }
         }
 
-        return this.mapStatusesToStatusesResponse(statuses, currentUser);
+        const statusInfoMap = await this.statusesRepository.getStatusesAdditionalInfoMap(statuses, currentUser);
+
+        return this.mapStatusesToStatusesResponseByStatusInfo(statuses, statusInfoMap);
+    }
+
+    private async mapStatusesToStatusesResponseByStatusInfo(statuses: Status[], statusInfoMap: StatusInfoMap): Promise<StatusResponse[]> {
+        return asyncMap(statuses, status => this.statusesMapper.toStatusResponseByStatusInfo(
+            status,
+            statusInfoMap[status.id],
+            status.referredStatus && statusInfoMap[status.referredStatus.id]
+        ))
     }
 
     private async mapStatusesToStatusesResponse(statuses: Status[], currentUser?: User): Promise<StatusResponse[]> {

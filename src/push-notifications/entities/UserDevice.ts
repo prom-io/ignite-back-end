@@ -11,4 +11,7 @@ export class UserDevice {
 
     @Column()
     fcmToken: string;
+
+    @Column()
+    fcmTokenExpired?: boolean;
 }

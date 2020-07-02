@@ -7,7 +7,8 @@ export class UserDevicesRepository extends Repository<UserDevice>{
     public findByUser(user: User): Promise<UserDevice[]> {
         return this.find({
             where: {
-                user
+                user,
+                fcmTokenExpired: false
             }
         });
     }

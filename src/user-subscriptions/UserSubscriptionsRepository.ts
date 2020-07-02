@@ -1,4 +1,4 @@
-import {EntityRepository, Repository} from "typeorm";
+import {EntityRepository, MoreThan, Repository} from "typeorm";
 import {UserSubscription} from "./entities";
 import {User} from "../users/entities";
 import {calculateOffset, PaginationRequest} from "../utils/pagination";
@@ -10,7 +10,15 @@ export class UserSubscriptionsRepository extends Repository<UserSubscription> {
             where: {
                 id
             }
-        })
+        });
+    }
+
+    public findAllByCreatedAtAfter(createdAtAfter: Date): Promise<UserSubscription[]> {
+        return this.find({
+            where: {
+                createdAt: MoreThan(createdAtAfter)
+            }
+        });
     }
 
     public findBySubscribedToNotReverted(subscribedTo: User, paginationRequest: PaginationRequest): Promise<UserSubscription[]> {
@@ -71,5 +79,23 @@ export class UserSubscriptionsRepository extends Repository<UserSubscription> {
                 reverted: false
             }
         })) !== 0;
+    }
+
+    public async countBySubscribedUserAndNotReverted(subscribedUser: User): Promise<number> {
+        return this.count({
+            where: {
+                subscribedUser,
+                reverted: false
+            }
+        });
+    }
+
+    public async countBySubscribedToAndNotReverted(subscribedTo: User): Promise<number> {
+        return this.count({
+            where: {
+                subscribedTo,
+                reverted: false
+            }
+        });
     }
 }

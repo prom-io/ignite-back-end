@@ -2,6 +2,7 @@ import {AfterLoad, Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, P
 import {UserDynamicFields} from "./UserDynamicFields";
 import {UserPreferences} from "./UserPreferences";
 import {MediaAttachment} from "../../media-attachments/entities";
+import {UserStatistics} from "./UserStatistics";
 
 interface IUserPlainObject {
     id: string;
@@ -75,6 +76,9 @@ export class User {
         {eager: true, cascade: true}
         )
     dynamicFields: UserDynamicFields[];
+
+    @OneToOne(() => UserStatistics, userStatistics => userStatistics.user, {nullable: true, eager: true})
+    statistics?: UserStatistics;
 
     latestDynamicFields?: UserDynamicFields;
 

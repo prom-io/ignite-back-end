@@ -1,4 +1,4 @@
-import {Column, Entity, ManyToOne, PrimaryColumn} from "typeorm";
+import {Column, Entity, Index, ManyToOne, PrimaryColumn} from "typeorm";
 import {User} from "../../users/entities";
 
 @Entity()
@@ -7,9 +7,11 @@ export class UserSubscription {
     id: string;
 
     @ManyToOne(type => User, {eager: true})
+    @Index()
     subscribedUser: User;
 
     @ManyToOne(type => User, {eager: true})
+    @Index()
     subscribedTo: User;
 
     @Column()

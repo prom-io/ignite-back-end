@@ -4,7 +4,9 @@ import {LoggerService} from "nest-logger";
 import {Connection, EntitySubscriberInterface, InsertEvent} from "typeorm";
 import path from "path";
 import {readFileSync} from "fs";
+import {promises} from "fs";
 import {Status} from "./entities";
+import {HashTagsRepository} from "./HashTagsRepository";
 import {UserStatisticsRepository} from "../users";
 import {MicrobloggingBlockchainApiClient} from "../microblogging-blockchain-api";
 import {BtfsHttpClient} from "../btfs-sync/BtfsHttpClient";
@@ -15,11 +17,14 @@ import {IpAddressProvider} from "../btfs-sync/IpAddressProvider";
 import {DefaultAccountProviderService} from "../default-account-provider/DefaultAccountProviderService";
 import {BtfsKafkaClient} from "../btfs-sync/BtfsKafkaClient";
 import {PushNotificationsService} from "../push-notifications/PushNotificationsService";
+import {StatusesRepository} from "./StatusesRepository";
 
 @Injectable()
 export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<Status> {
     constructor(@InjectConnection() private readonly connection: Connection,
+                private readonly statusesRepository: StatusesRepository,
                 private readonly userStatisticsRepository: UserStatisticsRepository,
+                private readonly hashTagsRepository: HashTagsRepository,
                 private readonly microbloggingBlockchainApiClient: MicrobloggingBlockchainApiClient,
                 private readonly btfsClient: BtfsKafkaClient,
                 private readonly btfsHttpClient: BtfsHttpClient,
@@ -39,9 +44,16 @@ export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<S
         const author = event.entity.author;
         const userStatistics = await this.userStatisticsRepository.findByUser(author);
         userStatistics.statusesCount += 1;
-        await this.userStatisticsRepository.save(userStatistics);
 
-        this.pushNotificationService.processStatus(event.entity);
+        if (event.entity.hashTags && event.entity.hashTags.length !== 0) {
+            await asyncForEach(event.entity.hashTags, async hashTag => {
+                const statusesCount = await this.statusesRepository.countByHashTag(hashTag);
+                hashTag.postsCount = statusesCount + 1;
+            });
+            await this.hashTagsRepository.save(event.entity.hashTags);
+        }
+
+        await this.userStatisticsRepository.save(userStatistics);
 
         if (!event.entity.btfsHash && config.ENABLE_BTFS_PUSHING) {
             if (!config.ENABLE_BTFS_PUSHING) {
@@ -51,20 +63,19 @@ export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<S
             await asyncForEach(event.entity.mediaAttachments, async mediaAttachment => {
                 this.log.info(`Saving media attachment ${mediaAttachment.id} to BTFS`);
                 const filePath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, mediaAttachment.name);
-                try {
-                    await this.btfsClient.uploadFile({
-                        id: mediaAttachment.id,
-                        peerIp: this.ipAddressProvider.getGlobalIpAddress(),
-                        peerWallet: (await this.accountService.getDefaultAccount()).address,
-                        file: {
-                            buffer: readFileSync(filePath)
-                        }
+                this.btfsClient.uploadFile({
+                    id: mediaAttachment.id,
+                    peerIp: this.ipAddressProvider.getGlobalIpAddress(),
+                    peerWallet: (await this.accountService.getDefaultAccount()).address,
+                    file: {
+                        buffer: await promises.readFile(filePath)
+                    }
+                })
+                    .then(() => this.log.info(`Media attachment ${mediaAttachment.id} has been saved to BTFS`))
+                    .catch(error => {
+                        this.log.error(`Error occurred when tried to save media attachment ${mediaAttachment.id} to BTFS`);
+                        console.log(error);
                     });
-                    this.log.info(`Media attachment ${mediaAttachment.id} has been saved to BTFS`);
-                } catch (error) {
-                    this.log.error(`Error occurred when tried to save media attachment ${mediaAttachment.id} to BTFS`);
-                    console.log(error);
-                }
             });
             this.btfsClient.saveStatus({
                 id: event.entity.id,
@@ -78,5 +89,7 @@ export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<S
                     console.log(error);
                 })
         }
+
+        this.pushNotificationService.processStatus(event.entity);
     }
 }

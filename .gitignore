@@ -36,3 +36,4 @@ lerna-debug.log*
 .env
 storage/
 firebase-config.json
+accounts-to-subscribe.json

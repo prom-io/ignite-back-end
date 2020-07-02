@@ -26,15 +26,6 @@ export class UserEntityEventsSubscriber implements EntitySubscriberInterface<Use
     }
 
     public async afterInsert(event: InsertEvent<User>): Promise<void> {
-        const userStatistics: UserStatistics = {
-            id: uuid(),
-            followsCount: 0,
-            followersCount: 0,
-            statusesCount: 0,
-            user: event.entity
-        };
-        await event.manager.getRepository(UserStatistics).save(userStatistics);
-
         if (config.ENABLE_BTFS_PUSHING) {
             this.log.info(`Saving user ${event.entity.id} to BTFS`);
             this.btfsKafkaClient.saveUser({

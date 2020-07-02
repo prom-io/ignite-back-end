@@ -31,7 +31,7 @@ export class UsersMapper {
 
     public toUserResponse(
         user: User,
-        userStatistics?: UserStatistics,
+        userStatistics?: UserStatistics | Omit<UserStatistics, "user">,
         following: boolean = false,
         followedBy: boolean = false,
         includePasswordHash: boolean = false

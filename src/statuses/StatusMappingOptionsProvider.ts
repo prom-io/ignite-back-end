@@ -1,5 +1,5 @@
 import {Injectable} from "@nestjs/common";
-import {Status} from "./entities";
+import {Status, StatusAdditionalInfo} from "./entities";
 import {ToStatusResponseOptions} from "./StatusesMapper";
 import {StatusesRepository} from "./StatusesRepository";
 import {StatusLikesRepository} from "./StatusLikesRepository";
@@ -16,6 +16,35 @@ export class StatusMappingOptionsProvider {
                 private readonly userStatisticsRepository: UserStatisticsRepository,
                 private readonly btfsHashRepository: BtfsHashRepository) {
 
+    }
+
+    public async getStatusMappingOptionsByStatusInfo(
+        status: Status,
+        statusInfo: StatusAdditionalInfo,
+        mapReferredStatusOptions?: ToStatusResponseOptions
+    ): Promise<ToStatusResponseOptions> {
+        const favouritesCount = statusInfo.likesCount;
+        const favourited = statusInfo.likedByCurrentUser;
+        const followingAuthor = statusInfo.currentUserFollowsAuthor;
+        const followedByAuthor = statusInfo.currentUserFollowedByAuthor;
+        const userStatistics = status.author.statistics!;
+        const repostsCount = statusInfo.repostsCount;
+        const commentsCount = statusInfo.commentsCount;
+        const canBeReposted = true;
+
+        return {
+            status,
+            favourited,
+            favouritesCount,
+            followedByAuthor,
+            followingAuthor,
+            userStatistics,
+            repostsCount,
+            commentsCount,
+            canBeReposted,
+            mapReferredStatus: Boolean(mapReferredStatusOptions),
+            referredStatusOptions: mapReferredStatusOptions
+        }
     }
 
     public async getStatusMappingOptions(

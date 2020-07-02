@@ -102,4 +102,7 @@ export class EnvConfig {
 
     @Env({type: "boolean", required: false})
     ENABLE_UPLOADING_IMAGES_TO_SIA: boolean = true;
+
+    @Env({type: "boolean", required: false})
+    ENABLE_ACCOUNTS_SUBSCRIPTION_UPON_SIGN_UP: boolean = false;
 }
