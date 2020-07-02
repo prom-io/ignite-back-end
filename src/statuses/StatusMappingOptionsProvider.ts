@@ -1,5 +1,5 @@
 import {Injectable} from "@nestjs/common";
-import {Status, StatusAdditionalInfo} from "./entities";
+import {Status, StatusAdditionalInfo, StatusReferenceType} from "./entities";
 import {ToStatusResponseOptions} from "./StatusesMapper";
 import {StatusesRepository} from "./StatusesRepository";
 import {StatusLikesRepository} from "./StatusLikesRepository";
@@ -30,7 +30,7 @@ export class StatusMappingOptionsProvider {
         const userStatistics = status.author.statistics!;
         const repostsCount = statusInfo.repostsCount;
         const commentsCount = statusInfo.commentsCount;
-        const canBeReposted = true;
+        const canBeReposted = !statusInfo.repostedByCurrentUser;
 
         return {
             status,
@@ -69,7 +69,11 @@ export class StatusMappingOptionsProvider {
         const repostsCount = await this.statusesRepository.countReposts(status);
         const commentsCount = await this.statusesRepository.countComments(status);
         const btfsHash = status.btfsHash && await this.btfsHashRepository.findByBtfsCid(status.btfsHash);
-        const canBeReposted = true;
+        const canBeReposted = !Boolean(currentUser && await this.statusesRepository.existByReferredStatusAndReferenceTypeAndAuthor(
+            status,
+            StatusReferenceType.REPOST,
+            currentUser
+        ));
 
         return {
             status,
