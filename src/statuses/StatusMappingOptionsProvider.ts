@@ -30,7 +30,13 @@ export class StatusMappingOptionsProvider {
         const userStatistics = status.author.statistics!;
         const repostsCount = statusInfo.repostsCount;
         const commentsCount = statusInfo.commentsCount;
-        const canBeReposted = !statusInfo.repostedByCurrentUser;
+        let canBeReposted = !statusInfo.repostedByCurrentUser;
+
+        if (statusInfo.referredStatusRepostedByCurrentUser) {
+            canBeReposted = canBeReposted && (
+                !((!Boolean(status.text) || status.text.trim().length === 0) && status.mediaAttachments.length === 0)
+            )
+        }
 
         return {
             status,
@@ -69,11 +75,21 @@ export class StatusMappingOptionsProvider {
         const repostsCount = await this.statusesRepository.countReposts(status);
         const commentsCount = await this.statusesRepository.countComments(status);
         const btfsHash = status.btfsHash && await this.btfsHashRepository.findByBtfsCid(status.btfsHash);
-        const canBeReposted = !Boolean(currentUser && await this.statusesRepository.existByReferredStatusAndReferenceTypeAndAuthor(
+        let canBeReposted = !Boolean(currentUser && await this.statusesRepository.existByReferredStatusAndReferenceTypeAndAuthor(
             status,
             StatusReferenceType.REPOST,
             currentUser
         ));
+
+        if (status.referredStatus) {
+            canBeReposted = canBeReposted && currentUser
+                && await this.statusesRepository.existByReferredStatusAndReferenceTypeAndAuthor(
+                    status.referredStatus,
+                    StatusReferenceType.REPOST,
+                    currentUser
+                )
+                && !((!Boolean(status.text) || status.text.trim().length === 0) && status.mediaAttachments.length === 0)
+        }
 
         return {
             status,

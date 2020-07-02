@@ -419,7 +419,17 @@ export class StatusesRepository extends Repository<Status> {
                         .select("count(distinct(id))", "current_user_reposts_count")
                         .from(Status, "compared_status")
                         .where(`"authorId" = :currentUserId`, {currentUserId: currentUser.id})
+                        .andWhere(`"referredStatusId" is not null`)
                         .andWhere(`"referredStatusId" = status.id`)
+                        .andWhere(`"statusReferenceType" = 'REPOST'`)
+                )
+                .addSelect(
+                    subquery => subquery
+                        .select("count(distinct(id))", "current_user_referred_status_reposts_count")
+                        .from(Status, "compared_status")
+                        .where(`"authorId" = :currentUserId`, {currentUserId: currentUser.id})
+                        .andWhere(`"referredStatusId" is not null`)
+                        .andWhere(`"referredStatusId" = status."referredStatusId"`)
                         .andWhere(`"statusReferenceType" = 'REPOST'`)
                 )
                 .addSelect(
@@ -451,7 +461,8 @@ export class StatusesRepository extends Repository<Status> {
             currentUserFollowedByAuthor: currentUser && Boolean(Number(raw.subscriptions_of_status_author_to_current_user_count)),
             likedByCurrentUser: currentUser && Boolean(Number(raw.current_user_likes_count)),
             commentedByCurrentUser: currentUser && Boolean(Number(raw.current_user_comments_count)),
-            repostedByCurrentUser: currentUser && Boolean(Number(raw.current_user_reposts_count))
+            repostedByCurrentUser: currentUser && Boolean(Number(raw.current_user_reposts_count)),
+            referredStatusRepostedByCurrentUser: currentUser && Boolean(Number(raw.current_user_referred_status_reposts_count))
         }))
     }
 
