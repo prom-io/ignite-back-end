@@ -53,3 +53,5 @@ volumes:
     external:
       name: ${PGDATA_EXTERNAL_VOLUME}
   media-attachments:
+    external:
+      name: ${MEDIA_ATTACHMENTS_VOLUME}
