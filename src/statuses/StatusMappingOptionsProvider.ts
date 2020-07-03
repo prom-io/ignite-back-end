@@ -31,6 +31,7 @@ export class StatusMappingOptionsProvider {
         const repostsCount = statusInfo.repostsCount;
         const commentsCount = statusInfo.commentsCount;
         let canBeReposted = !statusInfo.repostedByCurrentUser;
+        const reposted = statusInfo.repostedByCurrentUser;
 
         if (statusInfo.referredStatusRepostedByCurrentUser) {
             canBeReposted = canBeReposted && (
@@ -49,7 +50,8 @@ export class StatusMappingOptionsProvider {
             commentsCount,
             canBeReposted,
             mapReferredStatus: Boolean(mapReferredStatusOptions),
-            referredStatusOptions: mapReferredStatusOptions
+            referredStatusOptions: mapReferredStatusOptions,
+            reposted
         }
     }
 
@@ -75,11 +77,12 @@ export class StatusMappingOptionsProvider {
         const repostsCount = await this.statusesRepository.countReposts(status);
         const commentsCount = await this.statusesRepository.countComments(status);
         const btfsHash = status.btfsHash && await this.btfsHashRepository.findByBtfsCid(status.btfsHash);
-        let canBeReposted = !Boolean(currentUser && await this.statusesRepository.existByReferredStatusAndReferenceTypeAndAuthor(
+        const reposted = Boolean(currentUser && await this.statusesRepository.existByReferredStatusAndReferenceTypeAndAuthor(
             status,
             StatusReferenceType.REPOST,
             currentUser
         ));
+        let canBeReposted = !reposted;
 
         if (status.referredStatus) {
             canBeReposted = canBeReposted && currentUser
@@ -103,7 +106,8 @@ export class StatusMappingOptionsProvider {
             repostsCount,
             commentsCount,
             btfsHash: btfsHash && btfsHash.peerIp && btfsHash.peerWallet ? btfsHash : null,
-            canBeReposted
+            canBeReposted,
+            reposted
         }
     }
 }
