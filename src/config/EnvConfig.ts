@@ -105,4 +105,13 @@ export class EnvConfig {
 
     @Env({type: "boolean", required: false})
     ENABLE_ACCOUNTS_SUBSCRIPTION_UPON_SIGN_UP: boolean = false;
+
+    @Env({type: "boolean", required: false})
+    ENABLE_PINNED_STATUSES_FOR_UNAUTHORIZED_USERS: boolean = false;
+
+    @Env({type: "string", required: false})
+    ENGLISH_PINNED_STATUS_ID: string | undefined = undefined;
+
+    @Env({type: "string", required: false})
+    KOREAN_PINNED_STATUS_ID: string | undefined = undefined;
 }
