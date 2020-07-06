@@ -15,7 +15,7 @@ services:
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
       - POSTGRES_DB=${DATABASE_NAME}
     ports:
-      - "5433:5433"
+      - "5433:5432"
     restart: unless-stopped
   backend:
     build:
