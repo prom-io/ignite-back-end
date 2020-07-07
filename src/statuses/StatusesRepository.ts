@@ -4,6 +4,7 @@ import {subDays} from "date-fns";
 import {Language, User, UserStatistics} from "../users/entities";
 import {calculateOffset, PaginationRequest} from "../utils/pagination";
 import {UserSubscription} from "../user-subscriptions/entities";
+import {map} from "rxjs/operators";
 
 @EntityRepository(Status)
 export class StatusesRepository extends Repository<Status> {
@@ -92,6 +93,7 @@ export class StatusesRepository extends Repository<Status> {
     }
 
     public findByAuthorIn(authors: User[], paginationRequest: PaginationRequest): Promise<Status[]> {
+
         return this.find({
             where: {
                 author: {
@@ -105,6 +107,20 @@ export class StatusesRepository extends Repository<Status> {
             take: paginationRequest.pageSize,
             relations: ["referredStatus"]
         })
+    }
+
+    public findByAuthorInAndHashTagsIn(authors: User[], hashTags: HashTag[], paginationRequest: PaginationRequest): Promise<Status[]> {
+        if (hashTags.length === 0) {
+            return this.findByAuthorIn(authors, paginationRequest);
+        }
+
+        return this.createStatusQueryBuilder()
+            .where(`status."authorId" in (:...authors) `, {authors: authors.map(user => user.id)})
+            .orWhere(`"status_filteredHashTag"."hashTagId" in (:...hashTags)`, {hashTags: hashTags.map(hashTag => hashTag.id)})
+            .orderBy(`status."createdAt"`, "DESC")
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
+            .getMany();
     }
 
     public findByAuthorInAndCreatedAfter(authors: User[], createdAt: Date, paginationRequest: PaginationRequest): Promise<Status[]> {
@@ -124,6 +140,30 @@ export class StatusesRepository extends Repository<Status> {
         })
     }
 
+    public findByAuthorInAndHashTagsInAndCreatedAtAfter(
+        authors: User[],
+        hashTags: HashTag[],
+        createdAt: Date,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        if (hashTags.length === 0) {
+            return this.findByAuthorInAndCreatedAfter(authors, createdAt, paginationRequest);
+        }
+
+        return this.createStatusQueryBuilder()
+            .where(
+                `(status."authorId" in (:...authors) or "status_filteredHashTag"."hashTagId" in (:...hashTags))`,
+                {
+                    authors: authors.map(user => user.id),
+                    hashTags: hashTags.map(hashTag => hashTag.id)
+                })
+            .andWhere(`status."createdAt" > :createdAt`, {createdAt})
+            .orderBy(`status."createdAt"`, "DESC")
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
+            .getMany();
+    }
+
     public findByAuthorInAndCreatedAtBefore(authors: User[], createdAt: Date, paginationRequest: PaginationRequest): Promise<Status[]> {
         return this.find({
             where: {
@@ -139,6 +179,30 @@ export class StatusesRepository extends Repository<Status> {
             take: paginationRequest.pageSize,
             relations: ["referredStatus"]
         })
+    }
+
+    public findByAuthorInAndHashTagsInAndCreatedAtBefore(
+        authors: User[],
+        hashTags: HashTag[],
+        createdAt: Date,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        if (hashTags.length === 0) {
+            return this.findByAuthorInAndCreatedAtBefore(authors, createdAt, paginationRequest);
+        }
+
+        return this.createStatusQueryBuilder()
+            .where(
+                `(status."authorId" in (:...authors) or "status_filteredHashTag"."hashTagId" in (:...hashTags))`,
+                {
+                    authors: authors.map(user => user.id),
+                    hashTags: hashTags.map(hashTag => hashTag.id)
+                })
+            .andWhere(`status."createdAt" < :createdAt`, {createdAt})
+            .orderBy(`status."createdAt"`, "DESC")
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
+            .getMany()
     }
 
     public findByAuthorInAndCreatedAtBetween(
@@ -161,6 +225,36 @@ export class StatusesRepository extends Repository<Status> {
             take: paginationRequest.pageSize,
             relations: ["referredStatus"]
         })
+    }
+
+    public findByAuthorInAndHashTagsInAndCreatedAtBetween(
+        authors: User[],
+        hashTags: HashTag[],
+        createdAtBefore: Date,
+        createdAtAfter: Date,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        if (hashTags.length === 0) {
+            return this.findByAuthorInAndCreatedAtBetween(
+                authors,
+                createdAtBefore,
+                createdAtAfter,
+                paginationRequest
+            );
+        }
+
+        return this.createStatusQueryBuilder()
+            .where(
+                `(status."authorId" in (:...authors) or "status_filteredHashTag"."hashTagId" in (:...hashTags))`,
+                {
+                    authors: authors.map(user => user.id),
+                    hashTags: hashTags.map(hashTag => hashTag.id)
+                })
+            .andWhere(`status."createdAt" between(:createdAtBefore, :createdAtAfter)`, {createdAtBefore, createdAtAfter})
+            .orderBy(`status."createdAt"`, "DESC")
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
+            .getMany()
     }
 
     public findByCreatedAtBefore(createdAtBefore: Date, paginationRequest: PaginationRequest): Promise<Status[]> {

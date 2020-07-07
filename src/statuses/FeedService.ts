@@ -1,9 +1,10 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import {StatusesRepository} from "./StatusesRepository";
 import {StatusLikesRepository} from "./StatusLikesRepository";
+import {HashTagSubscriptionsRepository} from "./HashTagSubscriptionsRepository";
 import {StatusesMapper} from "./StatusesMapper";
 import {StatusResponse} from "./types/response";
-import {FeedCursors} from "./types/request/FeedCursors";
+import {FeedCursors} from "./types/request";
 import {Status, StatusInfoMap} from "./entities";
 import {getLanguageFromString, Language, User} from "../users/entities";
 import {PaginationRequest} from "../utils/pagination";
@@ -20,6 +21,7 @@ export class FeedService {
                 private readonly statusesRepository: StatusesRepository,
                 private readonly statusLikesRepository: StatusLikesRepository,
                 private readonly userSubscriptionRepository: UserSubscriptionsRepository,
+                private readonly hashTagSubscriptionsRepository: HashTagSubscriptionsRepository,
                 private readonly statusesMapper: StatusesMapper) {
     }
 
@@ -27,6 +29,9 @@ export class FeedService {
         const subscriptions = await this.subscriptionsRepository.findAllBySubscribedUserNotReverted(currentUser);
         const authors = subscriptions.map(subscription => subscription.subscribedTo);
         authors.push(currentUser);
+
+        const hashTags = (await this.hashTagSubscriptionsRepository.findByUserAndNotReverted(currentUser))
+            .map(hashTagSubscription => hashTagSubscription.hashTag);
 
         const paginationRequest: PaginationRequest = {
             page: 1,
@@ -40,21 +45,32 @@ export class FeedService {
                 const sinceCursor = await this.statusesRepository.findById(feedCursors.sinceId);
                 const maxCursor = await this.statusesRepository.findById(feedCursors.maxId);
 
-                statuses = await this.statusesRepository.findByAuthorInAndCreatedAtBetween(
+                statuses = await this.statusesRepository.findByAuthorInAndHashTagsInAndCreatedAtBetween(
                     authors,
+                    hashTags,
                     sinceCursor.createdAt,
                     maxCursor.createdAt,
                     paginationRequest
                 );
             } else {
                 const maxCursor = await this.statusesRepository.findById(feedCursors.maxId);
-                statuses = await this.statusesRepository.findByAuthorInAndCreatedAtBefore(authors, maxCursor.createdAt, paginationRequest);
+                statuses = await this.statusesRepository.findByAuthorInAndHashTagsInAndCreatedAtBefore(
+                    authors,
+                    hashTags,
+                    maxCursor.createdAt,
+                    paginationRequest
+                );
             }
         } else if (feedCursors.sinceId) {
             const sinceCursor = await this.statusesRepository.findById(feedCursors.sinceId);
-            statuses = await this.statusesRepository.findByAuthorInAndCreatedAfter(authors, sinceCursor.createdAt, paginationRequest);
+            statuses = await this.statusesRepository.findByAuthorInAndHashTagsInAndCreatedAtAfter(
+                authors,
+                hashTags,
+                sinceCursor.createdAt,
+                paginationRequest
+            );
         } else {
-            statuses = await this.statusesRepository.findByAuthorIn(authors, paginationRequest);
+            statuses = await this.statusesRepository.findByAuthorInAndHashTagsIn(authors, hashTags, paginationRequest);
         }
 
         const statusInfoMap = await this.statusesRepository.getStatusesAdditionalInfoMap(statuses, currentUser);

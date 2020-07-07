@@ -11,7 +11,7 @@ export class HashTagSubscription {
     @Index()
     user: User;
 
-    @ManyToOne(() => HashTag)
+    @ManyToOne(() => HashTag, {eager: true})
     @Index()
     hashTag: HashTag;
 
