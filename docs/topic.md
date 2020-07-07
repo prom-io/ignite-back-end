@@ -6,6 +6,8 @@
 - [Get topic by title and language](#get-topic-by-title-and-language)
 - [Get statuses by topic](#get-statuses-by-topic)
 - [Get statuses which have hash tags](#get-statuses-which-have-hash-tags)
+- [Follow hash tag](#follow-hash-tag)
+- [Unfollow hash tag](#unfollow-hash-tag)
 
 ### Get list of topics
 
@@ -723,4 +725,80 @@ GET /api/v1/statuses?only_with_hash_tags=true&type=hot
         ]
     }
 ]
+````
+
+### Follow hash tag
+
+Subscribes current user to the hash tag with the specified id
+
+#### HTTP request
+
+````
+POST /api/v1/topics/:id/follow
+````
+
+#### Request parameters
+
+| Parameter           | Type                    | Description                   | Required |
+|---------------------|-------------------------|-------------------------------|----------|
+| id                  | string                  | ID of hash tag to subscribe   | yes      |
+
+#### Response type
+
+Returns object of [Topic](https://github.com/Prometeus-Network/ignite-back-end/blob/feature/hashtags/docs/api-entities.md#topic) type
+
+#### Sample request
+
+````
+POST /api/v1/topics/537a429b-8928-45f1-b0ca-165e9ecebf72/follow
+````
+
+#### Sample response
+
+````
+{
+    "id": "537a429b-8928-45f1-b0ca-165e9ecebf72",
+    "following": true,
+    "language": "en",
+    "posts_count": 30,
+    "title": "funny"
+}
+````
+
+### Unfollow hash tag
+
+Unsubscribes current user from the hash tag with the specified id
+
+#### HTTP request
+
+````
+DELETE /api/v1/topics/:id/follow
+````
+
+#### Request parameters
+
+| Parameter           | Type                    | Description                     | Required |
+|---------------------|-------------------------|---------------------------------|----------|
+| id                  | string                  | ID of hash tag to unsubscribe   | yes      |
+
+#### Response type
+
+Returns object of [Topic](https://github.com/Prometeus-Network/ignite-back-end/blob/feature/hashtags/docs/api-entities.md#topic) type
+
+#### Sample request
+
+````
+DELETE /api/v1/topics/537a429b-8928-45f1-b0ca-165e9ecebf72/unfollow
+````
+
+#### Sample response
+
+````
+{
+    "id": "537a429b-8928-45f1-b0ca-165e9ecebf72",
+    "following": false,
+    "language": "en",
+    "posts_count": 30,
+    "title": "funny"
+}
 ````
