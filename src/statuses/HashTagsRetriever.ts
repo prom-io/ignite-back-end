@@ -14,7 +14,11 @@ export class HashTagsRetriever {
     constructor(private readonly hashTagsRepository: HashTagsRepository) {
     }
 
-    public getHashTagsStringsFromText(text: string): string[] {
+    public getHashTagsStringsFromText(text?: string): string[] {
+        if (!text) {
+            return [];
+        }
+
         return text.split(HASH_TAG_REGEXP)
             .filter(chunk => HASH_TAG_REGEXP.test(chunk) && !REPEATED_HASH_CHARACTER_REGEXP.test(chunk))
             .map(chunk => chunk.substring(1, chunk.length));
