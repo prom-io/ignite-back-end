@@ -34,8 +34,8 @@ export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberI
     public async afterInsert(event: InsertEvent<UserSubscription>): Promise<void> {
         const {subscribedTo, subscribedUser} = event.entity;
 
-        const subscribedToStatistics = await this.userStatisticsRepository.findByUser(subscribedTo);
-        const subscribedUserStatistics = await this.userStatisticsRepository.findByUser(subscribedUser);
+        const subscribedToStatistics = await this.userStatisticsRepository.findOrCreateByUser(subscribedTo);
+        const subscribedUserStatistics = await this.userStatisticsRepository.findOrCreateByUser(subscribedUser);
 
         if (subscribedToStatistics) {
             const subscribedToFollowersCount = await this.userSubscriptionsRepository.countBySubscribedToAndNotReverted(subscribedTo);
@@ -81,8 +81,8 @@ export class UserSubscriptionEntityEventsSubscriber implements EntitySubscriberI
         if (subscription.reverted && !subscription.btfsHash) {
             const {subscribedTo, subscribedUser} = event.entity;
 
-            const subscribedToStatistics = await this.userStatisticsRepository.findByUser(subscribedTo);
-            const subscribedUserStatistics = await this.userStatisticsRepository.findByUser(subscribedUser);
+            const subscribedToStatistics = await this.userStatisticsRepository.findOrCreateByUser(subscribedTo);
+            const subscribedUserStatistics = await this.userStatisticsRepository.findOrCreateByUser(subscribedUser);
 
             const subscribedToFollowersCount = await this.userSubscriptionsRepository.countBySubscribedToAndNotReverted(subscribedTo);
             const subscribedUserFollowsCount = await this.userSubscriptionsRepository.countBySubscribedUserAndNotReverted(subscribedUser);

@@ -42,7 +42,7 @@ export class StatusEntityEventsSubscriber implements EntitySubscriberInterface<S
 
     public async afterInsert(event: InsertEvent<Status>): Promise<void> {
         const author = event.entity.author;
-        const userStatistics = await this.userStatisticsRepository.findByUser(author);
+        const userStatistics = await this.userStatisticsRepository.findOrCreateByUser(author);
         userStatistics.statusesCount += 1;
 
         if (event.entity.hashTags && event.entity.hashTags.length !== 0) {
