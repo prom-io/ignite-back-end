@@ -13,11 +13,14 @@ export class IgniteStatisticsResponse {
     @Expose({name: "dds_chunks_count"})
     ddsChunksCount: number;
 
-    @Expose({name: "transactions_count"})
-    transactionsCount: number;
+    @Expose({name: "binance_chain_transactions_count"})
+    binanceChainTransactionsCount: number;
 
     @Expose({name: "weekly_activities_count"})
     weeklyActivitiesCount: number;
+
+    @Expose({name: "statuses_count"})
+    statusesCount: number;
 
     constructor(plainObject: IgniteStatisticsResponse) {
         Object.assign(this, plainObject);

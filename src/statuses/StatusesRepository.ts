@@ -875,4 +875,8 @@ export class StatusesRepository extends Repository<Status> {
             }
         });
     }
+
+    public countAll(): Promise<number> {
+        return this.count();
+    }
 }

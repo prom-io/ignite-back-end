@@ -11,6 +11,7 @@ import {StatusLikesRepository} from "../statuses/StatusLikesRepository";
 import {StatusReferenceType} from "../statuses/entities";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {User} from "../users/entities";
+import {TransactionsStatisticsService} from "./TransactionsStatisticsService";
 
 @Injectable()
 export class StatisticsService {
@@ -22,6 +23,7 @@ export class StatisticsService {
                 private readonly statusesRepository: StatusesRepository,
                 private readonly statusLikesRepository: StatusLikesRepository,
                 private readonly userSubscriptionsRepository: UserSubscriptionsRepository,
+                private readonly transactionsStatisticsService: TransactionsStatisticsService,
                 private readonly log: LoggerService) {
     }
 
@@ -40,9 +42,26 @@ export class StatisticsService {
     private async updateStatistics(): Promise<void> {
         this.log.info("Calculating Ignite statistics");
         const usersCount = await this.usersRepository.countAll();
-        // const dailyActiveUsersCount = await this.usersRepository.countAllHavingActivityWithinLastDay();
         const lastMonthUsersCount = await this.usersRepository.countAllByCreatedAtLessAfter(subMonths(new Date(), 1));
-        const ddsChunksCount = await this.btfsHashRepository.countAll();
+        const statusesCount = await this.statusesRepository.countAll();
+        let ddsChunksCount: number;
+
+        try {
+            ddsChunksCount = Number((await this.transactionsStatisticsService.getBtfsChunksCount()).data.txCount)
+        } catch (error) {
+            this.log.error("Error occurred when tried to get BTFS chinks count");
+            console.log(error);
+            ddsChunksCount = await this.btfsHashRepository.countAll();
+        }
+
+        let binanceChainTransactionsCount: number = 0;
+
+        try {
+            binanceChainTransactionsCount = Number((await this.transactionsStatisticsService.getBinanceChainTransactionsCount()).data.txCount);
+        } catch (error) {
+            this.log.error("Error occurred when tried to get Binance chain transactions count");
+            console.log(error);
+        }
 
         const weekAgo = subDays(new Date(), 7);
 
@@ -86,9 +105,10 @@ export class StatisticsService {
             usersCount,
             dailyActiveUsersCount: dailyActiveUsers.length,
             lastMonthUsersCount,
-            ddsChunksCount,
             weeklyActivitiesCount,
-            transactionsCount: 0
+            binanceChainTransactionsCount,
+            ddsChunksCount,
+            statusesCount
         });
         this.lastCalculationDate = new Date();
     }
