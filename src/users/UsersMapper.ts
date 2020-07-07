@@ -16,7 +16,7 @@ export class UsersMapper {
     }
 
     public async toUserResponseAsync(user: User, currentUser?: User, includePasswordHash: boolean = false): Promise<UserResponse> {
-        const userStatistics = await this.userStatisticsRepository.findByUser(user);
+        const userStatistics = await this.userStatisticsRepository.findOrCreateByUser(user);
         const following = currentUser && await this.userSubscriptionsRepository.existsBySubscribedUserAndSubscribedToNotReverted(
             currentUser,
             user
