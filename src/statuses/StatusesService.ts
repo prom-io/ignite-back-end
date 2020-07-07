@@ -47,7 +47,12 @@ export class StatusesService {
             referredStatus = referredStatus.referredStatus;
         }
 
-        if (await this.statusesRepository.existByReferredStatusAndReferenceTypeAndAuthor(referredStatus, StatusReferenceType.REPOST, currentUser)) {
+        if (createStatusRequest.statusReferenceType === StatusReferenceType.REPOST
+            && await this.statusesRepository.existByReferredStatusAndReferenceTypeAndAuthor(
+                referredStatus,
+                StatusReferenceType.REPOST,
+                currentUser
+            )) {
             throw new HttpException(
                 `Current user has already reposted status with id ${referredStatus.id}`,
                 HttpStatus.FORBIDDEN
