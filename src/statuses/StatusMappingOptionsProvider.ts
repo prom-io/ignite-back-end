@@ -32,6 +32,7 @@ export class StatusMappingOptionsProvider {
         const commentsCount = statusInfo.commentsCount;
         let canBeReposted = !statusInfo.repostedByCurrentUser;
         const reposted = statusInfo.repostedByCurrentUser;
+        const commented = statusInfo.commentedByCurrentUser;
 
         if (statusInfo.referredStatusRepostedByCurrentUser) {
             canBeReposted = canBeReposted && (
@@ -51,7 +52,8 @@ export class StatusMappingOptionsProvider {
             canBeReposted,
             mapReferredStatus: Boolean(mapReferredStatusOptions),
             referredStatusOptions: mapReferredStatusOptions,
-            reposted
+            reposted,
+            commented
         }
     }
 
@@ -77,6 +79,11 @@ export class StatusMappingOptionsProvider {
         const repostsCount = await this.statusesRepository.countReposts(status);
         const commentsCount = await this.statusesRepository.countComments(status);
         const btfsHash = status.btfsHash && await this.btfsHashRepository.findByBtfsCid(status.btfsHash);
+        const commented = Boolean(currentUser && await this.statusesRepository.existByReferredStatusAndReferenceTypeAndAuthor(
+            status,
+            StatusReferenceType.COMMENT,
+            currentUser
+        ));
         const reposted = Boolean(currentUser && await this.statusesRepository.existByReferredStatusAndReferenceTypeAndAuthor(
             status,
             StatusReferenceType.REPOST,
@@ -107,7 +114,8 @@ export class StatusMappingOptionsProvider {
             commentsCount,
             btfsHash: btfsHash && btfsHash.peerIp && btfsHash.peerWallet ? btfsHash : null,
             canBeReposted,
-            reposted
+            reposted,
+            commented
         }
     }
 }

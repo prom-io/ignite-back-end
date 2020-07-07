@@ -57,6 +57,7 @@ export class StatusResponse {
     canBeReposted: boolean;
 
     reposted: boolean;
+    commented: boolean;
 
     @Expose({name: "hash_tags"})
     hashTags: HashTagResponse[];
