@@ -4,9 +4,7 @@ import {CreateStatusRequest} from "./types/request";
 import {StatusResponse} from "./types/response";
 import {StatusesMapper} from "./StatusesMapper";
 import {Status, StatusReferenceType} from "./entities";
-import {FeedService} from "./FeedService";
 import {FeedCursors} from "./types/request/FeedCursors";
-import {HashTagsRepository} from "./HashTagsRepository";
 import {HashTagsRetriever} from "./HashTagsRetriever";
 import {Language, User} from "../users/entities";
 import {UsersRepository} from "../users/UsersRepository";
@@ -20,9 +18,7 @@ export class StatusesService {
     constructor(private readonly statusesRepository: StatusesRepository,
                 private readonly usersRepository: UsersRepository,
                 private readonly mediaAttachmentRepository: MediaAttachmentsRepository,
-                private readonly hashTagsRepository: HashTagsRepository,
                 private readonly hashTagsRetriever: HashTagsRetriever,
-                private readonly feedService: FeedService,
                 private readonly statusesMapper: StatusesMapper) {
     }
 
@@ -49,6 +45,13 @@ export class StatusesService {
         if (referredStatus && createStatusRequest.statusReferenceType === StatusReferenceType.REPOST && referredStatus.text.length === 0
             && referredStatus.mediaAttachments.length === 0 && referredStatus.referredStatus) {
             referredStatus = referredStatus.referredStatus;
+        }
+
+        if (await this.statusesRepository.existByReferredStatusAndReferenceTypeAndAuthor(referredStatus, StatusReferenceType.REPOST, currentUser)) {
+            throw new HttpException(
+                `Current user has already reposted status with id ${referredStatus.id}`,
+                HttpStatus.FORBIDDEN
+            );
         }
 
         const hashTags = await this.hashTagsRetriever.getHashTagsEntitiesFromText(

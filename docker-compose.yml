@@ -15,7 +15,7 @@ services:
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
       - POSTGRES_DB=${DATABASE_NAME}
     ports:
-      - "5433:5433"
+      - "5433:5432"
     restart: unless-stopped
   backend:
     build:
@@ -23,7 +23,7 @@ services:
       dockerfile: Dockerfile
     working_dir: /var/www/api
     volumes:
-      - ${MEDIA_ATTACHMENTS_DIRECTORY}
+      - media-attachments:${MEDIA_ATTACHMENTS_DIRECTORY}
     env_file:
       - .env
     ports:
@@ -33,7 +33,25 @@ services:
     networks:
       - default
       - ignite-dds_kafka-net
+  sia-synchornizer:
+    build:
+      context: ./sia-synchronizer
+      dockerfile: Dockerfile
+    working_dir: /var/www/api
+    volumes:
+    - media-attachments:${MEDIA_ATTACHMENTS_DIRECTORY}
+    env_file:
+      - .env
+    ports:
+      - 7777:7777
+    depends_on:
+      - postgres
+    networks:
+      - default
 volumes:
   pg-data:
     external:
       name: ${PGDATA_EXTERNAL_VOLUME}
+  media-attachments:
+    external:
+      name: ${MEDIA_ATTACHMENTS_VOLUME}

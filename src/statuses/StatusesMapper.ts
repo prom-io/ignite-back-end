@@ -27,7 +27,8 @@ export interface ToStatusResponseOptions {
     referredStatusReferenceType?: StatusReferenceType,
     btfsHash?: BtfsHash,
     commentsCount: number,
-    canBeReposted: boolean
+    canBeReposted: boolean,
+    reposted: boolean
 }
 
 @Injectable()
@@ -113,7 +114,8 @@ export class StatusesMapper {
             referredStatusReferenceType,
             btfsHash,
             commentsCount,
-            canBeReposted
+            canBeReposted,
+            reposted
         } = options;
         return new StatusResponse({
             account: this.userMapper.toUserResponse(status.author, userStatistics, followingAuthor, followedByAuthor),
@@ -141,6 +143,7 @@ export class StatusesMapper {
             statusReferenceType: status.statusReferenceType,
             referredStatusReferenceType,
             canBeReposted,
+            reposted,
             hashTags: status.hashTags.map(hashTag => this.hashTagsMapper.toHashTagResponse(hashTag))
         })
     }

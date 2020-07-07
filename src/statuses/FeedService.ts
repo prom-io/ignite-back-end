@@ -5,7 +5,7 @@ import {StatusesMapper} from "./StatusesMapper";
 import {StatusResponse} from "./types/response";
 import {FeedCursors} from "./types/request/FeedCursors";
 import {Status, StatusInfoMap} from "./entities";
-import {getLanguageFromString, User} from "../users/entities";
+import {getLanguageFromString, Language, User} from "../users/entities";
 import {PaginationRequest} from "../utils/pagination";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {UsersRepository, UserStatisticsRepository} from "../users";
@@ -146,6 +146,20 @@ export class FeedService {
                 );
             } else {
                 statuses = await this.statusesRepository.findAllBy(paginationRequest);
+            }
+
+            if (!currentUser && config.ENABLE_PINNED_STATUSES_FOR_UNAUTHORIZED_USERS) {
+                let pinnedStatus: Status | undefined;
+
+                if (language === Language.ENGLISH && config.ENGLISH_PINNED_STATUS_ID) {
+                    pinnedStatus = await this.statusesRepository.findById(config.ENGLISH_PINNED_STATUS_ID);
+                } else if (language === Language.KOREAN && config.KOREAN_PINNED_STATUS_ID) {
+                    pinnedStatus = await this.statusesRepository.findById(config.KOREAN_PINNED_STATUS_ID);
+                }
+
+                if (pinnedStatus) {
+                    statuses.unshift(pinnedStatus);
+                }
             }
         }
 

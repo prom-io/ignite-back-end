@@ -1,5 +1,5 @@
 import {Injectable} from "@nestjs/common";
-import {Status, StatusAdditionalInfo} from "./entities";
+import {Status, StatusAdditionalInfo, StatusReferenceType} from "./entities";
 import {ToStatusResponseOptions} from "./StatusesMapper";
 import {StatusesRepository} from "./StatusesRepository";
 import {StatusLikesRepository} from "./StatusLikesRepository";
@@ -30,7 +30,14 @@ export class StatusMappingOptionsProvider {
         const userStatistics = status.author.statistics!;
         const repostsCount = statusInfo.repostsCount;
         const commentsCount = statusInfo.commentsCount;
-        const canBeReposted = true;
+        let canBeReposted = !statusInfo.repostedByCurrentUser;
+        const reposted = statusInfo.repostedByCurrentUser;
+
+        if (statusInfo.referredStatusRepostedByCurrentUser) {
+            canBeReposted = canBeReposted && (
+                !((!Boolean(status.text) || status.text.trim().length === 0) && status.mediaAttachments.length === 0)
+            )
+        }
 
         return {
             status,
@@ -43,7 +50,8 @@ export class StatusMappingOptionsProvider {
             commentsCount,
             canBeReposted,
             mapReferredStatus: Boolean(mapReferredStatusOptions),
-            referredStatusOptions: mapReferredStatusOptions
+            referredStatusOptions: mapReferredStatusOptions,
+            reposted
         }
     }
 
@@ -69,7 +77,22 @@ export class StatusMappingOptionsProvider {
         const repostsCount = await this.statusesRepository.countReposts(status);
         const commentsCount = await this.statusesRepository.countComments(status);
         const btfsHash = status.btfsHash && await this.btfsHashRepository.findByBtfsCid(status.btfsHash);
-        const canBeReposted = true;
+        const reposted = Boolean(currentUser && await this.statusesRepository.existByReferredStatusAndReferenceTypeAndAuthor(
+            status,
+            StatusReferenceType.REPOST,
+            currentUser
+        ));
+        let canBeReposted = !reposted;
+
+        if (status.referredStatus) {
+            canBeReposted = canBeReposted && currentUser
+                && await this.statusesRepository.existByReferredStatusAndReferenceTypeAndAuthor(
+                    status.referredStatus,
+                    StatusReferenceType.REPOST,
+                    currentUser
+                )
+                && !((!Boolean(status.text) || status.text.trim().length === 0) && status.mediaAttachments.length === 0)
+        }
 
         return {
             status,
@@ -83,7 +106,8 @@ export class StatusMappingOptionsProvider {
             repostsCount,
             commentsCount,
             btfsHash: btfsHash && btfsHash.peerIp && btfsHash.peerWallet ? btfsHash : null,
-            canBeReposted
+            canBeReposted,
+            reposted
         }
     }
 }

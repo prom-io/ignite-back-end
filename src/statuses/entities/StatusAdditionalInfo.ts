@@ -8,4 +8,5 @@ export class StatusAdditionalInfo {
     currentUserFollowsAuthor: boolean;
     currentUserFollowedByAuthor: boolean;
     commentedByCurrentUser: boolean;
+    referredStatusRepostedByCurrentUser: boolean;
 }
