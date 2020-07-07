@@ -411,6 +411,7 @@ export class StatusesRepository extends Repository<Status> {
                         .select("count(distinct(id))", "current_user_comments_count")
                         .from(Status, "compared_status")
                         .where(`"authorId" = :currentUserId`, {currentUserId: currentUser.id})
+                        .andWhere(`"referredStatusId" is not null`)
                         .andWhere(`"referredStatusId" = status.id`)
                         .andWhere(`"statusReferenceType" = 'COMMENT'`)
                 )
