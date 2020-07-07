@@ -4,13 +4,28 @@ import {Language} from "../users/entities";
 
 @EntityRepository(HashTag)
 export class HashTagsRepository extends Repository<HashTag> {
-    public findByNameAndLanguage(name: string, language: Language): Promise<HashTag | undefined> {
-        return this.findOne({
+    public async findByNameAndLanguage(name: string, language: Language): Promise<HashTag | undefined> {
+        const hashTag = await this.findOne({
             where: {
                 name,
                 language
             }
         });
+
+        if (hashTag) {
+            return hashTag;
+        } else {
+            if (language !== Language.ENGLISH) {
+                return await this.findOne({
+                    where: {
+                        name,
+                        language: Language.ENGLISH
+                    }
+                });
+            } else {
+                return hashTag; // return undefined value if language is english
+            }
+        }
     }
 
     public findByLanguageOrderByPostsCount(language: Language, count: number) {
