@@ -1,17 +1,20 @@
 import {
     ClassSerializerInterceptor,
     Controller,
+    Delete,
     Get,
     Param,
+    Post,
     Query,
     Req,
     UseGuards,
     UseInterceptors
 } from "@nestjs/common";
+import {AuthGuard} from "@nestjs/passport";
 import {Request} from "express";
 import {TopicsService} from "./TopicsService";
 import {HashTagResponse, StatusResponse} from "./types/response";
-import {GetStatusesByTopicRequest, GetHashTagsRequest, fromString} from "./types/request";
+import {fromString, GetHashTagsRequest} from "./types/request";
 import {getLanguageFromString, User} from "../users/entities";
 import {OptionalJwtAuthGuard} from "../jwt-auth/OptionalJwtAuthGuard";
 
@@ -21,9 +24,10 @@ export class TopicsController {
     }
 
     @UseInterceptors(ClassSerializerInterceptor)
+    @UseGuards(OptionalJwtAuthGuard)
     @Get()
-    public getHashTags(@Query() getHashTagsRequest: GetHashTagsRequest): Promise<HashTagResponse[]> {
-        return this.topicsService.getHashTags(getHashTagsRequest);
+    public getHashTags(@Query() getHashTagsRequest: GetHashTagsRequest, @Req() request: Request): Promise<HashTagResponse[]> {
+        return this.topicsService.getHashTags(getHashTagsRequest, request.user as User | null);
     }
 
     @UseInterceptors(ClassSerializerInterceptor)
@@ -33,6 +37,22 @@ export class TopicsController {
                       @Req() request: Request,
                       @Query("language") language?: string): Promise<HashTagResponse> {
         return this.topicsService.getHashTagByNameAndLanguage(name, getLanguageFromString(language), request.user as User | null);
+    }
+
+    @UseInterceptors(ClassSerializerInterceptor)
+    @UseGuards(AuthGuard("jwt"))
+    @Post(":id/follow")
+    public followHashTag(@Param("id") id: string,
+                         @Req() request: Request): Promise<HashTagResponse> {
+        return this.topicsService.followHashTag(id, request.user as User);
+    }
+
+    @UseInterceptors(ClassSerializerInterceptor)
+    @UseGuards(AuthGuard("jwt"))
+    @Delete(":id/unfollow")
+    public unfollowHashTag(@Param("id") id: string,
+                           @Req() request: Request): Promise<HashTagResponse> {
+        return this.topicsService.unfollowHashTag(id, request.user as User);
     }
 
     @UseInterceptors(ClassSerializerInterceptor)

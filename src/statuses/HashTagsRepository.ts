@@ -33,4 +33,12 @@ export class HashTagsRepository extends Repository<HashTag> {
             take: count
         })
     }
+
+    public findById(id: string): Promise<HashTag | undefined> {
+        return this.findOne({
+            where: {
+                id
+            }
+        });
+    }
 }

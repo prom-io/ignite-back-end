@@ -26,6 +26,7 @@ import {HashTagsRetriever} from "./HashTagsRetriever";
 import {TopicsController} from "./TopicsController";
 import {TopicsService} from "./TopicsService";
 import {HashTagsMapper} from "./HashTagsMapper";
+import {HashTagSubscriptionsRepository} from "./HashTagSubscriptionsRepository";
 
 @Module({
     controllers: [StatusesController, TimelineController, TopicsController],
@@ -51,6 +52,7 @@ import {HashTagsMapper} from "./HashTagsMapper";
             MediaAttachmentsRepository,
             BtfsHashRepository,
             HashTagsRepository,
+            HashTagSubscriptionsRepository
         ]),
         UserSubscriptionsModule,
         MicrobloggingBlockchainApiModule,

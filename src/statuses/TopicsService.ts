@@ -1,16 +1,17 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
+import uuid from "uuid/v4";
 import {subDays} from "date-fns";
 import {StatusesRepository} from "./StatusesRepository";
 import {HashTagsRepository} from "./HashTagsRepository";
 import {StatusesMapper} from "./StatusesMapper";
 import {HashTagResponse, StatusResponse} from "./types/response";
 import {GetHashTagsRequest, GetStatusesByTopicRequest, GetStatusesRequest, TopicFetchType} from "./types/request";
-import {HashTag, Status} from "./entities";
+import {HashTag, HashTagSubscription, Status} from "./entities";
 import {HashTagsMapper} from "./HashTagsMapper";
+import {StatusLikesRepository} from "./StatusLikesRepository";
+import {HashTagSubscriptionsRepository} from "./HashTagSubscriptionsRepository";
 import {getLanguageFromString, Language, User} from "../users/entities";
 import {asyncMap} from "../utils/async-map";
-import {StatusLikesRepository} from "./StatusLikesRepository";
-import {max} from "rxjs/operators";
 
 @Injectable()
 export class TopicsService {
@@ -18,7 +19,54 @@ export class TopicsService {
                 private readonly hashTagsRepository: HashTagsRepository,
                 private readonly statusLikesRepository: StatusLikesRepository,
                 private readonly hashTagsMapper: HashTagsMapper,
+                private readonly hashTagSubscriptionsRepository: HashTagSubscriptionsRepository,
                 private readonly statusesMapper: StatusesMapper) {
+    }
+
+    public async followHashTag(id: string, currentUser: User): Promise<HashTagResponse> {
+        const hashTag = await this.findHashTagById(id);
+
+        const existingSubscription = await this.hashTagSubscriptionsRepository.findByUserAndHashTagAndNotReverted(currentUser, hashTag);
+
+        if (existingSubscription) {
+            throw new HttpException(
+                `Current user already follows topic with id ${existingSubscription.id}`,
+                HttpStatus.CONFLICT
+            );
+        }
+
+        let hashTagSubscription: HashTagSubscription = {
+            id: uuid(),
+            reverted: false,
+            user: currentUser,
+            createdAt: new Date(),
+            hashTag
+        };
+
+        hashTagSubscription = await this.hashTagSubscriptionsRepository.save(hashTagSubscription);
+
+        return this.hashTagsMapper.toHashTagResponse(hashTagSubscription.hashTag, true);
+    }
+
+    public async unfollowHashTag(id: string, currentUser: User): Promise<HashTagResponse> {
+        const hashTag = await this.findHashTagById(id);
+
+        const subscription = await this.hashTagSubscriptionsRepository.findByUserAndHashTagAndNotReverted(
+            currentUser,
+            hashTag
+        );
+
+        if (!subscription) {
+            throw new HttpException(
+                `Current user does not follow hash tag with id ${hashTag.id}`,
+                HttpStatus.NOT_FOUND
+            );
+        }
+
+        subscription.reverted = true;
+        await this.hashTagSubscriptionsRepository.save(subscription);
+
+        return this.hashTagsMapper.toHashTagResponse(hashTag, false);
     }
 
     public async getStatusesContainingHashTags(getStatusesRequest: GetStatusesRequest, currentUser?: User): Promise<StatusResponse[]> {
@@ -135,10 +183,12 @@ export class TopicsService {
             );
         }
 
-        return this.hashTagsMapper.toHashTagResponse(hashTag);
+        const following = currentUser ? await this.hashTagSubscriptionsRepository.existsByUserAndHashTag(currentUser, hashTag) : false;
+
+        return this.hashTagsMapper.toHashTagResponse(hashTag, following);
     }
 
-    public async getHashTags(getHashTagsRequest: GetHashTagsRequest): Promise<HashTagResponse[]> {
+    public async getHashTags(getHashTagsRequest: GetHashTagsRequest, currentUser?: User): Promise<HashTagResponse[]> {
         let hashTags: HashTag[];
 
         if (getHashTagsRequest.language) {
@@ -147,7 +197,9 @@ export class TopicsService {
             hashTags = await this.hashTagsRepository.findAllOrderByPostsCount(getHashTagsRequest.count);
         }
 
-        return hashTags.map(hashTag => this.hashTagsMapper.toHashTagResponse(hashTag));
+        const hashTagSubscriptionMap = await this.hashTagSubscriptionsRepository.getHashTagSubscriptionMap(hashTags, currentUser);
+
+        return hashTags.map(hashTag => this.hashTagsMapper.toHashTagResponse(hashTag, hashTagSubscriptionMap[hashTag.id]));
     }
 
     public async findStatusesByHashTag(
@@ -292,5 +344,18 @@ export class TopicsService {
         }
 
         return status;
+    }
+
+    private async findHashTagById(id: string): Promise<HashTag> {
+        const hashTag = await this.hashTagsRepository.findById(id);
+
+        if (!hashTag) {
+            throw new HttpException(
+                `Could not find hash tag with id ${id}`,
+                HttpStatus.NOT_FOUND
+            );
+        }
+
+        return hashTag;
     }
 }
