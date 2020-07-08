@@ -1,6 +1,7 @@
 import {Expose} from "class-transformer";
-import {IsBoolean, IsObject, IsString, Matches, MaxLength, ValidateIf, ValidateNested} from "class-validator";
+import {IsBoolean, IsObject, IsString, MaxLength, ValidateIf, ValidateNested} from "class-validator";
 import {UpdatePreferencesRequest} from "./UpdatePreferencesRequest";
+import {IsValidUsername} from "../../../utils/validation";
 
 export class UpdateUserRequest {
     @Expose({name: "display_name"})
@@ -10,7 +11,7 @@ export class UpdateUserRequest {
 
     @ValidateIf((object: UpdateUserRequest) => Boolean(object.username))
     @IsString()
-    @Matches(/^[a-zA-Z0-9\u3130-\u318F\uAC00-\uD7AF\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF\u2A700-\u2B73F\u2B740-\u2B81F\u2B820-\u2CEAF\uF900-\uFAFF\u2F800-\u2FA1F_]+$/)
+    @IsValidUsername()
     @MaxLength(50)
     username?: string;
 
