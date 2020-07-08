@@ -73,6 +73,10 @@ export class TopicsService {
         getStatusesRequest.language = getLanguageFromString(getStatusesRequest.language);
         let statuses: Status[];
 
+        if (!await this.statusesRepository.existsContainingHashTagsByLanguage(getStatusesRequest.language)) {
+            getStatusesRequest.language = Language.ENGLISH;
+        }
+
         if (getStatusesRequest.type === TopicFetchType.HOT) {
             statuses = await this.getHotStatusesContainingHashTags(getStatusesRequest);
         } else {

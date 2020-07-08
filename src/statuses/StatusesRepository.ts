@@ -763,6 +763,15 @@ export class StatusesRepository extends Repository<Status> {
             .getMany();
     }
 
+    public async existsContainingHashTagsByLanguage(language: Language): Promise<boolean> {
+        return (await this.createStatusQueryBuilder()
+                .where(`"status_hashTag"."hashTagId" is not null`)
+                .andWhere(`"hashTag"."language" = :language`, {language})
+                .limit(1)
+                .getCount()
+        ) !== 0;
+    }
+
     public async findContainingHashTagsByLanguageAndCreatedAtBefore(
         language: Language,
         createdAtBefore: Date,
