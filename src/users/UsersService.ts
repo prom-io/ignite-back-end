@@ -1,6 +1,6 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import uuid from "uuid/v4";
-import {Language, User, UserPreferences, UserStatistics} from "./entities";
+import {getLanguageFromString, Language, User, UserPreferences, UserStatistics} from "./entities";
 import {UsersRepository} from "./UsersRepository";
 import {UserStatisticsRepository} from "./UserStatisticsRepository";
 import {UserPreferencesRepository} from "./UserPreferencesRepository";
@@ -438,7 +438,7 @@ export class UsersService {
         let filteringLanguage: Language;
 
         if (filters.language) {
-            filteringLanguage = filters.language;
+            filteringLanguage = getLanguageFromString(filters.language);
         } else if (currentUser.preferences && currentUser.preferences.language) {
             filteringLanguage = currentUser.preferences.language
         } else {

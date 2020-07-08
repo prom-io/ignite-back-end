@@ -4,6 +4,6 @@ import {PaginationRequest} from "../../../utils/pagination";
 
 export class FollowRecommendationFilters extends PaginationRequest {
     @ValidateIf((object: FollowRecommendationFilters) => Boolean(object.language))
-    @IsIn([Language.ENGLISH, Language.KOREAN])
+    @IsIn([Language.ENGLISH, Language.KOREAN, "kr"])
     language?: Language
 }
