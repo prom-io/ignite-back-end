@@ -13,9 +13,9 @@ import {
     SignUpRequest,
     UpdatePreferencesRequest,
     UpdateUserRequest,
-    UsernameAvailabilityResponse
+    UsernameAvailabilityResponse, UsersSubscribersInfoRequest
 } from "./types/request";
-import {UserPreferencesResponse, UserResponse} from "./types/response";
+import {UserPreferencesResponse, UserResponse, UsersSubscribersInfoResponse} from "./types/response";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {MailerService} from "@nestjs-modules/mailer";
 import {LoggerService} from "nest-logger";
@@ -507,5 +507,17 @@ export class UsersService {
         await this.usersRepository.save(user);
 
         return await this.usersMapper.toUserResponseAsync(user);
+    }
+
+    public async getUsersSubscribers(usersSubscribersInfoRequest: UsersSubscribersInfoRequest): Promise<UsersSubscribersInfoResponse> {
+        const users = await this.usersRepository.findAllByAddresses(usersSubscribersInfoRequest.addresses);
+        const result: UsersSubscribersInfoResponse = {};
+
+        await asyncForEach(users, async user => {
+            const subscriptions = await this.subscriptionsRepository.findAllBySubscribedToNotReverted(user);
+            result[user.ethereumAddress] = subscriptions.map(subscription => subscription.subscribedUser.ethereumAddress);
+        });
+
+        return result;
     }
 }

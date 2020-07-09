@@ -22,9 +22,10 @@ import {
     SignUpForPrivateBetaTestRequest,
     UpdatePreferencesRequest,
     UpdateUserRequest,
-    UsernameAvailabilityResponse
+    UsernameAvailabilityResponse,
+    UsersSubscribersInfoRequest
 } from "./types/request";
-import {UserPreferencesResponse, UserResponse} from "./types/response";
+import {UserPreferencesResponse, UserResponse, UsersSubscribersInfoResponse} from "./types/response";
 import {StatusesService} from "../statuses";
 import {StatusResponse} from "../statuses/types/response";
 import {PaginationRequest} from "../utils/pagination";
@@ -69,6 +70,12 @@ export class UsersController {
     public getRelationships(@Query("id") ids: string[],
                             @Req() request: Request): Promise<RelationshipsResponse[]> {
         return this.userSubscriptionsService.getUserRelationships(ids, request.user as User);
+    }
+
+    @UseInterceptors(ClassSerializerInterceptor)
+    @Post("get-followers")
+    public getSubscribersInfo(@Body() getSubscribersInfoRequest: UsersSubscribersInfoRequest): Promise<UsersSubscribersInfoResponse> {
+        return this.usersService.getUsersSubscribers(getSubscribersInfoRequest);
     }
 
     @UseInterceptors(ClassSerializerInterceptor)

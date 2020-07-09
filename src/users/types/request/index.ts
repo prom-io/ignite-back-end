@@ -8,3 +8,4 @@ export * from "./UpdatePreferencesRequest";
 export * from "./RecoverPasswordRequest";
 export * from "./UpdatePasswordRequest";
 export * from "./FollowRecommendationFilters";
+export * from "./UsersSubscribersInfoRequest";

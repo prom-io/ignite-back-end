@@ -8,6 +8,14 @@ import {UserSubscription} from "../user-subscriptions/entities";
 
 @EntityRepository(User)
 export class UsersRepository extends Repository<User> {
+    public findAllByAddresses(addresses: string[]): Promise<User[]> {
+        return this.find({
+            where: {
+                ethereumAddress: In(addresses)
+            }
+        })
+    }
+
     public findByUsername(username: string): Promise<User | undefined> {
         return this.findOne({
             where: {
