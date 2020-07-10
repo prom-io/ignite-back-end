@@ -1,4 +1,4 @@
-import {User, UserPreferences, UserStatistics} from "./users/entities";
+import {User, UserNotWrittenToBinanceChain, UserPreferences, UserStatistics} from "./users/entities";
 import {UserSubscription} from "./user-subscriptions/entities";
 import {HashTag, HashTagSubscription, Status, StatusLike} from "./statuses/entities";
 import {MediaAttachment} from "./media-attachments/entities";
@@ -17,5 +17,6 @@ export const entities = [
     UserDevice,
     Notification,
     HashTag,
-    HashTagSubscription
+    HashTagSubscription,
+    UserNotWrittenToBinanceChain
 ];

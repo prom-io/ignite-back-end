@@ -53,4 +53,10 @@ export class User {
 
     @OneToOne(() => UserStatistics, userStatistics => userStatistics.user, {nullable: true, eager: true})
     statistics?: UserStatistics;
+
+    @Column()
+    ethereumPlasmaTransactionHash?: string;
+
+    @Column()
+    binanceChainTransactionHash?: string;
 }

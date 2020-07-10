@@ -114,4 +114,7 @@ export class EnvConfig {
 
     @Env({type: "string", required: false})
     KOREAN_PINNED_STATUS_ID: string | undefined = undefined;
+
+    @Env({type: "boolean", required: false})
+    ENABLE_WRITING_USERS_TO_BINANCE_CHAIN: boolean = true;
 }

@@ -18,6 +18,7 @@ import {config} from "../config";
 import {DefaultAccountProviderModule} from "../default-account-provider/DefaultAccountProviderModule";
 import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
 import {PasswordHashApiModule} from "../password-hash-api";
+import {UserNotWrittenToBinanceChainRepository} from "./UserNotWrittenToBinanceChainRepository";
 
 @Module({
     controllers: [UsersController, UserByAddressController, SignUpController],
@@ -28,7 +29,8 @@ import {PasswordHashApiModule} from "../password-hash-api";
             UserStatisticsRepository,
             UserSubscriptionsRepository,
             MediaAttachmentsRepository,
-            UserPreferencesRepository
+            UserPreferencesRepository,
+            UserNotWrittenToBinanceChainRepository,
         ]),
         forwardRef(() => StatusesModule),
         forwardRef(() => UserSubscriptionsModule),
