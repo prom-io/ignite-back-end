@@ -11,6 +11,10 @@ import {UserStatisticsRepository} from "./UserStatisticsRepository";
 import {UserEntityEventsSubscriber} from "./UserEntityEventsSubscriber";
 import {UserStatisticsMapper} from "./UserStatisticsMapper";
 import {UserPreferencesRepository} from "./UserPreferencesRepository";
+import {SignUpReferencesController} from "./SignUpReferencesController";
+import {SignUpReferencesService} from "./SignUpReferencesService";
+import {SignUpReferencesMapper} from "./SignUpReferencesMapper";
+import {SignUpReferencesRepository} from "./SignUpReferencesRepository";
 import {StatusesModule} from "../statuses/StatusesModule";
 import {UserSubscriptionsModule} from "../user-subscriptions/UserSubscriptionsModule";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
@@ -20,15 +24,23 @@ import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsR
 import {PasswordHashApiModule} from "../password-hash-api";
 
 @Module({
-    controllers: [UsersController, UserByAddressController, SignUpController],
-    providers: [UsersService, UsersMapper, UserEntityEventsSubscriber, UserStatisticsMapper],
+    controllers: [UsersController, UserByAddressController, SignUpController, SignUpReferencesController],
+    providers: [
+        UsersService,
+        UsersMapper,
+        UserEntityEventsSubscriber,
+        UserStatisticsMapper,
+        SignUpReferencesService,
+        SignUpReferencesMapper
+    ],
     imports: [
         TypeOrmModule.forFeature([
             UsersRepository,
             UserStatisticsRepository,
             UserSubscriptionsRepository,
             MediaAttachmentsRepository,
-            UserPreferencesRepository
+            UserPreferencesRepository,
+            SignUpReferencesRepository
         ]),
         forwardRef(() => StatusesModule),
         forwardRef(() => UserSubscriptionsModule),

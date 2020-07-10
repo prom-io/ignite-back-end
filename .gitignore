@@ -37,3 +37,4 @@ lerna-debug.log*
 storage/
 firebase-config.json
 accounts-to-subscribe.json
+admin-users.json

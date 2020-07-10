@@ -1,7 +1,8 @@
 import {Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryColumn} from "typeorm";
 import {UserPreferences} from "./UserPreferences";
-import {MediaAttachment} from "../../media-attachments/entities";
 import {UserStatistics} from "./UserStatistics";
+import {SignUpReference} from "./SignUpReference";
+import {MediaAttachment} from "../../media-attachments/entities";
 
 @Entity()
 export class User {
@@ -53,4 +54,7 @@ export class User {
 
     @OneToOne(() => UserStatistics, userStatistics => userStatistics.user, {nullable: true, eager: true})
     statistics?: UserStatistics;
+
+    @ManyToOne(() => SignUpReference, {nullable: true, eager: false})
+    signUpReference?: SignUpReference;
 }
