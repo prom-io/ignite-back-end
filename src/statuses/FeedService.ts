@@ -12,6 +12,7 @@ import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptio
 import {UsersRepository, UserStatisticsRepository} from "../users";
 import {asyncMap} from "../utils/async-map";
 import {config} from "../config";
+import {isAdmin} from "../utils/is-admin";
 
 @Injectable()
 export class FeedService {
@@ -26,6 +27,10 @@ export class FeedService {
     }
 
     public async getFeedOfCurrentUserAfter(currentUser: User, feedCursors: FeedCursors): Promise<StatusResponse[]> {
+        if (isAdmin(currentUser)) {
+            return this.getGlobalFeed(feedCursors, currentUser);
+        }
+
         const subscriptions = await this.subscriptionsRepository.findAllBySubscribedUserNotReverted(currentUser);
         const authors = subscriptions.map(subscription => subscription.subscribedTo);
         authors.push(currentUser);
@@ -89,7 +94,8 @@ export class FeedService {
         let statuses: Status[];
         let displayedUsers: User[] = [];
 
-        if (config.ENABLE_GLOBAL_TIMELINE_FILTERING && config.KOREAN_FILTERING_USER_ADDRESS && config.ENGLISH_FILTERING_USER_ADDRESS) {
+        if (!isAdmin(currentUser)
+            && config.ENABLE_GLOBAL_TIMELINE_FILTERING && config.KOREAN_FILTERING_USER_ADDRESS && config.ENGLISH_FILTERING_USER_ADDRESS) {
             let filteringUser: User;
 
             if (language === "ko") {
