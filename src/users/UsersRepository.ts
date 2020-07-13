@@ -128,4 +128,12 @@ export class UsersRepository extends Repository<User> {
             }
         })
     }
+
+    public findBySignUpReference(signUpReference: SignUpReference): Promise<User[]> {
+        return this.find({
+            where: {
+                signUpReference
+            }
+        });
+    }
 }
