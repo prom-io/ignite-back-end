@@ -30,6 +30,7 @@ import {AccountsToSubscribe} from "./types/AccountsToSubscribe";
 import {asyncForEach} from "../utils/async-foreach";
 import {UserSubscription} from "../user-subscriptions/entities";
 import {SignUpReferencesRepository} from "./SignUpReferencesRepository";
+import set = Reflect.set;
 
 @Injectable()
 export class UsersService {
@@ -72,8 +73,6 @@ export class UsersService {
             user = await this.registerUserByTransactionId(signUpRequest.transactionId!, signUpRequest.language);
         }
 
-        let followsCount: number = 0;
-
         if (config.ENABLE_ACCOUNTS_SUBSCRIPTION_UPON_SIGN_UP) {
             const accountsToSubscribe = require("../../accounts-to-subscribe.json") as AccountsToSubscribe;
             let addresses: string[];
@@ -85,7 +84,7 @@ export class UsersService {
             }
 
             const usersToSubscribe = await this.usersRepository.findByEthereumAddressIn(addresses);
-            this.subscribeToUsers(user, usersToSubscribe);
+            setTimeout(() => this.subscribeToUsers(user, usersToSubscribe), 2000);
         }
 
         if (signUpRequest.referenceId) {
@@ -96,7 +95,7 @@ export class UsersService {
                 if (signUpReference.config.accountsToSubscribe.length !== 0) {
                     this.log.debug(`Subscribing registered users to ${JSON.stringify(signUpReference.config.accountsToSubscribe)}`);
                     const usersToSubscribe = await this.usersRepository.findAllByAddresses(signUpReference.config.accountsToSubscribe);
-                    await this.subscribeToUsers(user, usersToSubscribe);
+                    setTimeout(() => this.subscribeToUsers(user, usersToSubscribe), 2000);
                 }
             }
         }
@@ -111,12 +110,9 @@ export class UsersService {
                 followersCount: 0
             };
         }
-        userStatistics.followsCount = followsCount;
         await this.userStatisticsRepository.save(userStatistics);
 
-        this.log.debug(`Follows count after registration is: ${userStatistics.followsCount}`);
-
-        setTimeout(() => this.forceRecalculateUserFollowsCount(user), 2000);
+        setTimeout(() => this.forceRecalculateUserFollowsCount(user), 3000);
 
         return this.usersMapper.toUserResponse(user, userStatistics, false, false);
     }
@@ -237,9 +233,9 @@ export class UsersService {
         }
     }
 
-    private async subscribeToUsers(subscribedUser: User, usersToSubscribe: User[]): Promise<void> {
+    private async subscribeToUsers(subscribedUser: User, usersToSubscribe: User[]): Promise<UserSubscription[]> {
         if (usersToSubscribe.length !== 0) {
-            await asyncForEach(usersToSubscribe, async subscribedTo => {
+            return await asyncMap(usersToSubscribe, async subscribedTo => {
                 const userSubscription: UserSubscription = {
                     id: uuid(),
                     subscribedUser,
@@ -248,8 +244,10 @@ export class UsersService {
                     saveUnsubscriptionToBtfs: true,
                     createdAt: new Date()
                 };
-                await this.subscriptionsRepository.save(userSubscription);
+                return await this.subscriptionsRepository.save(userSubscription);
             });
+        } else {
+            return [];
         }
     }
 
