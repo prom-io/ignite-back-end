@@ -5,6 +5,8 @@ import {UserDevicesController} from "./UserDevicesController";
 import {PushNotificationsService} from "./PushNotificationsService";
 import {UserDevicesService} from "./UserDevicesService";
 import {WebsocketEventsPublisher} from "./WebsocketEventsPublisher";
+import {NotificationsService} from "./NotificationsService";
+import {NotificationsController} from "./NotificationsController";
 import {NotificationsMapper} from "./NotificationsMapper";
 import {StatusesModule} from "../statuses";
 import {UsersModule, UsersRepository} from "../users";
@@ -15,8 +17,6 @@ import {StatusesRepository} from "../statuses/StatusesRepository";
 import {UserDevicesRepository} from "./UserDevicesRepository";
 import {config} from "../config";
 import {StatusLikesRepository} from "../statuses/StatusLikesRepository";
-import {NotificationsService} from "./NotificationsService";
-import {NotificationsController} from "./NotificationsController";
 
 @Module({
     controllers: [UserDevicesController, NotificationsController],
@@ -24,10 +24,9 @@ import {NotificationsController} from "./NotificationsController";
         {
             provide: "firebaseAdmin",
             useFactory: () => {
-                if (config.ENABLE_FIREBASE_PUSH_NOTIFICATIONS) {
-                    const firebaseConfig = require("../../firebase-config.json");
+                if (config.ENABLE_FIREBASE_PUSH_NOTIFICATIONS && config.additionalConfig.firebase) {
                     return FirebaseAdmin.initializeApp({
-                        credential: FirebaseAdmin.credential.cert(firebaseConfig)
+                        credential: FirebaseAdmin.credential.cert(config.additionalConfig.firebase as any)
                     })
                 } else {
                     return null;

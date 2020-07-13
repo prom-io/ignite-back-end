@@ -1,4 +1,8 @@
 import {Env} from "env-decorator";
+import optionalRequire from "optional-require";
+import {AdditionalJsonConfig} from "./types/AdditionalJsonConfig";
+
+const additionalJsonConfig = optionalRequire(require)("../../additional-config.json") || {} as AdditionalJsonConfig;
 
 export class EnvConfig {
     @Env({required: true, type: "number"})
@@ -114,4 +118,6 @@ export class EnvConfig {
 
     @Env({type: "string", required: false})
     KOREAN_PINNED_STATUS_ID: string | undefined = undefined;
+
+    additionalConfig: AdditionalJsonConfig = additionalJsonConfig;
 }

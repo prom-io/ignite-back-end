@@ -38,3 +38,4 @@ storage/
 firebase-config.json
 accounts-to-subscribe.json
 admin-users.json
+additional-config.json
