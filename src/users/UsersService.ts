@@ -1,6 +1,8 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
+import {MailerService} from "@nestjs-modules/mailer";
+import {LoggerService} from "nest-logger";
 import uuid from "uuid/v4";
-import {getLanguageFromString, Language, User, UserPreferences, UserStatistics} from "./entities";
+import {getLanguageFromString, Language, SignUpReference, User, UserPreferences, UserStatistics} from "./entities";
 import {UsersRepository} from "./UsersRepository";
 import {UserStatisticsRepository} from "./UserStatisticsRepository";
 import {UserPreferencesRepository} from "./UserPreferencesRepository";
@@ -13,24 +15,23 @@ import {
     SignUpRequest,
     UpdatePreferencesRequest,
     UpdateUserRequest,
-    UsernameAvailabilityResponse, UsersSubscribersInfoRequest
+    UsernameAvailabilityResponse,
+    UsersSubscribersInfoRequest
 } from "./types/request";
 import {UserPreferencesResponse, UserResponse, UsersSubscribersInfoResponse} from "./types/response";
+import {SignUpReferencesRepository} from "./SignUpReferencesRepository";
+
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
-import {MailerService} from "@nestjs-modules/mailer";
-import {LoggerService} from "nest-logger";
 import {InvalidBCryptHashException} from "./exceptions";
+import {AccountsToSubscribe} from "./types/AccountsToSubscribe";
 import {config} from "../config";
 import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
 import {MediaAttachment} from "../media-attachments/entities";
 import {BCryptPasswordEncoder} from "../bcrypt";
 import {asyncMap} from "../utils/async-map";
 import {PasswordHashApiClient} from "../password-hash-api";
-import {AccountsToSubscribe} from "./types/AccountsToSubscribe";
 import {asyncForEach} from "../utils/async-foreach";
 import {UserSubscription} from "../user-subscriptions/entities";
-import {SignUpReferencesRepository} from "./SignUpReferencesRepository";
-import set = Reflect.set;
 
 @Injectable()
 export class UsersService {
@@ -61,16 +62,23 @@ export class UsersService {
     }
 
     public async signUp(signUpRequest: SignUpRequest): Promise<UserResponse> {
+        let signUpReference: SignUpReference | undefined;
+
+        if (signUpRequest.referenceId) {
+            signUpReference = await this.signUpReferencesRepository.findById(signUpRequest.referenceId);
+        }
+
         let user: User;
         if (!signUpRequest.transactionId) {
             user =  await this.registerUserWithGeneratedWallet(
                 signUpRequest.walletAddress!,
                 signUpRequest.privateKey!,
                 signUpRequest.password!,
-                signUpRequest.language
+                signUpRequest.language,
+                signUpReference
             )
         } else {
-            user = await this.registerUserByTransactionId(signUpRequest.transactionId!, signUpRequest.language);
+            user = await this.registerUserByTransactionId(signUpRequest.transactionId!, signUpRequest.language, signUpReference);
         }
 
         if (config.ENABLE_ACCOUNTS_SUBSCRIPTION_UPON_SIGN_UP) {
@@ -87,16 +95,12 @@ export class UsersService {
             setTimeout(() => this.subscribeToUsers(user, usersToSubscribe), 2000);
         }
 
-        if (signUpRequest.referenceId) {
-            const signUpReference = await this.signUpReferencesRepository.findById(signUpRequest.referenceId);
-
-            if (signUpReference) {
-                this.log.debug(`Found sign up reference ${signUpRequest.referenceId}`);
-                if (signUpReference.config.accountsToSubscribe.length !== 0) {
-                    this.log.debug(`Subscribing registered users to ${JSON.stringify(signUpReference.config.accountsToSubscribe)}`);
-                    const usersToSubscribe = await this.usersRepository.findAllByAddresses(signUpReference.config.accountsToSubscribe);
-                    setTimeout(() => this.subscribeToUsers(user, usersToSubscribe), 2000);
-                }
+        if (signUpReference) {
+            this.log.debug(`Found sign up reference ${signUpRequest.referenceId}`);
+            if (signUpReference.config.accountsToSubscribe.length !== 0) {
+                this.log.debug(`Subscribing registered users to ${JSON.stringify(signUpReference.config.accountsToSubscribe)}`);
+                const usersToSubscribe = await this.usersRepository.findAllByAddresses(signUpReference.config.accountsToSubscribe);
+                setTimeout(() => this.subscribeToUsers(user, usersToSubscribe), 2000);
             }
         }
 
@@ -128,7 +132,8 @@ export class UsersService {
         ethereumAddress: string,
         privateKey: string,
         password: string,
-        language?: Language
+        language?: Language,
+        signUpReference?: SignUpReference,
     ): Promise<User> {
         const passwordHash = this.passwordEncoder.encode(password, 12);
 
@@ -146,6 +151,11 @@ export class UsersService {
         let user = await this.usersRepository.findByEthereumAddress(ethereumAddress);
         if (user) {
             user.privateKey = this.passwordEncoder.encode(password, 12);
+
+            if (signUpReference) {
+                user.signUpReference = signUpReference;
+            }
+
             user = await this.usersRepository.save(user);
 
             if (!user.preferences) {
@@ -156,7 +166,6 @@ export class UsersService {
                 };
                 await this.userPreferencesRepository.save(userPreferences)
             }
-
         } else {
             user = {
                 id: uuid(),
@@ -165,7 +174,8 @@ export class UsersService {
                 displayedName: ethereumAddress,
                 privateKey: passwordHash,
                 remote: false,
-                createdAt: new Date()
+                createdAt: new Date(),
+                signUpReference
             };
             await this.usersRepository.save(user);
 
@@ -180,7 +190,7 @@ export class UsersService {
         return user;
     }
 
-    private async registerUserByTransactionId(transactionId: string, language?: Language): Promise<User> {
+    private async registerUserByTransactionId(transactionId: string, language?: Language, signUpReference?: SignUpReference): Promise<User> {
         try {
             const passwordHashResponse = (await this.passwordHashApiClient.getPasswordHashByTransaction(transactionId)).data;
             const {hash, address: ethereumAddress} = passwordHashResponse;
@@ -193,6 +203,9 @@ export class UsersService {
 
             if (user) {
                 user.privateKey = hash;
+                if (signUpReference) {
+                    user.signUpReference = signUpReference;
+                }
                 user = await this.usersRepository.save(user);
 
                 if (!user.preferences) {
@@ -211,7 +224,8 @@ export class UsersService {
                     displayedName: ethereumAddress,
                     privateKey: hash,
                     remote: false,
-                    createdAt: new Date()
+                    createdAt: new Date(),
+                    signUpReference
                 };
                 await this.usersRepository.save(user);
 

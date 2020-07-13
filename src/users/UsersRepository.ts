@@ -1,6 +1,6 @@
 import {EntityRepository, In, MoreThan, Not, Repository} from "typeorm";
 import {subDays} from "date-fns";
-import {User} from "./entities";
+import {SignUpReference, User} from "./entities";
 import {FollowRecommendationFilters} from "./types/request";
 import {calculateOffset} from "../utils/pagination";
 import {Status, StatusLike} from "../statuses/entities";
@@ -119,5 +119,13 @@ export class UsersRepository extends Repository<User> {
             .orWhere(`user_subscription."createdAt" > :dayAgo`, {dayAgo})
             .orWhere(`status."createdAt" > :dayAgo`, {dayAgo})
             .getCount();
+    }
+
+    public countBySignUpReference(signUpReference: SignUpReference): Promise<number> {
+        return this.count({
+            where: {
+                signUpReference
+            }
+        })
     }
 }
