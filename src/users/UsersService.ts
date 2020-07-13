@@ -23,7 +23,6 @@ import {SignUpReferencesRepository} from "./SignUpReferencesRepository";
 
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {InvalidBCryptHashException} from "./exceptions";
-import {AccountsToSubscribe} from "./types/AccountsToSubscribe";
 import {config} from "../config";
 import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
 import {MediaAttachment} from "../media-attachments/entities";
@@ -81,8 +80,8 @@ export class UsersService {
             user = await this.registerUserByTransactionId(signUpRequest.transactionId!, signUpRequest.language, signUpReference);
         }
 
-        if (config.ENABLE_ACCOUNTS_SUBSCRIPTION_UPON_SIGN_UP) {
-            const accountsToSubscribe = require("../../accounts-to-subscribe.json") as AccountsToSubscribe;
+        if (config.ENABLE_ACCOUNTS_SUBSCRIPTION_UPON_SIGN_UP && config.additionalConfig.accountsToSubscribe) {
+            const accountsToSubscribe = config.additionalConfig.accountsToSubscribe;
             let addresses: string[];
 
             if (signUpRequest.language === Language.ENGLISH) {
