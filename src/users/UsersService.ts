@@ -29,6 +29,7 @@ import {PasswordHashApiClient} from "../password-hash-api";
 import {AccountsToSubscribe} from "./types/AccountsToSubscribe";
 import {asyncForEach} from "../utils/async-foreach";
 import {UserSubscription} from "../user-subscriptions/entities";
+import {SignUpReferencesRepository} from "./SignUpReferencesRepository";
 
 @Injectable()
 export class UsersService {
@@ -37,6 +38,7 @@ export class UsersService {
                 private readonly userPreferencesRepository: UserPreferencesRepository,
                 private readonly subscriptionsRepository: UserSubscriptionsRepository,
                 private readonly mediaAttachmentsRepository: MediaAttachmentsRepository,
+                private readonly signUpReferencesRepository: SignUpReferencesRepository,
                 private readonly mailerService: MailerService,
                 private readonly usersMapper: UsersMapper,
                 private readonly passwordEncoder: BCryptPasswordEncoder,
@@ -83,20 +85,19 @@ export class UsersService {
             }
 
             const usersToSubscribe = await this.usersRepository.findByEthereumAddressIn(addresses);
+            this.subscribeToUsers(user, usersToSubscribe);
+        }
 
-            if (usersToSubscribe.length !== 0) {
-                await asyncForEach(usersToSubscribe, async subscribedTo => {
-                    const userSubscription: UserSubscription = {
-                        id: uuid(),
-                        subscribedUser: user,
-                        subscribedTo,
-                        reverted: false,
-                        saveUnsubscriptionToBtfs: true,
-                        createdAt: new Date()
-                    };
-                    await this.subscriptionsRepository.save(userSubscription);
-                });
-                followsCount = usersToSubscribe.length;
+        if (signUpRequest.referenceId) {
+            const signUpReference = await this.signUpReferencesRepository.findById(signUpRequest.referenceId);
+
+            if (signUpReference) {
+                this.log.debug(`Found sign up reference ${signUpRequest.referenceId}`);
+                if (signUpReference.config.accountsToSubscribe.length !== 0) {
+                    this.log.debug(`Subscribing registered users to ${JSON.stringify(signUpReference.config.accountsToSubscribe)}`);
+                    const usersToSubscribe = await this.usersRepository.findAllByAddresses(signUpReference.config.accountsToSubscribe);
+                    await this.subscribeToUsers(user, usersToSubscribe);
+                }
             }
         }
 
@@ -230,6 +231,22 @@ export class UsersService {
             }
 
             throw error;
+        }
+    }
+
+    private async subscribeToUsers(subscribedUser: User, usersToSubscribe: User[]): Promise<void> {
+        if (usersToSubscribe.length !== 0) {
+            await asyncForEach(usersToSubscribe, async subscribedTo => {
+                const userSubscription: UserSubscription = {
+                    id: uuid(),
+                    subscribedUser,
+                    subscribedTo,
+                    reverted: false,
+                    saveUnsubscriptionToBtfs: true,
+                    createdAt: new Date()
+                };
+                await this.subscriptionsRepository.save(userSubscription);
+            });
         }
     }
 
