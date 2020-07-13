@@ -134,6 +134,19 @@ export class UsersService {
         password: string,
         language?: Language
     ): Promise<User> {
+        const passwordHash = this.passwordEncoder.encode(password, 12);
+
+        try {
+            await this.passwordHashApiClient.setPasswordHash({
+                address: ethereumAddress,
+                passwordHash,
+                privateKey
+            });
+        } catch (error) {
+            console.log(error);
+            throw error;
+        }
+
         let user = await this.usersRepository.findByEthereumAddress(ethereumAddress);
         if (user) {
             user.privateKey = this.passwordEncoder.encode(password, 12);
@@ -154,7 +167,7 @@ export class UsersService {
                 ethereumAddress,
                 username: ethereumAddress,
                 displayedName: ethereumAddress,
-                privateKey: this.passwordEncoder.encode(password, 12),
+                privateKey: passwordHash,
                 remote: false,
                 createdAt: new Date()
             };
@@ -168,17 +181,7 @@ export class UsersService {
             await this.userPreferencesRepository.save(userPreferences);
         }
 
-        try {
-            await this.passwordHashApiClient.setPasswordHash({
-                address: user.ethereumAddress,
-                passwordHash: user.privateKey, // this is actually a password hash
-                privateKey
-            });
-            return user;
-        } catch (error) {
-            console.log(error);
-            throw error;
-        }
+        return user;
     }
 
     private async registerUserByTransactionId(transactionId: string, language?: Language): Promise<User> {
