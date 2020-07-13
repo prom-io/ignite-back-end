@@ -1,4 +1,4 @@
-import {Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryColumn} from "typeorm";
+import {Column, Entity, Index, JoinColumn, ManyToOne, OneToOne, PrimaryColumn} from "typeorm";
 import {UserPreferences} from "./UserPreferences";
 import {UserStatistics} from "./UserStatistics";
 import {SignUpReference} from "./SignUpReference";
@@ -55,6 +55,7 @@ export class User {
     @OneToOne(() => UserStatistics, userStatistics => userStatistics.user, {nullable: true, eager: true})
     statistics?: UserStatistics;
 
+    @Index()
     @ManyToOne(() => SignUpReference, {nullable: true, eager: false})
     signUpReference?: SignUpReference;
 }
