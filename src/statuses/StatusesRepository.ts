@@ -814,12 +814,25 @@ export class StatusesRepository extends Repository<Status> {
         language: Language,
         paginationRequest: PaginationRequest
     ): Promise<Status[]> {
+        const ids = (await this.createQueryBuilder("status")
+                .leftJoinAndSelect("status.hashTags", "hashTag")
+                .select(["distinct(status.id)", `status."createdAt"`])
+                .where(`"status_hashTag"."hashTagId" is not null`)
+                .andWhere(`"hashTag"."language" = :language`, {language})
+                .orderBy(`"status"."createdAt"`, "DESC")
+                .limit(paginationRequest.pageSize)
+                .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+                .getRawMany()
+        )
+            .map(rawResult => rawResult.id as string);
+
+        if (ids.length === 0) {
+            return [];
+        }
+
         return this.createStatusQueryBuilder()
-            .where(`"status_hashTag"."hashTagId" is not null`)
-            .andWhere(`"hashTag"."language" = :language`, {language})
+            .where("status.id in (:...ids)", {ids})
             .orderBy(`status."createdAt"`, "DESC")
-            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
-            .limit(paginationRequest.pageSize)
             .getMany();
     }
 
@@ -837,13 +850,26 @@ export class StatusesRepository extends Repository<Status> {
         createdAtBefore: Date,
         paginationRequest: PaginationRequest
     ): Promise<Status[]> {
+        const ids = (await this.createQueryBuilder("status")
+                .leftJoinAndSelect("status.hashTags", "hashTag")
+                .select(["distinct(status.id)", `status."createdAt"`])
+                .where(`"status_hashTag"."hashTagId" is not null`)
+                .andWhere(`"hashTag"."language" = :language`, {language})
+                .andWhere(`status."createdAt" < :createdAtBefore`, {createdAtBefore})
+                .orderBy(`"status"."createdAt"`, "DESC")
+                .limit(paginationRequest.pageSize)
+                .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+                .getRawMany()
+        )
+            .map(rawResult => rawResult.id as string);
+
+        if (ids.length === 0) {
+            return [];
+        }
+
         return this.createStatusQueryBuilder()
-            .where(`"status_hashTag"."hashTagId" is not null`)
-            .andWhere(`"hashTag"."language" = :language`, {language})
-            .andWhere(`status."createdAt" < :createdAtBefore`, {createdAtBefore})
+            .where("status.id in (:...ids)", {ids})
             .orderBy(`status."createdAt"`, "DESC")
-            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
-            .limit(paginationRequest.pageSize)
             .getMany();
     }
 
@@ -852,13 +878,26 @@ export class StatusesRepository extends Repository<Status> {
         createdAtAfter: Date,
         paginationRequest: PaginationRequest
     ): Promise<Status[]> {
+        const ids = (await this.createQueryBuilder("status")
+                .leftJoinAndSelect("status.hashTags", "hashTag")
+                .select(["distinct(status.id)", `status."createdAt"`])
+                .where(`"status_hashTag"."hashTagId" is not null`)
+                .andWhere(`"hashTag"."language" = :language`, {language})
+                .andWhere(`status."createdAt" < :createdAtAfter`, {createdAtAfter})
+                .orderBy(`"status"."createdAt"`, "DESC")
+                .limit(paginationRequest.pageSize)
+                .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+                .getRawMany()
+        )
+            .map(rawResult => rawResult.id as string);
+
+        if (ids.length === 0) {
+            return [];
+        }
+
         return this.createStatusQueryBuilder()
-            .where(`"status_hashTag"."hashTagId" is not null`)
-            .andWhere(`"hashTag"."language" = :language`, {language})
-            .andWhere(`status."createdAt" > :createdAtAfter`, {createdAtAfter})
+            .where("status.id in (:...ids)", {ids})
             .orderBy(`status."createdAt"`, "DESC")
-            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
-            .limit(paginationRequest.pageSize)
             .getMany();
     }
 
@@ -868,13 +907,26 @@ export class StatusesRepository extends Repository<Status> {
         createdAtAfter: Date,
         paginationRequest: PaginationRequest
     ): Promise<Status[]> {
+        const ids = (await this.createQueryBuilder("status")
+                .leftJoinAndSelect("status.hashTags", "hashTag")
+                .select(["distinct(status.id)", `status."createdAt"`])
+                .where(`"status_hashTag"."hashTagId" is not null`)
+                .andWhere(`"hashTag"."language" = :language`, {language})
+                .andWhere(`status."createdAt" between(:createdAtBefore, :createdAtAfter)`, {createdAtBefore, createdAtAfter})
+                .orderBy(`"status".createdAt"`, "DESC")
+                .limit(paginationRequest.pageSize)
+                .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+                .getRawMany()
+        )
+            .map(rawResult => rawResult.id as string);
+
+        if (ids.length === 0) {
+            return [];
+        }
+
         return this.createStatusQueryBuilder()
-            .where(`"status_hashTag"."hashTagId" is not null`)
-            .andWhere(`"hashTag"."language" = :language`, {language})
-            .andWhere(`status."createdAt" between(:createdAtBefore, :createdAtAfter)`, {createdAtBefore, createdAtAfter})
+            .where("status.id in (:...ids)", {ids})
             .orderBy(`status."createdAt"`, "DESC")
-            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
-            .limit(paginationRequest.pageSize)
             .getMany();
     }
 
