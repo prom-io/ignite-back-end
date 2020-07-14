@@ -822,19 +822,14 @@ export class StatusesRepository extends Repository<Status> {
         language: Language,
         paginationRequest: PaginationRequest
     ): Promise<Status[]> {
-        const weekAgo = subDays(new Date(), 7);
-
-        return this.createStatusQueryBuilder()
+        const ids = (await this.createQueryBuilder("status")
+            .leftJoinAndSelect("status.hashTags", "hashTag")
             .leftJoinAndSelect(
-                subquery => subquery
-                    .select(`count(id) as likes_count, "statusId"`)
-                    .from(StatusLike, "status_like")
-                    .andWhere(`"createdAt" > :weekAgo`, {weekAgo})
-                    .andWhere("reverted = false")
-                    .groupBy(`"statusId"`),
+                this.createLastWeekLikesCountSubquery(),
                 "status_like",
                 `status_like."statusId" = status.id`
             )
+            .select(["distinct(status.id)", "likes_count", "status.\"createdAt\""])
             .where(`"status_hashTag"."hashTagId" is not null`)
             .andWhere(`"hashTag"."language" = :language`, {language})
             .orderBy({
@@ -846,6 +841,28 @@ export class StatusesRepository extends Repository<Status> {
             })
             .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
             .limit(paginationRequest.pageSize)
+            .getRawMany()
+        )
+            .map(rawResult => rawResult.id as string);
+
+        if (ids.length === 0) {
+            return [];
+        }
+
+        return this.createStatusQueryBuilder()
+            .leftJoinAndSelect(
+                this.createLastWeekLikesCountSubquery(),
+                "status_like",
+                `status_like."statusId" = status.id`
+            )
+            .where("status.id in (:...ids)", {ids})
+            .orderBy({
+                "likes_count": {
+                    order: "DESC",
+                    nulls: "NULLS LAST"
+                },
+                "status.\"createdAt\"": "DESC"
+            })
             .getMany();
     }
 
@@ -855,22 +872,41 @@ export class StatusesRepository extends Repository<Status> {
         maxLikes: number,
         paginationRequest: PaginationRequest
     ): Promise<Status[]> {
-        const weekAgo = subDays(new Date(), 7);
+        const ids = (await this.createQueryBuilder("status")
+                .leftJoinAndSelect("status.hashTags", "hashTag")
+                .leftJoinAndSelect(
+                    this.createLastWeekLikesCountSubquery(),
+                    "status_like",
+                    `status_like."statusId" = status.id`
+                )
+                .select(["distinct(status.id)", "likes_count", "status.\"createdAt\""])
+                .where(`"status_hashTag"."hashTagId" is not null`)
+                .andWhere(`"hashTag"."language" = :language`, {language})
+                .andWhere(`status."createdAt" < :createdAtBefore and (likes_count <= :maxLikes or likes_count is null)`, {createdAtBefore, maxLikes})
+                .orderBy({
+                    "likes_count": {
+                        order: "DESC",
+                        nulls: "NULLS LAST"
+                    },
+                    "status.\"createdAt\"": "DESC"
+                })
+                .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+                .limit(paginationRequest.pageSize)
+                .getRawMany()
+        )
+            .map(rawResult => rawResult.id as string);
+
+        if (ids.length === 0) {
+            return [];
+        }
 
         return this.createStatusQueryBuilder()
             .leftJoinAndSelect(
-                subquery => subquery
-                    .select(`count(id) as likes_count, "statusId"`)
-                    .from(StatusLike, "status_like")
-                    .andWhere(`"createdAt" > :weekAgo`, {weekAgo})
-                    .andWhere("reverted = false")
-                    .groupBy(`"statusId"`),
+                this.createLastWeekLikesCountSubquery(),
                 "status_like",
                 `status_like."statusId" = status.id`
             )
-            .where(`"status_hashTag"."hashTagId" is not null`)
-            .andWhere(`"hashTag"."language" = :language`, {language})
-            .andWhere(`status."createdAt" < :createdAtBefore and (likes_count <= :maxLikes or likes_count is null)`, {createdAtBefore, maxLikes})
+            .where("status.id in (:...ids)", {ids})
             .orderBy({
                 "likes_count": {
                     order: "DESC",
@@ -878,8 +914,6 @@ export class StatusesRepository extends Repository<Status> {
                 },
                 "status.\"createdAt\"": "DESC"
             })
-            .limit(paginationRequest.pageSize)
-            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
             .getMany();
     }
 
@@ -938,6 +972,17 @@ export class StatusesRepository extends Repository<Status> {
             .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
             .limit(paginationRequest.pageSize)
             .getMany();
+    }
+
+    private createLastWeekLikesCountSubquery(): (queryBuilder: SelectQueryBuilder<any>) => SelectQueryBuilder<any> {
+        const weekAgo = subDays(new Date(), 7);
+
+        return queryBuilder => queryBuilder
+            .select(`count(id) as likes_count, "statusId"`)
+            .from(StatusLike, "status_like")
+            .andWhere(`"createdAt" > :weekAgo`, {weekAgo})
+            .andWhere("reverted = false")
+            .groupBy(`"statusId"`)
     }
 
     private createStatusQueryBuilder(): SelectQueryBuilder<Status> {
