@@ -640,7 +640,10 @@ export class StatusesRepository extends Repository<Status> {
                 .select(["distinct(status.id)", "likes_count", "status.\"createdAt\""])
                 .where(`"status_hashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
                 .orderBy({
-                    "likes_count": "DESC",
+                    "likes_count": {
+                        order: "DESC",
+                        nulls: "NULLS LAST"
+                    },
                     "status.\"createdAt\"": "DESC"
                 })
                 .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
@@ -661,7 +664,10 @@ export class StatusesRepository extends Repository<Status> {
             )
             .where("status.id in (:...ids)", {ids})
             .orderBy({
-                "likes_count": "DESC",
+                "likes_count": {
+                    order: "DESC",
+                    nulls: "NULLS LAST"
+                },
                 "status.\"createdAt\"": "DESC"
             })
             .getMany();
@@ -689,7 +695,10 @@ export class StatusesRepository extends Repository<Status> {
                     {createdAtBefore, createdAtAfter, minLikes, maxLikes}
                     )
                 .orderBy({
-                    "likes_count": "DESC",
+                    "likes_count": {
+                        order: "DESC",
+                        nulls: "NULLS LAST"
+                    },
                     "status.\"createdAt\"": "DESC"
                 })
                 .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
@@ -733,7 +742,10 @@ export class StatusesRepository extends Repository<Status> {
                 .where(`"status_hashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
                 .andWhere(`status."createdAt" < :createdAtBefore and (likes_count <= :maxLikes or likes_count is null)`, {createdAtBefore, maxLikes})
                 .orderBy({
-                    "likes_count": "DESC",
+                    "likes_count": {
+                        order: "DESC",
+                        nulls: "NULLS LAST"
+                    },
                     "status.\"createdAt\"": "DESC"
                 })
                 .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
@@ -780,7 +792,10 @@ export class StatusesRepository extends Repository<Status> {
                 .where(`"status_hashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
                 .andWhere(`status."createdAt" < :createdAtAfter and (likes_count <= :minLikes or likes_count is null)`, {createdAtAfter, minLikes})
                 .orderBy({
-                    "likes_count": "DESC",
+                    "likes_count": {
+                        order: "DESC",
+                        nulls: "NULLS LAST"
+                    },
                     "status.\"createdAt\"": "DESC"
                 })
                 .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
