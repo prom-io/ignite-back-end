@@ -1,10 +1,9 @@
 import {Between, EntityRepository, In, LessThan, MoreThan, Repository, SelectQueryBuilder} from "typeorm";
-import {Status, StatusAdditionalInfo, StatusInfoMap, StatusLike, StatusReferenceType, HashTag} from "./entities";
 import {subDays} from "date-fns";
-import {Language, User, UserStatistics} from "../users/entities";
+import {HashTag, Status, StatusAdditionalInfo, StatusInfoMap, StatusLike, StatusReferenceType} from "./entities";
+import {Language, User} from "../users/entities";
 import {calculateOffset, PaginationRequest} from "../utils/pagination";
 import {UserSubscription} from "../user-subscriptions/entities";
-import {map} from "rxjs/operators";
 
 @EntityRepository(Status)
 export class StatusesRepository extends Repository<Status> {
@@ -1044,25 +1043,47 @@ export class StatusesRepository extends Repository<Status> {
             .getMany();
     }
 
-    public async findContainingHashTagsByLanguageAndCreatedAtAfterOrderByNumberOfLikesForLastWeek(
+    public async findContainingHashTagsByLanguageAndCreatedAtAfterAndLikesForLastWeekMoreThanOrderByNumberOfLikesForLastWeek(
         language: Language,
         createdAtAfter: Date,
+        minLikes: number,
         paginationRequest: PaginationRequest
     ): Promise<Status[]> {
-        const weekAgo = subDays(new Date(), 7);
+        const ids = (await this.createQueryBuilder("status")
+                .leftJoinAndSelect("status.hashTags", "hashTag")
+                .leftJoinAndSelect(
+                    this.createLastWeekLikesCountSubquery(),
+                    "status_like",
+                    `status_like."statusId" = status.id`
+                )
+                .select(["distinct(status.id)", "likes_count", "status.\"createdAt\""])
+                .where(`"status_hashTag"."hashTagId" is not null`)
+                .andWhere(`"hashTag"."language" = :language`, {language})
+                .andWhere(`status."createdAt" < :createdAtBefore and (likes_count <= :maxLikes or likes_count is null)`, {createdAtAfter, minLikes})
+                .orderBy({
+                    "likes_count": {
+                        order: "DESC",
+                        nulls: "NULLS LAST"
+                    },
+                    "status.\"createdAt\"": "DESC"
+                })
+                .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+                .limit(paginationRequest.pageSize)
+                .getRawMany()
+        )
+            .map(rawResult => rawResult.id as string);
+
+        if (ids.length === 0) {
+            return [];
+        }
 
         return this.createStatusQueryBuilder()
-            .addSelect(
-                subquery => subquery.
-                select("count(id)", "last_week_likes_count")
-                    .from(StatusLike, "status_like")
-                    .where(`status_like."statusId" = status.id`)
-                    .andWhere("status_like.reverted = false")
-                    .andWhere(`status_like."createdAt" > :weekAgo`, {weekAgo})
+            .leftJoinAndSelect(
+                this.createLastWeekLikesCountSubquery(),
+                "status_like",
+                `status_like."statusId" = status.id`
             )
-            .where(`"status_hashTag"."hashTagId" is not null`)
-            .andWhere(`"hashTag"."language" = :language`, {language})
-            .andWhere(`status."createdAt" > :createdAtAfter`, {createdAtAfter})
+            .where("status.id in (:...ids)", {ids})
             .orderBy({
                 "last_week_likes_count": "DESC",
                 "status.\"createdAt\"": "DESC"

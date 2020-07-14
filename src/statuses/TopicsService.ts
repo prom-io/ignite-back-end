@@ -154,9 +154,11 @@ export class TopicsService {
             }
         } else if (getStatusesRequest.sinceId) {
             const sinceCursor = await this.findStatusById(getStatusesRequest.sinceId);
-            statuses = await this.statusesRepository.findContainingHashTagsByLanguageAndCreatedAtAfterOrderByNumberOfLikesForLastWeek(
+            const minLikes = await this.statusLikesRepository.countByStatus(sinceCursor);
+            statuses = await this.statusesRepository.findContainingHashTagsByLanguageAndCreatedAtAfterAndLikesForLastWeekMoreThanOrderByNumberOfLikesForLastWeek(
                 getStatusesRequest.language,
                 sinceCursor.createdAt,
+                minLikes,
                 {page: 1, pageSize: 30}
             );
         } else {
