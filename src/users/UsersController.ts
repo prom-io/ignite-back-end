@@ -171,15 +171,19 @@ export class UsersController {
     @UseGuards(OptionalJwtAuthGuard)
     @UseInterceptors(ClassSerializerInterceptor)
     @Get(":address/followers")
-    public getFollowersOfUser(@Param("address") address: string, @Req() request: Request): Promise<UserResponse[]> {
-        return this.userSubscriptionsService.getFollowersOfUser(address, request.user as User | null);
+    public getFollowersOfUser(@Param("address") address: string,
+                              @Query() paginationRequest: PaginationRequest,
+                              @Req() request: Request): Promise<UserResponse[]> {
+        return this.userSubscriptionsService.getFollowersOfUser(address, paginationRequest, request.user as User | null);
     }
 
     @UseGuards(OptionalJwtAuthGuard)
     @UseInterceptors(ClassSerializerInterceptor)
     @Get(":address/following")
-    public getFollowingOfUser(@Param("address") address: string, @Req() request: Request): Promise<UserResponse[]> {
-        return this.userSubscriptionsService.getFollowingOfUser(address, request.user as User | null);
+    public getFollowingOfUser(@Param("address") address: string,
+                              @Query() paginationRequest: PaginationRequest,
+                              @Req() request: Request): Promise<UserResponse[]> {
+        return this.userSubscriptionsService.getFollowingOfUser(address, paginationRequest, request.user as User | null);
     }
 
     @Get("username/:username/is-available")

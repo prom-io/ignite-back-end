@@ -6,7 +6,7 @@ import {UserSubscriptionsMapper} from "./UserSubscriptionsMapper";
 import {RelationshipsResponse, UserSubscriptionResponse} from "./types/response";
 import {UsersRepository} from "../users/UsersRepository";
 import {UserStatisticsRepository} from "../users/UserStatisticsRepository";
-import {User, UserStatistics} from "../users/entities";
+import {User} from "../users/entities";
 import {PaginationRequest} from "../utils/pagination";
 import {UserResponse} from "../users/types/response";
 import {UsersMapper} from "../users/UsersMapper";
@@ -166,19 +166,19 @@ export class UserSubscriptionsService {
         return relationships;
     }
 
-    public async getFollowersOfUser(address: string, currentUser?: User): Promise<UserResponse[]> {
+    public async getFollowersOfUser(address: string, paginationRequest: PaginationRequest, currentUser?: User): Promise<UserResponse[]> {
         const subscribedTo = await this.findUserByAddressOrUsername(address);
 
-        const subscriptions = await this.userSubscriptionsRepository.findAllBySubscribedToNotReverted(subscribedTo);
+        const subscriptions = await this.userSubscriptionsRepository.findBySubscribedToNotReverted(subscribedTo, paginationRequest);
 
         return asyncMap(subscriptions, async subscription => {
             return await this.usersMapper.toUserResponseAsync(subscription.subscribedUser, currentUser);
         })
     }
 
-    public async getFollowingOfUser(address: string, currentUser?: User): Promise<UserResponse[]> {
+    public async getFollowingOfUser(address: string, paginationRequest: PaginationRequest, currentUser?: User): Promise<UserResponse[]> {
         const subscribedUser = await this.findUserByAddressOrUsername(address);
-        const subscriptions = await this.userSubscriptionsRepository.findAllBySubscribedUserNotReverted(subscribedUser);
+        const subscriptions = await this.userSubscriptionsRepository.findBySubscribedUserNotReverted(subscribedUser, paginationRequest);
 
         return asyncMap(subscriptions, async subscription => {
             return await this.usersMapper.toUserResponseAsync(subscription.subscribedTo, currentUser);
