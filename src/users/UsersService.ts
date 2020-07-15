@@ -20,9 +20,8 @@ import {
 } from "./types/request";
 import {UserPreferencesResponse, UserResponse, UsersSubscribersInfoResponse} from "./types/response";
 import {SignUpReferencesRepository} from "./SignUpReferencesRepository";
-
-import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {InvalidBCryptHashException} from "./exceptions";
+import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {config} from "../config";
 import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
 import {MediaAttachment} from "../media-attachments/entities";

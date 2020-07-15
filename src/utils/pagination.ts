@@ -1,5 +1,4 @@
-import {IsInt, IsPositive} from "class-validator";
-import {Transform} from "class-transformer";
+import {Expose, Transform} from "class-transformer";
 
 export const getValidPage = (page?: string | number, fallback: number = 1, startFromZero: boolean = false): number => {
     let returnedPage = Number(page);
@@ -17,7 +16,7 @@ export const getValidPage = (page?: string | number, fallback: number = 1, start
     return returnedPage;
 };
 
-export const getValidPageSize = (pageSize?: string | number, fallback: number = 500): number => {
+export const getValidPageSize = (pageSize?: string | number, fallback: number = 50): number => {
     let returnedPageSize = Number(pageSize);
 
     if (isNaN(returnedPageSize) || returnedPageSize < 1) {
@@ -30,18 +29,15 @@ export const getValidPageSize = (pageSize?: string | number, fallback: number = 
 export const calculateOffset = (page: number, pageSize: number): number => (page - 1) * pageSize;
 
 export class PaginationRequest {
-    @IsInt({message: "Page must be integer number"})
-    @IsPositive({message: "Page must be positive"})
-    @Transform(value => Number(value))
+    @Transform(value => getValidPage(value))
     page: number = 1;
 
-    @IsInt({message: "Page size must be integer number"})
-    @IsPositive({message: "Page size must be positive"})
-    @Transform(value => Number(value))
+    @Expose({name: "page_size"})
+    @Transform(value => getValidPageSize(value))
     pageSize: number = 30;
 
-    constructor(page: number = 1, pageSize: number = 30) {
-        this.page = page;
-        this.pageSize = pageSize;
+    constructor(page: number | string = 1, pageSize: number | string = 30) {
+        this.page = getValidPage(page);
+        this.pageSize = getValidPageSize(pageSize);
     }
 }
