@@ -19,6 +19,7 @@ import {WalletGeneratorModule} from "./wallet-generator";
 import {PasswordHashApiModule} from "./password-hash-api";
 import {PasswordHashGeneratorModule} from "./passsword-hash-generator";
 import {StatisticsModule} from "./statistics";
+import {ValidationModule} from "./utils/validation";
 
 @Module({
     imports: [
@@ -38,6 +39,7 @@ import {StatisticsModule} from "./statistics";
         PasswordHashApiModule,
         PasswordHashGeneratorModule,
         StatisticsModule,
+        ValidationModule,
         TypeOrmModule.forRoot({
             type: "postgres",
             database: config.DATABASE_NAME,
@@ -53,4 +55,5 @@ import {StatisticsModule} from "./statistics";
     ]
 })
 export class AppModule {
+
 }

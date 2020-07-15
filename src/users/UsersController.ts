@@ -32,6 +32,7 @@ import {PaginationRequest} from "../utils/pagination";
 import {OptionalJwtAuthGuard} from "../jwt-auth/OptionalJwtAuthGuard";
 import {UserSubscriptionsService} from "../user-subscriptions";
 import {RelationshipsResponse, UserSubscriptionResponse} from "../user-subscriptions/types/response";
+import {RequestBodyCurrentUserWritingInterceptor} from "../utils/validation";
 
 @Controller("api/v1/accounts")
 export class UsersController {
@@ -107,7 +108,7 @@ export class UsersController {
         return this.usersService.recoverPassword(updatePasswordRequest);
     }
 
-    @UseInterceptors(ClassSerializerInterceptor)
+    @UseInterceptors(ClassSerializerInterceptor, RequestBodyCurrentUserWritingInterceptor)
     @UseGuards(AuthGuard("jwt"))
     @Put(":address")
     public updateUser(@Param("address") address: string,
