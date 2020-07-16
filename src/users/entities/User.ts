@@ -55,15 +55,13 @@ export class User {
     @OneToOne(() => UserStatistics, userStatistics => userStatistics.user, {nullable: true, eager: true})
     statistics?: UserStatistics;
 
-<<<<<<< HEAD
     @Column()
     ethereumPlasmaTransactionHash?: string;
 
     @Column()
     binanceChainTransactionHash?: string;
-=======
+
     @Index()
     @ManyToOne(() => SignUpReference, {nullable: true, eager: false})
     signUpReference?: SignUpReference;
->>>>>>> a97e83b90d0376ed95bd1b77f0930ab02cda01cd
 }
