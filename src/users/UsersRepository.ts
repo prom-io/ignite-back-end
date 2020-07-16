@@ -1,6 +1,6 @@
 import {EntityRepository, In, MoreThan, Not, Repository} from "typeorm";
 import {subDays} from "date-fns";
-import {User} from "./entities";
+import {SignUpReference, User} from "./entities";
 import {FollowRecommendationFilters} from "./types/request";
 import {calculateOffset} from "../utils/pagination";
 import {Status, StatusLike} from "../statuses/entities";
@@ -16,12 +16,18 @@ export class UsersRepository extends Repository<User> {
         })
     }
 
-    public findByUsername(username: string): Promise<User | undefined> {
-        return this.findOne({
+    public async findByUsername(username: string): Promise<User | undefined> {
+        let user: User | undefined = await this.findOne({
             where: {
                 username
             }
-        })
+        });
+
+        if (!user) {
+            user = await this.findByUsernameEqualsIgnoreCase(username);
+        }
+
+        return user;
     }
 
     public findByEthereumAddress(ethereumAddress: string): Promise<User | undefined> {
@@ -57,11 +63,17 @@ export class UsersRepository extends Repository<User> {
     }
 
     public async existsByUsername(username: string): Promise<boolean> {
-        return (await this.count({
+        const usersCount = await this.count({
             where: {
                 username
             }
-        })) !== 0;
+        });
+
+        if (usersCount === 0) {
+            return this.exitsByUsernameEqualsIgnoreCase(username);
+        }
+
+        return usersCount === 0;
     }
 
     public async existsByEthereumAddress(address: string): Promise<boolean> {
@@ -119,5 +131,37 @@ export class UsersRepository extends Repository<User> {
             .orWhere(`user_subscription."createdAt" > :dayAgo`, {dayAgo})
             .orWhere(`status."createdAt" > :dayAgo`, {dayAgo})
             .getCount();
+    }
+
+    public countBySignUpReference(signUpReference: SignUpReference): Promise<number> {
+        return this.count({
+            where: {
+                signUpReference
+            }
+        })
+    }
+
+    public findBySignUpReference(signUpReference: SignUpReference): Promise<User[]> {
+        return this.find({
+            where: {
+                signUpReference
+            }
+        });
+    }
+
+    public findByUsernameEqualsIgnoreCase(username: string): Promise<User> {
+        return this.createQueryBuilder("user")
+            .leftJoinAndSelect(`user.preferences`, "preferences")
+            .leftJoinAndSelect(`user.statistics`, "statistics")
+            .leftJoinAndSelect(`user.avatar`, "avatar")
+            .where(`LOWER("user".username) = LOWER(:username)`, {username})
+            .getOne();
+    }
+
+    public async exitsByUsernameEqualsIgnoreCase(username: string): Promise<boolean> {
+        return (await this.createQueryBuilder("user")
+                .where(`LOWER("user".username) = LOWER(:username)`, {username})
+                .getCount()
+        ) !== 0;
     }
 }

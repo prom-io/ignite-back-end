@@ -1,9 +1,9 @@
 import {Expose} from "class-transformer";
 import {IsBoolean, IsObject, IsString, MaxLength, ValidateIf, ValidateNested} from "class-validator";
 import {UpdatePreferencesRequest} from "./UpdatePreferencesRequest";
-import {IsValidUsername} from "../../../utils/validation";
+import {IsValidUsername, ValidatedObjectWithCurrentUser} from "../../../utils/validation";
 
-export class UpdateUserRequest {
+export class UpdateUserRequest extends ValidatedObjectWithCurrentUser {
     @Expose({name: "display_name"})
     @IsString()
     @MaxLength(50)

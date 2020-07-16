@@ -11,6 +11,10 @@ import {UserStatisticsRepository} from "./UserStatisticsRepository";
 import {UserEntityEventsSubscriber} from "./UserEntityEventsSubscriber";
 import {UserStatisticsMapper} from "./UserStatisticsMapper";
 import {UserPreferencesRepository} from "./UserPreferencesRepository";
+import {SignUpReferencesController} from "./SignUpReferencesController";
+import {SignUpReferencesService} from "./SignUpReferencesService";
+import {SignUpReferencesMapper} from "./SignUpReferencesMapper";
+import {SignUpReferencesRepository} from "./SignUpReferencesRepository";
 import {StatusesModule} from "../statuses/StatusesModule";
 import {UserSubscriptionsModule} from "../user-subscriptions/UserSubscriptionsModule";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
@@ -21,8 +25,15 @@ import {PasswordHashApiModule} from "../password-hash-api";
 import {UserNotWrittenToBinanceChainRepository} from "./UserNotWrittenToBinanceChainRepository";
 
 @Module({
-    controllers: [UsersController, UserByAddressController, SignUpController],
-    providers: [UsersService, UsersMapper, UserEntityEventsSubscriber, UserStatisticsMapper],
+    controllers: [UsersController, UserByAddressController, SignUpController, SignUpReferencesController],
+    providers: [
+        UsersService,
+        UsersMapper,
+        UserEntityEventsSubscriber,
+        UserStatisticsMapper,
+        SignUpReferencesService,
+        SignUpReferencesMapper
+    ],
     imports: [
         TypeOrmModule.forFeature([
             UsersRepository,
@@ -31,6 +42,7 @@ import {UserNotWrittenToBinanceChainRepository} from "./UserNotWrittenToBinanceC
             MediaAttachmentsRepository,
             UserPreferencesRepository,
             UserNotWrittenToBinanceChainRepository,
+            SignUpReferencesRepository
         ]),
         forwardRef(() => StatusesModule),
         forwardRef(() => UserSubscriptionsModule),

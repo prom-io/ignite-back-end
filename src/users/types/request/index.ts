@@ -9,3 +9,5 @@ export * from "./RecoverPasswordRequest";
 export * from "./UpdatePasswordRequest";
 export * from "./FollowRecommendationFilters";
 export * from "./UsersSubscribersInfoRequest";
+export * from "./CreateSignUpReferenceRequest";
+export * from "./CreateSignUpReferenceConfigRequest";

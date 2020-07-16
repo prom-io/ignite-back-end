@@ -32,6 +32,7 @@ import {PaginationRequest} from "../utils/pagination";
 import {OptionalJwtAuthGuard} from "../jwt-auth/OptionalJwtAuthGuard";
 import {UserSubscriptionsService} from "../user-subscriptions";
 import {RelationshipsResponse, UserSubscriptionResponse} from "../user-subscriptions/types/response";
+import {RequestBodyCurrentUserWritingInterceptor} from "../utils/validation";
 
 @Controller("api/v1/accounts")
 export class UsersController {
@@ -107,7 +108,7 @@ export class UsersController {
         return this.usersService.recoverPassword(updatePasswordRequest);
     }
 
-    @UseInterceptors(ClassSerializerInterceptor)
+    @UseInterceptors(ClassSerializerInterceptor, RequestBodyCurrentUserWritingInterceptor)
     @UseGuards(AuthGuard("jwt"))
     @Put(":address")
     public updateUser(@Param("address") address: string,
@@ -171,15 +172,19 @@ export class UsersController {
     @UseGuards(OptionalJwtAuthGuard)
     @UseInterceptors(ClassSerializerInterceptor)
     @Get(":address/followers")
-    public getFollowersOfUser(@Param("address") address: string, @Req() request: Request): Promise<UserResponse[]> {
-        return this.userSubscriptionsService.getFollowersOfUser(address, request.user as User | null);
+    public getFollowersOfUser(@Param("address") address: string,
+                              @Query() paginationRequest: PaginationRequest,
+                              @Req() request: Request): Promise<UserResponse[]> {
+        return this.userSubscriptionsService.getFollowersOfUser(address, paginationRequest, request.user as User | null);
     }
 
     @UseGuards(OptionalJwtAuthGuard)
     @UseInterceptors(ClassSerializerInterceptor)
     @Get(":address/following")
-    public getFollowingOfUser(@Param("address") address: string, @Req() request: Request): Promise<UserResponse[]> {
-        return this.userSubscriptionsService.getFollowingOfUser(address, request.user as User | null);
+    public getFollowingOfUser(@Param("address") address: string,
+                              @Query() paginationRequest: PaginationRequest,
+                              @Req() request: Request): Promise<UserResponse[]> {
+        return this.userSubscriptionsService.getFollowingOfUser(address, paginationRequest, request.user as User | null);
     }
 
     @Get("username/:username/is-available")

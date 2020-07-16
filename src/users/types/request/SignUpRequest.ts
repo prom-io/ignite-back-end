@@ -49,4 +49,9 @@ export class SignUpRequest {
     @IsNotEmpty()
     @Expose({name: "transaction_id"})
     transactionId: string | undefined;
+
+    @ValidateIf((object: SignUpRequest) => Boolean(object.referenceId))
+    @IsString()
+    @Expose({name: "reference_id"})
+    referenceId?: string;
 }

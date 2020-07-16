@@ -2,8 +2,9 @@ import {Injectable} from "@nestjs/common";
 import {InjectConnection} from "@nestjs/typeorm";
 import {LoggerService} from "nest-logger";
 import {Connection, EntitySubscriberInterface, InsertEvent} from "typeorm";
-import uuid from "uuid/v4";
-import {User, UserStatistics} from "./entities";
+import {User} from "./entities";
+import {SignUpReferencesRepository} from "./SignUpReferencesRepository";
+import {UsersRepository} from "./UsersRepository";
 import {BtfsKafkaClient} from "../btfs-sync/BtfsKafkaClient";
 import {BtfsUsersMapper} from "../btfs-sync/mappers";
 import {IpAddressProvider} from "../btfs-sync/IpAddressProvider";
@@ -13,6 +14,8 @@ import {config} from "../config";
 @Injectable()
 export class UserEntityEventsSubscriber implements EntitySubscriberInterface<User> {
     constructor(@InjectConnection() private readonly connection: Connection,
+                private readonly signUpReferencesRepository: SignUpReferencesRepository,
+                private readonly usersRepository: UsersRepository,
                 private readonly btfsKafkaClient: BtfsKafkaClient,
                 private readonly btfsUserMapper: BtfsUsersMapper,
                 private readonly ipAddressProvider: IpAddressProvider,
@@ -26,6 +29,16 @@ export class UserEntityEventsSubscriber implements EntitySubscriberInterface<Use
     }
 
     public async afterInsert(event: InsertEvent<User>): Promise<void> {
+        if (event.entity.signUpReference) {
+            const user = event.entity;
+            this.usersRepository.countBySignUpReference(user.signUpReference)
+                .then(async usersCount => {
+                    const signUpReference = user.signUpReference;
+                    signUpReference.registeredUsersCount = usersCount + 1;
+                    await this.signUpReferencesRepository.save(signUpReference);
+                })
+        }
+
         if (config.ENABLE_BTFS_PUSHING) {
             this.log.info(`Saving user ${event.entity.id} to BTFS`);
             this.btfsKafkaClient.saveUser({
