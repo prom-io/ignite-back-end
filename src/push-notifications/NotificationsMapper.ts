@@ -23,6 +23,16 @@ export class NotificationsMapper {
             case NotificationType.STATUS_REPLY:
             case NotificationType.NEW_STATUS: {
                 const status = await this.statusesRepository.findById(notification.notificationObjectId);
+
+                if (!status) {
+                    return {
+                        id: notification.id,
+                        payload: undefined,
+                        type: notification.type,
+                        createdAt: notification.createdAt.toISOString()
+                    }
+                }
+
                 return new WebsocketPushNotification<StatusResponse>({
                     id: notification.id,
                     payload: await this.statusesMapper.toStatusResponseAsync(status, notification.receiver),
@@ -32,6 +42,16 @@ export class NotificationsMapper {
             }
             case NotificationType.STATUS_LIKE: {
                 const statusLike = await this.statusLikesRepository.findById(notification.notificationObjectId);
+
+                if (!statusLike) {
+                    return {
+                        id: notification.id,
+                        type: NotificationType.STATUS_LIKE,
+                        payload: undefined,
+                        createdAt: notification.createdAt.toISOString()
+                    }
+                }
+
                 let status = statusLike.status;
 
                 if (status.statusReferenceType) {
@@ -51,6 +71,16 @@ export class NotificationsMapper {
             }
             case NotificationType.FOLLOW: {
                 const subscription = await this.userSubscriptionsRepository.findById(notification.notificationObjectId);
+
+                if (!subscription) {
+                    return  {
+                        id: notification.id,
+                        type: NotificationType.FOLLOW,
+                        payload: undefined,
+                        createdAt: notification.createdAt.toISOString()
+                    }
+                }
+
                 return new WebsocketPushNotification<UserResponse>({
                     id: notification.id,
                     type: NotificationType.FOLLOW,
@@ -60,6 +90,16 @@ export class NotificationsMapper {
             }
             case NotificationType.REPOST: {
                 const status = await this.statusesRepository.findById(notification.notificationObjectId);
+
+                if (!status) {
+                    return {
+                        id: notification.id,
+                        type: NotificationType.REPOST,
+                        payload: undefined,
+                        createdAt: notification.createdAt.toISOString()
+                    }
+                }
+
                 return new WebsocketPushNotification<StatusResponse>({
                     id: notification.id,
                     type: NotificationType.REPOST,

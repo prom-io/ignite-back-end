@@ -54,10 +54,11 @@ export class NotificationsService {
             notifications = await this.notificationsRepository.findByReceiver(currentUser, paginationRequest);
         }
 
-        return await asyncMap(
+        return (await asyncMap(
             notifications,
             async notification => await this.notificationsMapper.toWebsocketNotificationResponse(notification)
-        );
+        ))
+            .filter(notification => notification.payload !== undefined);
     }
 
     public async getNotReadNotificationsOfCurrentUser(currentUser: User, feedCursors: FeedCursors): Promise<Array<WebsocketPushNotification<any>>> {
