@@ -1,7 +1,7 @@
 import {Injectable} from "@nestjs/common";
 import {LoggerService} from "nest-logger";
 import {differenceInMinutes} from "date-fns";
-import {subDays, subMonths} from "date-fns";
+import {subDays, subMonths, subWeeks} from "date-fns";
 import {uniqBy} from "lodash";
 import {UsersRepository} from "../users";
 import {BtfsHashRepository} from "../btfs-sync/BtfsHashRepository";
@@ -43,6 +43,7 @@ export class StatisticsService {
         this.log.info("Calculating Ignite statistics");
         const usersCount = await this.usersRepository.countAll();
         const lastMonthUsersCount = await this.usersRepository.countAllByCreatedAtLessAfter(subMonths(new Date(), 1));
+        const lastTwoWeeksUsersCount = await this.usersRepository.countAllByCreatedAtLessAfter(subWeeks(new Date(), 2));
         const statusesCount = await this.statusesRepository.countAll();
         let ddsChunksCount: number;
 
@@ -94,6 +95,7 @@ export class StatisticsService {
         this.log.debug(`Users count is ${usersCount}`);
         this.log.debug(`Daily active users count is ${dailyActiveUsers.length}`);
         this.log.debug(`Last month users count is ${lastMonthUsersCount}`);
+        this.log.debug(`Last two weeks users count is ${lastTwoWeeksUsersCount}`);
         this.log.debug(`DDS chunks count is ${ddsChunksCount}`);
         this.log.debug(`Last week likes count is ${lastWeekLikesCount}`);
         this.log.debug(`Last week statuses count is ${lastWeekStatusesCount}`);
@@ -108,7 +110,8 @@ export class StatisticsService {
             weeklyActivitiesCount,
             binanceChainTransactionsCount,
             ddsChunksCount,
-            statusesCount
+            statusesCount,
+            lastTwoWeeksUsersCount
         });
         this.lastCalculationDate = new Date();
     }

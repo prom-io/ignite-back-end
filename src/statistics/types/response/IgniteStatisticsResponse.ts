@@ -22,6 +22,9 @@ export class IgniteStatisticsResponse {
     @Expose({name: "statuses_count"})
     statusesCount: number;
 
+    @Expose({name: "last_two_weeks_users_count"})
+    lastTwoWeeksUsersCount: number;
+
     constructor(plainObject: IgniteStatisticsResponse) {
         Object.assign(this, plainObject);
     }
