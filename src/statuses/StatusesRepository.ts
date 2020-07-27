@@ -1098,6 +1098,43 @@ export class StatusesRepository extends Repository<Status> {
             .getMany();
     }
 
+
+    public async findContainingHashTagsAndCreatedAtAtBetweenAndNumberOfLikesBetweenOrderByNumberOfLikes(
+        language: Language,
+        createdAtBefore: Date,
+        createdAtAfter: Date,
+        minLikes: number,
+        maxLikes: number,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        const ids = (await this.createQueryBuilder("status")
+                .leftJoinAndSelect("status.hashTags", "hashTag")
+                .leftJoinAndSelect(
+                    this.createLikesCountSubquery(),
+                    "status_like",
+                    `status_like."statusId" = status.id`
+                )
+                .select(["distinct(status.id)", "likes_count", "status.\"createdAt\""])
+                .where(`"status_hashTag"."hashTagId" is not null`)
+                .andWhere(`"hashTag"."language" = :language`, {language})
+                .andWhere(`status."createdAt" between(:createdAtBefore, :createdAtAfter)`, {createdAtBefore, createdAtAfter})
+                .andWhere("likes_count between(:minLikes, :maxLikes)", {minLikes, maxLikes})
+                .orderBy({
+                    "likes_count": {
+                        order: "DESC",
+                        nulls: "NULLS LAST"
+                    },
+                    "status.\"createdAt\"": "DESC"
+                })
+                .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+                .limit(paginationRequest.pageSize)
+                .getRawMany()
+        )
+            .map(rawResult => rawResult.id as string);
+
+        return this.findByIdsInOrderByNumberOfLikes(ids);
+    }
+
     public async findContainingHashTagsByLanguageOrderByNumberOfLikesForLastWeek(
         language: Language,
         paginationRequest: PaginationRequest
