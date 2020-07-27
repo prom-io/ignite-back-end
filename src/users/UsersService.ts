@@ -190,7 +190,7 @@ export class UsersService {
 
     private async registerUserByTransactionId(transactionId: string, language?: Language, signUpReference?: SignUpReference): Promise<User> {
         try {
-            const passwordHashResponse = (await this.passwordHashApiClient.getPasswordHashByTransaction(transactionId)).data;
+            const passwordHashResponse = await this.passwordHashApiClient.getPasswordHashByTransaction(transactionId);
             const {hash, address: ethereumAddress} = passwordHashResponse;
 
             let user = await this.usersRepository.findByEthereumAddress(ethereumAddress);
@@ -517,7 +517,7 @@ export class UsersService {
 
     private async updatePasswordWithTransactionId(updatePasswordRequest: RecoverPasswordRequest): Promise<UserResponse> {
         const transactionId = updatePasswordRequest.transactionId!;
-        const getHashResponse = (await this.passwordHashApiClient.getPasswordHashByTransaction(transactionId)).data;
+        const getHashResponse = await this.passwordHashApiClient.getPasswordHashByTransaction(transactionId);
 
         if (!this.passwordEncoder.isHashValid(getHashResponse.hash)) {
             throw new InvalidBCryptHashException(getHashResponse.hash, getHashResponse.address);

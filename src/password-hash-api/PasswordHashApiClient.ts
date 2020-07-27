@@ -16,7 +16,20 @@ export class PasswordHashApiClient {
         return this.axios.get(`/password/hash/${address}`);
     }
 
-    public getPasswordHashByTransaction(transactionHash: string): AxiosPromise<GetPasswordHashResponse> {
-        return this.axios.get(`/password/${transactionHash}`);
+    public async getPasswordHashByTransaction(transactionHash: string): Promise<GetPasswordHashResponse> {
+        try {
+            return (await this.getPasswordHashByEthereumMainNetTransaction(transactionHash)).data;
+        } catch (error) {
+            console.log(error);
+            return (await this.getPasswordHashByBinanceChainTransaction(transactionHash)).data;
+        }
+    }
+
+    public getPasswordHashByBinanceChainTransaction(transactionHash: string): AxiosPromise<GetPasswordHashResponse> {
+        return this.axios.get(`/password/binance-smart-chain/${transactionHash}`);
+    }
+
+    public getPasswordHashByEthereumMainNetTransaction(transactionHash: string): AxiosPromise<GetPasswordHashResponse> {
+        return this.axios.get(`/password/mainnet/${transactionHash}`);
     }
 }
