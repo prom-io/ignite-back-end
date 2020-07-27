@@ -625,6 +625,160 @@ export class StatusesRepository extends Repository<Status> {
             .getMany();
     }
 
+    public async findByHashTagAndCreatedAtAfterOrderByNumberOfLikes(
+        hashTag: HashTag,
+        createdAtAfter: Date,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        const ids = (await this.createQueryBuilder("status")
+                .leftJoinAndSelect(
+                    this.createLikesCountSubquery(),
+                    "status_like",
+                    `status_like."statusId" = status.id`
+                )
+                .leftJoinAndSelect("status.hashTags", "hashTag")
+                .select(["distinct(status.id)", "likes_count", "status.\"createdAt\""])
+                .where(`"status_hashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+                .andWhere(`status."createdAt" > :createdAtAfter`, {createdAtAfter})
+                .orderBy({
+                    "likes_count": {
+                        order: "DESC",
+                        nulls: "NULLS LAST"
+                    },
+                    "status.\"createdAt\"": "DESC"
+                })
+                .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+                .limit(paginationRequest.pageSize)
+                .getRawMany()
+        )
+            .map(rawResult => rawResult.id);
+
+        return this.findByIdsInOrderByNumberOfLikes(ids);
+    }
+
+    public async findByHashTagAndCreatedAtBetweenAndLikesBetweenOrderByNumberOfLikes(
+        hashTag: HashTag,
+        createdAtBefore: Date,
+        createdAtAfter: Date,
+        minLikes: number,
+        maxLikes: number,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        const ids = (await this.createQueryBuilder("status")
+                .leftJoinAndSelect(
+                    this.createLikesCountSubquery(),
+                    "status_like",
+                    `status_like."statusId" = status.id`
+                )
+                .leftJoinAndSelect("status.hashTags", "hashTag")
+                .select(["distinct(status.id)", "likes_count", "status.\"createdAt\""])
+                .where(`"status_hashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+                .andWhere(`status."createdAt" between(:createdAtBefore, :createdAtAfter)`, {createdAtBefore, createdAtAfter})
+                .andWhere("likes_count between(:minLikes, :maxLikes)", {minLikes, maxLikes})
+                .orderBy({
+                    "likes_count": {
+                        order: "DESC",
+                        nulls: "NULLS LAST"
+                    },
+                    "status.\"createdAt\"": "DESC"
+                })
+                .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+                .limit(paginationRequest.pageSize)
+                .getRawMany()
+        )
+            .map(rawResult => rawResult.id);
+
+        return this.findByIdsInOrderByNumberOfLikes(ids);
+    }
+
+    public async findByHashTagAndCreatedAtBeforeAndLikesLessThanOrderByNumberOfLikes(
+        hashTag: HashTag,
+        createdAtBefore: Date,
+        maxLikes: number,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        const ids = (await this.createQueryBuilder("status")
+                .leftJoinAndSelect(
+                    this.createLikesCountSubquery(),
+                    "status_like",
+                    `status_like."statusId" = status.id`
+                )
+                .leftJoinAndSelect("status.hashTags", "hashTag")
+                .select(["distinct(status.id)", "likes_count", "status.\"createdAt\""])
+                .where(`"status_hashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+                .andWhere(`status."createdAt" < :createdAtBefore`, {createdAtBefore})
+                .andWhere("likes_count < :maxLikes", {maxLikes})
+                .orderBy({
+                    "likes_count": {
+                        order: "DESC",
+                        nulls: "NULLS LAST"
+                    },
+                    "status.\"createdAt\"": "DESC"
+                })
+                .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+                .limit(paginationRequest.pageSize)
+                .getRawMany()
+        )
+            .map(rawResult => rawResult.id as string);
+
+        return this.findByIdsInOrderByNumberOfLikes(ids);
+    }
+
+    public async findByHashTagAndCreatedAtBeforeAndLikesMoreThanOrderByNumberOfLikes(
+        hashTag: HashTag,
+        createdAtAfter: Date,
+        minLikes: number,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        const ids = (await this.createQueryBuilder("status")
+                .leftJoinAndSelect(
+                    this.createLikesCountSubquery(),
+                    "status_like",
+                    `status_like."statusId" = status.id`
+                )
+                .leftJoinAndSelect("status.hashTags", "hashTag")
+                .select(["distinct(status.id)", "likes_count", "status.\"createdAt\""])
+                .where(`"status_hashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
+                .andWhere(`status."createdAt" < :createdAtAfter`, {createdAtAfter})
+                .andWhere("likes_count > :minLikes", {minLikes})
+                .orderBy({
+                    "likes_count": {
+                        order: "DESC",
+                        nulls: "NULLS LAST"
+                    },
+                    "status.\"createdAt\"": "DESC"
+                })
+                .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+                .limit(paginationRequest.pageSize)
+                .getRawMany()
+        )
+            .map(rawResult => rawResult.id as string);
+
+        return this.findByIdsInOrderByNumberOfLikes(ids);
+    }
+
+    private async findByIdsInOrderByNumberOfLikes(ids: string[]): Promise<Status[]> {
+        if (ids.length === 0) {
+            return [];
+        }
+
+        return this.createStatusQueryBuilder()
+            .leftJoinAndSelect(
+                this.createLikesCountSubquery(),
+                "status_like",
+                `status_like."statusId" = status.id`
+            )
+            .where("status.id in (:...ids)", {ids})
+            .orderBy({
+                "likes_count": {
+                    order: "DESC",
+                    nulls: "NULLS LAST"
+                },
+                "status.\"createdAt\"": "DESC"
+            })
+            .getMany();
+    }
+
     public async findByHashTagOrderByNumberOfLikesForLastWeek(
         hashTag: HashTag,
         paginationRequest: PaginationRequest
@@ -1128,8 +1282,16 @@ export class StatusesRepository extends Repository<Status> {
         return queryBuilder => queryBuilder
             .select(`count(id) as likes_count, "statusId"`)
             .from(StatusLike, "status_like")
-            .andWhere(`"createdAt" > :weekAgo`, {weekAgo})
+            .where(`"createdAt" > :weekAgo`, {weekAgo})
             .andWhere("reverted = false")
+            .groupBy(`"statusId"`)
+    }
+
+    private createLikesCountSubquery(): (queryBuilder: SelectQueryBuilder<any>) => SelectQueryBuilder<any> {
+        return queryBuilder => queryBuilder
+            .select(`count(id) as likes_count, "statusId"`)
+            .from(StatusLike, "status_like")
+            .where("reverted = false")
             .groupBy(`"statusId"`)
     }
 

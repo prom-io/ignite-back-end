@@ -1,6 +1,6 @@
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import uuid from "uuid/v4";
-import {subDays} from "date-fns";
+import {isAfter, subDays, subMonths} from "date-fns";
 import {StatusesRepository} from "./StatusesRepository";
 import {HashTagsRepository} from "./HashTagsRepository";
 import {StatusesMapper} from "./StatusesMapper";
@@ -282,56 +282,46 @@ export class TopicsService {
 
     private async getHotStatusesByHashTag(hashTag: HashTag, getStatusesByTopicRequest: GetStatusesByTopicRequest) {
         let statuses: Status[];
-        const weekAgo = subDays(new Date(), 7);
+        const now = new Date();
+        const monthAgo = subMonths(now, 1);
 
         if (getStatusesByTopicRequest.maxId) {
             if (getStatusesByTopicRequest.sinceId) {
                 const sinceCursor = await this.findStatusById(getStatusesByTopicRequest.sinceId);
                 const maxCursor = await this.findStatusById(getStatusesByTopicRequest.maxId);
-                const minLikes = await this.statusLikesRepository.countByStatusAndCreatedAtAfterNotReverted(
-                    sinceCursor,
-                    weekAgo
-                );
-                const maxLikes = await this.statusLikesRepository.countByStatusAndCreatedAtAfterNotReverted(
-                    maxCursor,
-                    weekAgo
-                );
-                statuses = await this.statusesRepository.findByHashTagAndCreatedAtBetweenAndLikesForLastWeekBetweenOrderByNumberOfLikesForLastWeek(
+                const minLikes = await this.statusLikesRepository.countByStatus(sinceCursor);
+                const maxLikes = await this.statusLikesRepository.countByStatus(maxCursor);
+                statuses = await this.statusesRepository.findByHashTagAndCreatedAtBetweenAndLikesBetweenOrderByNumberOfLikes(
                     hashTag,
                     sinceCursor.createdAt,
-                    maxCursor.createdAt,
+                    isAfter(maxCursor.createdAt, monthAgo) ? maxCursor.createdAt : monthAgo,
                     minLikes,
                     maxLikes,
                     {page: 1, pageSize: 30}
-                )
+                );
             } else {
                 const maxCursor = await this.findStatusById(getStatusesByTopicRequest.maxId);
-                const maxLikes = await this.statusLikesRepository.countByStatusAndCreatedAtAfterNotReverted(
-                    maxCursor,
-                    weekAgo
-                );
-                statuses = await this.statusesRepository.findByHashTagAndCreatedAtBeforeAndLikesForLastWeekLessThanOrderByNumberOfLikesForLastWeek(
+                const maxLikes = await this.statusLikesRepository.countByStatus(maxCursor);
+                statuses = await this.statusesRepository.findByHashTagAndCreatedAtBeforeAndLikesLessThanOrderByNumberOfLikes(
                     hashTag,
-                    maxCursor.createdAt,
+                    isAfter(maxCursor.createdAt, monthAgo) ? maxCursor.createdAt : monthAgo,
                     maxLikes,
                     {page: 1, pageSize: 30}
                 )
             }
         } else if (getStatusesByTopicRequest.sinceId) {
             const sinceCursor = await this.findStatusById(getStatusesByTopicRequest.sinceId);
-            const minLikes = await this.statusLikesRepository.countByStatusAndCreatedAtAfterNotReverted(
-                sinceCursor,
-                weekAgo
-            );
+            const minLikes = await this.statusLikesRepository.countByStatus(sinceCursor);
             statuses = await this.statusesRepository.findByHashTagAndCreatedAtAfterAndLikesForLastWeekMoreThanOrderByNumberOfLikesForLastWeek(
                 hashTag,
-                sinceCursor.createdAt,
+                isAfter(sinceCursor.createdAt, monthAgo) ? sinceCursor.createdAt : monthAgo,
                 minLikes,
                 {page: 1, pageSize: 30}
             )
         } else {
-            statuses = await this.statusesRepository.findByHashTagOrderByNumberOfLikesForLastWeek(
+            statuses = await this.statusesRepository.findByHashTagAndCreatedAtAfterOrderByNumberOfLikes(
                 hashTag,
+                monthAgo,
                 {page: 1, pageSize: 30}
             )
         }
