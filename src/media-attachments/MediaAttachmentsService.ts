@@ -153,4 +153,40 @@ export class MediaAttachmentsService {
                 console.log(error);
             })
     }
+
+    /**
+     * Remove this after the first run
+     */
+    public async generatePreviewsForExistingMediaAttachments(): Promise<void> {
+        // don't try to understand this ;)
+        const attachmentsNeedingPreviews = await this.mediaAttachmentRepository
+            .createQueryBuilder("media_attachment_alias")
+            .leftJoin(
+                "media_attachment",
+                "media_attachment",
+                `(
+                    media_attachment.\"preview128Id\" = media_attachment_alias.id OR 
+                    media_attachment.\"preview256Id\" = media_attachment_alias.id OR 
+                    media_attachment.\"preview512Id\" = media_attachment_alias.id OR 
+                    media_attachment.\"preview1024Id\" = media_attachment_alias.id 
+                )`
+            )
+            .where("(media_attachment_alias.width > 128 OR media_attachment_alias.height > 128 )")
+            .andWhere("media_attachment_alias.\"preview128Id\" IS NULL")
+            .andWhere("media_attachment.id IS NULL")
+            .getMany()
+
+        this.log.info(`Found ${attachmentsNeedingPreviews.length} media attachments without previews`)
+
+        for (const attachmentNeedingPreviews of attachmentsNeedingPreviews) {
+            const imagePath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, `${attachmentNeedingPreviews.id}.${attachmentNeedingPreviews.format}`);
+            const fileTypeResult = await FileTypeExtractor.fromFile(imagePath)
+            const imageSize = await this.getImageSize(imagePath)
+            const previews = await this.generateMediaAttachmentPreviews(imagePath, fileTypeResult, imageSize)
+            this.mediaAttachmentRepository.merge(attachmentNeedingPreviews, previews)
+            await this.mediaAttachmentRepository.save(attachmentNeedingPreviews)
+        }
+ 
+        this.log.info(`Created previews for ${attachmentsNeedingPreviews.length} media attachments without previews`)
+    }
 }
