@@ -8,7 +8,7 @@ export class IsStrongPasswordConstraint implements ValidatorConstraintInterface 
 
     public validate(value: any, validationArguments?: ValidationArguments): boolean {
         const password = value as string;
-        const strongPasswordRegexp = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9!@#\$%\^&\*])(?=.{8,})");
+        const strongPasswordRegexp = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9!$%^&*()_+|~\\-=`{}[\\]:;<>?,.\\/])(?=.{8,})");
 
         let result = strongPasswordRegexp.test(password);
 
