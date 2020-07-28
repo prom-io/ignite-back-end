@@ -1,4 +1,4 @@
-import {Column, Entity, PrimaryColumn} from "typeorm";
+import {Column, Entity, PrimaryColumn, OneToOne, JoinColumn} from "typeorm";
 
 @Entity()
 export class MediaAttachment {
@@ -30,5 +30,21 @@ export class MediaAttachment {
     peerIp?: string;
 
     @Column({nullable: true})
-    peerWallet?: string
+    peerWallet?: string;
+
+    @OneToOne(() => MediaAttachment, {cascade: true, onDelete: "SET NULL", persistence: true})
+    @JoinColumn()
+    preview128?: MediaAttachment;
+
+    @OneToOne(() => MediaAttachment, {cascade: true, onDelete: "SET NULL", persistence: true})
+    @JoinColumn()
+    preview256?: MediaAttachment;
+
+    @OneToOne(() => MediaAttachment, {cascade: true, onDelete: "SET NULL", persistence: true})
+    @JoinColumn()
+    preview512?: MediaAttachment;
+
+    @OneToOne(() => MediaAttachment, {cascade: true, onDelete: "SET NULL", persistence: true})
+    @JoinColumn()
+    preview1024?: MediaAttachment;
 }
