@@ -20,6 +20,12 @@ export class MediaAttachmentsRepository extends Repository<MediaAttachment> {
         })
     }
 
+    public findPreviewByOriginalIdAndSize(originalId: string, size: number): Promise<MediaAttachment | undefined> {
+        return this.findOne({
+            where: { originalId, previewSize: size }
+        })
+    }
+
     public findAllByIds(ids: string[]): Promise<MediaAttachment[]> {
         return this.find({
             where: {

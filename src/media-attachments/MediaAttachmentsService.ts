@@ -8,7 +8,7 @@ import graphicsMagic, { Dimensions } from "gm";
 import FileTypeExtractor from "file-type";
 import uuid from "uuid/v4";
 import {MediaAttachmentsRepository} from "./MediaAttachmentsRepository";
-import {MediaAttachmentResponse, MultipartFile} from "./types";
+import {MediaAttachmentResponse, MultipartFile, MediaAttachmentOptions} from "./types";
 import {MediaAttachment} from "./entities";
 import {MediaAttachmentsMapper} from "./MediaAttachmentsMapper";
 import {config} from "../config";
@@ -49,87 +49,84 @@ export class MediaAttachmentsService {
             width: size.width,
             name: `${id}.${fileTypeResult.ext}`,
             siaLink: null,
-            ...await this.generateMediaAttachmentPreviews(permanentFilePath, fileTypeResult, size)
         };
 
         await this.mediaAttachmentRepository.save(mediaAttachment);
 
         if (config.ENABLE_UPLOADING_IMAGES_TO_SIA) {
-            [
-                mediaAttachment,
-                mediaAttachment.preview128,
-                mediaAttachment.preview256,
-                mediaAttachment.preview512,
-                mediaAttachment.preview1024
-            ].forEach(mediaAttachmentOrPreview => {
-                if (mediaAttachmentOrPreview) {
-                    // do not await, cuz the execution can take several seconds
-                    this.uploadMediaAttachmentToSkynet(mediaAttachmentOrPreview)
-                }
-            })
+            // do not await, cuz the execution can take several seconds
+            this.uploadMediaAttachmentToSkynet(mediaAttachment)
         }
 
         return this.mediaAttachmentsMapper.toMediaAttachmentResponse(mediaAttachment);
     }
 
-    public async getMediaAttachmentByName(name: string, response: Response): Promise<void> {
-        const mediaAttachment = await this.mediaAttachmentRepository.findByName(name);
-
+    public async getMediaAttachmentByName(name: string, response: Response, options?: MediaAttachmentOptions): Promise<void> {
+        let mediaAttachment = await this.mediaAttachmentRepository.findByName(name)
         if (!mediaAttachment) {
-            throw new HttpException(`Could not find ${name}`, HttpStatus.NOT_FOUND)   }
-
-        const fileExists = await exists(path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, name));
-
-        if (fileExists) {
-            response.header("Content-Type", mediaAttachment.mimeType);
-            fileSystem.createReadStream(path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, name)).pipe(response);
-        } else {
-            await this.skynetClient.downloadFile(path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, name), mediaAttachment.siaLink);
-            response.header("Content-Type", mediaAttachment.mimeType);
-            fileSystem.createReadStream(path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, name)).pipe(response);
+            throw new HttpException(`Could not find ${name}`, HttpStatus.NOT_FOUND)
         }
+
+        // if the preview is requested, then find or create it if it does not exist in required size
+        if (options && options.size) {
+            let previewInRequiredSize =
+                await this.mediaAttachmentRepository.findPreviewByOriginalIdAndSize(mediaAttachment.id, options.size)
+            
+            if (!previewInRequiredSize) {
+                previewInRequiredSize = await this.createPreview(mediaAttachment, options.size)
+            }
+
+            mediaAttachment = previewInRequiredSize
+        }
+
+        const filePath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, mediaAttachment.name)
+
+        if (!await exists(filePath)) {
+            await this.skynetClient.downloadFile(filePath, mediaAttachment.siaLink);
+        }
+
+        response.header("Cache-Control", "public, max-age=604800, immutable")
+        response.header("Content-Type", mediaAttachment.mimeType);
+        fileSystem.createReadStream(filePath).pipe(response);
     }
 
-    private async generateMediaAttachmentPreviews(
-        imagePath: string,
-        fileTypeResult: FileTypeExtractor.FileTypeResult,
-        size: Dimensions,
-    ): Promise<Pick<MediaAttachment, "preview128" | "preview256" | "preview512" | "preview1024">> {
-        const [preview128, preview256, preview512, preview1024] = await Promise.all(
-            [128, 256, 512, 1024].map(
-                async previewDimension => {
-                    return size.height > previewDimension || size.width > previewDimension
-                        ? await this.generateMediaAttachmentPreview(imagePath, fileTypeResult, previewDimension)
-                        : null
-                }
-            )
-        )
+    private async createPreview(originalMediaAttachment: MediaAttachment, previewSize: number): Promise<MediaAttachment> {
+        const originalFilePath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, originalMediaAttachment.name)
 
-        return { preview128, preview256, preview512, preview1024 }
-    }
+        if (!await exists(originalFilePath)) {
+            await this.skynetClient.downloadFile(originalFilePath, originalMediaAttachment.siaLink);
+        }
 
-    private async generateMediaAttachmentPreview(
-        imagePath: string,
-        fileTypeResult: FileTypeExtractor.FileTypeResult,
-        maxDimension: number,
-    ): Promise<MediaAttachment> {
+        const fileTypeResult = await FileTypeExtractor.fromFile(originalFilePath)
+
         const id = uuid()
         const previewPath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, `${id}.${fileTypeResult.ext}`)
 
-        const gmInstance = gm(imagePath).resize(maxDimension, maxDimension)
+        const gmInstance = gm(originalFilePath).resize(previewSize, previewSize)
         await promisify(gmInstance.write.bind(gmInstance))(previewPath)
 
-        const previewSize = await this.getImageSize(previewPath)
+        const generatedPreviewImageSize = await this.getImageSize(previewPath)
 
-        return {
+        const mediaAttachment: MediaAttachment = {
             id,
             format: fileTypeResult.ext,
             mimeType: fileTypeResult.mime,
-            height: previewSize.height,
-            width: previewSize.width,
+            height: generatedPreviewImageSize.height,
+            width: generatedPreviewImageSize.width,
             name: `${id}.${fileTypeResult.ext}`,
+            original: originalMediaAttachment,
+            previewSize,
             siaLink: null
         }
+
+        if (config.ENABLE_UPLOADING_IMAGES_TO_SIA) {
+            // do not await, cuz the execution can take several seconds
+            this.uploadMediaAttachmentToSkynet(mediaAttachment)
+        }
+
+        await this.mediaAttachmentRepository.save(mediaAttachment)
+
+        return mediaAttachment
     }
 
     private async getImageSize(imagePath: string): Promise<Dimensions> {
@@ -150,43 +147,8 @@ export class MediaAttachmentsService {
             })
             .catch(error => {
                 this.log.error(`Error occurred when tried to upload media attachment ${mediaAttachment.name} to SIA`);
+                // tslint:disable-next-line no-console
                 console.log(error);
             })
-    }
-
-    /**
-     * Remove this after the first run
-     */
-    public async generatePreviewsForExistingMediaAttachments(): Promise<void> {
-        // don't try to understand this ;)
-        const attachmentsNeedingPreviews = await this.mediaAttachmentRepository
-            .createQueryBuilder("media_attachment_alias")
-            .leftJoin(
-                "media_attachment",
-                "media_attachment",
-                `(
-                    media_attachment.\"preview128Id\" = media_attachment_alias.id OR 
-                    media_attachment.\"preview256Id\" = media_attachment_alias.id OR 
-                    media_attachment.\"preview512Id\" = media_attachment_alias.id OR 
-                    media_attachment.\"preview1024Id\" = media_attachment_alias.id 
-                )`
-            )
-            .where("(media_attachment_alias.width > 128 OR media_attachment_alias.height > 128 )")
-            .andWhere("media_attachment_alias.\"preview128Id\" IS NULL")
-            .andWhere("media_attachment.id IS NULL")
-            .getMany()
-
-        this.log.info(`Found ${attachmentsNeedingPreviews.length} media attachments without previews`)
-
-        for (const attachmentNeedingPreviews of attachmentsNeedingPreviews) {
-            const imagePath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, `${attachmentNeedingPreviews.id}.${attachmentNeedingPreviews.format}`);
-            const fileTypeResult = await FileTypeExtractor.fromFile(imagePath)
-            const imageSize = await this.getImageSize(imagePath)
-            const previews = await this.generateMediaAttachmentPreviews(imagePath, fileTypeResult, imageSize)
-            this.mediaAttachmentRepository.merge(attachmentNeedingPreviews, previews)
-            await this.mediaAttachmentRepository.save(attachmentNeedingPreviews)
-        }
- 
-        this.log.info(`Created previews for ${attachmentsNeedingPreviews.length} media attachments without previews`)
     }
 }
