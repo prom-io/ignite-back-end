@@ -1,6 +1,7 @@
 import {HttpException, HttpStatus, Injectable, BadRequestException} from "@nestjs/common";
 import {LoggerService} from "nest-logger";
 import {Response} from "express";
+import {promisify} from "util"
 import fileSystem from "fs";
 import path from "path";
 import graphicsMagic, { Dimensions } from "gm";
@@ -13,7 +14,6 @@ import {MediaAttachmentsMapper} from "./MediaAttachmentsMapper";
 import {config} from "../config";
 import {SkynetClient} from "../skynet";
 import {exists} from "../utils/file-utils"
-import {promisify} from "util"
 
 const gm = graphicsMagic.subClass({imageMagick: true});
 
@@ -48,23 +48,25 @@ export class MediaAttachmentsService {
             height: size.height,
             width: size.width,
             name: `${id}.${fileTypeResult.ext}`,
-            siaLink: null
+            siaLink: null,
+            ...await this.generateMediaAttachmentPreviews(permanentFilePath, fileTypeResult, size)
         };
+
         await this.mediaAttachmentRepository.save(mediaAttachment);
 
         if (config.ENABLE_UPLOADING_IMAGES_TO_SIA) {
-            // do not await, cuz the execution can take several seconds
-            this.skynetClient.uploadFile(permanentFilePath)
-                .then(async siaLink => {
-                    this.log.info(`Media attachment ${mediaAttachment.name} has been uploaded to SIA`);
-                    this.log.debug(`Media attachment ${mediaAttachment.name} received ${siaLink} SIA link`);
-                    mediaAttachment.siaLink = siaLink;
-                    await this.mediaAttachmentRepository.save(mediaAttachment);
-                })
-                .catch(error => {
-                    this.log.error(`Error occurred when tried to upload media attachment ${mediaAttachment.name} to SIA`);
-                    console.log(error);
-                });
+            [
+                mediaAttachment,
+                mediaAttachment.preview128,
+                mediaAttachment.preview256,
+                mediaAttachment.preview512,
+                mediaAttachment.preview1024
+            ].forEach(mediaAttachmentOrPreview => {
+                if (mediaAttachmentOrPreview) {
+                    // do not await, cuz the execution can take several seconds
+                    this.uploadMediaAttachmentToSkynet(mediaAttachmentOrPreview)
+                }
+            })
         }
 
         return this.mediaAttachmentsMapper.toMediaAttachmentResponse(mediaAttachment);
@@ -88,9 +90,67 @@ export class MediaAttachmentsService {
         }
     }
 
+    private async generateMediaAttachmentPreviews(
+        imagePath: string,
+        fileTypeResult: FileTypeExtractor.FileTypeResult,
+        size: Dimensions,
+    ): Promise<Pick<MediaAttachment, "preview128" | "preview256" | "preview512" | "preview1024">> {
+        const [preview128, preview256, preview512, preview1024] = await Promise.all(
+            [128, 256, 512, 1024].map(
+                async previewDimension => {
+                    return size.height > previewDimension || size.width > previewDimension
+                        ? await this.generateMediaAttachmentPreview(imagePath, fileTypeResult, previewDimension)
+                        : null
+                }
+            )
+        )
+
+        return { preview128, preview256, preview512, preview1024 }
+    }
+
+    private async generateMediaAttachmentPreview(
+        imagePath: string,
+        fileTypeResult: FileTypeExtractor.FileTypeResult,
+        maxDimension: number,
+    ): Promise<MediaAttachment> {
+        const id = uuid()
+        const previewPath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, `${id}.${fileTypeResult.ext}`)
+
+        const gmInstance = gm(imagePath).resize(maxDimension, maxDimension)
+        await promisify(gmInstance.write.bind(gmInstance))(previewPath)
+
+        const previewSize = await this.getImageSize(previewPath)
+
+        return {
+            id,
+            format: fileTypeResult.ext,
+            mimeType: fileTypeResult.mime,
+            height: previewSize.height,
+            width: previewSize.width,
+            name: `${id}.${fileTypeResult.ext}`,
+            siaLink: null
+        }
+    }
+
     private async getImageSize(imagePath: string): Promise<Dimensions> {
         const gmState = gm(imagePath)
 
         return promisify(gmState.size.bind(gmState))()
+    }
+
+    private async uploadMediaAttachmentToSkynet(mediaAttachment: MediaAttachment): Promise<void> {
+        const filePath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, `${mediaAttachment.id}.${mediaAttachment.format}`);
+
+        return this.skynetClient.uploadFile(filePath)
+            .then(async siaLink => {
+                this.log.info(`Media attachment ${mediaAttachment.name} has been uploaded to SIA`);
+                this.log.debug(`Media attachment ${mediaAttachment.name} received ${siaLink} SIA link`);
+                mediaAttachment.siaLink = siaLink;
+                await this.mediaAttachmentRepository.save(mediaAttachment);
+            })
+            .catch(error => {
+                this.log.error(`Error occurred when tried to upload media attachment ${mediaAttachment.name} to SIA`);
+                console.log(error);
+            })
     }
 }

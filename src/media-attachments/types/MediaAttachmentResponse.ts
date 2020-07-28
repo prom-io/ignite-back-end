@@ -8,6 +8,10 @@ export class MediaAttachmentResponse {
         width?: number,
         height?: number
     };
+    preview128?: MediaAttachmentResponse;
+    preview256?: MediaAttachmentResponse;
+    preview512?: MediaAttachmentResponse;
+    preview1024?: MediaAttachmentResponse;
 
     constructor(object: MediaAttachmentResponse) {
         Object.assign(this, object);
