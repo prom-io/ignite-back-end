@@ -45,4 +45,8 @@ export class MediaAttachment {
     @ManyToOne(type => MediaAttachment, original => original.previews, { nullable: true })
     @JoinColumn({ name: "originalId" })
     original?: MediaAttachment;
+
+    constructor(data: MediaAttachment) {
+        Object.assign(this, data)
+    }
 }
