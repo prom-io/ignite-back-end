@@ -41,7 +41,7 @@ export class MediaAttachmentsService {
         const permanentFilePath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, `${id}.${fileTypeResult.ext}`);
         await fileSystem.promises.rename(temporaryFilePath, permanentFilePath)
 
-        const mediaAttachment: MediaAttachment = {
+        const mediaAttachment = new MediaAttachment({
             id,
             format: fileTypeResult.ext,
             mimeType: fileTypeResult.mime,
@@ -49,7 +49,7 @@ export class MediaAttachmentsService {
             width: size.width,
             name: `${id}.${fileTypeResult.ext}`,
             siaLink: null,
-        };
+        });
 
         await this.mediaAttachmentRepository.save(mediaAttachment);
 
@@ -91,6 +91,10 @@ export class MediaAttachmentsService {
     }
 
     private async createPreview(originalMediaAttachment: MediaAttachment, previewSize: number): Promise<MediaAttachment> {
+        if (previewSize >= originalMediaAttachment.height && previewSize >= originalMediaAttachment.width) {
+            return originalMediaAttachment
+        }
+
         const originalFilePath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, originalMediaAttachment.name)
 
         if (!await exists(originalFilePath)) {
@@ -107,7 +111,7 @@ export class MediaAttachmentsService {
 
         const generatedPreviewImageSize = await this.getImageSize(previewPath)
 
-        const mediaAttachment: MediaAttachment = {
+        const mediaAttachment = new  MediaAttachment({
             id,
             format: fileTypeResult.ext,
             mimeType: fileTypeResult.mime,
@@ -117,7 +121,7 @@ export class MediaAttachmentsService {
             original: originalMediaAttachment,
             previewSize,
             siaLink: null
-        }
+        })
 
         if (config.ENABLE_UPLOADING_IMAGES_TO_SIA) {
             // do not await, cuz the execution can take several seconds
