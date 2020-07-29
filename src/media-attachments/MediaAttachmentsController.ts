@@ -7,12 +7,13 @@ import {
     Res,
     UploadedFile,
     UseGuards,
-    UseInterceptors
+    UseInterceptors,
+    Query
 } from "@nestjs/common";
 import {AuthGuard} from "@nestjs/passport";
 import {FileInterceptor} from "@nestjs/platform-express";
 import {Response} from "express";
-import {MediaAttachmentResponse, MultipartFile} from "./types";
+import {MediaAttachmentResponse, MultipartFile, MediaAttachmentOptions} from "./types";
 import {MediaAttachmentsService} from "./MediaAttachmentsService";
 
 @Controller("api/v1/media")
@@ -29,7 +30,11 @@ export class MediaAttachmentsController {
     }
 
     @Get(":name")
-    public getAttachmentByName(@Param("name") name: string, @Res() response: Response): Promise<void> {
-        return this.mediaAttachmentsService.getMediaAttachmentByName(name, response);
+    public getAttachmentByName(
+        @Param("name") name: string,
+        @Query() options: MediaAttachmentOptions,
+        @Res() response: Response
+    ): Promise<void> {
+        return this.mediaAttachmentsService.getMediaAttachmentByName(name, response, options);
     }
 }
