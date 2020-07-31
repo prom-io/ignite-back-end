@@ -57,7 +57,10 @@ export class UserSubscriptionsRepository extends Repository<UserSubscription> {
                 reverted: false
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
-            take: paginationRequest.pageSize
+            take: paginationRequest.pageSize,
+            order: {
+                createdAt: "DESC"
+            }
         })
     }
 
