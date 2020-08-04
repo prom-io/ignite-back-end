@@ -30,6 +30,7 @@ import {asyncMap} from "../utils/async-map";
 import {PasswordHashApiClient} from "../password-hash-api";
 import {asyncForEach} from "../utils/async-foreach";
 import {UserSubscription} from "../user-subscriptions/entities";
+import {UsersSearchFilters} from "./types/request/UsersSearchFilters";
 
 @Injectable()
 export class UsersService {
@@ -44,6 +45,17 @@ export class UsersService {
                 private readonly passwordEncoder: BCryptPasswordEncoder,
                 private readonly passwordHashApiClient: PasswordHashApiClient,
                 private readonly log: LoggerService) {
+    }
+
+    public async searchUsers(searchFilters: UsersSearchFilters, currentUser?: User): Promise<UserResponse[]> {
+        const formattedQuery = searchFilters.q && searchFilters.q.trim()
+
+        const users = await this.usersRepository.search({
+            ...searchFilters,
+            q: formattedQuery
+        })
+
+        return asyncMap(users, async user => await this.usersMapper.toUserResponseAsync(user, currentUser))
     }
 
     public async signUpForPrivateBeta(signUpForPrivateBetaTestRequest: SignUpForPrivateBetaTestRequest): Promise<void> {

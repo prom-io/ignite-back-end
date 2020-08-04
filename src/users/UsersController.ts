@@ -33,6 +33,7 @@ import {OptionalJwtAuthGuard} from "../jwt-auth/OptionalJwtAuthGuard";
 import {UserSubscriptionsService} from "../user-subscriptions";
 import {RelationshipsResponse, UserSubscriptionResponse} from "../user-subscriptions/types/response";
 import {RequestBodyCurrentUserWritingInterceptor} from "../utils/validation";
+import {UsersSearchFilters} from "./types/request/UsersSearchFilters";
 
 @Controller("api/v1/accounts")
 export class UsersController {
@@ -50,6 +51,15 @@ export class UsersController {
     @Post()
     public async createUser(@Body() createUserRequest: CreateUserRequest): Promise<void> {
         await this.usersService.saveUser(createUserRequest);
+    }
+
+    @UseInterceptors(ClassSerializerInterceptor)
+    @Get()
+    public async searchUsers(
+        @Query() searchFilters: UsersSearchFilters,
+        @Req() request: Request
+    ): Promise<UserResponse[]> {
+        return this.usersService.searchUsers(searchFilters, request.user as User)
     }
 
     @UseGuards(AuthGuard("jwt"))
