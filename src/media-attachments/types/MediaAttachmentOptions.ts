@@ -1,8 +1,8 @@
-import { Transform } from "class-transformer"
 import { IsInt, IsOptional, IsPositive, Max } from "class-validator"
+import { SafeTransformToInt } from "../../utils/validation/safe-transform-to-int.decorator"
 
 export class MediaAttachmentOptions {
-  @Transform(v => v === "" || v === null || v === undefined ? null : parseInt(v, 10))
+  @SafeTransformToInt()
   @IsInt()
   @IsPositive()
   @Max(10000)
