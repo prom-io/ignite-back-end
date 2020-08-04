@@ -2,18 +2,22 @@ import { IsString, IsOptional, IsInt, IsPositive, ValidateIf, IsIn } from "class
 import { SafeTransformToInt } from "../../../utils/validation/safe-transform-to-int.decorator";
 import { Language } from "../../entities";
 import { FollowRecommendationFilters } from "./FollowRecommendationFilters";
+import { ApiPropertyOptional } from "@nestjs/swagger";
 
 export class UsersSearchFilters {
+  @ApiPropertyOptional({ description: "Строка поиска" })
   @IsString()
   @IsOptional()
   q?: string
 
+  @ApiPropertyOptional({ description: "Пагинация: сколько пропустить" })
   @SafeTransformToInt()
   @IsInt()
   @IsPositive()
   @IsOptional()
   skip?: number
 
+  @ApiPropertyOptional({ description: "Пагинация: сколько взять" })
   @SafeTransformToInt()
   @IsInt()
   @IsPositive()
