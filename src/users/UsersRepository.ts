@@ -1,13 +1,44 @@
-import {EntityRepository, In, MoreThan, Not, Repository} from "typeorm";
+import {EntityRepository, In, MoreThan, Not, Repository, Brackets} from "typeorm";
 import {subDays} from "date-fns";
 import {SignUpReference, User} from "./entities";
 import {FollowRecommendationFilters} from "./types/request";
 import {calculateOffset} from "../utils/pagination";
 import {Status, StatusLike} from "../statuses/entities";
 import {UserSubscription} from "../user-subscriptions/entities";
+import {UsersSearchFilters} from "./types/request/UsersSearchFilters";
 
 @EntityRepository(User)
 export class UsersRepository extends Repository<User> {
+    public search(filters: UsersSearchFilters): Promise<User[]> {
+        const qb = this.createQueryBuilder("user")
+            .leftJoinAndSelect("user.avatar", "avatar")
+            .leftJoinAndSelect("user.preferences", "preferences")
+            .leftJoinAndSelect("user.statistics", "statistics")
+
+        if (filters.q) {
+            qb.where(new Brackets(qbInBrackets => {
+                qbInBrackets
+                    .where("user.displayedName ILIKE :matchPattern", {matchPattern: `${filters.q}%`})
+                    .orWhere("user.username ILIKE :matchPattern", {matchPattern: `${filters.q}%`})
+                    .orWhere("user.ethereumAddress = :ethereumAddress", {ethereumAddress: filters.q})
+            }))
+        }
+
+        if (filters.language) {
+            qb.andWhere(`preferences.language = :language`, {language: filters.language})
+        }
+
+        if (filters.skip) {
+            qb.skip(filters.skip)
+        }
+
+        if (filters.take) {
+            qb.take(filters.take)
+        }
+
+        return qb.getMany()
+    }
+
     public findAllByAddresses(addresses: string[]): Promise<User[]> {
         return this.find({
             where: {
