@@ -476,7 +476,7 @@ export class UsersService {
 
     public async getFollowRecommendations(filters: FollowRecommendationFilters, currentUser: User): Promise<UserResponse[]> {
         const subscriptions = await this.subscriptionsRepository.findAllBySubscribedUserNotReverted(currentUser);
-        const users = subscriptions.map(subscription => subscription.subscribedTo);
+        const usersToExcludeFromRecommendations = subscriptions.map(subscription => subscription.subscribedTo);
 
         let filteringLanguage: Language;
 
@@ -490,9 +490,17 @@ export class UsersService {
 
         filters.language = filteringLanguage;
 
-        users.push(currentUser);
+        usersToExcludeFromRecommendations.push(currentUser);
 
-        const whoToFollow = await this.usersRepository.findMostPopularNotIn(users, filters);
+        const signUpReference = currentUser.signUpReferenceId && await this.signUpReferencesRepository.findOne(currentUser.signUpReferenceId);
+        const recommendedUsersToFollowInSignUpReference =
+            await this.usersRepository.findByEthereumAddressIn(signUpReference.config.accountsToRecommend || []);
+
+        usersToExcludeFromRecommendations.push(...recommendedUsersToFollowInSignUpReference);
+
+        const mostPopularUsersToFollow = await this.usersRepository.findMostPopularNotIn(usersToExcludeFromRecommendations, filters);
+
+        const whoToFollow = [...recommendedUsersToFollowInSignUpReference, ...mostPopularUsersToFollow];
 
         return asyncMap(whoToFollow, async user => await this.usersMapper.toUserResponseAsync(user, currentUser));
     }
