@@ -11,6 +11,7 @@ import {asyncMap} from "../utils/async-map";
 import {config} from "../config";
 import {AccountsToSubscribe} from "./types/AccountsToSubscribe";
 import {UsersMapper} from "./UsersMapper";
+import _ from "lodash";
 
 @Injectable()
 export class SignUpReferencesService {
@@ -22,7 +23,7 @@ export class SignUpReferencesService {
 
     public async createSignUpReference(createSignUpReferenceRequest: CreateSignUpReferenceRequest,
                                        currentUser: User): Promise<SignUpReferenceResponse> {
-        if (createSignUpReferenceRequest.config.accountsToSubscribe && createSignUpReferenceRequest.config.accountsToSubscribe.length !== 0) {
+        if (!_.isEmpty(createSignUpReferenceRequest.config.accountsToSubscribe)) {
             if (config.ENABLE_ACCOUNTS_SUBSCRIPTION_UPON_SIGN_UP) {
                 const configuredAccountsToSubscribe: AccountsToSubscribe = require("../../accounts-to-subscribe.json");
                 createSignUpReferenceRequest.config.accountsToSubscribe = createSignUpReferenceRequest.config.accountsToSubscribe
@@ -31,16 +32,17 @@ export class SignUpReferencesService {
             }
         }
 
-        let signUpReference: SignUpReference = {
-            id: uuid(),
-            registeredUsersCount: 0,
-            maxUses: createSignUpReferenceRequest.maxUses,
-            createdBy: currentUser,
-            expiresAt: createSignUpReferenceRequest.expiresAt,
-            createdAt: new Date(),
-            config: createSignUpReferenceRequest.config
-        };
-        signUpReference = await this.signUpReferenceRepository.save(signUpReference);
+        const signUpReference = await this.signUpReferenceRepository.save(
+            new SignUpReference({
+                id: uuid(),
+                registeredUsersCount: 0,
+                maxUses: createSignUpReferenceRequest.maxUses,
+                createdBy: currentUser,
+                expiresAt: createSignUpReferenceRequest.expiresAt,
+                createdAt: new Date(),
+                config: createSignUpReferenceRequest.config
+            })
+        );
 
         return await this.signUpReferencesMapper.toSignUpReferenceResponse(signUpReference, currentUser);
     }

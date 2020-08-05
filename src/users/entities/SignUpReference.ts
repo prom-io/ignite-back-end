@@ -1,4 +1,4 @@
-import {Column, Entity, ManyToOne, PrimaryColumn} from "typeorm";
+import {Column, Entity, ManyToOne, PrimaryColumn, DeepPartial} from "typeorm";
 import {User} from "./User";
 import {ISignUpReferenceConfig} from "../types/ISignUpReferenceConfig";
 
@@ -24,4 +24,8 @@ export class SignUpReference {
 
     @ManyToOne(() => User, {eager: true})
     createdBy: User;
+
+    constructor(data: SignUpReference) {
+        Object.assign(this, data)
+    }
 }
