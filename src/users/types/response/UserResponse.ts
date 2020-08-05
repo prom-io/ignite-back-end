@@ -44,6 +44,9 @@ export class UserResponse {
 
     bio?: string;
 
+    @Expose({name: "external_url"})
+    externalUrl?: string
+
     constructor(object: UserResponse) {
         Object.assign(this, object);
     }

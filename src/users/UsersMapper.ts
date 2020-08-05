@@ -66,6 +66,7 @@ export class UsersMapper {
             following,
             followedBy,
             bio: user.bio,
+            externalUrl: user.externalUrl,
             passwordHash: includePasswordHash ? user.privateKey : undefined
         })
     }

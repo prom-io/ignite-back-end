@@ -1,5 +1,5 @@
 import {Expose} from "class-transformer";
-import {IsBoolean, IsObject, IsString, MaxLength, ValidateIf, ValidateNested} from "class-validator";
+import {IsBoolean, IsObject, IsString, MaxLength, ValidateIf, ValidateNested, IsUrl, IsOptional} from "class-validator";
 import {UpdatePreferencesRequest} from "./UpdatePreferencesRequest";
 import {IsValidUsername, ValidatedObjectWithCurrentUser} from "../../../utils/validation";
 
@@ -24,6 +24,12 @@ export class UpdateUserRequest extends ValidatedObjectWithCurrentUser {
     @IsString()
     @MaxLength(400)
     bio?: string;
+
+    @MaxLength(100)
+    @IsUrl()
+    @IsOptional()
+    @Expose({name: "external_url"})
+    externalUrl?: string
 
     @ValidateIf((object: UpdateUserRequest) => Boolean(object.preferences))
     @IsObject()

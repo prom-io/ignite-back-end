@@ -48,6 +48,9 @@ export class User {
     @Column({nullable: true})
     bio?: string;
 
+    @Column({ nullable: true })
+    externalUrl?: string;
+
     @OneToOne(() => UserPreferences, preferences => preferences.user, {nullable: true, eager: true})
     @JoinColumn()
     preferences?: UserPreferences;

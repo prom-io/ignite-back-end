@@ -367,6 +367,7 @@ export class UsersService {
 
         user.username = updateUserRequest.username;
         user.bio = updateUserRequest.bio;
+        user.externalUrl = updateUserRequest.externalUrl;
         user.displayedName = updateUserRequest.displayName;
         user.avatar = avatar ? avatar : user.avatar;
 
