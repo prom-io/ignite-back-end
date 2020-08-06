@@ -493,8 +493,8 @@ export class UsersService {
         usersToExcludeFromRecommendations.push(currentUser);
 
         const signUpReference = currentUser.signUpReferenceId && await this.signUpReferencesRepository.findOne(currentUser.signUpReferenceId);
-        const recommendedUsersToFollowInSignUpReference =
-            await this.usersRepository.findByEthereumAddressIn(signUpReference.config.accountsToRecommend || []);
+        const recommendedUsersToFollowInSignUpReference =  
+            await this.usersRepository.findByEthereumAddressIn(signUpReference ? signUpReference.config.accountsToRecommend : []);
 
         usersToExcludeFromRecommendations.push(...recommendedUsersToFollowInSignUpReference);
 
