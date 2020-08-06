@@ -141,7 +141,7 @@ export class UserSubscriptionsService {
     }
 
     public async getUserRelationships(addresses: string[], currentUser: User): Promise<RelationshipsResponse[]> {
-        const users = await this.usersRepository.findAllByEthereumAddresses(addresses);
+        const users = await this.usersRepository.findByEthereumAddressIn(addresses);
         const relationships: RelationshipsResponse[] = [];
 
         for (const user of users) {

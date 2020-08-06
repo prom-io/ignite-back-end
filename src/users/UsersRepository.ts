@@ -6,6 +6,7 @@ import {calculateOffset} from "../utils/pagination";
 import {Status, StatusLike} from "../statuses/entities";
 import {UserSubscription} from "../user-subscriptions/entities";
 import {UsersSearchFilters} from "./types/request/UsersSearchFilters";
+import _ from "lodash";
 
 @EntityRepository(User)
 export class UsersRepository extends Repository<User> {
@@ -70,14 +71,10 @@ export class UsersRepository extends Repository<User> {
     }
 
     public findByEthereumAddressIn(addresses: string[]): Promise<User[]> {
-        return this.find({
-            where: {
-                ethereumAddress: In(addresses)
-            }
-        })
-    }
+        if (_.isEmpty(addresses)) {
+            return Promise.resolve([])
+        }
 
-    public findAllByEthereumAddresses(addresses: string[]): Promise<User[]> {
         return this.find({
             where: {
                 ethereumAddress: In(addresses)

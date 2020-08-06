@@ -58,7 +58,11 @@ export class User {
     @OneToOne(() => UserStatistics, userStatistics => userStatistics.user, {nullable: true, eager: true})
     statistics?: UserStatistics;
 
+    @Column({nullable: true})
     @Index()
+    signUpReferenceId?: string
+
     @ManyToOne(() => SignUpReference, {nullable: true, eager: false})
+    @JoinColumn({name: "signUpReferenceId"})
     signUpReference?: SignUpReference;
 }
