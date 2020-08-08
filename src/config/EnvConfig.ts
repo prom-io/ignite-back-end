@@ -33,7 +33,7 @@ export class EnvConfig {
     DATABASE_PASSWORD: string | undefined = undefined;
 
     @Env({type: "boolean"})
-    RECREATE_DATABASE_SCHEMA: boolean = false;
+    AUTO_RUN_DB_MIGRATIONS: boolean = false;
 
     @Env({type: "string", required: true})
     MICROBLOGGING_BLOCKCHAIN_API_URL: string;

@@ -89,7 +89,7 @@ variables to run the application. You can find their description [below](#enviro
 | DATABASE_PASSWORD                 | string                         | Database password which will be used for connection                    | yes      |
 | DATABASE_HOST                     | string                         | PostgreSQL database host                                               | yes      |
 | DATABASE_PORT                     | number                         | PostgreSQL database port                                               | yes      |
-| RECREATE_DATABASE_SCHEMA          | boolean                        | Passed to "synchronize" option of TypeORM                              | no       |
+| AUTO_RUN_DB_MIGRATIONS            | boolean                        | Automatically run pending database migrations at start-up              | no       |
 | MIRCROBLOGGING_BLOCKCHAIN_API_URL | string                         |                                                                        | yes      |
 | HOST                              | string                         | Fully qualified (schema://host:port) URL of API                        | yes      |
 | MEDIA_ATTACHMENTS_DIRECTORY       | string                         | Directory which will be used to store media attachments                | yes      |
