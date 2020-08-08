@@ -4,7 +4,6 @@ import {LoggerModule} from "./logging";
 import {Web3Module} from "./web3";
 import {BCryptModule} from "./bcrypt";
 import {AuthModule} from "./jwt-auth";
-import {config} from "./config";
 import {StatusesModule} from "./statuses";
 import {UserSubscriptionsModule} from "./user-subscriptions";
 import {UsersModule} from "./users";
@@ -40,18 +39,13 @@ import {ValidationModule} from "./utils/validation";
         PasswordHashGeneratorModule,
         StatisticsModule,
         ValidationModule,
-        TypeOrmModule.forRoot({
-            type: "postgres",
-            database: config.DATABASE_NAME,
-            host: config.DATABASE_HOST,
-            port: config.DATABASE_PORT,
-            username: config.DATABASE_USERNAME,
-            password: config.DATABASE_PASSWORD,
-            logging: false,
-            entities,
-            subscribers,
-            synchronize: config.RECREATE_DATABASE_SCHEMA
-        })
+        TypeOrmModule.forRoot(
+            {
+                ...require("../ormconfig.js"),
+                entities,
+                subscribers,
+            }
+        )
     ]
 })
 export class AppModule {
