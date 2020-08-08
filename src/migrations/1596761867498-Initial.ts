@@ -1,9 +1,38 @@
-import {MigrationInterface, QueryRunner} from "typeorm";
+import { MigrationInterface, QueryRunner } from "typeorm";
 
 export class Initial1596761867498 implements MigrationInterface {
-
     public async up(queryRunner: QueryRunner): Promise<any> {
-        await queryRunner.query(sql)
+        const allTableNames = [
+            "btfs_hash",
+            "comment",
+            "comment_media_attachments_media_attachment",
+            "hash_tag",
+            "hash_tag_subscription",
+            "media_attachment",
+            "notification",
+            "sign_up_reference",
+            "status",
+            "status_hash_tags_hash_tag",
+            "status_like",
+            "status_media_attachments_media_attachment",
+            "user",
+            "user_device",
+            "user_preferences",
+            "user_statistics",
+            "user_subscription",
+        ];
+
+        const allTablesExist = (
+            await Promise.all(
+                allTableNames.map(tableName => queryRunner.hasTable(tableName)),
+            )
+        ).every(exists => exists);
+
+        if (allTablesExist) {
+            queryRunner.connection.logger.log("warn", "All needed tables already exists")
+        } else {
+            await queryRunner.query(sql);
+        }
     }
 
     public async down(queryRunner: QueryRunner): Promise<any> {
@@ -841,4 +870,4 @@ ALTER TABLE ONLY public.status
 -- PostgreSQL database dump complete
 --
 
-`
+`;
