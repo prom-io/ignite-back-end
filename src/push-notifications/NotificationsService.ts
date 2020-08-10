@@ -69,9 +69,7 @@ export class NotificationsService {
         );
     }
 
-    public async markNotificationsAsRead(markNotificationsReadRequest: MarkNotificationsReadRequest,
-                                         currentUser: User,
-                                         cursors: FeedCursors): Promise<Array<WebsocketPushNotification<any>>> {
+    public async markNotificationsAsRead(currentUser: User, cursors: FeedCursors): Promise<Array<WebsocketPushNotification<any>>> {
         const maxCursor = await this.findNotificationById(cursors.maxId);
         const paginationRequest: PaginationRequest = {
             page: 1,
