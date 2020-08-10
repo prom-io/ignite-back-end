@@ -32,7 +32,6 @@ export class NotificationsRepository extends Repository<Notification> {
             order: {
                 read: 'ASC',
                 createdAt: "DESC"
-                
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
             take: paginationRequest.pageSize
