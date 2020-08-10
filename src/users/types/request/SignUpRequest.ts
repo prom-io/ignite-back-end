@@ -8,7 +8,7 @@ import {
 } from "../../../utils/validation";
 import {getLanguageFromString, Language} from "../../entities";
 
-export class SignUpRequest {
+export class SignUpRequest { 
     @ValidateIf((object: SignUpRequest) => !Boolean(object.transactionId))
     @IsString()
     @IsNotEmpty()

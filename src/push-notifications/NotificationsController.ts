@@ -43,10 +43,12 @@ export class NotificationsController {
     @UseInterceptors(ClassSerializerInterceptor)
     @Put("read")
     public markNotificationsAsRead(@Body() markNotificationsReadRequest: MarkNotificationsReadRequest,
-                                   @Req() request: Request): Promise<Array<WebsocketPushNotification<any>>> {
+                                   @Req() request: Request, 
+                                   @Query("max_id") maxId?: string): Promise<Array<WebsocketPushNotification<any>>> {
         return this.notificationsService.markNotificationsAsRead(
             markNotificationsReadRequest,
-            request.user as User
+            request.user as User,
+            {maxId}
         );
     }
 }
