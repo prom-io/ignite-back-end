@@ -15,6 +15,7 @@ import {NotificationsService} from "./NotificationsService";
 import {MarkNotificationsReadRequest} from "./types/request";
 import {WebsocketPushNotification} from "./types/response";
 import {User} from "../users/entities";
+import { ApiCreatedResponse, ApiOkResponse } from "@nestjs/swagger";
 
 @Controller("api/v1/notifications")
 export class NotificationsController {
@@ -22,6 +23,7 @@ export class NotificationsController {
     }
 
     @UseGuards(AuthGuard("jwt"))
+    @ApiCreatedResponse({description:'Возвращает все уведомления текущего пользователя.'})
     @UseInterceptors(ClassSerializerInterceptor)
     @Get()
     public getAllNotificationsOfCurrentUser(@Req() request: Request,
@@ -40,6 +42,7 @@ export class NotificationsController {
     }
 
     @UseGuards(AuthGuard("jwt"))
+    @ApiOkResponse({description:'Помечает уведомления как прочитанные. Параметр max_id, нужен для отмечивания уведомлений по мере их отображения.'})
     @UseInterceptors(ClassSerializerInterceptor)
     @Put("read")
     public markNotificationsAsRead(@Body() markNotificationsReadRequest: MarkNotificationsReadRequest,
