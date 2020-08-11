@@ -33,6 +33,7 @@ export class NotificationsController {
     }
 
     @UseGuards(AuthGuard("jwt"))
+    @ApiOkResponse({description:'Возвращает все непрочитанные уведомления текущего пользователя'})
     @UseInterceptors(ClassSerializerInterceptor)
     @Get("not-read")
     public getNotReadNotificationsOfCurrentUser(@Req() request: Request,
@@ -42,7 +43,7 @@ export class NotificationsController {
     }
 
     @UseGuards(AuthGuard("jwt"))
-    @ApiOkResponse({description:'Помечает уведомления как прочитанные. Параметр max_id, нужен для отмечивания уведомлений по мере их отображения.'})
+    @ApiOkResponse({description:'Принимает массив id непрочитанных уведомлений и ставит read = true'})
     @UseInterceptors(ClassSerializerInterceptor)
     @Put("read")
     public markNotificationsAsRead(@Body() markNotificationsReadRequest: MarkNotificationsReadRequest, 
