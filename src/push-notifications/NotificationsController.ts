@@ -15,6 +15,7 @@ import {NotificationsService} from "./NotificationsService";
 import {MarkNotificationsReadRequest} from "./types/request";
 import {WebsocketPushNotification} from "./types/response";
 import {User} from "../users/entities";
+import { ApiCreatedResponse, ApiOkResponse } from "@nestjs/swagger";
 
 @Controller("api/v1/notifications")
 export class NotificationsController {
@@ -22,6 +23,7 @@ export class NotificationsController {
     }
 
     @UseGuards(AuthGuard("jwt"))
+    @ApiCreatedResponse({description:'Возвращает все уведомления текущего пользователя.'})
     @UseInterceptors(ClassSerializerInterceptor)
     @Get()
     public getAllNotificationsOfCurrentUser(@Req() request: Request,
@@ -31,6 +33,7 @@ export class NotificationsController {
     }
 
     @UseGuards(AuthGuard("jwt"))
+    @ApiOkResponse({description:'Возвращает все непрочитанные уведомления текущего пользователя'})
     @UseInterceptors(ClassSerializerInterceptor)
     @Get("not-read")
     public getNotReadNotificationsOfCurrentUser(@Req() request: Request,
@@ -40,13 +43,14 @@ export class NotificationsController {
     }
 
     @UseGuards(AuthGuard("jwt"))
+    @ApiOkResponse({description:'Принимает массив id непрочитанных уведомлений и ставит read = true'})
     @UseInterceptors(ClassSerializerInterceptor)
     @Put("read")
-    public markNotificationsAsRead(@Body() markNotificationsReadRequest: MarkNotificationsReadRequest,
-                                   @Req() request: Request): Promise<Array<WebsocketPushNotification<any>>> {
+    public markNotificationsAsRead(@Body() markNotificationsReadRequest: MarkNotificationsReadRequest, 
+                                    @Req() request: Request): Promise<Array<WebsocketPushNotification<any>>> {
         return this.notificationsService.markNotificationsAsRead(
-            markNotificationsReadRequest,
-            request.user as User
+            request.user as User,
+            markNotificationsReadRequest
         );
     }
 }

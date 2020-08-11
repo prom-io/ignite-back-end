@@ -69,8 +69,8 @@ export class NotificationsService {
         );
     }
 
-    public async markNotificationsAsRead(markNotificationsReadRequest: MarkNotificationsReadRequest,
-                                         currentUser: User): Promise<Array<WebsocketPushNotification<any>>> {
+    public async markNotificationsAsRead(currentUser: User, 
+                                        markNotificationsReadRequest: MarkNotificationsReadRequest): Promise<Array<WebsocketPushNotification<any>>> {
         let notifications = (await this.notificationsRepository.findAllById(markNotificationsReadRequest.notificationsIds))
             .filter(notification => notification.receiver.id === currentUser.id);
         notifications = notifications.map(notification => ({

@@ -30,6 +30,7 @@ export class NotificationsRepository extends Repository<Notification> {
                 receiver
             },
             order: {
+                read: 'ASC',
                 createdAt: "DESC"
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
@@ -44,6 +45,7 @@ export class NotificationsRepository extends Repository<Notification> {
                 createdAt: LessThan(createdAt)
             },
             order: {
+                read: 'ASC',
                 createdAt: "DESC"
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
@@ -58,6 +60,7 @@ export class NotificationsRepository extends Repository<Notification> {
                 createdAt: MoreThan(createdAt)
             },
             order: {
+                read: 'ASC',
                 createdAt: "DESC"
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
@@ -76,7 +79,8 @@ export class NotificationsRepository extends Repository<Notification> {
                 createdAt: Between(createdAtBefore, createdAtAfter)
             },
             order: {
-                createdAt: "DESC"
+                createdAt: "DESC",
+                read:'ASC'
             },
             skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize),
             take: paginationRequest.pageSize
