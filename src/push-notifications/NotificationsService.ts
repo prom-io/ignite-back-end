@@ -69,17 +69,9 @@ export class NotificationsService {
         );
     }
 
-    public async markNotificationsAsRead(currentUser: User, cursors: FeedCursors): Promise<Array<WebsocketPushNotification<any>>> {
-        const maxCursor = await this.findNotificationById(cursors.maxId);
-        const paginationRequest: PaginationRequest = {
-            page: 1,
-            pageSize: 30
-        };
-        let notifications = (await this.notificationsRepository.findByReceiverAndCreatedAtBefore(
-            currentUser,
-            maxCursor.createdAt,
-            paginationRequest
-        ))
+    public async markNotificationsAsRead(currentUser: User, 
+                                        markNotificationsReadRequest: MarkNotificationsReadRequest): Promise<Array<WebsocketPushNotification<any>>> {
+        let notifications = (await this.notificationsRepository.findAllById(markNotificationsReadRequest.notificationsIds))
             .filter(notification => notification.receiver.id === currentUser.id);
         notifications = notifications.map(notification => ({
             ...notification,
