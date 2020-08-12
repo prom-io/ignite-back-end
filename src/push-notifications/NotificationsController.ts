@@ -16,7 +16,7 @@ import {MarkNotificationsReadRequest} from "./types/request";
 import {WebsocketPushNotification} from "./types/response";
 import {User} from "../users/entities";
 import { ApiCreatedResponse, ApiOkResponse } from "@nestjs/swagger";
-import { CountOrNotRead } from "./types/response/CountOfNotRead";
+import { CountOfNotRead } from "./types/response/CountOfNotRead";
 
 @Controller("api/v1/notifications")
 export class NotificationsController {
@@ -44,10 +44,10 @@ export class NotificationsController {
     }
 
     @UseGuards(AuthGuard("jwt"))
-    @ApiOkResponse({description:'Возвращает количество непрочитанных уведомлений текущего пользователя'})
+    @ApiOkResponse({type: () => CountOfNotRead, description:'Возвращает количество непрочитанных уведомлений текущего пользователя'})
     @UseInterceptors(ClassSerializerInterceptor)
     @Get("not-read-count")
-    public getCountOfNotReadNotificationsOfCurrentUser(@Req() request: Request): Promise<CountOrNotRead>{
+    public getCountOfNotReadNotificationsOfCurrentUser(@Req() request: Request): Promise<CountOfNotRead>{
         return this.notificationsService.getCountOfNotReadNotificationsOfCurrentUser(request.user as User);
     }
 
