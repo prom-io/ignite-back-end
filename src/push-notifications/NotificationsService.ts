@@ -8,6 +8,7 @@ import {User} from "../users/entities";
 import {asyncMap} from "../utils/async-map";
 import {FeedCursors} from "../statuses/types/request/FeedCursors";
 import {PaginationRequest} from "../utils/pagination";
+import { CountOfNotRead } from "./types/response/CountOfNotRead";
 
 @Injectable()
 export class NotificationsService {
@@ -83,6 +84,18 @@ export class NotificationsService {
             notifications,
             async notification => await this.notificationsMapper.toWebsocketNotificationResponse(notification)
         )
+    }
+
+    public async getCountOfNotReadNotificationsOfCurrentUser(currentUser: User): Promise<CountOfNotRead>{
+        const count = await this.notificationsRepository.count({
+            where: {
+                receiver: currentUser.id,
+                read: false
+            }})
+
+            return {
+                countOfNotRead: count
+            }
     }
 
     private async findNotificationById(id: string): Promise<Notification> {

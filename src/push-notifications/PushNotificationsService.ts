@@ -67,7 +67,8 @@ export class PushNotificationsService {
                         id: notification.id,
                         payload,
                         type: NotificationType.NEW_STATUS,
-                        createdAt: notification.createdAt.toISOString()
+                        createdAt: notification.createdAt.toISOString(),
+                        read: notification.read
                     });
                     this.websocketEventsPublisher.publishWebsocketPushNotification({
                         websocketPushNotification,
@@ -131,7 +132,8 @@ export class PushNotificationsService {
                     id: notification.id,
                     type: notification.type,
                     payload,
-                    createdAt: notification.createdAt.toISOString()
+                    createdAt: notification.createdAt.toISOString(),
+                    read: notification.read
                 });
                 this.websocketEventsPublisher.publishWebsocketPushNotification({
                     receiverEthereumAddress: notification.receiver.ethereumAddress,
@@ -190,7 +192,8 @@ export class PushNotificationsService {
                     id: notification.id,
                     payload,
                     type: NotificationType.STATUS_LIKE,
-                    createdAt: notification.createdAt.toISOString()
+                    createdAt: notification.createdAt.toISOString(),
+                    read: notification.read
                 });
             this.websocketEventsPublisher.publishWebsocketPushNotification({
                 receiverEthereumAddress: notification.receiver.ethereumAddress,
@@ -234,7 +237,8 @@ export class PushNotificationsService {
                 id: notification.id,
                 payload,
                 type: NotificationType.FOLLOW,
-                createdAt: notification.createdAt.toISOString()
+                createdAt: notification.createdAt.toISOString(),
+                read: notification.read
             });
             this.websocketEventsPublisher.publishWebsocketPushNotification({
                 receiverEthereumAddress: notification.receiver.ethereumAddress,

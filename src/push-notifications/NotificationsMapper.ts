@@ -29,7 +29,8 @@ export class NotificationsMapper {
                         id: notification.id,
                         payload: undefined,
                         type: notification.type,
-                        createdAt: notification.createdAt.toISOString()
+                        createdAt: notification.createdAt.toISOString(),
+                        read: notification.read
                     }
                 }
 
@@ -37,7 +38,8 @@ export class NotificationsMapper {
                     id: notification.id,
                     payload: await this.statusesMapper.toStatusResponseAsync(status, notification.receiver),
                     type: notification.type,
-                    createdAt: notification.createdAt.toISOString()
+                    createdAt: notification.createdAt.toISOString(),
+                    read: notification.read
                 });
             }
             case NotificationType.STATUS_LIKE: {
@@ -48,7 +50,8 @@ export class NotificationsMapper {
                         id: notification.id,
                         type: NotificationType.STATUS_LIKE,
                         payload: undefined,
-                        createdAt: notification.createdAt.toISOString()
+                        createdAt: notification.createdAt.toISOString(),
+                        read: notification.read
                     }
                 }
 
@@ -66,7 +69,8 @@ export class NotificationsMapper {
                     id: notification.id,
                     type: NotificationType.STATUS_LIKE,
                     payload: statusLikePushNotification,
-                    createdAt: notification.createdAt.toISOString()
+                    createdAt: notification.createdAt.toISOString(),
+                    read: notification.read
                 });
             }
             case NotificationType.FOLLOW: {
@@ -77,7 +81,8 @@ export class NotificationsMapper {
                         id: notification.id,
                         type: NotificationType.FOLLOW,
                         payload: undefined,
-                        createdAt: notification.createdAt.toISOString()
+                        createdAt: notification.createdAt.toISOString(),
+                        read: notification.read
                     }
                 }
 
@@ -85,7 +90,8 @@ export class NotificationsMapper {
                     id: notification.id,
                     type: NotificationType.FOLLOW,
                     payload: this.usersMapper.toUserResponse(subscription.subscribedUser),
-                    createdAt: notification.createdAt.toISOString()
+                    createdAt: notification.createdAt.toISOString(),
+                    read: notification.read
                 });
             }
             case NotificationType.REPOST: {
@@ -96,7 +102,8 @@ export class NotificationsMapper {
                         id: notification.id,
                         type: NotificationType.REPOST,
                         payload: undefined,
-                        createdAt: notification.createdAt.toISOString()
+                        createdAt: notification.createdAt.toISOString(),
+                        read: notification.read
                     }
                 }
 
@@ -104,7 +111,8 @@ export class NotificationsMapper {
                     id: notification.id,
                     type: NotificationType.REPOST,
                     payload: await this.statusesMapper.toStatusResponseAsync(status, notification.receiver),
-                    createdAt: notification.createdAt.toISOString()
+                    createdAt: notification.createdAt.toISOString(),
+                    read: notification.read
                 });
             }
         }
