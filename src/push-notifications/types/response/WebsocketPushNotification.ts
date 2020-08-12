@@ -5,6 +5,7 @@ export class WebsocketPushNotification<PayloadType> {
     id: string;
     type: NotificationType;
     payload: PayloadType;
+    read: boolean;
 
     @Expose({name: "created_at"})
     createdAt: string;
