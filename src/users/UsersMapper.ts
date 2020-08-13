@@ -67,8 +67,8 @@ export class UsersMapper {
             followedBy,
             bio: user.bio,
             externalUrl: user.externalUrl,
-            balance: userStatistics ? userStatistics.balance : "0",
-            memezatorVoteWeight: userStatistics ? userStatistics.memezatorVoteWeight : 1,
+            userBalance: userStatistics ? userStatistics.userBalance : "0",
+            votingPower: userStatistics ? userStatistics.votingPower : 1,
             passwordHash: includePasswordHash ? user.privateKey : undefined
         })
     }

@@ -122,9 +122,9 @@ export class UsersService {
                 statusesCount: 0,
                 followsCount: 0,
                 followersCount: 0,
-                balance: "0",
+                userBalance: "0",
                 // TODO: calculate the real vote weight taking the real balance in main net
-                memezatorVoteWeight: 1
+                votingPower: 1
             };
         }
         await this.userStatisticsRepository.save(userStatistics);
@@ -322,10 +322,10 @@ export class UsersService {
                 statusesCount: 0,
                 user,
                 id: "",
-                balance: "0",
+                userBalance: "0",
                 // TODO: calculate the real vote weight taking the real balance in main net
                 // or remove this UsersService#saveUser() method, as it is useless
-                memezatorVoteWeight: 1
+                votingPower: 1
             }
         );
     }

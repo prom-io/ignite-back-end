@@ -25,9 +25,9 @@ export class UserStatisticsRepository extends Repository<UserStatistics> {
                 followersCount: 0,
                 user,
                 // TODO: calculate the real balance
-                balance: "0",
+                userBalance: "0",
                 // TODO: calculate the real vote weight taking the real balance in main net
-                memezatorVoteWeight: 1
+                votingPower: 1
             };
             userStatistics = await this.save(userStatistics);
             return userStatistics;

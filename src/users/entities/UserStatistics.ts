@@ -16,10 +16,10 @@ export class UserStatistics {
     followersCount: number;
 
     @Column()
-    balance: string
+    userBalance: string
 
     @Column({ type: "int" })
-    memezatorVoteWeight: number;
+    votingPower: number;
 
     @OneToOne(type => User)
     @JoinColumn()
