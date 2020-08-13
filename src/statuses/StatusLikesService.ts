@@ -42,6 +42,9 @@ export class StatusLikesService {
 
         await this.statusLikesRepository.save(statusLike);
 
+        status.favoritesCount = status.favoritesCount += 1;
+        await  this.statusesRepository.save(status)
+
         return this.statusesMapper.toStatusResponseAsync(status, currentUser);
     }
 
@@ -69,6 +72,9 @@ export class StatusLikesService {
         statusLike.revertedAt = new Date();
 
         await this.statusLikesRepository.save(statusLike);
+
+        status.favoritesCount = status.favoritesCount -= 1;
+        await  this.statusesRepository.save(status)
 
         return this.statusesMapper.toStatusResponseAsync(status, currentUser);
     }
