@@ -1,3 +1,4 @@
+import { MememzatorActionsRightsResponse } from './types/response/MemezatorActionsRightsResponse';
 import {
     Body,
     ClassSerializerInterceptor,
@@ -156,6 +157,17 @@ export class UsersController {
         return this.usersService.getCurrentUserProfile(request.user as User);
     }
 
+    @UseGuards(AuthGuard("jwt"))
+    @Get("current/memezator-actions-rights")
+    public getMemezatorActionsRights(): MememzatorActionsRightsResponse {
+        return {
+            can_create: true,
+            can_vote: true,
+            cannot_create_reason_code: null,
+            cannot_vote_reason_code: null
+        }
+    }
+
     @UseGuards(OptionalJwtAuthGuard)
     @Get(":address/profile")
     public getUserProfile(@Param("address") address: string,
@@ -201,4 +213,6 @@ export class UsersController {
     public checkUsernameAvailability(@Param("username") username: string): Promise<UsernameAvailabilityResponse> {
         return this.usersService.isUsernameAvailable(username);
     }
+
+
 }
