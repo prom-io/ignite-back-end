@@ -8,6 +8,7 @@ import {Language} from "../users/entities";
 
 const HASH_TAG_REGEXP = /([#|＃][^\s]+)/g;
 const REPEATED_HASH_CHARACTER_REGEXP = /([#])\1+/;
+const MEMES_HASHTAG = 'memezator';
 
 @Injectable()
 export class HashTagsRetriever {
@@ -22,6 +23,10 @@ export class HashTagsRetriever {
         return text.split(HASH_TAG_REGEXP)
             .filter(chunk => HASH_TAG_REGEXP.test(chunk) && !REPEATED_HASH_CHARACTER_REGEXP.test(chunk))
             .map(chunk => chunk.substring(1, chunk.length));
+    }
+
+    public async hasMemeHashTag(text: string) {
+        return this.getHashTagsStringsFromText(text).includes(MEMES_HASHTAG);
     }
 
     public async getHashTagsEntitiesFromText(text: string, language: Language | undefined = Language.ENGLISH): Promise<HashTag[]> {

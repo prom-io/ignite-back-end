@@ -161,7 +161,7 @@ export class StatusesMapper {
             text: createStatusRequest.status || "",
             createdAt: new Date(),
             author,
-            updatedAt: null,
+            updatedAt: new Date(),
             remote: false,
             mediaAttachments,
             referredStatus,
