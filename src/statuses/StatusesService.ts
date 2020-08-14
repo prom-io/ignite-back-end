@@ -1,4 +1,4 @@
-import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
+import {HttpException, HttpStatus, Injectable, BadRequestException} from "@nestjs/common";
 import {StatusesRepository} from "./StatusesRepository";
 import {CreateStatusRequest} from "./types/request";
 import {StatusResponse} from "./types/response";
@@ -23,6 +23,17 @@ export class StatusesService {
     }
 
     public async createStatus(createStatusRequest: CreateStatusRequest, currentUser: User): Promise<StatusResponse> {
+        const isContainMemeHashTag = await this.hashTagsRetriever.hasMemeHashTag(
+            createStatusRequest.status,
+        );
+        if (
+            (!createStatusRequest.fromMemezator && isContainMemeHashTag) ||
+            (createStatusRequest.fromMemezator && !isContainMemeHashTag)
+        ) {
+            throw new BadRequestException(
+                'Memes should be created only in Memezator',
+            );
+        }
         let mediaAttachments: MediaAttachment[] = [];
 
         if (createStatusRequest.mediaAttachments && createStatusRequest.mediaAttachments.length) {

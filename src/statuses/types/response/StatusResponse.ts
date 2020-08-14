@@ -15,8 +15,8 @@ export class StatusResponse {
     content?: string;
 
     @Expose({name: "favourite_count"})
-    favouritesCount: number;
-    favourited: boolean;
+    favoritesCount: number;
+    favourited: boolean; 
 
     @Expose({name: "media_attachments"})
     mediaAttachments: MediaAttachmentResponse[] = [];

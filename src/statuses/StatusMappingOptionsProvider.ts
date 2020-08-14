@@ -23,7 +23,6 @@ export class StatusMappingOptionsProvider {
         statusInfo: StatusAdditionalInfo,
         mapReferredStatusOptions?: ToStatusResponseOptions
     ): Promise<ToStatusResponseOptions> {
-        const favouritesCount = statusInfo.likesCount;
         const favourited = statusInfo.likedByCurrentUser;
         const followingAuthor = statusInfo.currentUserFollowsAuthor;
         const followedByAuthor = statusInfo.currentUserFollowedByAuthor;
@@ -43,7 +42,6 @@ export class StatusMappingOptionsProvider {
         return {
             status,
             favourited,
-            favouritesCount,
             followedByAuthor,
             followingAuthor,
             userStatistics,
@@ -103,7 +101,6 @@ export class StatusMappingOptionsProvider {
 
         return {
             status,
-            favouritesCount: likesCount,
             favourited: likedByCurrentUser,
             followedByAuthor,
             followingAuthor,
