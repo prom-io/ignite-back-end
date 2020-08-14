@@ -1043,6 +1043,8 @@ export class StatusesRepository extends Repository<Status> {
             .getMany();
     }
 
+    
+
     public async findContainingHashTagsByLanguageAndCreatedAtAfterAndLikesForLastWeekMoreThanOrderByNumberOfLikesForLastWeek(
         language: Language,
         createdAtAfter: Date,

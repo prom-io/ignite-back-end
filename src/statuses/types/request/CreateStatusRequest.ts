@@ -1,4 +1,4 @@
-import {ArrayMaxSize, IsIn, IsNotEmpty, IsString, MaxLength, ValidateIf} from "class-validator";
+import {ArrayMaxSize, IsIn, IsNotEmpty, IsString, MaxLength, ValidateIf, IsOptional, IsBoolean} from "class-validator";
 import {Expose} from "class-transformer";
 import {StatusReferenceType} from "../../entities/StatusReferenceType";
 
@@ -31,4 +31,9 @@ export class CreateStatusRequest {
     @IsIn([StatusReferenceType.REPOST, StatusReferenceType.COMMENT])
     @Expose({name: "status_reference_type"})
     public statusReferenceType?: StatusReferenceType;
+
+    @IsBoolean()
+    @IsOptional()
+    @Expose({name: "from_memezator"})
+    public fromMemezator?: boolean;
 }
