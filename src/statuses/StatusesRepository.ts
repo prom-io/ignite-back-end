@@ -750,6 +750,20 @@ export class StatusesRepository extends Repository<Status> {
             .getMany();
     }
 
+    public async findContainingMemeHashTagByLanguage(
+        hashTag: string,
+        language: Language,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        return this.createStatusQueryBuilder()
+            .where(`"hashTag"."name" like :hashTag`, {hashTag})
+            .andWhere(`"hashTag"."language" = :language`, {language})
+            .orderBy(`status."createdAt"`, "DESC")
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
+            .getMany();
+    }
+
     public async findContainingHashTagsByLanguage(
         language: Language,
         paginationRequest: PaginationRequest
@@ -772,6 +786,22 @@ export class StatusesRepository extends Repository<Status> {
         ) !== 0;
     }
 
+    public async findContainingMemeHashTagByLanguageAndCreatedAtBefore(
+        hashTag: string,
+        language: Language,
+        createdAtBefore: Date,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        return this.createStatusQueryBuilder()
+            .where(`"hashTag"."name" like :hashTag`, {hashTag})
+            .andWhere(`"hashTag"."language" = :language`, {language})
+            .andWhere(`status."createdAt" < :createdAtBefore`, {createdAtBefore})
+            .orderBy(`status."createdAt"`, "DESC")
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
+            .getMany();
+    }
+
     public async findContainingHashTagsByLanguageAndCreatedAtBefore(
         language: Language,
         createdAtBefore: Date,
@@ -787,6 +817,22 @@ export class StatusesRepository extends Repository<Status> {
             .getMany();
     }
 
+    public async findContainingMemeHashTagByLanguageAndCreatedAtAfter(
+        hashTag: string,
+        language: Language,
+        createdAtAfter: Date,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        return this.createStatusQueryBuilder()
+            .where(`"hashTag"."name" like :hashTag`, {hashTag})
+            .andWhere(`"hashTag"."language" = :language`, {language})
+            .andWhere(`status."createdAt" > :createdAtAfter`, {createdAtAfter})
+            .orderBy(`status."createdAt"`, "DESC")
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
+            .getMany();
+    }
+
     public async findContainingHashTagsByLanguageAndCreatedAtAfter(
         language: Language,
         createdAtAfter: Date,
@@ -796,6 +842,23 @@ export class StatusesRepository extends Repository<Status> {
             .where(`"status_hashTag"."hashTagId" is not null`)
             .andWhere(`"hashTag"."language" = :language`, {language})
             .andWhere(`status."createdAt" > :createdAtAfter`, {createdAtAfter})
+            .orderBy(`status."createdAt"`, "DESC")
+            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+            .limit(paginationRequest.pageSize)
+            .getMany();
+    }
+
+    public async findContainingMemeHashTagByLanguageAndCreatedAtBetween(
+        hashTag: string,
+        language: Language,
+        createdAtBefore: Date,
+        createdAtAfter: Date,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        return this.createStatusQueryBuilder()
+            .where(`"hashTag"."name" like :hashTag`, {hashTag})
+            .andWhere(`"hashTag"."language" = :language`, {language})
+            .andWhere(`status."createdAt" between(:createdAtBefore, :createdAtAfter)`, {createdAtBefore, createdAtAfter})
             .orderBy(`status."createdAt"`, "DESC")
             .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
             .limit(paginationRequest.pageSize)

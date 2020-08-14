@@ -72,15 +72,16 @@ export class TopicsService {
     public async getStatusesContainingHashTags(getStatusesRequest: GetStatusesRequest, currentUser?: User): Promise<StatusResponse[]> {
         getStatusesRequest.language = getLanguageFromString(getStatusesRequest.language);
         let statuses: Status[];
-
         if (!await this.statusesRepository.existsContainingHashTagsByLanguage(getStatusesRequest.language)) {
             getStatusesRequest.language = Language.ENGLISH;
         }
 
         if (getStatusesRequest.type === TopicFetchType.HOT) {
             statuses = await this.getHotStatusesContainingHashTags(getStatusesRequest);
-        } else {
+        } else if(getStatusesRequest.type === TopicFetchType.FRESH) {
             statuses = await this.getFreshStatusesContainingHashTags(getStatusesRequest);
+        } else {
+            statuses = await this.getStatusesContainingMemeHashTag(getStatusesRequest);
         }
 
         const statusInfoMap = await this.statusesRepository.getStatusesAdditionalInfoMap(statuses, currentUser);
@@ -90,6 +91,46 @@ export class TopicsService {
             statusInfoMap[status.id],
             status.referredStatus && statusInfoMap[status.referredStatus.id]
         ));
+    }
+
+    private async getStatusesContainingMemeHashTag(getStatusesRequest: GetStatusesRequest): Promise<Status[]> {
+        let statuses: Status[];
+        if (getStatusesRequest.maxId) {
+            if (getStatusesRequest.sinceId) {
+                const sinceCursor = await this.findStatusById(getStatusesRequest.sinceId);
+                const maxCursor = await this.findStatusById(getStatusesRequest.maxId);
+                statuses = await this.statusesRepository.findContainingHashTagsByLanguageAndCreatedAtBetween(
+                    getStatusesRequest.language,
+                    sinceCursor.createdAt,
+                    maxCursor.createdAt,
+                    {page: 1, pageSize: 30}
+                )
+            } else {
+                const maxCursor = await this.findStatusById(getStatusesRequest.maxId);
+                statuses = await this.statusesRepository.findContainingMemeHashTagByLanguageAndCreatedAtBefore(
+                    'memezator',
+                    getStatusesRequest.language,
+                    maxCursor.createdAt,
+                    {page: 1, pageSize: 30}
+                );
+            }
+        } else if (getStatusesRequest.sinceId) {
+            const sinceCursor = await this.findStatusById(getStatusesRequest.sinceId);
+            statuses = await this.statusesRepository.findContainingMemeHashTagByLanguageAndCreatedAtAfter(
+                'memezator',
+                getStatusesRequest.language,
+                sinceCursor.createdAt,
+                {page: 1, pageSize: 30}
+            );
+        } else {
+            statuses = await this.statusesRepository.findContainingMemeHashTagByLanguage(
+                'memezator',
+                getStatusesRequest.language,
+                {page: 1, pageSize: 30}
+            );
+        }
+
+        return statuses;
     }
 
     private async getFreshStatusesContainingHashTags(getStatusesRequest: GetStatusesRequest): Promise<Status[]> {

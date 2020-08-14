@@ -29,7 +29,7 @@ export class HashTagsRetriever {
       .map(chunk => chunk.substring(1, chunk.length));
   }
 
-  public async getMemesHashTag(text: string) {
+  public async hasMemeHashTag(text: string) {
     return this.getHashTagsStringsFromText(text).includes(MEMES_HASHTAG);
   }
 

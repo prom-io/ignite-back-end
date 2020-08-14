@@ -1,6 +1,7 @@
 export enum TopicFetchType {
     HOT = "hot",
-    FRESH = "fresh"
+    FRESH = "fresh",
+    MEMES = "memes"
 }
 
 export const fromString = (topicFetchTypeString?: string): TopicFetchType => {
@@ -13,6 +14,8 @@ export const fromString = (topicFetchTypeString?: string): TopicFetchType => {
             return TopicFetchType.HOT;
         case "fresh":
             return TopicFetchType.FRESH;
+            case "memes":
+                return TopicFetchType.MEMES;
         default:
             return TopicFetchType.HOT;
     }

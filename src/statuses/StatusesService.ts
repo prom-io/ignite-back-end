@@ -35,12 +35,12 @@ export class StatusesService {
     currentUser: User,
   ): Promise<StatusResponse> {
     let mediaAttachments: MediaAttachment[] = [];
-    const memesHashTag = await this.hashTagsRetriever.getMemesHashTag(
+    const isContainMemeHashTag = await this.hashTagsRetriever.hasMemeHashTag(
       createStatusRequest.status,
     );
     if (
-      (!createStatusRequest.fromMemezator && memesHashTag) ||
-      (createStatusRequest.fromMemezator && !memesHashTag)
+      (!createStatusRequest.fromMemezator && isContainMemeHashTag) ||
+      (createStatusRequest.fromMemezator && !isContainMemeHashTag)
     ) {
       throw new BadRequestException(
         'Memes should be created only in Memezator',
