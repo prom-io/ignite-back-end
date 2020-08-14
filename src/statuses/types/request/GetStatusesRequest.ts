@@ -27,7 +27,7 @@ export class GetStatusesRequest implements FeedCursors {
 
     @ValidateIf((object: GetStatusesRequest) => Boolean(object.type))
     @IsString()
-    @IsIn([TopicFetchType.HOT, TopicFetchType.FRESH])
+    @IsIn([TopicFetchType.HOT, TopicFetchType.FRESH, TopicFetchType.MEMES])
     @Transform(value => fromString(value))
     type: TopicFetchType;
 }
