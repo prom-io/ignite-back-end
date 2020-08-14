@@ -44,6 +44,9 @@ export class Status {
     @Index()
     btfsHash?: string = undefined;
 
+    @Column()
+    favoritesCount: number;
+
     @TreeParent()
     @Index()
     referredStatus?: Status;

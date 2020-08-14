@@ -15,7 +15,6 @@ import {HashTagsMapper} from "./HashTagsMapper";
 
 export interface ToStatusResponseOptions {
     status: Status,
-    favouritesCount: number,
     favourited: boolean,
     userStatistics?: UserStatistics | Omit<UserStatistics, "user">
     followingAuthor: boolean,
@@ -28,7 +27,7 @@ export interface ToStatusResponseOptions {
     btfsHash?: BtfsHash,
     commentsCount: number,
     canBeReposted: boolean,
-    reposted: boolean,
+    reposted: boolean, 
     commented: boolean
 }
 
@@ -107,7 +106,6 @@ export class StatusesMapper {
             userStatistics,
             followedByAuthor,
             followingAuthor,
-            favouritesCount,
             mapReferredStatus,
             referredStatusOptions,
             repostsCount,
@@ -123,7 +121,7 @@ export class StatusesMapper {
             account: this.userMapper.toUserResponse(status.author, userStatistics, followingAuthor, followedByAuthor),
             createdAt: status.createdAt.toISOString(),
             id: status.id,
-            favouritesCount,
+            favoritesCount: status.favoritesCount,
             favourited,
             content: status.text,
             mediaAttachments: status.mediaAttachments.map(mediaAttachment => this.mediaAttachmentsMapper.toMediaAttachmentResponse(mediaAttachment)),
@@ -168,7 +166,8 @@ export class StatusesMapper {
             mediaAttachments,
             referredStatus,
             statusReferenceType: createStatusRequest.statusReferenceType,
-            hashTags
+            hashTags,
+            favoritesCount: 0
         }
     }
 }
