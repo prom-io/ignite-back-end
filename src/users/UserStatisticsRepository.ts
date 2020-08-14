@@ -23,7 +23,11 @@ export class UserStatisticsRepository extends Repository<UserStatistics> {
                 statusesCount: 0,
                 followsCount: 0,
                 followersCount: 0,
-                user
+                user,
+                // TODO: calculate the real balance
+                userBalance: "0",
+                // TODO: calculate the real vote weight taking the real balance in main net
+                votingPower: 1
             };
             userStatistics = await this.save(userStatistics);
             return userStatistics;
