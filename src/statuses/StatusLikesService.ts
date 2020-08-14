@@ -42,8 +42,7 @@ export class StatusLikesService {
 
         await this.statusLikesRepository.save(statusLike);
 
-        status.favoritesCount = status.favoritesCount += 1;
-        await  this.statusesRepository.save(status)
+        await this.statusesRepository.update({id: status.id}, {favoritesCount: status.favoritesCount += 1});
 
         return this.statusesMapper.toStatusResponseAsync(status, currentUser);
     }
@@ -73,8 +72,7 @@ export class StatusLikesService {
 
         await this.statusLikesRepository.save(statusLike);
 
-        status.favoritesCount = status.favoritesCount -= 1;
-        await  this.statusesRepository.save(status)
+        await this.statusesRepository.update({id: status.id}, {favoritesCount: status.favoritesCount -= 1});
 
         return this.statusesMapper.toStatusResponseAsync(status, currentUser);
     }
