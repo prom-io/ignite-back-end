@@ -61,7 +61,7 @@ import {HashTagSubscriptionsRepository} from "./HashTagSubscriptionsRepository";
         forwardRef(() => UsersModule),
         forwardRef(() => PushNotificationsModule)
     ],
-    exports: [StatusesService, StatusesMapper, HashTagsRetriever]
+    exports: [StatusesService, StatusesMapper, HashTagsRetriever, StatusLikesService]
 })
 export class StatusesModule {
 }

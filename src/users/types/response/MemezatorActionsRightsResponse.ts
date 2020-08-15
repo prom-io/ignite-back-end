@@ -1,12 +1,22 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { IsBoolean, IsEnum, IsIn } from "class-validator";
 
-export class MememzatorActionsRightsResponse {
+export enum UserMemeActionsRightsReasonCode {
+    LIMIT_EXCEEDED = "LIMIT_EXCEEDED"
+}
+
+export class MemezatorActionsRightsResponse {
     @ApiProperty()
-    can_create: true;
+    @IsBoolean()
+    can_create: boolean;
+
     @ApiPropertyOptional()
-    cannot_create_reason_code: null; 
+    cannot_create_reason_code?: UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED | null
+
     @ApiProperty()
-    can_vote: true;
-    @ApiPropertyOptional()
-    cannot_vote_reason_code: null 
+    @IsBoolean()
+    can_vote: boolean;
+    
+    @ApiPropertyOptional({enum: UserMemeActionsRightsReasonCode})
+    cannot_vote_reason_code?: UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED | null 
 }

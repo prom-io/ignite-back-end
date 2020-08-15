@@ -1,3 +1,9 @@
+import { StatusLikesRepository } from 'src/statuses/StatusLikesRepository';
+import { StatusesRepository } from 'src/statuses/StatusesRepository';
+import { StatusLikesService } from './../statuses/StatusLikesService';
+import { MemezatorActionsRightsResponse, UserMemeActionsRightsReasonCode } from './types/response/MemezatorActionsRightsResponse';
+import { StatusesService } from './../statuses/StatusesService';
+import { asyncForEach } from './../utils/async-foreach';
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import {MailerService} from "@nestjs-modules/mailer";
 import {LoggerService} from "nest-logger";
@@ -28,13 +34,14 @@ import {MediaAttachment} from "../media-attachments/entities";
 import {BCryptPasswordEncoder} from "../bcrypt";
 import {asyncMap} from "../utils/async-map";
 import {PasswordHashApiClient} from "../password-hash-api";
-import {asyncForEach} from "../utils/async-foreach";
 import {UserSubscription} from "../user-subscriptions/entities";
 import {UsersSearchFilters} from "./types/request/UsersSearchFilters";
 
 @Injectable()
 export class UsersService {
     constructor(private readonly usersRepository: UsersRepository,
+        private readonly statusesRepository: StatusesRepository,
+        private readonly statusLikesRepository: StatusLikesRepository,
                 private readonly userStatisticsRepository: UserStatisticsRepository,
                 private readonly userPreferencesRepository: UserPreferencesRepository,
                 private readonly subscriptionsRepository: UserSubscriptionsRepository,
@@ -44,6 +51,8 @@ export class UsersService {
                 private readonly usersMapper: UsersMapper,
                 private readonly passwordEncoder: BCryptPasswordEncoder,
                 private readonly passwordHashApiClient: PasswordHashApiClient,
+                private readonly statusesService: StatusesService,
+                private readonly statusLikesService: StatusLikesService,
                 private readonly log: LoggerService) {
     }
 
@@ -56,6 +65,26 @@ export class UsersService {
         })
 
         return asyncMap(users, async user => await this.usersMapper.toUserResponseAsync(user, currentUser))
+    }
+
+    public async getMemesActionsRights(user): Promise<MemezatorActionsRightsResponse> {
+          let userMemeActionsRights: MemezatorActionsRightsResponse = {
+              can_create: true,
+              cannot_create_reason_code: null,
+              can_vote: true,
+              cannot_vote_reason_code: null
+          }
+          const existsMemeStatus =  await this.statusesRepository.findOneMemeByAuthorToday(user, 'memezator')
+          if(existsMemeStatus) {
+              userMemeActionsRights.can_create = false
+              userMemeActionsRights.cannot_create_reason_code = UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED
+          } 
+          const amountOfLikedMemes = await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(user)
+          if(amountOfLikedMemes >= 3) {
+              userMemeActionsRights.can_vote = false,
+              userMemeActionsRights.cannot_vote_reason_code = UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED
+          }
+          return userMemeActionsRights; 
     }
 
     public async signUpForPrivateBeta(signUpForPrivateBetaTestRequest: SignUpForPrivateBetaTestRequest): Promise<void> {
