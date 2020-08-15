@@ -15,15 +15,6 @@ export class StatusLikesRepository extends Repository<StatusLike> {
         })
     }
 
-    // public countByUserAndCreatedAtBetween(user: User, createdAtAfter: Date, createdAtBefore: Date) {
-    //     return this.createQueryBuilder("statuslike")
-    //     .leftJoin('user', 'author')
-    //     .where(`statuslike."userId" = :id`, {id: user.id})
-    //     .andWhere(`statuslike."createdAt" >= :createdAtBefore`, {createdAtBefore})
-    //     .andWhere(`statuslike."createdAt" < :createdAtAfter"`, {createdAtAfter})
-    //     .getCount()
-    // }
-
     public async getAmountOfLikedMemesCreatedTodayByUser(user: User): Promise<Number> {
         const lastMidnightInGreenwich = new Date()
         lastMidnightInGreenwich.setUTCHours(0, 0, 0, 0)

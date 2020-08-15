@@ -35,6 +35,7 @@ import {UserSubscriptionsService} from "../user-subscriptions";
 import {RelationshipsResponse, UserSubscriptionResponse} from "../user-subscriptions/types/response";
 import {RequestBodyCurrentUserWritingInterceptor} from "../utils/validation";
 import {UsersSearchFilters} from "./types/request/UsersSearchFilters";
+import { ApiOkResponse, ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller("api/v1/accounts")
 export class UsersController {
@@ -158,18 +159,11 @@ export class UsersController {
     }
 
     @UseGuards(AuthGuard("jwt"))
+    @ApiBearerAuth()
+    @ApiOkResponse({type: () => MemezatorActionsRightsResponse})
     @Get("current/memezator-actions-rights")
-    public getMemezatorActionsRights(@Req() req: Request) {
-        console.log(req.user)
+    public getMemezatorActionsRights(@Req() req: Request): Promise<MemezatorActionsRightsResponse> {
         return this.usersService.getMemesActionsRights(req.user as User)
-        // return this.usersService.getCurrentUserProfile(req.user as User);
-        // return this.usersService.getCurrentUser(req.user as User);
-        // return {
-        //     can_create: true,
-        //     can_vote: true,
-        //     cannot_create_reason_code: null,
-        //     cannot_vote_reason_code: null
-        // }
     }
 
     @UseGuards(OptionalJwtAuthGuard)

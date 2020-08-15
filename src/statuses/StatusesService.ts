@@ -87,7 +87,6 @@ export class StatusesService {
 
         return this.statusesMapper.toStatusResponseAsync(status, currentUser);
     }
-//bg
     
 
     public async findStatusById(id: string, currentUser?: User): Promise<StatusResponse> {
