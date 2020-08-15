@@ -14,7 +14,7 @@ import {AuthGuard} from "@nestjs/passport";
 import {Request} from "express";
 import {StatusesService} from "./StatusesService";
 import {StatusLikesService} from "./StatusLikesService";
-import {CreateStatusRequest, GetStatusesRequest} from "./types/request";
+import {CreateStatusRequest, GetStatusesRequest, TopicFetchType} from "./types/request";
 import {StatusResponse} from "./types/response";
 import {OptionalJwtAuthGuard} from "../jwt-auth/OptionalJwtAuthGuard";
 import {User} from "../users/entities";
@@ -33,7 +33,7 @@ export class StatusesController {
     @UseGuards(OptionalJwtAuthGuard)
     @Get()
     public getStatuses(@Req() request: Request, @Query() getStatusesRequest: GetStatusesRequest): Promise<StatusResponse[]> {
-        if (getStatusesRequest.onlyWithHashTags) {
+        if (getStatusesRequest.onlyWithHashTags || getStatusesRequest.type === TopicFetchType.MEMES) {
             return this.topicsService.getStatusesContainingHashTags(getStatusesRequest, request.user as User | null);
         } else {
             return this.feedService.getGlobalFeed(getStatusesRequest, request.user as User | null, getStatusesRequest.language);
