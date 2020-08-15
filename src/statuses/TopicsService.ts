@@ -84,7 +84,7 @@ export class TopicsService {
             } else {
                 const maxCursor = await this.findStatusById(getStatusesRequest.maxId);
                 statuses = await this.statusesRepository.findContainingMemeHashTagByLanguageAndCreatedAtBefore(
-                    'memezator',
+                    "memezator",
                     getStatusesRequest.language,
                     maxCursor.createdAt,
                     {page: 1, pageSize: 30}
@@ -93,14 +93,14 @@ export class TopicsService {
         } else if (getStatusesRequest.sinceId) {
             const sinceCursor = await this.findStatusById(getStatusesRequest.sinceId);
             statuses = await this.statusesRepository.findContainingMemeHashTagByLanguageAndCreatedAtAfter(
-                'memezator',
+                "memezator",
                 getStatusesRequest.language,
                 sinceCursor.createdAt,
                 {page: 1, pageSize: 30}
             );
         } else {
             statuses = await this.statusesRepository.findContainingMemeHashTagByLanguage(
-                'memezator',
+                "memezator",
                 getStatusesRequest.language,
                 {page: 1, pageSize: 30}
             );
@@ -117,7 +117,7 @@ export class TopicsService {
             getStatusesRequest.language = Language.ENGLISH;
         }
 
-        if(getStatusesRequest.type === TopicFetchType.MEMES) {
+        if (getStatusesRequest.type === TopicFetchType.MEMES) {
             statuses = await this.getStatusesContainingMemeHashTag(getStatusesRequest);
         } else if (getStatusesRequest.type === TopicFetchType.HOT) {
             statuses = await this.getHotStatusesContainingHashTags(getStatusesRequest);

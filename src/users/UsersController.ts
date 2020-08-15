@@ -35,7 +35,7 @@ import {UserSubscriptionsService} from "../user-subscriptions";
 import {RelationshipsResponse, UserSubscriptionResponse} from "../user-subscriptions/types/response";
 import {RequestBodyCurrentUserWritingInterceptor} from "../utils/validation";
 import {UsersSearchFilters} from "./types/request/UsersSearchFilters";
-import { ApiOkResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {ApiOkResponse, ApiBearerAuth, ApiOkResponse} from '@nestjs/swagger';
 
 @Controller("api/v1/accounts")
 export class UsersController {
@@ -153,6 +153,7 @@ export class UsersController {
     }
 
     @UseGuards(AuthGuard("jwt"))
+    @ApiOkResponse({ type: () => UserResponse })
     @Get("current/profile")
     public getCurrentUserProfile(@Req() request: Request): Promise<UserResponse> {
         return this.usersService.getCurrentUserProfile(request.user as User);
@@ -166,6 +167,7 @@ export class UsersController {
         return this.usersService.getMemesActionsRights(req.user as User)
     }
 
+    @ApiOkResponse({ type: () => UserResponse })
     @UseGuards(OptionalJwtAuthGuard)
     @Get(":address/profile")
     public getUserProfile(@Param("address") address: string,

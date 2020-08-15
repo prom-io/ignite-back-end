@@ -15,6 +15,12 @@ export class UserStatistics {
     @Column({type: "int"})
     followersCount: number;
 
+    @Column()
+    userBalance: string
+
+    @Column({ type: "int" })
+    votingPower: number;
+
     @OneToOne(type => User)
     @JoinColumn()
     user: User;
