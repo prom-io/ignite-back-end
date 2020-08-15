@@ -1,4 +1,4 @@
-import { MemezatorActionsRightsResponse } from './types/response/MemezatorActionsRightsResponse';
+import { MemezatorActionsRightsResponse } from "./types/response/MemezatorActionsRightsResponse";
 import {
     Body,
     ClassSerializerInterceptor,
@@ -35,7 +35,7 @@ import {UserSubscriptionsService} from "../user-subscriptions";
 import {RelationshipsResponse, UserSubscriptionResponse} from "../user-subscriptions/types/response";
 import {RequestBodyCurrentUserWritingInterceptor} from "../utils/validation";
 import {UsersSearchFilters} from "./types/request/UsersSearchFilters";
-import {ApiOkResponse, ApiBearerAuth, ApiOkResponse} from '@nestjs/swagger';
+import {ApiBearerAuth, ApiOkResponse} from "@nestjs/swagger";
 
 @Controller("api/v1/accounts")
 export class UsersController {
@@ -213,6 +213,5 @@ export class UsersController {
     public checkUsernameAvailability(@Param("username") username: string): Promise<UsernameAvailabilityResponse> {
         return this.usersService.isUsernameAvailable(username);
     }
-
 
 }
