@@ -1,4 +1,4 @@
-import { MememzatorActionsRightsResponse } from './types/response/MemezatorActionsRightsResponse';
+import { MemezatorActionsRightsResponse } from './types/response/MemezatorActionsRightsResponse';
 import {
     Body,
     ClassSerializerInterceptor,
@@ -35,7 +35,7 @@ import {UserSubscriptionsService} from "../user-subscriptions";
 import {RelationshipsResponse, UserSubscriptionResponse} from "../user-subscriptions/types/response";
 import {RequestBodyCurrentUserWritingInterceptor} from "../utils/validation";
 import {UsersSearchFilters} from "./types/request/UsersSearchFilters";
-import { ApiOkResponse } from "@nestjs/swagger";
+import {ApiOkResponse, ApiBearerAuth, ApiOkResponse} from '@nestjs/swagger';
 
 @Controller("api/v1/accounts")
 export class UsersController {
@@ -160,14 +160,11 @@ export class UsersController {
     }
 
     @UseGuards(AuthGuard("jwt"))
+    @ApiBearerAuth()
+    @ApiOkResponse({type: () => MemezatorActionsRightsResponse})
     @Get("current/memezator-actions-rights")
-    public getMemezatorActionsRights(): MememzatorActionsRightsResponse {
-        return {
-            can_create: true,
-            can_vote: true,
-            cannot_create_reason_code: null,
-            cannot_vote_reason_code: null
-        }
+    public getMemezatorActionsRights(@Req() req: Request): Promise<MemezatorActionsRightsResponse> {
+        return this.usersService.getMemesActionsRights(req.user as User)
     }
 
     @ApiOkResponse({ type: () => UserResponse })

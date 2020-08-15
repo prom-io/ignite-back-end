@@ -1,5 +1,6 @@
+import { StatusLike } from './entities/StatusLike';
 import {EntityRepository, LessThan, MoreThan, Repository} from "typeorm";
-import {Status, StatusLike} from "./entities";
+import {Status} from "./entities";
 import {calculateOffset, PaginationRequest} from "../utils/pagination";
 import {User} from "../users/entities";
 
@@ -10,6 +11,21 @@ export class StatusLikesRepository extends Repository<StatusLike> {
         return this.findOne({
             where: {
                 id
+            }
+        })
+    }
+
+    public async getAmountOfLikedMemesCreatedTodayByUser(user: User): Promise<Number> {
+        const lastMidnightInGreenwich = new Date()
+        lastMidnightInGreenwich.setUTCHours(0, 0, 0, 0)
+        return await this.countByUserAndCreatedAtBetween(user, lastMidnightInGreenwich)
+    }
+
+    public countByUserAndCreatedAtBetween(user: User, createdAtAfter: Date): Promise<Number> {
+        return this.count({
+            where: {
+                createdAt: MoreThan(createdAtAfter),
+                user: user.id
             }
         })
     }

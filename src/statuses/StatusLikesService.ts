@@ -6,6 +6,8 @@ import {StatusesRepository} from "./StatusesRepository";
 import {StatusesMapper} from "./StatusesMapper";
 import {StatusResponse} from "./types/response";
 import {User} from "../users/entities";
+const endOfDay = require('date-fns/endOfDay')
+const startOfDay = require('date-fns/startOfDay')
 
 @Injectable()
 export class StatusLikesService {
