@@ -13,6 +13,7 @@ import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsR
 import {MediaAttachment} from "../media-attachments/entities";
 import {asyncMap} from "../utils/async-map";
 
+
 @Injectable()
 export class StatusesService {
     constructor(private readonly statusesRepository: StatusesRepository,
@@ -86,6 +87,7 @@ export class StatusesService {
 
         return this.statusesMapper.toStatusResponseAsync(status, currentUser);
     }
+    
 
     public async findStatusById(id: string, currentUser?: User): Promise<StatusResponse> {
         const status = await this.statusesRepository.findById(id);
@@ -96,6 +98,8 @@ export class StatusesService {
 
         return this.statusesMapper.toStatusResponseAsync(status, currentUser);
     }
+
+
 
     public async findStatusesByUser(
         ethereumAddress: string,

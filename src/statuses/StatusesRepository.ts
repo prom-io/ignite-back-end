@@ -1,9 +1,12 @@
+
 import {Between, EntityRepository, In, LessThan, MoreThan, Repository, SelectQueryBuilder} from "typeorm";
 import {subDays} from "date-fns";
 import {HashTag, Status, StatusAdditionalInfo, StatusInfoMap, StatusLike, StatusReferenceType} from "./entities";
 import {Language, User} from "../users/entities";
 import {calculateOffset, PaginationRequest} from "../utils/pagination";
 import {UserSubscription} from "../user-subscriptions/entities";
+const endOfDay = require('date-fns/endOfDay')
+const startOfDay = require('date-fns/startOfDay')
 
 @EntityRepository(Status)
 export class StatusesRepository extends Repository<Status> {
@@ -224,6 +227,20 @@ export class StatusesRepository extends Repository<Status> {
             take: paginationRequest.pageSize,
             relations: ["referredStatus"]
         })
+    }
+
+    public async findOneMemeByAuthorToday(user: User, hashTagName: string): Promise<Status> {
+        const lastMidnightInGreenwich = new Date()
+        lastMidnightInGreenwich.setUTCHours(0, 0, 0, 0)
+        return await this.findOneByAuthorAndHashTagAndCretaedAtAfter(user, hashTagName, lastMidnightInGreenwich)
+    } 
+
+    public async findOneByAuthorAndHashTagAndCretaedAtAfter(user: User, hashTag: string, createdAtAfter: Date): Promise<Status> {
+        return await this.createStatusQueryBuilder()
+        .where(`"hashTag"."name" = :hashTag`, {hashTag})
+        .andWhere(`status."authorId" = :userId`, {userId: user.id})
+        .andWhere(`status."createdAt" >= :createdAtAfter`, {createdAtAfter})
+        .getOne()
     }
 
     public findByAuthorInAndHashTagsInAndCreatedAtBetween(
