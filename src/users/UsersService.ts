@@ -51,8 +51,6 @@ export class UsersService {
                 private readonly usersMapper: UsersMapper,
                 private readonly passwordEncoder: BCryptPasswordEncoder,
                 private readonly passwordHashApiClient: PasswordHashApiClient,
-                private readonly statusesService: StatusesService,
-                private readonly statusLikesService: StatusLikesService,
                 private readonly log: LoggerService) {
     }
 
@@ -79,7 +77,7 @@ export class UsersService {
               userMemeActionsRights.can_create = false
               userMemeActionsRights.cannot_create_reason_code = UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED
           } 
-          const amountOfLikedMemes = await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(user)
+          const amountOfLikedMemes = await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(user, 'memezator')
           if(amountOfLikedMemes >= 3) {
               userMemeActionsRights.can_vote = false,
               userMemeActionsRights.cannot_vote_reason_code = UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED
