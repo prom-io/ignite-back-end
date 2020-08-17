@@ -20,6 +20,7 @@ import {OptionalJwtAuthGuard} from "../jwt-auth/OptionalJwtAuthGuard";
 import {User} from "../users/entities";
 import {TopicsService} from "./TopicsService";
 import {FeedService} from "./FeedService";
+import { ApiOkResponse, ApiCreatedResponse } from "@nestjs/swagger";
 
 @Controller("api/v1/statuses")
 export class StatusesController {
@@ -31,6 +32,7 @@ export class StatusesController {
 
     @UseInterceptors(ClassSerializerInterceptor)
     @UseGuards(OptionalJwtAuthGuard)
+    @ApiOkResponse()
     @Get()
     public getStatuses(@Req() request: Request, @Query() getStatusesRequest: GetStatusesRequest): Promise<StatusResponse[]> {
         if (getStatusesRequest.onlyWithHashTags || getStatusesRequest.type === TopicFetchType.MEMES) {
@@ -42,6 +44,7 @@ export class StatusesController {
 
     @UseInterceptors(ClassSerializerInterceptor)
     @UseGuards(AuthGuard("jwt"))
+    @ApiCreatedResponse()
     @Post()
     public createStatus(@Body() createStatusRequest: CreateStatusRequest,
                         @Req() request: Request): Promise<StatusResponse> {
@@ -49,6 +52,7 @@ export class StatusesController {
     }
 
     @UseInterceptors(ClassSerializerInterceptor)
+    @ApiOkResponse()
     @UseGuards(OptionalJwtAuthGuard)
     @Get(":id")
     public findStatusById(@Param("id") id: string,
@@ -58,6 +62,7 @@ export class StatusesController {
 
     @UseInterceptors(ClassSerializerInterceptor)
     @UseGuards(AuthGuard("jwt"))
+    @ApiCreatedResponse()
     @Post(":id/favourite")
     public likeStatus(@Param("id") id: string,
                       @Req() request: Request): Promise<StatusResponse> {
@@ -66,6 +71,7 @@ export class StatusesController {
 
     @UseInterceptors(ClassSerializerInterceptor)
     @UseGuards(AuthGuard("jwt"))
+    @ApiCreatedResponse()
     @Post(":id/unfavourite")
     public unlikeStatus(@Param("id") id: string,
                         @Req() request: Request): Promise<StatusResponse> {
@@ -74,6 +80,7 @@ export class StatusesController {
 
     @UseInterceptors(ClassSerializerInterceptor)
     @UseGuards(OptionalJwtAuthGuard)
+    @ApiOkResponse()
     @Get(":id/comments")
     public findCommentsOfStatus(@Param("id") id: string,
                                 @Req() request: Request,
