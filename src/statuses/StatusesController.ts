@@ -32,7 +32,7 @@ export class StatusesController {
 
     @UseInterceptors(ClassSerializerInterceptor)
     @UseGuards(OptionalJwtAuthGuard)
-    @ApiOkResponse()
+    @ApiOkResponse({type: () => StatusResponse})
     @Get()
     public getStatuses(@Req() request: Request, @Query() getStatusesRequest: GetStatusesRequest): Promise<StatusResponse[]> {
         if (getStatusesRequest.onlyWithHashTags || getStatusesRequest.type === TopicFetchType.MEMES) {
@@ -44,7 +44,7 @@ export class StatusesController {
 
     @UseInterceptors(ClassSerializerInterceptor)
     @UseGuards(AuthGuard("jwt"))
-    @ApiCreatedResponse()
+    @ApiCreatedResponse({type: () => StatusResponse})
     @Post()
     public createStatus(@Body() createStatusRequest: CreateStatusRequest,
                         @Req() request: Request): Promise<StatusResponse> {
@@ -52,7 +52,7 @@ export class StatusesController {
     }
 
     @UseInterceptors(ClassSerializerInterceptor)
-    @ApiOkResponse()
+    @ApiOkResponse({type: () => StatusResponse})
     @UseGuards(OptionalJwtAuthGuard)
     @Get(":id")
     public findStatusById(@Param("id") id: string,
@@ -62,7 +62,7 @@ export class StatusesController {
 
     @UseInterceptors(ClassSerializerInterceptor)
     @UseGuards(AuthGuard("jwt"))
-    @ApiCreatedResponse()
+    @ApiCreatedResponse({type: () => StatusResponse})
     @Post(":id/favourite")
     public likeStatus(@Param("id") id: string,
                       @Req() request: Request): Promise<StatusResponse> {
@@ -71,7 +71,7 @@ export class StatusesController {
 
     @UseInterceptors(ClassSerializerInterceptor)
     @UseGuards(AuthGuard("jwt"))
-    @ApiCreatedResponse()
+    @ApiCreatedResponse({type: () => StatusResponse})
     @Post(":id/unfavourite")
     public unlikeStatus(@Param("id") id: string,
                         @Req() request: Request): Promise<StatusResponse> {
@@ -80,7 +80,7 @@ export class StatusesController {
 
     @UseInterceptors(ClassSerializerInterceptor)
     @UseGuards(OptionalJwtAuthGuard)
-    @ApiOkResponse()
+    @ApiOkResponse({type: () => StatusResponse})
     @Get(":id/comments")
     public findCommentsOfStatus(@Param("id") id: string,
                                 @Req() request: Request,
