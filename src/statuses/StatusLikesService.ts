@@ -6,8 +6,6 @@ import {StatusesRepository} from "./StatusesRepository";
 import {StatusesMapper} from "./StatusesMapper";
 import {StatusResponse} from "./types/response";
 import {User} from "../users/entities";
-const endOfDay = require('date-fns/endOfDay')
-const startOfDay = require('date-fns/startOfDay')
 
 @Injectable()
 export class StatusLikesService {
@@ -44,8 +42,9 @@ export class StatusLikesService {
 
         await this.statusLikesRepository.save(statusLike);
 
-        await this.statusesRepository.update({id: status.id}, {favoritesCount: status.favoritesCount += 1});
-        status.favoritesCount = status.favoritesCount += 1;
+        await this.statusesRepository.increment({ id: status.id }, "favoritesCount", 1)
+        status.favoritesCount += 1;
+
         return this.statusesMapper.toStatusResponseAsync(status, currentUser);
     }
 
@@ -74,8 +73,9 @@ export class StatusLikesService {
 
         await this.statusLikesRepository.save(statusLike);
 
-        await this.statusesRepository.update({id: status.id}, {favoritesCount: status.favoritesCount -= 1});
-        status.favoritesCount = status.favoritesCount -= 1;
+        await this.statusesRepository.decrement({ id: status.id }, "favoritesCount", 1)
+        status.favoritesCount -= 1;
+
         return this.statusesMapper.toStatusResponseAsync(status, currentUser);
     }
 }
