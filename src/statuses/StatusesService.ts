@@ -41,6 +41,13 @@ export class StatusesService {
         }
 
         let referredStatus: Status | undefined;
+        
+        const lastMidnightInGreenwich = new Date()
+        lastMidnightInGreenwich.setUTCHours(0, 0, 0, 0)
+        const amountOfcreatedMemesFromMidnight = await this.statusesRepository.countMemesByAuthorAndCreatedAtAfter(currentUser, lastMidnightInGreenwich)
+        if (amountOfcreatedMemesFromMidnight >= 1) {
+            throw new BadRequestException('User could repost one meme status per day.')
+        }
 
         if (createStatusRequest.referredStatusId) {
             referredStatus = await this.statusesRepository.findById(createStatusRequest.referredStatusId);
