@@ -1,6 +1,6 @@
-import { MEMEZATOR_HASHTAG } from './../common/constants';
-import { StatusLikesRepository } from 'src/statuses/StatusLikesRepository';
-import { StatusesRepository } from 'src/statuses/StatusesRepository';
+import { MEMEZATOR_HASHTAG } from '../common/constants';
+import { StatusLikesRepository } from '../statuses/StatusLikesRepository';
+import { StatusesRepository } from '../statuses/StatusesRepository';
 import { StatusLikesService } from './../statuses/StatusLikesService';
 import { MemezatorActionsRightsResponse, UserMemeActionsRightsReasonCode } from './types/response/MemezatorActionsRightsResponse';
 import { StatusesService } from './../statuses/StatusesService';

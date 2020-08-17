@@ -6,8 +6,6 @@ import {StatusesRepository} from "./StatusesRepository";
 import {StatusesMapper} from "./StatusesMapper";
 import {StatusResponse} from "./types/response";
 import {User} from "../users/entities";
-const endOfDay = require('date-fns/endOfDay')
-const startOfDay = require('date-fns/startOfDay')
 
 @Injectable()
 export class StatusLikesService {
@@ -18,7 +16,13 @@ export class StatusLikesService {
 
     public async createStatusLike(statusId: string, currentUser: User): Promise<StatusResponse> {
         const status = await this.statusesRepository.findById(statusId);
-
+        const statusHashTags = status.hashTags.map(hashTag => hashTag.name);
+        if (statusHashTags.includes('memezator') && status.author.id === currentUser.id) {
+            throw new HttpException(
+                "User cannot like his own meme",
+                HttpStatus.FORBIDDEN
+            );
+        }
         if (!status) {
             throw new HttpException(
                 `Could not find status with id ${statusId}`,
@@ -44,14 +48,21 @@ export class StatusLikesService {
 
         await this.statusLikesRepository.save(statusLike);
 
-        await this.statusesRepository.update({id: status.id}, {favoritesCount: status.favoritesCount += 1});
-        status.favoritesCount = status.favoritesCount += 1;
+        await this.statusesRepository.increment({ id: status.id }, "favoritesCount", 1)
+        status.favoritesCount += 1;
+
         return this.statusesMapper.toStatusResponseAsync(status, currentUser);
     }
 
     public async deleteStatusLike(statusId: string, currentUser: User): Promise<StatusResponse> {
         const status = await this.statusesRepository.findById(statusId);
-
+        const statusHashTags = status.hashTags.map(hashTag => hashTag.name);
+        if (statusHashTags.includes('memezator')) {
+            throw new HttpException(
+                "User cannot unlike meme",
+                HttpStatus.FORBIDDEN
+            );
+        }
         if (!status) {
             throw new HttpException(
                 `Could not find status with id ${statusId}`,
@@ -74,8 +85,9 @@ export class StatusLikesService {
 
         await this.statusLikesRepository.save(statusLike);
 
-        await this.statusesRepository.update({id: status.id}, {favoritesCount: status.favoritesCount -= 1});
-        status.favoritesCount = status.favoritesCount -= 1;
+        await this.statusesRepository.decrement({ id: status.id }, "favoritesCount", 1)
+        status.favoritesCount -= 1;
+
         return this.statusesMapper.toStatusResponseAsync(status, currentUser);
     }
 }

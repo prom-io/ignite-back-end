@@ -100,6 +100,16 @@ export class StatusesMapper {
     }
 
     public toStatusResponse(options: ToStatusResponseOptions): StatusResponse {
+        const isMeme = options.status.hashTags.some(hashTag => hashTag.name === "memezator")
+        const lastMidnightInGreenwich = new Date()
+        lastMidnightInGreenwich.setUTCHours(0, 0, 0, 0)
+
+        /**
+         * If meme is created before the current competition started,
+         * then it does not participate in the current competition
+         */
+        const memeDoesNotParticipateInCompetition = options.status.createdAt.valueOf() < lastMidnightInGreenwich.valueOf()
+
         const {
             status,
             favourited,
@@ -121,7 +131,7 @@ export class StatusesMapper {
             account: this.userMapper.toUserResponse(status.author, userStatistics, followingAuthor, followedByAuthor),
             createdAt: status.createdAt.toISOString(),
             id: status.id,
-            favoritesCount: status.favoritesCount,
+            favoritesCount: !isMeme || memeDoesNotParticipateInCompetition ? status.favoritesCount : null,
             favourited,
             content: status.text,
             mediaAttachments: status.mediaAttachments.map(mediaAttachment => this.mediaAttachmentsMapper.toMediaAttachmentResponse(mediaAttachment)),
@@ -145,7 +155,8 @@ export class StatusesMapper {
             canBeReposted,
             reposted,
             commented,
-            hashTags: status.hashTags.map(hashTag => this.hashTagsMapper.toHashTagResponse(hashTag))
+            hashTags: status.hashTags.map(hashTag => this.hashTagsMapper.toHashTagResponse(hashTag)),
+            isMeme,
         })
     }
 

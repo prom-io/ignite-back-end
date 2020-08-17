@@ -1,5 +1,3 @@
-import { StatusesService } from './../statuses/StatusesService';
-import { StatusLikesService } from './../statuses/StatusLikesService';
 import {forwardRef, Module} from "@nestjs/common";
 import {TypeOrmModule} from "@nestjs/typeorm";
 import {MailerModule} from "@nestjs-modules/mailer";
@@ -24,8 +22,8 @@ import {config} from "../config";
 import {DefaultAccountProviderModule} from "../default-account-provider/DefaultAccountProviderModule";
 import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
 import {PasswordHashApiModule} from "../password-hash-api";
-import { StatusLikesRepository } from 'src/statuses/StatusLikesRepository';
-import { StatusesRepository } from 'src/statuses/StatusesRepository';
+import { StatusLikesRepository } from "../statuses/StatusLikesRepository";
+import { StatusesRepository } from "../statuses/StatusesRepository";
 
 @Module({
     controllers: [UsersController, UserByAddressController, SignUpController, SignUpReferencesController],

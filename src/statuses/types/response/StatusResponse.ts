@@ -62,6 +62,9 @@ export class StatusResponse {
     @Expose({name: "hash_tags"})
     hashTags: HashTagResponse[];
 
+    @Expose({name: "is_meme"})
+    isMeme: boolean;
+
     constructor(object: StatusResponse) {
         Object.assign(this, object);
     }

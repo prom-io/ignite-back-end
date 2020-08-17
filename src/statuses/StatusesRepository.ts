@@ -6,8 +6,6 @@ import {HashTag, Status, StatusAdditionalInfo, StatusInfoMap, StatusLike, Status
 import {Language, User} from "../users/entities";
 import {calculateOffset, PaginationRequest} from "../utils/pagination";
 import {UserSubscription} from "../user-subscriptions/entities";
-const endOfDay = require('date-fns/endOfDay')
-const startOfDay = require('date-fns/startOfDay')
 
 @EntityRepository(Status)
 export class StatusesRepository extends Repository<Status> {
