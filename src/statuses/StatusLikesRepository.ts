@@ -18,19 +18,15 @@ export class StatusLikesRepository extends Repository<StatusLike> {
     public async getAmountOfLikedMemesCreatedTodayByUser(user: User, hashTag: string): Promise<Number> {
         const lastMidnightInGreenwich = new Date()
         lastMidnightInGreenwich.setUTCHours(0, 0, 0, 0)
-        return await this.countByUserAndCreatedAtToday(user, lastMidnightInGreenwich, hashTag)
-    }
-
-    public countByUserAndCreatedAtToday(user: User, createdAtAfter: Date, hashtag: string): Promise<Number> {
         return this.count({
             join: { alias: 'statuslikes', leftJoin: { status: 'statuslikes.status', hashTag: 'status.hashTags' } },
             where: qb => {
                 qb.where({ 
-                    createdAt: MoreThan(createdAtAfter),
+                    createdAt: MoreThan(lastMidnightInGreenwich),
                     user: user.id,
                     reverted: false
                 })
-            .andWhere('"hashTag"."name" = :name', { name: hashtag });
+            .andWhere('"hashTag"."name" = :name', { name: hashTag });
             }
         })
     }

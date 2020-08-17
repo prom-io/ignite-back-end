@@ -1,3 +1,4 @@
+import { MEMEZATOR_HASHTAG } from './../common/constants';
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import uuid from "uuid/v4";
 import {subDays} from "date-fns";
@@ -84,7 +85,7 @@ export class TopicsService {
             } else {
                 const maxCursor = await this.findStatusById(getStatusesRequest.maxId);
                 statuses = await this.statusesRepository.findContainingMemeHashTagByLanguageAndCreatedAtBefore(
-                    "memezator",
+                    MEMEZATOR_HASHTAG,
                     getStatusesRequest.language,
                     maxCursor.createdAt,
                     {page: 1, pageSize: 30}
@@ -93,14 +94,14 @@ export class TopicsService {
         } else if (getStatusesRequest.sinceId) {
             const sinceCursor = await this.findStatusById(getStatusesRequest.sinceId);
             statuses = await this.statusesRepository.findContainingMemeHashTagByLanguageAndCreatedAtAfter(
-                "memezator",
+                MEMEZATOR_HASHTAG,
                 getStatusesRequest.language,
                 sinceCursor.createdAt,
                 {page: 1, pageSize: 30}
             );
         } else {
             statuses = await this.statusesRepository.findContainingMemeHashTagByLanguage(
-                "memezator",
+                MEMEZATOR_HASHTAG,
                 getStatusesRequest.language,
                 {page: 1, pageSize: 30}
             );
