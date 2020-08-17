@@ -1,4 +1,4 @@
-import { MEMEZATOR_HASHTAG } from './../common/constants';
+import { MEMEZATOR_HASHTAG } from "./../common/constants";
 
 import {Between, EntityRepository, In, LessThan, MoreThan, Repository, SelectQueryBuilder} from "typeorm";
 import {subDays} from "date-fns";
@@ -236,7 +236,7 @@ export class StatusesRepository extends Repository<Status> {
 
     public async findOneByAuthorAndHashTagAndCretaedAtAfter(user: User, createdAtAfter: Date): Promise<Status> {
         return await this.createStatusQueryBuilder()
-        .where(`"hashTag"."name" = :hashTag`, {MEMEZATOR_HASHTAG})
+        .where(`"hashTag"."name" = :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
         .andWhere(`status."authorId" = :userId`, {userId: user.id})
         .andWhere(`status."createdAt" >= :createdAtAfter`, {createdAtAfter})
         .getOne()
