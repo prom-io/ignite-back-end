@@ -13,7 +13,6 @@ import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsR
 import {MediaAttachment} from "../media-attachments/entities";
 import {asyncMap} from "../utils/async-map";
 
-
 @Injectable()
 export class StatusesService {
     constructor(private readonly statusesRepository: StatusesRepository,
