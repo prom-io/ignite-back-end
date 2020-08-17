@@ -1,3 +1,4 @@
+import { MEMEZATOR_HASHTAG } from './../common/constants';
 import { StatusLike } from './entities/StatusLike';
 import {EntityRepository, LessThan, MoreThan, Repository} from "typeorm";
 import {Status} from "./entities";
@@ -15,7 +16,7 @@ export class StatusLikesRepository extends Repository<StatusLike> {
         })
     }
             
-    public async getAmountOfLikedMemesCreatedTodayByUser(user: User, hashTag: string): Promise<Number> {
+    public async getAmountOfLikedMemesCreatedTodayByUser(user: User): Promise<Number> {
         const lastMidnightInGreenwich = new Date()
         lastMidnightInGreenwich.setUTCHours(0, 0, 0, 0)
         return this.count({
@@ -26,7 +27,7 @@ export class StatusLikesRepository extends Repository<StatusLike> {
                     user: user.id,
                     reverted: false
                 })
-            .andWhere('"hashTag"."name" = :name', { name: hashTag });
+            .andWhere('"hashTag"."name" = :name', { name: MEMEZATOR_HASHTAG });
             }
         })
     }

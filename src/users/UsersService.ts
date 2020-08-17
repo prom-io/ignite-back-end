@@ -73,12 +73,12 @@ export class UsersService {
               can_vote: true,
               cannot_vote_reason_code: null
           }
-          const existsMemeStatus =  await this.statusesRepository.findOneMemeByAuthorToday(user, MEMEZATOR_HASHTAG)
+          const existsMemeStatus =  await this.statusesRepository.findOneMemeByAuthorToday(user)
           if(existsMemeStatus) {
               userMemeActionsRights.can_create = false
               userMemeActionsRights.cannot_create_reason_code = UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED
           } 
-          const amountOfLikedMemes = await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(user, MEMEZATOR_HASHTAG)
+          const amountOfLikedMemes = await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(user)
           if(amountOfLikedMemes >= 3) {
               userMemeActionsRights.can_vote = false,
               userMemeActionsRights.cannot_vote_reason_code = UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED

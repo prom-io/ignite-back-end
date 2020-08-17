@@ -85,7 +85,6 @@ export class TopicsService {
             } else {
                 const maxCursor = await this.findStatusById(getStatusesRequest.maxId);
                 statuses = await this.statusesRepository.findContainingMemeHashTagByLanguageAndCreatedAtBefore(
-                    MEMEZATOR_HASHTAG,
                     getStatusesRequest.language,
                     maxCursor.createdAt,
                     {page: 1, pageSize: 30}
@@ -94,14 +93,12 @@ export class TopicsService {
         } else if (getStatusesRequest.sinceId) {
             const sinceCursor = await this.findStatusById(getStatusesRequest.sinceId);
             statuses = await this.statusesRepository.findContainingMemeHashTagByLanguageAndCreatedAtAfter(
-                MEMEZATOR_HASHTAG,
                 getStatusesRequest.language,
                 sinceCursor.createdAt,
                 {page: 1, pageSize: 30}
             );
         } else {
             statuses = await this.statusesRepository.findContainingMemeHashTagByLanguage(
-                MEMEZATOR_HASHTAG,
                 getStatusesRequest.language,
                 {page: 1, pageSize: 30}
             );
