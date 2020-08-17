@@ -17,7 +17,7 @@ export class StatusLikesService {
     public async createStatusLike(statusId: string, currentUser: User): Promise<StatusResponse> {
         const status = await this.statusesRepository.findById(statusId);
         const statusHashTags = status.hashTags.map(hashTag => hashTag.name);
-        if (statusHashTags.includes('memezator') && status.author === currentUser) {
+        if (statusHashTags.includes('memezator') && status.author.id === currentUser.id) {
             throw new HttpException(
                 "User cannot like their own meme",
                 HttpStatus.FORBIDDEN
