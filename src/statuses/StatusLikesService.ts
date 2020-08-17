@@ -16,7 +16,13 @@ export class StatusLikesService {
 
     public async createStatusLike(statusId: string, currentUser: User): Promise<StatusResponse> {
         const status = await this.statusesRepository.findById(statusId);
-
+        const statusHashTags = status.hashTags.map(hashTag => hashTag.name);
+        if (statusHashTags.includes('memezator') && status.author.id === currentUser.id) {
+            throw new HttpException(
+                "User cannot like his own meme",
+                HttpStatus.FORBIDDEN
+            );
+        }
         if (!status) {
             throw new HttpException(
                 `Could not find status with id ${statusId}`,
@@ -50,7 +56,13 @@ export class StatusLikesService {
 
     public async deleteStatusLike(statusId: string, currentUser: User): Promise<StatusResponse> {
         const status = await this.statusesRepository.findById(statusId);
-
+        const statusHashTags = status.hashTags.map(hashTag => hashTag.name);
+        if (statusHashTags.includes('memezator')) {
+            throw new HttpException(
+                "User cannot unlike meme",
+                HttpStatus.FORBIDDEN
+            );
+        }
         if (!status) {
             throw new HttpException(
                 `Could not find status with id ${statusId}`,
