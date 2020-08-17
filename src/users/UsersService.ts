@@ -1,3 +1,4 @@
+import { MEMEZATOR_HASHTAG } from './../common/constants';
 import { StatusLikesRepository } from 'src/statuses/StatusLikesRepository';
 import { StatusesRepository } from 'src/statuses/StatusesRepository';
 import { StatusLikesService } from './../statuses/StatusLikesService';
@@ -51,8 +52,6 @@ export class UsersService {
                 private readonly usersMapper: UsersMapper,
                 private readonly passwordEncoder: BCryptPasswordEncoder,
                 private readonly passwordHashApiClient: PasswordHashApiClient,
-                private readonly statusesService: StatusesService,
-                private readonly statusLikesService: StatusLikesService,
                 private readonly log: LoggerService) {
     }
 
@@ -74,7 +73,7 @@ export class UsersService {
               can_vote: true,
               cannot_vote_reason_code: null
           }
-          const existsMemeStatus =  await this.statusesRepository.findOneMemeByAuthorToday(user, 'memezator')
+          const existsMemeStatus =  await this.statusesRepository.findOneMemeByAuthorToday(user)
           if(existsMemeStatus) {
               userMemeActionsRights.can_create = false
               userMemeActionsRights.cannot_create_reason_code = UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED

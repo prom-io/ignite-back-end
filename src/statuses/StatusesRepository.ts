@@ -1,3 +1,4 @@
+import { MEMEZATOR_HASHTAG } from './../common/constants';
 
 import {Between, EntityRepository, In, LessThan, MoreThan, Repository, SelectQueryBuilder} from "typeorm";
 import {subDays} from "date-fns";
@@ -229,15 +230,15 @@ export class StatusesRepository extends Repository<Status> {
         })
     }
 
-    public async findOneMemeByAuthorToday(user: User, hashTagName: string): Promise<Status> {
+    public async findOneMemeByAuthorToday(user: User): Promise<Status> {
         const lastMidnightInGreenwich = new Date()
         lastMidnightInGreenwich.setUTCHours(0, 0, 0, 0)
-        return await this.findOneByAuthorAndHashTagAndCretaedAtAfter(user, hashTagName, lastMidnightInGreenwich)
+        return await this.findOneByAuthorAndHashTagAndCretaedAtAfter(user, lastMidnightInGreenwich)
     } 
 
-    public async findOneByAuthorAndHashTagAndCretaedAtAfter(user: User, hashTag: string, createdAtAfter: Date): Promise<Status> {
+    public async findOneByAuthorAndHashTagAndCretaedAtAfter(user: User, createdAtAfter: Date): Promise<Status> {
         return await this.createStatusQueryBuilder()
-        .where(`"hashTag"."name" = :hashTag`, {hashTag})
+        .where(`"hashTag"."name" = :hashTag`, {MEMEZATOR_HASHTAG})
         .andWhere(`status."authorId" = :userId`, {userId: user.id})
         .andWhere(`status."createdAt" >= :createdAtAfter`, {createdAtAfter})
         .getOne()
@@ -1061,12 +1062,11 @@ export class StatusesRepository extends Repository<Status> {
     }
 
     public async findContainingMemeHashTagByLanguage(
-        hashTag: string,
         language: Language,
         paginationRequest: PaginationRequest
     ): Promise<Status[]> {
         return this.createStatusQueryBuilder()
-            .where(`"hashTag"."name" = :hashTag`, {hashTag})
+            .where(`"hashTag"."name" = :hashTag`, {MEMEZATOR_HASHTAG})
             .andWhere(`"hashTag"."language" = :language`, {language})
             .orderBy(`status."createdAt"`, "DESC")
             .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
@@ -1075,13 +1075,12 @@ export class StatusesRepository extends Repository<Status> {
     }
 
     public async findContainingMemeHashTagByLanguageAndCreatedAtBefore(
-        hashTag: string,
         language: Language,
         createdAtBefore: Date,
         paginationRequest: PaginationRequest
     ): Promise<Status[]> {
         return this.createStatusQueryBuilder()
-            .where(`"hashTag"."name" = :hashTag`, {hashTag})
+            .where(`"hashTag"."name" = :hashTag`, {MEMEZATOR_HASHTAG})
             .andWhere(`"hashTag"."language" = :language`, {language})
             .andWhere(`status."createdAt" < :createdAtBefore`, {createdAtBefore})
             .orderBy(`status."createdAt"`, "DESC")
@@ -1091,13 +1090,12 @@ export class StatusesRepository extends Repository<Status> {
     }
 
     public async findContainingMemeHashTagByLanguageAndCreatedAtAfter(
-        hashTag: string,
         language: Language,
         createdAtAfter: Date,
         paginationRequest: PaginationRequest
     ): Promise<Status[]> {
         return this.createStatusQueryBuilder()
-            .where(`"hashTag"."name" = :hashTag`, {hashTag})
+            .where(`"hashTag"."name" = :hashTag`, {MEMEZATOR_HASHTAG})
             .andWhere(`"hashTag"."language" = :language`, {language})
             .andWhere(`status."createdAt" > :createdAtAfter`, {createdAtAfter})
             .orderBy(`status."createdAt"`, "DESC")
@@ -1107,14 +1105,13 @@ export class StatusesRepository extends Repository<Status> {
     }
 
     public async findContainingMemeHashTagByLanguageAndCreatedAtBetween(
-        hashTag: string,
         language: Language,
         createdAtBefore: Date,
         createdAtAfter: Date,
         paginationRequest: PaginationRequest
     ): Promise<Status[]> {
         return this.createStatusQueryBuilder()
-            .where(`"hashTag"."name" = :hashTag`, {hashTag})
+            .where(`"hashTag"."name" = :hashTag`, {MEMEZATOR_HASHTAG})
             .andWhere(`"hashTag"."language" = :language`, {language})
             .andWhere(`status."createdAt" between(:createdAtBefore, :createdAtAfter)`, {createdAtBefore, createdAtAfter})
             .orderBy(`status."createdAt"`, "DESC")
