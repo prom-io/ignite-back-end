@@ -1,3 +1,4 @@
+import { MEMEZATOR_HASHTAG } from './../common/constants';
 import {Injectable} from "@nestjs/common";
 import uuid from "uuid/v4";
 import {uniq} from "lodash";
@@ -8,7 +9,6 @@ import {Language} from "../users/entities";
 
 const HASH_TAG_REGEXP = /([#|＃][^\s]+)/g;
 const REPEATED_HASH_CHARACTER_REGEXP = /([#])\1+/;
-const MEMES_HASHTAG = 'memezator';
 
 @Injectable()
 export class HashTagsRetriever {
@@ -26,7 +26,7 @@ export class HashTagsRetriever {
     }
 
     public async hasMemeHashTag(text: string) {
-        return this.getHashTagsStringsFromText(text).includes(MEMES_HASHTAG);
+        return this.getHashTagsStringsFromText(text).includes(MEMEZATOR_HASHTAG);
     }
 
     public async getHashTagsEntitiesFromText(text: string, language: Language | undefined = Language.ENGLISH): Promise<HashTag[]> {

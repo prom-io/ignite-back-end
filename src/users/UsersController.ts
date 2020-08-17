@@ -153,7 +153,6 @@ export class UsersController {
     }
 
     @UseGuards(AuthGuard("jwt"))
-    @ApiOkResponse({ type: () => UserResponse })
     @Get("current/profile")
     public getCurrentUserProfile(@Req() request: Request): Promise<UserResponse> {
         return this.usersService.getCurrentUserProfile(request.user as User);
@@ -167,7 +166,6 @@ export class UsersController {
         return this.usersService.getMemesActionsRights(req.user as User)
     }
 
-    @ApiOkResponse({ type: () => UserResponse })
     @UseGuards(OptionalJwtAuthGuard)
     @Get(":address/profile")
     public getUserProfile(@Param("address") address: string,
