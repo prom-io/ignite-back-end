@@ -614,15 +614,20 @@ export class StatusesRepository extends Repository<Status> {
     public async findByHashTagAndCreatedAtAfter(
         hashTag: HashTag,
         createdAtAfter: Date,
-        paginationRequest: PaginationRequest
+        paginationRequest?: PaginationRequest
     ): Promise<Status[]> {
-        return this.createStatusQueryBuilder()
+        const qb = this.createStatusQueryBuilder()
             .where(`"status_filteredHashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
             .andWhere(`status."createdAt" > :createdAt`, {createdAt: createdAtAfter})
             .orderBy(`status."createdAt"`, "DESC")
-            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
-            .limit(paginationRequest.pageSize)
-            .getMany();
+
+        if (paginationRequest) {
+            qb
+                .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+                .limit(paginationRequest.pageSize)
+        }
+
+        return qb.getMany();
     }
 
     public async findByHashTagAndCreatedAtBetween(

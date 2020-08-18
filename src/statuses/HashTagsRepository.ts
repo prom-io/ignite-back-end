@@ -28,6 +28,14 @@ export class HashTagsRepository extends Repository<HashTag> {
         }
     }
 
+    public async findOneByName(name: string): Promise<HashTag | undefined> {
+        return await this.findOne({
+            where: {
+                name,
+            }
+        });
+    }
+
     public findByLanguageOrderByPostsCount(language: Language, count: number) {
         return this.find({
             where: {
