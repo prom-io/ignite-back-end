@@ -1,5 +1,5 @@
-import { MEMEZATOR_HASHTAG } from './../common/constants';
-import { StatusLike } from './entities/StatusLike';
+import { MEMEZATOR_HASHTAG } from "./../common/constants";
+import { StatusLike } from "./entities/StatusLike";
 import {EntityRepository, LessThan, MoreThan, Repository} from "typeorm";
 import {Status} from "./entities";
 import {calculateOffset, PaginationRequest} from "../utils/pagination";
@@ -20,14 +20,14 @@ export class StatusLikesRepository extends Repository<StatusLike> {
         const lastMidnightInGreenwich = new Date()
         lastMidnightInGreenwich.setUTCHours(0, 0, 0, 0)
         return this.count({
-            join: { alias: 'statuslikes', leftJoin: { status: 'statuslikes.status', hashTag: 'status.hashTags' } },
+            join: { alias: "statuslikes", leftJoin: { status: "statuslikes.status", hashTag: "status.hashTags" } },
             where: qb => {
                 qb.where({ 
                     createdAt: MoreThan(lastMidnightInGreenwich),
                     user: user.id,
                     reverted: false
                 })
-            .andWhere('"hashTag"."name" = :name', { name: MEMEZATOR_HASHTAG });
+            .andWhere("\"hashTag\".\"name\" = :name", { name: MEMEZATOR_HASHTAG });
             }
         })
     }
@@ -40,14 +40,14 @@ export class StatusLikesRepository extends Repository<StatusLike> {
         })
     }
 
-    public findByStatus(status: Status, paginationRequest: PaginationRequest): Promise<StatusLike[]> {
+    public findByStatus(status: Status, paginationRequest?: PaginationRequest): Promise<StatusLike[]> {
         return this.find({
             where: {
                 status,
                 reverted: false
             },
-            take: paginationRequest.pageSize,
-            skip: calculateOffset(paginationRequest.page, paginationRequest.pageSize)
+            take: paginationRequest && paginationRequest.pageSize,
+            skip: paginationRequest && calculateOffset(paginationRequest.page, paginationRequest.pageSize)
         })
     }
 

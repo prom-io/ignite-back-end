@@ -19,6 +19,7 @@ import {PasswordHashApiModule} from "./password-hash-api";
 import {PasswordHashGeneratorModule} from "./passsword-hash-generator";
 import {StatisticsModule} from "./statistics";
 import {ValidationModule} from "./utils/validation";
+import {MemezatorModule} from "./memezator/memezator.module";
 
 @Module({
     imports: [
@@ -39,6 +40,7 @@ import {ValidationModule} from "./utils/validation";
         PasswordHashGeneratorModule,
         StatisticsModule,
         ValidationModule,
+        MemezatorModule,
         TypeOrmModule.forRoot(
             {
                 ...require("../ormconfig.js"),
