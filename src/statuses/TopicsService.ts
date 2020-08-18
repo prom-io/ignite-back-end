@@ -1,4 +1,3 @@
-import { MEMEZATOR_HASHTAG } from './../common/constants';
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import uuid from "uuid/v4";
 import {subDays} from "date-fns";
@@ -76,7 +75,7 @@ export class TopicsService {
             if (getStatusesRequest.sinceId) {
                 const sinceCursor = await this.findStatusById(getStatusesRequest.sinceId);
                 const maxCursor = await this.findStatusById(getStatusesRequest.maxId);
-                statuses = await this.statusesRepository.findContainingHashTagsByLanguageAndCreatedAtBetween(
+                statuses = await this.statusesRepository.findContainingMemeHashTagsByLanguageAndCreatedAtBetween(
                     getStatusesRequest.language,
                     sinceCursor.createdAt,
                     maxCursor.createdAt,

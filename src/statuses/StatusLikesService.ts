@@ -36,8 +36,6 @@ export class StatusLikesService {
                 HttpStatus.FORBIDDEN
             );
         }
-        const s = await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(currentUser)
-        console.log(s)
 
         if (await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(currentUser) >= 3) {
             throw new ForbiddenException('Current user has already liked 3 memes today.')

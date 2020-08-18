@@ -1,5 +1,4 @@
-import { MEMEZATOR_HASHTAG } from './../common/constants';
-
+import { MEMEZATOR_HASHTAG } from "./../common/constants";
 import {Between, EntityRepository, In, LessThan, MoreThan, Repository, SelectQueryBuilder} from "typeorm";
 import {subDays} from "date-fns";
 import {HashTag, Status, StatusAdditionalInfo, StatusInfoMap, StatusLike, StatusReferenceType} from "./entities";
@@ -941,6 +940,36 @@ export class StatusesRepository extends Repository<Status> {
                 .leftJoinAndSelect("status.hashTags", "hashTag")
                 .select(["distinct(status.id)", `status."createdAt"`])
                 .where(`"status_hashTag"."hashTagId" is not null`)
+                .andWhere(`"hashTag"."language" = :language`, {language})
+                .andWhere(`status."createdAt" between(:createdAtBefore, :createdAtAfter)`, {createdAtBefore, createdAtAfter})
+                .orderBy(`"status".createdAt"`, "DESC")
+                .limit(paginationRequest.pageSize)
+                .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+                .getRawMany()
+        )
+            .map(rawResult => rawResult.id as string);
+
+        if (ids.length === 0) {
+            return [];
+        }
+
+        return this.createStatusQueryBuilder()
+            .where("status.id in (:...ids)", {ids})
+            .orderBy(`status."createdAt"`, "DESC")
+            .getMany();
+    }
+
+    public async findContainingMemeHashTagsByLanguageAndCreatedAtBetween(
+        language: Language,
+        createdAtBefore: Date,
+        createdAtAfter: Date,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        const ids = (await this.createQueryBuilder("status")
+                .leftJoinAndSelect("status.hashTags", "hashTag")
+                .select(["distinct(status.id)", `status."createdAt"`])
+                .where(`"status_hashTag"."hashTagId" is not null`)
+                .andWhere(`"hashTag"."name" = :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
                 .andWhere(`"hashTag"."language" = :language`, {language})
                 .andWhere(`status."createdAt" between(:createdAtBefore, :createdAtAfter)`, {createdAtBefore, createdAtAfter})
                 .orderBy(`"status".createdAt"`, "DESC")
