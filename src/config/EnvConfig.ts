@@ -123,7 +123,7 @@ export class EnvConfig {
     KOREAN_PINNED_STATUS_ID: string | undefined = undefined;
 
     @Env({type:"string", required: true})
-    MEME_WINNERS_POST_USER: string;
+    ADDRESS_OF_MEMEZATOR_OFFICIAL: string;
 
     additionalConfig: AdditionalJsonConfig = additionalJsonConfig;
 }
