@@ -1138,7 +1138,7 @@ export class StatusesRepository extends Repository<Status> {
         paginationRequest: PaginationRequest
     ): Promise<Status[]> {
         return this.createStatusQueryBuilder()
-            .where(`"hashTag"."name" = :hashTag`, {MEMEZATOR_HASHTAG})
+            .where(`"hashTag"."name" = :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
             .andWhere(`"hashTag"."language" = :language`, {language})
             .andWhere(`status."createdAt" between(:createdAtBefore, :createdAtAfter)`, {createdAtBefore, createdAtAfter})
             .orderBy(`status."createdAt"`, "DESC")
