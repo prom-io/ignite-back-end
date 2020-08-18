@@ -44,7 +44,6 @@ export class StatusesService {
         let referredStatus: Status | undefined;
         
         const isCreatedMemeFromMidnight = await this.statusesRepository.findOneMemeByAuthorToday(currentUser)
-        console.log(isCreatedMemeFromMidnight.hashTags.filter(hashTag => hashTag.name === MEMEZATOR_HASHTAG))
         if (isCreatedMemeFromMidnight && isContainMemeHashTag) {
             throw new BadRequestException('User could repost only one meme status per day.')
         }
