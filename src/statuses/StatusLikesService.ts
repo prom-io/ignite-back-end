@@ -1,4 +1,4 @@
-import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
+import {HttpException, HttpStatus, Injectable, ForbiddenException} from "@nestjs/common";
 import uuid from "uuid/v4";
 import {StatusLike} from "./entities";
 import {StatusLikesRepository} from "./StatusLikesRepository";
@@ -35,6 +35,12 @@ export class StatusLikesService {
                 "Current user has already liked this status",
                 HttpStatus.FORBIDDEN
             );
+        }
+        const s = await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(currentUser)
+        console.log(s)
+
+        if (await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(currentUser) >= 3) {
+            throw new ForbiddenException('Current user has already liked 3 memes today.')
         }
 
         const statusLike: StatusLike = {
