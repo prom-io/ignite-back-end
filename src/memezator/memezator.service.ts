@@ -204,19 +204,19 @@ export class MemezatorService {
       status: firstPlacePostText, 
       referredStatusId: winnerMemesWithLikes.firstPlace.meme.id, 
       mediaAttachments: []}, 
-      statusUser)
+      memezatorOfficialAccount)
 
     await this.statusesService.createStatus({
       status: secondPlacePostText, 
       referredStatusId: winnerMemesWithLikes.secondPlace.meme.id, 
       mediaAttachments: []}, 
-      statusUser)
+      memezatorOfficialAccount)
   
     await this.statusesService.createStatus({
       status: thirdPlacePostText, 
       referredStatusId: winnerMemesWithLikes.thirdPlace.meme.id, 
       mediaAttachments: []}, 
-      statusUser)
+      memezatorOfficialAccount)
 
     return;
   }
