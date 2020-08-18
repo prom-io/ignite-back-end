@@ -9,6 +9,6 @@ export class MemezatorController {
 
   @Post("start-competition-summing-up")
   public startCompetitionSummingUp() {
-    return this.memezatorService.startMemezatorCompetitionSummingUp()
+    return this.memezatorService.startMemezatorCompetitionSummingUp(false)
   }
 }
