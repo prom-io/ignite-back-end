@@ -122,5 +122,8 @@ export class EnvConfig {
     @Env({type: "string", required: false})
     KOREAN_PINNED_STATUS_ID: string | undefined = undefined;
 
+    @Env({type:"string", required: true})
+    MEME_WINNERS_POST_USER: string;
+
     additionalConfig: AdditionalJsonConfig = additionalJsonConfig;
 }
