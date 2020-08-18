@@ -1,3 +1,4 @@
+import { MEMEZATOR_HASHTAG } from './../common/constants';
 import {HttpException, HttpStatus, Injectable, BadRequestException} from "@nestjs/common";
 import {StatusesRepository} from "./StatusesRepository";
 import {CreateStatusRequest} from "./types/request";
@@ -43,7 +44,8 @@ export class StatusesService {
         let referredStatus: Status | undefined;
         
         const isCreatedMemeFromMidnight = await this.statusesRepository.findOneMemeByAuthorToday(currentUser)
-        if (isCreatedMemeFromMidnight) {
+        console.log(isCreatedMemeFromMidnight.hashTags.filter(hashTag => hashTag.name === MEMEZATOR_HASHTAG))
+        if (isCreatedMemeFromMidnight && isContainMemeHashTag) {
             throw new BadRequestException('User could repost only one meme status per day.')
         }
 
