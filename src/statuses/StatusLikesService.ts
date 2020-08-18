@@ -37,7 +37,7 @@ export class StatusLikesService {
             );
         }
 
-        if (statusHashTags.includes('memezator') && await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(currentUser) >= 3) {
+        if (statusHashTags.includes('memezator') && await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(currentUser) >= 1) {
             throw new ForbiddenException('Current user has already liked 3 memes today.')
         }
 
