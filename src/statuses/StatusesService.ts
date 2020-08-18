@@ -42,11 +42,9 @@ export class StatusesService {
 
         let referredStatus: Status | undefined;
         
-        const lastMidnightInGreenwich = new Date()
-        lastMidnightInGreenwich.setUTCHours(0, 0, 0, 0)
-        const amountOfcreatedMemesFromMidnight = await this.statusesRepository.countMemesByAuthorAndCreatedAtAfter(currentUser, lastMidnightInGreenwich)
-        if (amountOfcreatedMemesFromMidnight >= 1) {
-            throw new BadRequestException('User could repost one meme status per day.')
+        const isCreatedMemeFromMidnight = await this.statusesRepository.findOneMemeByAuthorToday(currentUser)
+        if (isCreatedMemeFromMidnight) {
+            throw new BadRequestException('User could repost only one meme status per day.')
         }
 
         if (createStatusRequest.referredStatusId) {

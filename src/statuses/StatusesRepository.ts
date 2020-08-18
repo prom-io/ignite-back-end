@@ -22,14 +22,6 @@ export class StatusesRepository extends Repository<Status> {
         });
     }
 
-    public countMemesByAuthorAndCreatedAtAfter(user: User, createdAtAfter: Date ) {
-        return this.createStatusQueryBuilder()
-            .where(`"hashTag".name = :name`, {name: MEMEZATOR_HASHTAG})
-            .andWhere(`author.id = :id`, {id: user.id})
-            .andWhere(`status.createdAt >= :createdAt`, {createdAt: createdAtAfter})
-            .getCount()
-    }
-
     public async findById(id: string): Promise<Status | undefined> {
         return this.findOne({
             where: {
