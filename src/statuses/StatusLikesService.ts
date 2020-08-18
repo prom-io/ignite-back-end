@@ -30,14 +30,14 @@ export class StatusLikesService {
             );
         }
 
-        if (await this.statusLikesRepository.existByStatusAndUserNotReverted(status, currentUser)) {
+        if ( await this.statusLikesRepository.existByStatusAndUserNotReverted(status, currentUser)) {
             throw new HttpException(
                 "Current user has already liked this status",
                 HttpStatus.FORBIDDEN
             );
         }
 
-        if (await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(currentUser) >= 3) {
+        if (statusHashTags.includes('memezator') && await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(currentUser) >= 3) {
             throw new ForbiddenException('Current user has already liked 3 memes today.')
         }
 
