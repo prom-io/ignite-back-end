@@ -1152,6 +1152,17 @@ export class StatusesRepository extends Repository<Status> {
             .getMany();
     }
 
+    public async findContainingMemeHashTagAndCreatedAtBetween(
+        createdAtBefore: Date,
+        createdAtAfter: Date,
+    ): Promise<Status[]> {
+        return this.createStatusQueryBuilder()
+            .where(`"filteredHashTag"."name" = :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
+            .andWhere(`(status."createdAt" BETWEEN :createdAtBefore AND :createdAtAfter)`, {createdAtBefore, createdAtAfter})
+            .orderBy(`status."createdAt"`, "DESC")
+            .getMany();
+    }
+
     public async findContainingHashTagsByLanguageAndCreatedAtAfterAndLikesForLastWeekMoreThanOrderByNumberOfLikesForLastWeek(
         language: Language,
         createdAtAfter: Date,
