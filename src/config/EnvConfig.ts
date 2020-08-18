@@ -122,5 +122,8 @@ export class EnvConfig {
     @Env({type: "string", required: false})
     KOREAN_PINNED_STATUS_ID: string | undefined = undefined;
 
+    @Env({type:"string", required: true})
+    ADDRESS_OF_MEMEZATOR_OFFICIAL: string;
+
     additionalConfig: AdditionalJsonConfig = additionalJsonConfig;
 }
