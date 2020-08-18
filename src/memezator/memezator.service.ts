@@ -96,7 +96,7 @@ export class MemezatorService {
   }
 
   async createWinnersStatus(winnerMemesWithLikes: WinnerMemesWithLikes){
-    const statusUser = await this.usersRepository.findOne({ethereumAddress: process.env.ADDRESS_OF_MEMEZATOR_OFFICIAL})
+    const memezatorOfficialAccount = await this.usersRepository.findOne({ethereumAddress: process.env.ADDRESS_OF_MEMEZATOR_OFFICIAL})
     const firstPlaceAuthor = await this.usersRepository.findOne({id: winnerMemesWithLikes.firstPlace.meme.author.id})
     const secondPlaceAuthor = await this.usersRepository.findOne({id: winnerMemesWithLikes.secondPlace.meme.author.id})
     const thirdPlaceAuthor = await this.usersRepository.findOne({id: winnerMemesWithLikes.thirdPlace.meme.author.id})
@@ -140,19 +140,19 @@ export class MemezatorService {
       status: firstPlacePostText, 
       referredStatusId: winnerMemesWithLikes.firstPlace.meme.id, 
       mediaAttachments: []}, 
-      statusUser)
+      memezatorOfficialAccount)
 
     await this.statusesService.createStatus({
       status: secondPlacePostText, 
       referredStatusId: winnerMemesWithLikes.secondPlace.meme.id, 
       mediaAttachments: []}, 
-      statusUser)
+      memezatorOfficialAccount)
   
     await this.statusesService.createStatus({
       status: thirdPlacePostText, 
       referredStatusId: winnerMemesWithLikes.thirdPlace.meme.id, 
       mediaAttachments: []}, 
-      statusUser)
+      memezatorOfficialAccount)
 
     return;
   }
