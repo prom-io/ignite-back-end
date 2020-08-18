@@ -96,7 +96,7 @@ export class MemezatorService {
   }
 
   async createWinnersStatus(winnerMemesWithLikes: WinnerMemesWithLikes){
-    const statusUser = await this.usersRepository.findOne({ethereumAddress: process.env.MEME_WINNERS_POST_USER})
+    const statusUser = await this.usersRepository.findOne({ethereumAddress: process.env.ADDRESS_OF_MEMEZATOR_OFFICIAL})
     const firstPlaceAuthor = await this.usersRepository.findOne({id: winnerMemesWithLikes.firstPlace.meme.author.id})
     const secondPlaceAuthor = await this.usersRepository.findOne({id: winnerMemesWithLikes.secondPlace.meme.author.id})
     const thirdPlaceAuthor = await this.usersRepository.findOne({id: winnerMemesWithLikes.thirdPlace.meme.author.id})
@@ -136,22 +136,24 @@ export class MemezatorService {
     Winner #3: Petr Petroff 100 PROM
     `
 
-    const firstPlacePost = this.statusesRepository.create()
-    firstPlacePost.author = statusUser
-    firstPlacePost.text = firstPlacePostText
-    firstPlacePost.referredStatus = winnerMemesWithLikes.firstPlace.meme
+    await this.statusesService.createStatus({
+      status: firstPlacePostText, 
+      referredStatusId: winnerMemesWithLikes.firstPlace.meme.id, 
+      mediaAttachments: []}, 
+      statusUser)
 
-    const secondPlacePost = this.statusesRepository.create()
-    secondPlacePost.author = statusUser
-    secondPlacePost.text = secondPlacePostText
-    secondPlacePost.referredStatus = winnerMemesWithLikes.secondPlace.meme
+    await this.statusesService.createStatus({
+      status: secondPlacePostText, 
+      referredStatusId: winnerMemesWithLikes.secondPlace.meme.id, 
+      mediaAttachments: []}, 
+      statusUser)
+  
+    await this.statusesService.createStatus({
+      status: thirdPlacePostText, 
+      referredStatusId: winnerMemesWithLikes.thirdPlace.meme.id, 
+      mediaAttachments: []}, 
+      statusUser)
 
-    const thirdPlacePost = this.statusesRepository.create()
-    thirdPlacePost.author = statusUser
-    thirdPlacePost.text = thirdPlacePostText
-    thirdPlacePost.referredStatus = winnerMemesWithLikes.thirdPlace.meme
-
-    await this.statusesRepository.save([firstPlacePost, secondPlacePost, thirdPlacePost])
     return;
   }
 }
