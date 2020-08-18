@@ -79,7 +79,7 @@ export class UsersService {
               userMemeActionsRights.cannot_create_reason_code = UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED
           } 
           const amountOfLikedMemes = await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(user)
-          if(amountOfLikedMemes >= 3) {
+          if(amountOfLikedMemes >= 1) {
               userMemeActionsRights.can_vote = false,
               userMemeActionsRights.cannot_vote_reason_code = UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED
           }
