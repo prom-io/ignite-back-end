@@ -1,5 +1,4 @@
-import { MEMEZATOR_HASHTAG } from './../common/constants';
-
+import { MEMEZATOR_HASHTAG } from "./../common/constants";
 import {Between, EntityRepository, In, LessThan, MoreThan, Repository, SelectQueryBuilder} from "typeorm";
 import {subDays} from "date-fns";
 import {HashTag, Status, StatusAdditionalInfo, StatusInfoMap, StatusLike, StatusReferenceType} from "./entities";
@@ -244,7 +243,7 @@ export class StatusesRepository extends Repository<Status> {
 
     public async findOneByAuthorAndHashTagAndCretaedAtAfter(user: User, createdAtAfter: Date): Promise<Status> {
         return await this.createStatusQueryBuilder()
-        .where(`"hashTag"."name" = :hashTag`, {MEMEZATOR_HASHTAG})
+        .where(`"hashTag"."name" = :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
         .andWhere(`status."authorId" = :userId`, {userId: user.id})
         .andWhere(`status."createdAt" >= :createdAtAfter`, {createdAtAfter})
         .getOne()
@@ -623,15 +622,20 @@ export class StatusesRepository extends Repository<Status> {
     public async findByHashTagAndCreatedAtAfter(
         hashTag: HashTag,
         createdAtAfter: Date,
-        paginationRequest: PaginationRequest
+        paginationRequest?: PaginationRequest
     ): Promise<Status[]> {
-        return this.createStatusQueryBuilder()
+        const qb = this.createStatusQueryBuilder()
             .where(`"status_filteredHashTag"."hashTagId" in (:...hashTags)`, {hashTags: [hashTag.id]})
             .andWhere(`status."createdAt" > :createdAt`, {createdAt: createdAtAfter})
             .orderBy(`status."createdAt"`, "DESC")
-            .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
-            .limit(paginationRequest.pageSize)
-            .getMany();
+
+        if (paginationRequest) {
+            qb
+                .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+                .limit(paginationRequest.pageSize)
+        }
+
+        return qb.getMany();
     }
 
     public async findByHashTagAndCreatedAtBetween(
@@ -968,6 +972,36 @@ export class StatusesRepository extends Repository<Status> {
             .getMany();
     }
 
+    public async findContainingMemeHashTagsByLanguageAndCreatedAtBetween(
+        language: Language,
+        createdAtBefore: Date,
+        createdAtAfter: Date,
+        paginationRequest: PaginationRequest
+    ): Promise<Status[]> {
+        const ids = (await this.createQueryBuilder("status")
+                .leftJoinAndSelect("status.hashTags", "hashTag")
+                .select(["distinct(status.id)", `status."createdAt"`])
+                .where(`"status_hashTag"."hashTagId" is not null`)
+                .andWhere(`"hashTag"."name" = :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
+                .andWhere(`"hashTag"."language" = :language`, {language})
+                .andWhere(`status."createdAt" between(:createdAtBefore, :createdAtAfter)`, {createdAtBefore, createdAtAfter})
+                .orderBy(`"status".createdAt"`, "DESC")
+                .limit(paginationRequest.pageSize)
+                .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
+                .getRawMany()
+        )
+            .map(rawResult => rawResult.id as string);
+
+        if (ids.length === 0) {
+            return [];
+        }
+
+        return this.createStatusQueryBuilder()
+            .where("status.id in (:...ids)", {ids})
+            .orderBy(`status."createdAt"`, "DESC")
+            .getMany();
+    }
+
     public async findContainingHashTagsByLanguageOrderByNumberOfLikesForLastWeek(
         language: Language,
         paginationRequest: PaginationRequest
@@ -1072,7 +1106,7 @@ export class StatusesRepository extends Repository<Status> {
         paginationRequest: PaginationRequest
     ): Promise<Status[]> {
         return this.createStatusQueryBuilder()
-            .where(`"hashTag"."name" = :hashTag`, {MEMEZATOR_HASHTAG})
+            .where(`"hashTag"."name" = :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
             .andWhere(`"hashTag"."language" = :language`, {language})
             .orderBy(`status."createdAt"`, "DESC")
             .offset(calculateOffset(paginationRequest.page, paginationRequest.pageSize))
@@ -1086,7 +1120,7 @@ export class StatusesRepository extends Repository<Status> {
         paginationRequest: PaginationRequest
     ): Promise<Status[]> {
         return this.createStatusQueryBuilder()
-            .where(`"hashTag"."name" = :hashTag`, {MEMEZATOR_HASHTAG})
+            .where(`"hashTag"."name" = :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
             .andWhere(`"hashTag"."language" = :language`, {language})
             .andWhere(`status."createdAt" < :createdAtBefore`, {createdAtBefore})
             .orderBy(`status."createdAt"`, "DESC")
@@ -1101,7 +1135,7 @@ export class StatusesRepository extends Repository<Status> {
         paginationRequest: PaginationRequest
     ): Promise<Status[]> {
         return this.createStatusQueryBuilder()
-            .where(`"hashTag"."name" = :hashTag`, {MEMEZATOR_HASHTAG})
+            .where(`"hashTag"."name" = :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
             .andWhere(`"hashTag"."language" = :language`, {language})
             .andWhere(`status."createdAt" > :createdAtAfter`, {createdAtAfter})
             .orderBy(`status."createdAt"`, "DESC")
@@ -1117,7 +1151,7 @@ export class StatusesRepository extends Repository<Status> {
         paginationRequest: PaginationRequest
     ): Promise<Status[]> {
         return this.createStatusQueryBuilder()
-            .where(`"hashTag"."name" = :hashTag`, {MEMEZATOR_HASHTAG})
+            .where(`"hashTag"."name" = :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
             .andWhere(`"hashTag"."language" = :language`, {language})
             .andWhere(`status."createdAt" between(:createdAtBefore, :createdAtAfter)`, {createdAtBefore, createdAtAfter})
             .orderBy(`status."createdAt"`, "DESC")
