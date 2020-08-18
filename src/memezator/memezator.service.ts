@@ -11,10 +11,10 @@ import { WinnerMemesWithLikes, MemeWithLikesAndVotingPowers, LikeAndVotingPowerA
 import {config} from "../config";
 import * as dateFns from "date-fns"
 import { LoggerService } from "nest-logger";
-import { MemezatorRewardForPlaces } from "src/config/types/MemezatorReward";
-import { WinnerMemesWithLikes, MemeWithLikesAndVotingPowers, LikeAndVotingPower} from "./types";
-import { UsersRepository } from "src/users";
-import { StatusesService } from "src/statuses";
+import { MemezatorRewardForPlaces } from "../config/types/MemezatorReward";
+import { UsersRepository } from "../users";
+import { StatusesService } from "../statuses";
+import { User } from "../users/entities";
 
 @Injectable()
 export class MemezatorService {
@@ -25,7 +25,7 @@ export class MemezatorService {
     private readonly statusLikeRepository: StatusLikesRepository,
     private readonly logger: LoggerService,
     private readonly usersRepository: UsersRepository,
-    private statusesService: StatusesService
+    private readonly statusesService: StatusesService,
   ) {}
 
   @Cron(getCronExpressionForMemezatorCompetitionSumminUpCron())
@@ -57,6 +57,29 @@ export class MemezatorService {
       rewardForCurrentCompetition,
       competitionStartDate,
       competitionEndDate,
+    )
+
+    const memezatorOfficialAccount = await this.usersRepository.findByEthereumAddress(config.ADDRESS_OF_MEMEZATOR_OFFICIAL)
+    await this.createStatusAboutWinner(
+      memezatorOfficialAccount,
+      winners,
+      rewardForCurrentCompetition,
+      competitionStartDate,
+      "thirdPlace"
+    )
+    await this.createStatusAboutWinner(
+      memezatorOfficialAccount,
+      winners,
+      rewardForCurrentCompetition,
+      competitionStartDate,
+      "secondPlace"
+    )
+    await this.createStatusAboutWinner(
+      memezatorOfficialAccount,
+      winners,
+      rewardForCurrentCompetition,
+      competitionStartDate,
+      "firstPlace"
     )
 
     return winners
@@ -117,7 +140,7 @@ export class MemezatorService {
         (likeWithVotingPowerAndReward.votingPower / firstPlace.meme.favoritesCount) * memezatorRewardForPlaces.firstPlace.voters
     })
     firstPlace.threeLikesWithVotingPowersAndRewardsWithBiggestRewards =
-      _.take(_.sortBy(firstPlace.likesWithVotingPowersAndRewards, "reward"), 3)
+      _.take(_.sortBy(firstPlace.likesWithVotingPowersAndRewards, likeWithVotingPowerAndReward => -likeWithVotingPowerAndReward.reward), 3)
 
     secondPlace.rewardForAuthor = memezatorRewardForPlaces.secondPlace.author
     secondPlace.likesWithVotingPowersAndRewards.forEach((likeWithVotingPowerAndReward) => {
@@ -125,7 +148,7 @@ export class MemezatorService {
         (likeWithVotingPowerAndReward.votingPower / secondPlace.meme.favoritesCount) * memezatorRewardForPlaces.secondPlace.voters
     })
     secondPlace.threeLikesWithVotingPowersAndRewardsWithBiggestRewards =
-      _.take(_.sortBy(secondPlace.likesWithVotingPowersAndRewards, "reward"), 3)
+      _.take(_.sortBy(secondPlace.likesWithVotingPowersAndRewards, likeWithVotingPowerAndReward => -likeWithVotingPowerAndReward.reward), 3)
 
     thirdPlace.rewardForAuthor = memezatorRewardForPlaces.thirdPlace.author
     thirdPlace.likesWithVotingPowersAndRewards.forEach((likeWithVotingPowerAndReward) => {
@@ -133,7 +156,7 @@ export class MemezatorService {
         (likeWithVotingPowerAndReward.votingPower / thirdPlace.meme.favoritesCount) * memezatorRewardForPlaces.thirdPlace.voters
     })
     thirdPlace.threeLikesWithVotingPowersAndRewardsWithBiggestRewards =
-      _.take(_.sortBy(thirdPlace.likesWithVotingPowersAndRewards, "reward"), 3)
+      _.take(_.sortBy(thirdPlace.likesWithVotingPowersAndRewards, likeWithVotingPowerAndReward => -likeWithVotingPowerAndReward.reward), 3)
 
     return {
       firstPlace,
@@ -159,65 +182,40 @@ export class MemezatorService {
     return midnightInGreenwich
   }
 
-  async createWinnersStatus(winnerMemesWithLikes: WinnerMemesWithLikes) {
-    const statusUser = await this.usersRepository.findOne({ethereumAddress: process.env.ADDRESS_OF_MEMEZATOR_OFFICIAL})
-    const firstPlaceAuthor = await this.usersRepository.findOne({id: winnerMemesWithLikes.firstPlace.meme.author.id})
-    const secondPlaceAuthor = await this.usersRepository.findOne({id: winnerMemesWithLikes.secondPlace.meme.author.id})
-    const thirdPlaceAuthor = await this.usersRepository.findOne({id: winnerMemesWithLikes.thirdPlace.meme.author.id})
+  private async createStatusAboutWinner(
+    memezatorOfficialAccount: User,
+    winnerMemesWithLikes: WinnerMemesWithLikes,
+    memezatorRewardForPlaces: MemezatorRewardForPlaces,
+    competitionStartDate: Date,
+    place: "firstPlace" | "secondPlace" | "thirdPlace"
+  ) {
+    const threeWinnerVoters = winnerMemesWithLikes[place].threeLikesWithVotingPowersAndRewardsWithBiggestRewards
 
-    const firstPlacePostText = `
-    MEME #1 OF ${new Date(winnerMemesWithLikes.firstPlace.meme.createdAt)}
+    let statusText =
+      `MEME #1 OF ${dateFns.format(competitionStartDate, "yyyy/MM/dd")}\n` +
+      `Voted: ${winnerMemesWithLikes[place].meme.favoritesCount} votes\n` +
+      `Prize: ${memezatorRewardForPlaces[place].author + memezatorRewardForPlaces.firstPlace.voters} PROM\n` +
+      `\n` +
+      `Author: ${winnerMemesWithLikes[place].meme.author.displayedName} ${winnerMemesWithLikes[place].rewardForAuthor} PROM\n`
 
-    Voted: ${winnerMemesWithLikes.firstPlace.likesWithVotingPowers.length} votes
-    Prize: 1100 PROM
+    if (threeWinnerVoters[0]) {
+      statusText += `Winner #1: ${threeWinnerVoters[0].like.user.displayedName} ${threeWinnerVoters[0].reward} PROM\n`
+    }
 
-    Author: ${firstPlaceAuthor.username} 230 PROM
-    Winner #1: Ivan Ivanov 330 PROM
-    Winner #2: Peter Jones 120 PROM
-    Winner #3: Petr Petroff 100 PROM
-    `
-    const secondPlacePostText = `
-    MEME #1 OF ${new Date(winnerMemesWithLikes.secondPlace.meme.createdAt)}
+    if (threeWinnerVoters[1]) {
+      statusText += `Winner #2: ${threeWinnerVoters[1].like.user.displayedName} ${threeWinnerVoters[1].reward} PROM\n`
+    }
 
-    Voted: ${winnerMemesWithLikes.secondPlace.likesWithVotingPowers.length} votes
-    Prize: 1100 PROM
-
-    Author: ${secondPlaceAuthor.username} 230 PROM
-    Winner #1: Ivan Ivanov 330 PROM
-    Winner #2: Peter Jones 120 PROM
-    Winner #3: Petr Petroff 100 PROM
-    `
-
-    const thirdPlacePostText = `
-    MEME #1 OF ${new Date(winnerMemesWithLikes.thirdPlace.meme.createdAt)}
-
-    Voted: ${winnerMemesWithLikes.thirdPlace.likesWithVotingPowers.length} votes
-    Prize: 1100 PROM
-
-    Author: ${thirdPlaceAuthor.username} 230 PROM
-    Winner #1: Ivan Ivanov 330 PROM
-    Winner #2: Peter Jones 120 PROM
-    Winner #3: Petr Petroff 100 PROM
-    `
+    if (threeWinnerVoters[2]) {
+      statusText += `Winner #3: ${threeWinnerVoters[2].like.user.displayedName} ${threeWinnerVoters[2].reward} PROM\n`
+    }
 
     await this.statusesService.createStatus({
-      status: firstPlacePostText, 
-      referredStatusId: winnerMemesWithLikes.firstPlace.meme.id, 
-      mediaAttachments: []}, 
-      memezatorOfficialAccount)
-
-    await this.statusesService.createStatus({
-      status: secondPlacePostText, 
-      referredStatusId: winnerMemesWithLikes.secondPlace.meme.id, 
-      mediaAttachments: []}, 
-      memezatorOfficialAccount)
-  
-    await this.statusesService.createStatus({
-      status: thirdPlacePostText, 
-      referredStatusId: winnerMemesWithLikes.thirdPlace.meme.id, 
-      mediaAttachments: []}, 
-      memezatorOfficialAccount)
-
-    return;
+        status: statusText, 
+        referredStatusId: winnerMemesWithLikes[place].meme.id, 
+        mediaAttachments: [],
+      },
+      memezatorOfficialAccount
+    )
   }
 }
