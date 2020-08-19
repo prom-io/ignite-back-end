@@ -71,29 +71,31 @@ export class UsersService {
     }
 
     public async getMemesActionsRights(user: User): Promise<MemezatorActionsRightsResponse> {
-        const userMemeActionsRights: MemezatorActionsRightsResponse = {
-            can_create: true,
-            cannot_create_reason_code: null,
-            can_vote: true,
-            cannot_vote_reason_code: null,
-            voting_power: null
-        }
+        const userMemeActionsRights = new MemezatorActionsRightsResponse({
+            canCreate: true,
+            cannotCreateReasonCode: null,
+            canVote: true,
+            cannotVoteReasonCode: null,
+            votingPower: null,
+            ethPromTokens: null
+        })
 
         const balance = await this.etherscanService.getBalance(user.ethereumAddress).catch(err => {
             this.log.error(err)
             return "0"
         })
-        userMemeActionsRights.voting_power = this.calculateVotingPower(balance)
+        userMemeActionsRights.ethPromTokens = balance
+        userMemeActionsRights.votingPower = this.calculateVotingPower(balance)
 
         const existsMemeStatus =  await this.statusesRepository.findOneMemeByAuthorToday(user)
         if (existsMemeStatus) {
-            userMemeActionsRights.can_create = false
-            userMemeActionsRights.cannot_create_reason_code = UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED
-        } 
+            userMemeActionsRights.canCreate = false
+            userMemeActionsRights.cannotCreateReasonCode = UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED
+        }
         const amountOfLikedMemes = await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(user)
         if (amountOfLikedMemes >= 1) {
-            userMemeActionsRights.can_vote = false,
-            userMemeActionsRights.cannot_vote_reason_code = UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED
+            userMemeActionsRights.canVote = false,
+            userMemeActionsRights.cannotVoteReasonCode = UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED
         }
         return userMemeActionsRights; 
     }
