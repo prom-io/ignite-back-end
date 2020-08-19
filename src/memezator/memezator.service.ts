@@ -182,7 +182,7 @@ export class MemezatorService {
   calculateVotingPower(balance: string): number {
     if (BigInt(balance) < BigInt(2)) {
       return 1
-    } else if (BigInt(balance) < BigInt(5000)) {
+    } else if (BigInt(balance) < BigInt(5)) {
       return 40
     } else {
       return 80
