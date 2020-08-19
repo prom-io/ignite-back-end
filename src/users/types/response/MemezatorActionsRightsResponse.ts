@@ -18,5 +18,8 @@ export class MemezatorActionsRightsResponse {
     can_vote: boolean;
     
     @ApiPropertyOptional({enum: UserMemeActionsRightsReasonCode})
-    cannot_vote_reason_code?: UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED | null 
+    cannot_vote_reason_code?: UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED | null;
+
+    @ApiPropertyOptional()
+    voting_power: number;
 }

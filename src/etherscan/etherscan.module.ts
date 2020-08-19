@@ -4,12 +4,7 @@ import { config } from "../config";
 
 @Module({
   providers: [
-    {
-      provide: EtherscanService,
-      useFactory() {
-        return new EtherscanService(config.ETHERSCAN_API_TOKEN)
-      }
-    }
+    EtherscanService,
   ],
   exports: [EtherscanService],
 })
