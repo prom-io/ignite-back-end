@@ -3,7 +3,7 @@ import { Cron } from "nest-schedule";
 import { getCronExpressionForMemezatorCompetitionSumminUpCron, delay } from "./utils";
 import { StatusesRepository } from "../statuses/StatusesRepository";
 import { HashTagsRepository } from "../statuses/HashTagsRepository";
-import _ from "lodash"
+import _, { first } from "lodash"
 import { EtherscanService } from "../etherscan";
 import { StatusLikesRepository } from "../statuses/StatusLikesRepository";
 import { MEMEZATOR_HASHTAG } from "../common/constants"
@@ -33,16 +33,16 @@ export class MemezatorService {
     // await this.startMemezatorCompetitionSummingUp(true)
   }
   
-  async startMemezatorCompetitionSummingUp(startedInCron: boolean): Promise<WinnerMemesWithLikes> {
+  async startMemezatorCompetitionSummingUp(options: {startedInCron: boolean, dryRun: boolean}): Promise<WinnerMemesWithLikes> {
     let competitionStartDate = new Date()
-    if (startedInCron) {
+    if (options.startedInCron) {
       competitionStartDate = dateFns.sub(competitionStartDate, { hours: 1 })
     }
     competitionStartDate.setHours(0, 0, 0, 0)
 
     const competitionEndDate = new Date()
 
-    if (startedInCron) {
+    if (options.startedInCron) {
       competitionEndDate.setHours(0, 0, 0, 0)
     }
 
@@ -57,30 +57,33 @@ export class MemezatorService {
       rewardForCurrentCompetition,
       competitionStartDate,
       competitionEndDate,
+      options.dryRun ? false : true
     )
 
-    const memezatorOfficialAccount = await this.usersRepository.findByEthereumAddress(config.ADDRESS_OF_MEMEZATOR_OFFICIAL)
-    await this.createStatusAboutWinner(
-      memezatorOfficialAccount,
-      winners,
-      rewardForCurrentCompetition,
-      competitionStartDate,
-      "thirdPlace"
-    )
-    await this.createStatusAboutWinner(
-      memezatorOfficialAccount,
-      winners,
-      rewardForCurrentCompetition,
-      competitionStartDate,
-      "secondPlace"
-    )
-    await this.createStatusAboutWinner(
-      memezatorOfficialAccount,
-      winners,
-      rewardForCurrentCompetition,
-      competitionStartDate,
-      "firstPlace"
-    )
+    if (!options.dryRun) {
+      const memezatorOfficialAccount = await this.usersRepository.findByEthereumAddress(config.ADDRESS_OF_MEMEZATOR_OFFICIAL)
+      await this.createStatusAboutWinner(
+        memezatorOfficialAccount,
+        winners,
+        rewardForCurrentCompetition,
+        competitionStartDate,
+        "thirdPlace"
+      )
+      await this.createStatusAboutWinner(
+        memezatorOfficialAccount,
+        winners,
+        rewardForCurrentCompetition,
+        competitionStartDate,
+        "secondPlace"
+      )
+      await this.createStatusAboutWinner(
+        memezatorOfficialAccount,
+        winners,
+        rewardForCurrentCompetition,
+        competitionStartDate,
+        "firstPlace"
+      )
+    }
 
     return winners
   }
@@ -88,7 +91,8 @@ export class MemezatorService {
   async calculateWinnersWithLikesAndRewards(
     memezatorRewardForPlaces: MemezatorRewardForPlaces,
     competitionStartDate: Date,
-    competitionEndDate: Date
+    competitionEndDate: Date,
+    saveVotesOfMemeInDB: boolean
   ): Promise<WinnerMemesWithLikes> {
     // Memes created after last greenwich midnight
     const memes = await this.statusesRepository.findContainingMemeHashTagAndCreatedAtBetween(competitionStartDate, competitionEndDate)
@@ -123,7 +127,10 @@ export class MemezatorService {
       }
 
       meme.favoritesCount = votes
-      await this.statusesRepository.save(meme)
+
+      if (saveVotesOfMemeInDB) {
+        await this.statusesRepository.save(meme)        
+      }
 
       if (!firstPlace || votes > firstPlace.meme.favoritesCount) {
         firstPlace = memeWithLikesAndVotingPowers
@@ -134,29 +141,36 @@ export class MemezatorService {
       }
     }
 
-    firstPlace.rewardForAuthor = memezatorRewardForPlaces.firstPlace.author
-    firstPlace.likesWithVotingPowersAndRewards.forEach((likeWithVotingPowerAndReward) => {
-      likeWithVotingPowerAndReward.reward =
-        (likeWithVotingPowerAndReward.votingPower / firstPlace.meme.favoritesCount) * memezatorRewardForPlaces.firstPlace.voters
-    })
-    firstPlace.threeLikesWithVotingPowersAndRewardsWithBiggestRewards =
-      _.take(_.sortBy(firstPlace.likesWithVotingPowersAndRewards, likeWithVotingPowerAndReward => -likeWithVotingPowerAndReward.reward), 3)
+    if (firstPlace) {   
+      firstPlace.rewardForAuthor = memezatorRewardForPlaces.firstPlace.author
+      firstPlace.likesWithVotingPowersAndRewards.forEach((likeWithVotingPowerAndReward) => {
+        likeWithVotingPowerAndReward.reward =
+          (likeWithVotingPowerAndReward.votingPower / firstPlace.meme.favoritesCount) * memezatorRewardForPlaces.firstPlace.voters
+      })
+      firstPlace.threeLikesWithVotingPowersAndRewardsWithBiggestRewards =
+        _.take(_.sortBy(firstPlace.likesWithVotingPowersAndRewards, likeWithVotingPowerAndReward => -likeWithVotingPowerAndReward.reward), 3)
+    }
 
-    secondPlace.rewardForAuthor = memezatorRewardForPlaces.secondPlace.author
-    secondPlace.likesWithVotingPowersAndRewards.forEach((likeWithVotingPowerAndReward) => {
-      likeWithVotingPowerAndReward.reward =
-        (likeWithVotingPowerAndReward.votingPower / secondPlace.meme.favoritesCount) * memezatorRewardForPlaces.secondPlace.voters
-    })
-    secondPlace.threeLikesWithVotingPowersAndRewardsWithBiggestRewards =
-      _.take(_.sortBy(secondPlace.likesWithVotingPowersAndRewards, likeWithVotingPowerAndReward => -likeWithVotingPowerAndReward.reward), 3)
+    if (secondPlace) {
+      secondPlace.rewardForAuthor = memezatorRewardForPlaces.secondPlace.author
+      secondPlace.likesWithVotingPowersAndRewards.forEach((likeWithVotingPowerAndReward) => {
+        likeWithVotingPowerAndReward.reward =
+          (likeWithVotingPowerAndReward.votingPower / secondPlace.meme.favoritesCount) * memezatorRewardForPlaces.secondPlace.voters
+      })
+      secondPlace.threeLikesWithVotingPowersAndRewardsWithBiggestRewards =
+        _.take(_.sortBy(secondPlace.likesWithVotingPowersAndRewards, likeWithVotingPowerAndReward => -likeWithVotingPowerAndReward.reward), 3)
+    }
 
-    thirdPlace.rewardForAuthor = memezatorRewardForPlaces.thirdPlace.author
-    thirdPlace.likesWithVotingPowersAndRewards.forEach((likeWithVotingPowerAndReward) => {
-      likeWithVotingPowerAndReward.reward =
-        (likeWithVotingPowerAndReward.votingPower / thirdPlace.meme.favoritesCount) * memezatorRewardForPlaces.thirdPlace.voters
-    })
-    thirdPlace.threeLikesWithVotingPowersAndRewardsWithBiggestRewards =
-      _.take(_.sortBy(thirdPlace.likesWithVotingPowersAndRewards, likeWithVotingPowerAndReward => -likeWithVotingPowerAndReward.reward), 3)
+    if (thirdPlace) {
+        
+      thirdPlace.rewardForAuthor = memezatorRewardForPlaces.thirdPlace.author
+      thirdPlace.likesWithVotingPowersAndRewards.forEach((likeWithVotingPowerAndReward) => {
+        likeWithVotingPowerAndReward.reward =
+          (likeWithVotingPowerAndReward.votingPower / thirdPlace.meme.favoritesCount) * memezatorRewardForPlaces.thirdPlace.voters
+      })
+      thirdPlace.threeLikesWithVotingPowersAndRewardsWithBiggestRewards =
+        _.take(_.sortBy(thirdPlace.likesWithVotingPowersAndRewards, likeWithVotingPowerAndReward => -likeWithVotingPowerAndReward.reward), 3)
+    }
 
     return {
       firstPlace,
@@ -189,6 +203,10 @@ export class MemezatorService {
     competitionStartDate: Date,
     place: "firstPlace" | "secondPlace" | "thirdPlace"
   ) {
+    if (!winnerMemesWithLikes[place]) {
+      return
+    }
+
     const threeWinnerVoters = winnerMemesWithLikes[place].threeLikesWithVotingPowersAndRewardsWithBiggestRewards
 
     let statusText =
