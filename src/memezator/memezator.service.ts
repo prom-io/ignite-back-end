@@ -16,6 +16,7 @@ import { UsersRepository } from "../users";
 import { StatusesService } from "../statuses";
 import { User } from "../users/entities";
 import { Big } from "big.js";
+import { StatusReferenceType } from "../statuses/entities";
 
 @Injectable()
 export class MemezatorService {
@@ -218,28 +219,31 @@ export class MemezatorService {
 
     const threeWinnerVoters = winnerMemesWithLikes[place].threeLikesWithVotingPowersAndRewardsWithBiggestRewards
 
+    const placeNumber = ({ firstPlace: 1, secondPlace: 2, thirdPlace: 3 })[place]
+
     let statusText =
-      `MEME #1 OF ${dateFns.format(competitionStartDate, "yyyy/MM/dd")}\n` +
+      `MEME №${placeNumber} OF ${dateFns.format(competitionStartDate, "yyyy/MM/dd")}\n` +
       `Voted: ${winnerMemesWithLikes[place].meme.favoritesCount} votes\n` +
       `Prize: ${memezatorRewardForPlaces[place].author + memezatorRewardForPlaces.firstPlace.voters} PROM\n` +
-      `\n` +
+      `\n\n` +
       `Author: ${winnerMemesWithLikes[place].meme.author.displayedName} ${winnerMemesWithLikes[place].rewardForAuthor} PROM\n`
 
     if (threeWinnerVoters[0]) {
-      statusText += `Winner #1: ${threeWinnerVoters[0].like.user.displayedName} ${threeWinnerVoters[0].reward} PROM\n`
+      statusText += `Winner №1: ${threeWinnerVoters[0].like.user.displayedName} ${new Big(threeWinnerVoters[0].reward).toFixed(2)} PROM\n`
     }
 
     if (threeWinnerVoters[1]) {
-      statusText += `Winner #2: ${threeWinnerVoters[1].like.user.displayedName} ${threeWinnerVoters[1].reward} PROM\n`
+      statusText += `Winner №2: ${threeWinnerVoters[1].like.user.displayedName} ${new Big(threeWinnerVoters[1].reward).toFixed(2)} PROM\n`
     }
 
     if (threeWinnerVoters[2]) {
-      statusText += `Winner #3: ${threeWinnerVoters[2].like.user.displayedName} ${threeWinnerVoters[2].reward} PROM\n`
+      statusText += `Winner №3: ${threeWinnerVoters[2].like.user.displayedName} ${new Big(threeWinnerVoters[2].reward).toFixed(2)} PROM\n`
     }
 
     await this.statusesService.createStatus({
         status: statusText, 
-        referredStatusId: winnerMemesWithLikes[place].meme.id, 
+        referredStatusId: winnerMemesWithLikes[place].meme.id,
+        statusReferenceType: StatusReferenceType.REPOST,
         mediaAttachments: [],
       },
       memezatorOfficialAccount
