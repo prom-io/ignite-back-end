@@ -106,7 +106,7 @@ export class MediaAttachmentsService {
         const id = uuid()
         const previewPath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, `${id}.${fileTypeResult.ext}`)
 
-        const gmInstance = gm(originalFilePath).resize(previewSize, previewSize)
+        const gmInstance = gm(originalFilePath).resize(previewSize, previewSize, "^")
         await promisify(gmInstance.write.bind(gmInstance))(previewPath)
 
         const generatedPreviewImageSize = await this.getImageSize(previewPath)
