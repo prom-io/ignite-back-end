@@ -15,6 +15,7 @@ import { MemezatorRewardForPlaces } from "../config/types/MemezatorReward";
 import { UsersRepository } from "../users";
 import { StatusesService } from "../statuses";
 import { User } from "../users/entities";
+import { Big } from "big.js";
 
 @Injectable()
 export class MemezatorService {
