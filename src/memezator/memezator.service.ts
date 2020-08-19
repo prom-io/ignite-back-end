@@ -117,7 +117,7 @@ export class MemezatorService {
         likesWithVotingPowersAndRewards.push({ like, votingPower, reward: null })
 
         votes += votingPower
-        await delay(230)
+        await delay(1000)
       }
 
       const memeWithLikesAndVotingPowers: MemeWithLikesAndVotingPowers = {
