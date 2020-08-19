@@ -6,6 +6,7 @@ import {StatusesRepository} from "./StatusesRepository";
 import {StatusesMapper} from "./StatusesMapper";
 import {StatusResponse} from "./types/response";
 import {User} from "../users/entities";
+import { MEMEZATOR_HASHTAG } from "../common/constants";
 
 @Injectable()
 export class StatusLikesService {
@@ -16,13 +17,6 @@ export class StatusLikesService {
 
     public async createStatusLike(statusId: string, currentUser: User): Promise<StatusResponse> {
         const status = await this.statusesRepository.findById(statusId);
-        const statusHashTags = status.hashTags.map(hashTag => hashTag.name);
-        if (statusHashTags.includes('memezator') && status.author.id === currentUser.id) {
-            throw new HttpException(
-                'We appreciate that you like your meme, but please vote for another one.',
-                HttpStatus.FORBIDDEN
-            );
-        }
         if (!status) {
             throw new HttpException(
                 `Could not find status with id ${statusId}`,
@@ -30,15 +24,30 @@ export class StatusLikesService {
             );
         }
 
-        if ( await this.statusLikesRepository.existByStatusAndUserNotReverted(status, currentUser)) {
+        const isMeme = status.hashTags.some(hashTag => hashTag.name === MEMEZATOR_HASHTAG)
+        const lastMidnightInGreenwich = new Date()
+        lastMidnightInGreenwich.setHours(0, 0, 0, 0)
+
+        if (isMeme && status.createdAt.valueOf() < lastMidnightInGreenwich.valueOf()) {
+            throw new HttpException("These are old memes, Please vote for newer ones", HttpStatus.BAD_REQUEST)
+        }
+
+        if (isMeme && status.author.id === currentUser.id) {
+            throw new HttpException(
+                "We appreciate that you like your meme, but please vote for another one.",
+                HttpStatus.FORBIDDEN
+            );
+        }
+
+        if (await this.statusLikesRepository.existByStatusAndUserNotReverted(status, currentUser)) {
             throw new HttpException(
                 "Current user has already liked this status",
                 HttpStatus.FORBIDDEN
             );
         }
 
-        if (statusHashTags.includes('memezator') && await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(currentUser) >= 1) {
-            throw new ForbiddenException('You can vote for a meme here only once per day')
+        if (isMeme && await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(currentUser) >= 1) {
+            throw new ForbiddenException("You can vote for a meme here only once per day")
         }
 
         const statusLike: StatusLike = {
@@ -60,13 +69,6 @@ export class StatusLikesService {
 
     public async deleteStatusLike(statusId: string, currentUser: User): Promise<StatusResponse> {
         const status = await this.statusesRepository.findById(statusId);
-        const statusHashTags = status.hashTags.map(hashTag => hashTag.name);
-        if (statusHashTags.includes('memezator')) {
-            throw new HttpException(
-                'Your vote is already in, please choose more wisely next time.',
-                HttpStatus.FORBIDDEN
-            );
-        }
         if (!status) {
             throw new HttpException(
                 `Could not find status with id ${statusId}`,
@@ -74,6 +76,14 @@ export class StatusLikesService {
             );
         }
 
+        const statusHashTags = status.hashTags.map(hashTag => hashTag.name);
+        if (statusHashTags.includes("memezator")) {
+            throw new HttpException(
+                "Your vote is already in, please choose more wisely next time.",
+                HttpStatus.FORBIDDEN
+            );
+        }
+        
         const statusLike = await this.statusLikesRepository.findByStatusAndUserNotReverted(status, currentUser);
 
         if (!statusLike) {
