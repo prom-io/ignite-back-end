@@ -1,11 +1,9 @@
 import { MEMEZATOR_HASHTAG } from "../common/constants";
 import { StatusLikesRepository } from "../statuses/StatusLikesRepository";
 import { StatusesRepository } from "../statuses/StatusesRepository";
-import { StatusLikesService } from "./../statuses/StatusLikesService";
 import { MemezatorActionsRightsResponse, UserMemeActionsRightsReasonCode } from "./types/response/MemezatorActionsRightsResponse";
-import { StatusesService } from "./../statuses/StatusesService";
 import { asyncForEach } from "./../utils/async-foreach";
-import {HttpException, HttpStatus, Injectable, Inject, forwardRef} from "@nestjs/common";
+import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import {MailerService} from "@nestjs-modules/mailer";
 import {LoggerService} from "nest-logger";
 import uuid from "uuid/v4";
@@ -37,8 +35,8 @@ import {asyncMap} from "../utils/async-map";
 import {PasswordHashApiClient} from "../password-hash-api";
 import {UserSubscription} from "../user-subscriptions/entities";
 import {UsersSearchFilters} from "./types/request/UsersSearchFilters";
-import { MemezatorService } from "../memezator";
 import { EtherscanService } from "../etherscan";
+import {Big} from "big.js";
 
 @Injectable()
 export class UsersService {
@@ -80,11 +78,14 @@ export class UsersService {
             ethPromTokens: null
         })
 
-        const balance = await this.etherscanService.getBalance(user.ethereumAddress).catch(err => {
+        const balance = await this.etherscanService.getERC20TokenAccountBalanceForTokenContractAddress(
+            config.PROM_TOKENS_CONTRACT_ADDRESS,
+            user.ethereumAddress
+        ).catch(err => {
             this.log.error(err)
             return "0"
         })
-        userMemeActionsRights.ethPromTokens = balance
+        userMemeActionsRights.ethPromTokens = this.formatBalanceToPromTokens(balance)
         userMemeActionsRights.votingPower = this.calculateVotingPower(balance)
 
         const existsMemeStatus =  await this.statusesRepository.findOneMemeByAuthorToday(user)
@@ -101,17 +102,22 @@ export class UsersService {
     }
 
     /**
-     * Coppied from MemezatorService becouse of circular dep issue 
+     * Copied from MemezatorService because of circular dep issue 
      * TODO: Fix that issue and use MemezatorService
      */
     calculateVotingPower(balance: string): number {
-        if (BigInt(balance) < BigInt(2)) {
+        const promTokens = new Big(this.formatBalanceToPromTokens(balance))
+        if (promTokens.lt(2)) {
             return 1
-        } else if (BigInt(balance) < BigInt(5)) {
+        } else if (promTokens.lt(5)) {
             return 40
         } else {
             return 80
         }
+    }
+
+    formatBalanceToPromTokens(balance: string): string {
+        return new Big(balance).div("1000000000000000000").toFixed(2)
     }
 
     public async signUpForPrivateBeta(signUpForPrivateBetaTestRequest: SignUpForPrivateBetaTestRequest): Promise<void> {

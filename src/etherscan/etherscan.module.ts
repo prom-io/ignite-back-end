@@ -1,6 +1,5 @@
 import { Module } from "@nestjs/common";
 import { EtherscanService } from "./etherscan.service";
-import { config } from "../config";
 
 @Module({
   providers: [

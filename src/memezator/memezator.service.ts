@@ -103,20 +103,20 @@ export class MemezatorService {
 
     for (const meme of memes) {
       const likes = await this.statusLikeRepository.findByStatus(meme)
-      const likesChunks = _.chunk(likes, 20)
       const likesWithVotingPowersAndRewards: LikeAndVotingPowerAndReward[] = []
       let votes = 0
 
-      for (const likesChunk of likesChunks) {
-        const usersBalances = await this.etherscanService.getBalancesOnMultipleAccounts(likesChunk.map(like => like.user.ethereumAddress))
-        const votingPowers = usersBalances.map(userBalance => this.calculateVotingPower(userBalance.balance))
-
-        likesWithVotingPowersAndRewards.push(
-          ...likesChunk.map((like, i) => ({ like, votingPower: votingPowers[i], reward: null }))
+      for (const like of likes) {
+        const userBalance = await this.etherscanService.getERC20TokenAccountBalanceForTokenContractAddress(
+          config.PROM_TOKENS_CONTRACT_ADDRESS,
+          like.user.ethereumAddress
         )
+        const votingPower = this.calculateVotingPower(userBalance)
 
-        votes += _.sum(votingPowers)
-        await delay(200)
+        likesWithVotingPowersAndRewards.push({ like, votingPower, reward: null })
+
+        votes += votingPower
+        await delay(230)
       }
 
       const memeWithLikesAndVotingPowers: MemeWithLikesAndVotingPowers = {
@@ -162,7 +162,6 @@ export class MemezatorService {
     }
 
     if (thirdPlace) {
-        
       thirdPlace.rewardForAuthor = memezatorRewardForPlaces.thirdPlace.author
       thirdPlace.likesWithVotingPowersAndRewards.forEach((likeWithVotingPowerAndReward) => {
         likeWithVotingPowerAndReward.reward =
@@ -179,14 +178,23 @@ export class MemezatorService {
     }
   }
 
+  /**
+   * Copied from MemezatorService because of circular dep issue 
+   * TODO: Fix that issue and use MemezatorService
+   */
   calculateVotingPower(balance: string): number {
-    if (BigInt(balance) < BigInt(2)) {
-      return 1
-    } else if (BigInt(balance) < BigInt(5)) {
-      return 40
+    const promTokens = new Big(this.formatBalanceToPromTokens(balance))
+    if (promTokens.lt(2)) {
+        return 1
+    } else if (promTokens.lt(5)) {
+        return 40
     } else {
-      return 80
+        return 80
     }
+  }
+
+  formatBalanceToPromTokens(balance: string): string {
+      return new Big(balance).div("1000000000000000000").toFixed(2)
   }
 
   getLastMidnightInGreenwich(): Date {
