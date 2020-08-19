@@ -32,7 +32,7 @@ export class StatusesService {
             (createStatusRequest.fromMemezator && !isContainMemeHashTag)
         ) {
             throw new BadRequestException(
-                'Memes should be created only in Memezator',
+                'Please use Memezator tab to post memes for the contest.',
             );
         }
         let mediaAttachments: MediaAttachment[] = [];

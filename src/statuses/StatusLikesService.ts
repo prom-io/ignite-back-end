@@ -19,7 +19,7 @@ export class StatusLikesService {
         const statusHashTags = status.hashTags.map(hashTag => hashTag.name);
         if (statusHashTags.includes('memezator') && status.author.id === currentUser.id) {
             throw new HttpException(
-                "User cannot like his own meme",
+                'We appreciate that you like your meme, but please vote for another one.',
                 HttpStatus.FORBIDDEN
             );
         }
@@ -38,7 +38,7 @@ export class StatusLikesService {
         }
 
         if (statusHashTags.includes('memezator') && await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(currentUser) >= 1) {
-            throw new ForbiddenException('Current user has already liked 3 memes today.')
+            throw new ForbiddenException('You can vote for a meme here only once per day')
         }
 
         const statusLike: StatusLike = {
@@ -63,7 +63,7 @@ export class StatusLikesService {
         const statusHashTags = status.hashTags.map(hashTag => hashTag.name);
         if (statusHashTags.includes('memezator')) {
             throw new HttpException(
-                "User cannot unlike meme",
+                'Your vote is already in, please choose more wisely next time.',
                 HttpStatus.FORBIDDEN
             );
         }
