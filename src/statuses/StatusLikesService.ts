@@ -29,7 +29,7 @@ export class StatusLikesService {
         lastMidnightInGreenwich.setHours(0, 0, 0, 0)
 
         if (isMeme && status.createdAt.valueOf() < lastMidnightInGreenwich.valueOf()) {
-            throw new HttpException("These are old memes, Please vote for newer ones", HttpStatus.BAD_REQUEST)
+            throw new HttpException("These are old memes. Please vote for newer ones", HttpStatus.FORBIDDEN)
         }
 
         if (isMeme && status.author.id === currentUser.id) {
