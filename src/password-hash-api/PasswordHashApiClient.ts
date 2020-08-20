@@ -9,6 +9,10 @@ export class PasswordHashApiClient {
     }
 
     public setPasswordHash(setPasswordHashRequest: SetPasswordHashRequest): AxiosPromise<void> {
+        return this.axios.post("/password/hash/set", setPasswordHashRequest);
+    }
+
+    public setEthereumPasswordHash(setPasswordHashRequest: SetPasswordHashRequest): AxiosPromise<void> {
         return this.axios.post("/password/hash/change", setPasswordHashRequest);
     }
 

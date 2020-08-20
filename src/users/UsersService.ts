@@ -38,6 +38,7 @@ import {UsersSearchFilters} from "./types/request/UsersSearchFilters";
 import { EtherscanService } from "../etherscan";
 import {Big} from "big.js";
 
+
 @Injectable()
 export class UsersService {
     constructor(
@@ -251,23 +252,47 @@ export class UsersService {
             await this.userPreferencesRepository.save(userPreferences);
         }
 
-        try {
-            await this.passwordHashApiClient.setPasswordHash({
-                address: ethereumAddress,
-                passwordHash,
-                privateKey
-            });
-            await this.passwordHashApiClient.setBinancePasswordHash({
-                address: ethereumAddress,
-                passwordHash,
-                privateKey
-            });
-        } catch (error) {
-            this.log.log(error);
-        }
+       await this.setPasswordHashInBlockchain(ethereumAddress, passwordHash, privateKey);
 
         return user;
     }
+
+    private async setPasswordHashInBlockchain(address: string, passwordHash: string, privateKey: string): Promise<void> {
+       return new Promise(async (resolve) => {
+           let isResolved = false;
+            setTimeout(() => {
+               if (!isResolved){
+                    isResolved = true
+                    resolve()
+                    this.log.log('setPasswordHashInBlockchain Timeout of 40s exceeded')
+               }
+           }, 40000)
+            try {
+                await this.passwordHashApiClient.setEthereumPasswordHash({
+                    address: address,
+                    passwordHash,
+                    privateKey
+                });
+                await this.passwordHashApiClient.setBinancePasswordHash({
+                    address: address,
+                    passwordHash,
+                    privateKey
+                });
+
+                if(!isResolved){
+                    isResolved = true
+                    resolve()
+                }
+            } catch (error) {
+                this.log.log(error);
+                if(!isResolved){
+                    isResolved = true
+                    resolve()
+                }
+            }
+     })
+    }
+
 
     private async registerUserByTransactionId(transactionId: string, language?: Language, signUpReference?: SignUpReference): Promise<User> {
         try {
