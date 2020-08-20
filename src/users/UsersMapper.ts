@@ -7,16 +7,20 @@ import {BCryptPasswordEncoder} from "../bcrypt";
 import {config} from "../config";
 import {UserStatisticsRepository} from "./UserStatisticsRepository";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
+import { TransactionsRepository } from "../transactions/TransactionsRepository";
 
 @Injectable()
 export class UsersMapper {
-    constructor(private readonly bCryptPasswordEncoder: BCryptPasswordEncoder,
-                private readonly userStatisticsRepository: UserStatisticsRepository,
-                private readonly userSubscriptionsRepository: UserSubscriptionsRepository) {
-    }
+    constructor(
+        private readonly bCryptPasswordEncoder: BCryptPasswordEncoder,
+        private readonly userStatisticsRepository: UserStatisticsRepository,
+        private readonly userSubscriptionsRepository: UserSubscriptionsRepository,
+        private readonly transactionsRepository: TransactionsRepository,
+    ) {}
 
     public async toUserResponseAsync(user: User, currentUser?: User, includePasswordHash: boolean = false): Promise<UserResponse> {
         const userStatistics = await this.userStatisticsRepository.findOrCreateByUser(user);
+        const userBalance = await this.transactionsRepository.getBalanceByAddress(user.ethereumAddress);
         const following = currentUser && await this.userSubscriptionsRepository.existsBySubscribedUserAndSubscribedToNotReverted(
             currentUser,
             user
@@ -26,7 +30,7 @@ export class UsersMapper {
             currentUser
         );
 
-        return this.toUserResponse(user, userStatistics, following, followed);
+        return this.toUserResponse(user, userStatistics, following, followed, includePasswordHash, userBalance);
     }
 
     public toUserResponse(
@@ -34,7 +38,8 @@ export class UsersMapper {
         userStatistics?: UserStatistics | Omit<UserStatistics, "user">,
         following: boolean = false,
         followedBy: boolean = false,
-        includePasswordHash: boolean = false
+        includePasswordHash: boolean = false,
+        userBalance: string = "0",
     ): UserResponse {
         let avatar: string;
 
@@ -67,7 +72,7 @@ export class UsersMapper {
             followedBy,
             bio: user.bio,
             externalUrl: user.externalUrl,
-            userBalance: userStatistics ? userStatistics.userBalance : "0",
+            userBalance,
             votingPower: userStatistics ? userStatistics.votingPower : 1,
             passwordHash: includePasswordHash ? user.privateKey : undefined
         })

@@ -409,7 +409,7 @@ export class UsersService {
     }
 
     public async getCurrentUser(user: User): Promise<UserResponse> {
-        return this.usersMapper.toUserResponse(user, await this.userStatisticsRepository.findByUser(user))
+        return this.usersMapper.toUserResponseAsync(user, user, false)
     }
 
     public async updateUser(ethereumAddress: string, updateUserRequest: UpdateUserRequest, currentUser: User): Promise<UserResponse> {
