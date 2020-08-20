@@ -8,6 +8,7 @@ import {config} from "../config";
 import {UserStatisticsRepository} from "./UserStatisticsRepository";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import { TransactionsRepository } from "../transactions/TransactionsRepository";
+import { Big } from "big.js";
 
 @Injectable()
 export class UsersMapper {
@@ -72,7 +73,7 @@ export class UsersMapper {
             followedBy,
             bio: user.bio,
             externalUrl: user.externalUrl,
-            userBalance,
+            userBalance: Big(userBalance).toFixed(2),
             votingPower: userStatistics ? userStatistics.votingPower : 1,
             passwordHash: includePasswordHash ? user.privateKey : undefined
         })
