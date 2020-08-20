@@ -249,22 +249,22 @@ export class MemezatorService {
     const placeNumber = ({ firstPlace: 1, secondPlace: 2, thirdPlace: 3 })[place]
 
     let statusText =
-      `MEME №${placeNumber} OF ${dateFns.format(competitionStartDate, "yyyy/MM/dd")}\n` +
-      `Voted: ${winnerMemesWithLikes[place].meme.favoritesCount} votes\n` +
-      `Prize: ${memezatorRewardForPlaces[place].author + memezatorRewardForPlaces.firstPlace.voters} PROM\n` +
-      `\n\n` +
-      `Author: ${winnerMemesWithLikes[place].meme.author.displayedName} ${winnerMemesWithLikes[place].rewardForAuthor} PROM\n`
+      `**MEME №${placeNumber} OF ${dateFns.format(competitionStartDate, "yyyy/MM/dd")}**\n` +
+      `Voted: **${winnerMemesWithLikes[place].meme.favoritesCount}** votes\n` +
+      `Prize: **${memezatorRewardForPlaces[place].author + memezatorRewardForPlaces.firstPlace.voters}** PROM\n` +
+      `\n\n  ` +
+      `Author: **${winnerMemesWithLikes[place].meme.author.displayedName}** ${winnerMemesWithLikes[place].rewardForAuthor} PROM\n`
 
     if (threeWinnerVoters[0]) {
-      statusText += `Winner №1: ${threeWinnerVoters[0].like.user.displayedName} ${new Big(threeWinnerVoters[0].reward).toFixed(2)} PROM\n`
+      statusText += `Winner №1: **${new Big(threeWinnerVoters[0].reward).toFixed(2)}** PROM ${threeWinnerVoters[0].like.user.displayedName} (${threeWinnerVoters[0].votingPower} votes)\n`
     }
 
     if (threeWinnerVoters[1]) {
-      statusText += `Winner №2: ${threeWinnerVoters[1].like.user.displayedName} ${new Big(threeWinnerVoters[1].reward).toFixed(2)} PROM\n`
+      statusText += `Winner №2: **${new Big(threeWinnerVoters[1].reward).toFixed(2)}** PROM ${threeWinnerVoters[1].like.user.displayedName} (${threeWinnerVoters[1].votingPower} votes)\n`
     }
 
     if (threeWinnerVoters[2]) {
-      statusText += `Winner №3: ${threeWinnerVoters[2].like.user.displayedName} ${new Big(threeWinnerVoters[2].reward).toFixed(2)} PROM\n`
+      statusText += `Winner №3: **${new Big(threeWinnerVoters[2].reward).toFixed(2)}** PROM ${threeWinnerVoters[2].like.user.displayedName} (${threeWinnerVoters[2].votingPower} votes)\n`
     }
 
     await this.statusesService.createStatus({
