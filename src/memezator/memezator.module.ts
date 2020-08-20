@@ -8,12 +8,14 @@ import { StatusLikesRepository } from "../statuses/StatusLikesRepository";
 import { MemezatorController } from "./memezator.controller";
 import { StatusesModule } from "../statuses";
 import { UsersRepository } from "../users";
+import { MemezatorContestResultRepository } from "./memezator-contest-result.repository";
 
 @Module({
   imports: [
     EtherscanModule,
     StatusesModule,
     TypeOrmModule.forFeature([
+      MemezatorContestResultRepository,
       StatusesRepository,
       HashTagsRepository,
       StatusLikesRepository,

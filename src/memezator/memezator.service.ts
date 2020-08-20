@@ -17,6 +17,8 @@ import { StatusesService } from "../statuses";
 import { User } from "../users/entities";
 import { Big } from "big.js";
 import { StatusReferenceType } from "../statuses/entities";
+import { MemezatorContestResultRepository } from "./memezator-contest-result.repository";
+import uuid from "uuid";
 
 @Injectable()
 export class MemezatorService {
@@ -28,6 +30,7 @@ export class MemezatorService {
     private readonly logger: LoggerService,
     private readonly usersRepository: UsersRepository,
     private readonly statusesService: StatusesService,
+    private readonly memezatorContestResultRepository: MemezatorContestResultRepository,
   ) {}
 
   @Cron(getCronExpressionForMemezatorCompetitionSumminUpCron())
@@ -85,6 +88,13 @@ export class MemezatorService {
         competitionStartDate,
         "firstPlace"
       )
+
+      await this.memezatorContestResultRepository.save({
+        id: uuid(),
+        createdAt: new Date(),
+        updatedAt: null,
+        result: winners,
+      })
     }
 
     return winners
@@ -143,7 +153,7 @@ export class MemezatorService {
       }
     }
 
-    if (firstPlace) {   
+    if (firstPlace) {
       firstPlace.rewardForAuthor = memezatorRewardForPlaces.firstPlace.author
       firstPlace.likesWithVotingPowersAndRewards.forEach((likeWithVotingPowerAndReward) => {
         likeWithVotingPowerAndReward.reward =
