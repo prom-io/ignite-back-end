@@ -5,6 +5,7 @@ import {MediaAttachment} from "./media-attachments/entities";
 import {BtfsHash} from "./btfs-sync/entities";
 import {Notification, UserDevice} from "./push-notifications/entities";
 import {MemezatorContestResult} from "./memezator/entities/MemezatorContestResult";
+import { Transaction } from "./transactions/entities/Transaction";
 
 export const entities = [
     User,
@@ -21,4 +22,5 @@ export const entities = [
     HashTagSubscription,
     SignUpReference,
     MemezatorContestResult,
+    Transaction,
 ];
