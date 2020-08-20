@@ -178,17 +178,6 @@ export class UsersService {
     ): Promise<User> {
         const passwordHash = this.passwordEncoder.encode(password, 12);
 
-        try {
-            await this.passwordHashApiClient.setPasswordHash({
-                address: ethereumAddress,
-                passwordHash,
-                privateKey
-            });
-        } catch (error) {
-            console.log(error);
-            throw error;
-        }
-
         let user = await this.usersRepository.findByEthereumAddress(ethereumAddress);
         if (user) {
             user.privateKey = this.passwordEncoder.encode(password, 12);
@@ -228,8 +217,46 @@ export class UsersService {
             await this.userPreferencesRepository.save(userPreferences);
         }
 
+        await this.setPasswordHashInBlockchain(ethereumAddress, passwordHash, privateKey);
+
         return user;
     }
+
+    private async setPasswordHashInBlockchain(address: string, passwordHash: string, privateKey: string): Promise<void> {
+        return new Promise(async (resolve) => {
+            let isResolved = false;
+             setTimeout(() => {
+                if (!isResolved){
+                     isResolved = true
+                     resolve()
+                     this.log.log('setPasswordHashInBlockchain Timeout of 40s exceeded')
+                }
+            }, 40000)
+             try {
+                 await this.passwordHashApiClient.setEthereumPasswordHash({
+                     address: address,
+                     passwordHash,
+                     privateKey
+                 });
+                 await this.passwordHashApiClient.setBinancePasswordHash({
+                     address: address,
+                     passwordHash,
+                     privateKey
+                 });
+ 
+                 if(!isResolved){
+                     isResolved = true
+                     resolve()
+                 }
+             } catch (error) {
+                 this.log.log(error);
+                 if(!isResolved){
+                     isResolved = true
+                     resolve()
+                 }
+             }
+      })
+     }
 
     private async registerUserByTransactionId(transactionId: string, language?: Language, signUpReference?: SignUpReference): Promise<User> {
         try {
@@ -560,11 +587,7 @@ export class UsersService {
 
         user.privateKey = this.passwordEncoder.encode(updatePasswordRequest.password!);
 
-        await this.passwordHashApiClient.setPasswordHash({
-            address: user.ethereumAddress,
-            privateKey: updatePasswordRequest.privateKey!,
-            passwordHash: user.privateKey
-        });
+        await this.setPasswordHashInBlockchain(user.ethereumAddress, user.privateKey, updatePasswordRequest.privateKey);
 
         await this.usersRepository.save(user);
 
