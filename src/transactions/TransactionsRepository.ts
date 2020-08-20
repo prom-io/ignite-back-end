@@ -9,6 +9,6 @@ export class TransactionsRepository extends Repository<Transaction> {
       .where(`transaction."txnTo" = :address`, { address })
       .getRawOne()
 
-    return rawResult.balance as string
+    return (rawResult.balance || "0") as string
   }
 }
