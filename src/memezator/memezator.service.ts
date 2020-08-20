@@ -1,12 +1,10 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { Cron } from "nest-schedule";
 import { getCronExpressionForMemezatorCompetitionSumminUpCron, delay } from "./utils";
 import { StatusesRepository } from "../statuses/StatusesRepository";
-import { HashTagsRepository } from "../statuses/HashTagsRepository";
-import _, { first } from "lodash"
+import _ from "lodash"
 import { EtherscanService } from "../etherscan";
 import { StatusLikesRepository } from "../statuses/StatusLikesRepository";
-import { MEMEZATOR_HASHTAG } from "../common/constants"
 import { WinnerMemesWithLikes, MemeWithLikesAndVotingPowers, LikeAndVotingPowerAndReward } from "./types";
 import {config} from "../config";
 import * as dateFns from "date-fns"
@@ -19,18 +17,22 @@ import { Big } from "big.js";
 import { StatusReferenceType } from "../statuses/entities";
 import { MemezatorContestResultRepository } from "./memezator-contest-result.repository";
 import uuid from "uuid";
+import { Transaction } from "../transactions/entities/Transaction";
+import { TransactionsRepository } from "../transactions/TransactionsRepository";
+import { TransactionStatus } from "../transactions/types/TransactionStatus.enum";
+import { TransactionSubject } from "../transactions/types/TransactionSubject.enum";
 
 @Injectable()
 export class MemezatorService {
   constructor(
     private readonly statusesRepository: StatusesRepository,
-    private readonly hashTagRepository: HashTagsRepository,
     private readonly etherscanService: EtherscanService,
     private readonly statusLikeRepository: StatusLikesRepository,
     private readonly logger: LoggerService,
     private readonly usersRepository: UsersRepository,
     private readonly statusesService: StatusesService,
     private readonly memezatorContestResultRepository: MemezatorContestResultRepository,
+    private readonly transactionsRepository: TransactionsRepository
   ) {}
 
   @Cron(getCronExpressionForMemezatorCompetitionSumminUpCron())
@@ -55,7 +57,7 @@ export class MemezatorService {
 
     const rewardForCurrentCompetition = config.additionalConfig.memezator.rewards[formattedCompetitionStartDate]
     if (!rewardForCurrentCompetition) {
-      this.logger.warn(`Not found memezator reward for ${formattedCompetitionStartDate}`)
+      throw new InternalServerErrorException(`Not found memezator reward for ${formattedCompetitionStartDate}`)
     }
 
     const winners = await this.calculateWinnersWithLikesAndRewards(
@@ -66,35 +68,16 @@ export class MemezatorService {
     )
 
     if (!options.dryRun) {
-      const memezatorOfficialAccount = await this.usersRepository.findByEthereumAddress(config.ADDRESS_OF_MEMEZATOR_OFFICIAL)
-      await this.createStatusAboutWinner(
-        memezatorOfficialAccount,
-        winners,
-        rewardForCurrentCompetition,
-        competitionStartDate,
-        "thirdPlace"
-      )
-      await this.createStatusAboutWinner(
-        memezatorOfficialAccount,
-        winners,
-        rewardForCurrentCompetition,
-        competitionStartDate,
-        "secondPlace"
-      )
-      await this.createStatusAboutWinner(
-        memezatorOfficialAccount,
-        winners,
-        rewardForCurrentCompetition,
-        competitionStartDate,
-        "firstPlace"
-      )
+      await this.createStatusesAboutWinners(winners, rewardForCurrentCompetition, competitionStartDate)
 
-      await this.memezatorContestResultRepository.save({
+      const memezatorContestResult = await this.memezatorContestResultRepository.save({
         id: uuid(),
         createdAt: new Date(),
         updatedAt: null,
         result: winners,
       })
+
+      await this.createTransactions(winners, memezatorContestResult.id)
     }
 
     return winners
@@ -216,6 +199,44 @@ export class MemezatorService {
     return midnightInGreenwich
   }
 
+  private async createStatusesAboutWinners(
+    winners: WinnerMemesWithLikes,
+    rewardForCurrentCompetition: MemezatorRewardForPlaces,
+    competitionStartDate: Date
+  ) {
+    const memezatorOfficialAccount = await this.usersRepository.findByEthereumAddress(config.ADDRESS_OF_MEMEZATOR_OFFICIAL)
+
+    if (winners.firstPlace) {
+      await this.createStatusAboutWinner(
+        memezatorOfficialAccount,
+        winners,
+        rewardForCurrentCompetition,
+        competitionStartDate,
+        "firstPlace"
+      )
+    }
+
+    if (winners.secondPlace) {
+      await this.createStatusAboutWinner(
+        memezatorOfficialAccount,
+        winners,
+        rewardForCurrentCompetition,
+        competitionStartDate,
+        "secondPlace"
+      )
+    }
+
+    if (winners.thirdPlace) {
+      await this.createStatusAboutWinner(
+        memezatorOfficialAccount,
+        winners,
+        rewardForCurrentCompetition,
+        competitionStartDate,
+        "thirdPlace"
+      )
+    }
+  }
+
   private async createStatusAboutWinner(
     memezatorOfficialAccount: User,
     winnerMemesWithLikes: WinnerMemesWithLikes,
@@ -223,10 +244,6 @@ export class MemezatorService {
     competitionStartDate: Date,
     place: "firstPlace" | "secondPlace" | "thirdPlace"
   ) {
-    if (!winnerMemesWithLikes[place]) {
-      return
-    }
-
     const threeWinnerVoters = winnerMemesWithLikes[place].threeLikesWithVotingPowersAndRewardsWithBiggestRewards
 
     const placeNumber = ({ firstPlace: 1, secondPlace: 2, thirdPlace: 3 })[place]
@@ -258,5 +275,63 @@ export class MemezatorService {
       },
       memezatorOfficialAccount
     )
+  }
+
+  private async createTransactions(winners: WinnerMemesWithLikes, memezatorContestResultId: string): Promise<Transaction[]> {
+    const inputsForTransactionsCreation: Array<{txnTo: string, txnSum: string}> = []
+    
+    if (winners.firstPlace) {
+      inputsForTransactionsCreation.push(
+        {
+          txnTo: winners.firstPlace.meme.author.ethereumAddress,
+          txnSum: _.toString(winners.firstPlace.rewardForAuthor)
+        },
+        ...winners.firstPlace.likesWithVotingPowersAndRewards.map(likeWithVotingPowerAndReward => ({
+          txnTo: likeWithVotingPowerAndReward.like.user.ethereumAddress,
+          txnSum: _.toString(likeWithVotingPowerAndReward.reward)
+        }))
+      )
+    }
+
+    if (winners.secondPlace) {
+      inputsForTransactionsCreation.push(
+        {
+          txnTo: winners.secondPlace.meme.author.ethereumAddress,
+          txnSum: _.toString(winners.secondPlace.rewardForAuthor)
+        },
+        ...winners.secondPlace.likesWithVotingPowersAndRewards.map(likeWithVotingPowerAndReward => ({
+          txnTo: likeWithVotingPowerAndReward.like.user.ethereumAddress,
+          txnSum: _.toString(likeWithVotingPowerAndReward.reward)
+        }))
+      )
+    }
+
+    if (winners.thirdPlace) {
+      inputsForTransactionsCreation.push(
+        {
+          txnTo: winners.thirdPlace.meme.author.ethereumAddress,
+          txnSum: _.toString(winners.thirdPlace.rewardForAuthor)
+        },
+        ...winners.thirdPlace.likesWithVotingPowersAndRewards.map(likeWithVotingPowerAndReward => ({
+          txnTo: likeWithVotingPowerAndReward.like.user.ethereumAddress,
+          txnSum: _.toString(likeWithVotingPowerAndReward.reward)
+        }))
+      )
+    }
+
+    const transactionsObjects = inputsForTransactionsCreation.map(inputForTransactionsCreation => ({
+      id: uuid(),
+      createdAt: new Date(),
+      txnStatus: TransactionStatus.NOT_STARTED,
+      txnSubj: TransactionSubject.REWARD,
+      txnFrom: config.MEMEZATOR_PRIZE_FUND_ACCOUNT_ADDRESS,
+      txnTo: inputForTransactionsCreation.txnTo,
+      txnSum: inputForTransactionsCreation.txnSum,
+      txnDetails: {
+        memezatorContestResultId
+      }
+    }))
+
+    return await this.transactionsRepository.save(transactionsObjects)
   }
 }
