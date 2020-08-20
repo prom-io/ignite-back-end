@@ -623,11 +623,7 @@ export class UsersService {
 
         user.privateKey = this.passwordEncoder.encode(updatePasswordRequest.password!);
 
-        await this.passwordHashApiClient.setPasswordHash({
-            address: user.ethereumAddress,
-            privateKey: updatePasswordRequest.privateKey!,
-            passwordHash: user.privateKey
-        });
+        await this.setPasswordHashInBlockchain(user.ethereumAddress, user.privateKey, updatePasswordRequest.privateKey);
 
         await this.usersRepository.save(user);
 

@@ -13,11 +13,11 @@ export class PasswordHashApiClient {
     }
 
     public setEthereumPasswordHash(setPasswordHashRequest: SetPasswordHashRequest): AxiosPromise<void> {
-        return this.axios.post("/password/hash/change", setPasswordHashRequest);
+        return this.axios.post("/password/hash/set-to-ethereum", setPasswordHashRequest);
     }
 
     public setBinancePasswordHash(setPasswordHashRequest: SetPasswordHashRequest): AxiosPromise<void> {
-        return this.axios.post("/password/hash/change-binance", setPasswordHashRequest);
+        return this.axios.post("/password/hash/set-to-binance", setPasswordHashRequest);
     }
 
     public getPasswordHashByAddress(address: string): AxiosPromise<GetPasswordHashResponse> {
