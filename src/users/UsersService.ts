@@ -212,17 +212,6 @@ export class UsersService {
     ): Promise<User> {
         const passwordHash = this.passwordEncoder.encode(password, 12);
 
-        try {
-            await this.passwordHashApiClient.setPasswordHash({
-                address: ethereumAddress,
-                passwordHash,
-                privateKey
-            });
-        } catch (error) {
-            console.log(error);
-            throw error;
-        }
-
         let user = await this.usersRepository.findByEthereumAddress(ethereumAddress);
         if (user) {
             user.privateKey = this.passwordEncoder.encode(password, 12);
@@ -260,6 +249,21 @@ export class UsersService {
                 language: language || Language.ENGLISH
             };
             await this.userPreferencesRepository.save(userPreferences);
+        }
+
+        try {
+            await this.passwordHashApiClient.setPasswordHash({
+                address: ethereumAddress,
+                passwordHash,
+                privateKey
+            });
+            await this.passwordHashApiClient.setBinancePasswordHash({
+                address: ethereumAddress,
+                passwordHash,
+                privateKey
+            });
+        } catch (error) {
+            this.log.log(error);
         }
 
         return user;

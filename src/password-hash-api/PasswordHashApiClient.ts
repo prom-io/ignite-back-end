@@ -9,7 +9,11 @@ export class PasswordHashApiClient {
     }
 
     public setPasswordHash(setPasswordHashRequest: SetPasswordHashRequest): AxiosPromise<void> {
-        return this.axios.post("/password/hash/set", setPasswordHashRequest);
+        return this.axios.post("/password/hash/change", setPasswordHashRequest);
+    }
+
+    public setBinancePasswordHash(setPasswordHashRequest: SetPasswordHashRequest): AxiosPromise<void> {
+        return this.axios.post("/password/hash/change-binance", setPasswordHashRequest);
     }
 
     public getPasswordHashByAddress(address: string): AxiosPromise<GetPasswordHashResponse> {
