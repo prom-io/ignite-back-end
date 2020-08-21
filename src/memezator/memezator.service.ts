@@ -251,7 +251,7 @@ export class MemezatorService {
     let statusText =
       `**MEME №${placeNumber} OF ${dateFns.format(competitionStartDate, "yyyy/MM/dd")}**\n` +
       `Voted: **${winnerMemesWithLikes[place].meme.favoritesCount}** votes\n` +
-      `Prize: **${memezatorRewardForPlaces[place].author + memezatorRewardForPlaces.firstPlace.voters}** PROM\n` +
+      `Prize: **${memezatorRewardForPlaces[place].author + memezatorRewardForPlaces[place].voters}** PROM\n` +
       `\n\n  ` +
       `Author: **${winnerMemesWithLikes[place].meme.author.displayedName}** ${winnerMemesWithLikes[place].rewardForAuthor} PROM\n`
 
