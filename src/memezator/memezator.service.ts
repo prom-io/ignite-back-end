@@ -253,18 +253,17 @@ export class MemezatorService {
       `Voted: **${winnerMemesWithLikes[place].meme.favoritesCount}** votes\n` +
       `Prize: **${memezatorRewardForPlaces[place].author + memezatorRewardForPlaces[place].voters}** PROM\n` +
       `\n\n  ` +
-      `Author: **${winnerMemesWithLikes[place].meme.author.displayedName}** ${winnerMemesWithLikes[place].rewardForAuthor} PROM\n`
-
+      `Author: ${this.getMarkdownLinkForUser(winnerMemesWithLikes[place].meme.author)} ${winnerMemesWithLikes[place].rewardForAuthor} PROM\n`
     if (threeWinnerVoters[0]) {
-      statusText += `Winner №1: **${new Big(threeWinnerVoters[0].reward).toFixed(2)}** PROM ${threeWinnerVoters[0].like.user.displayedName} (${threeWinnerVoters[0].votingPower} votes)\n`
+      statusText += `Winner №1: **${new Big(threeWinnerVoters[0].reward).toFixed(2)}** PROM ${this.getMarkdownLinkForUser(threeWinnerVoters[0].like.user)} (${threeWinnerVoters[0].votingPower} votes)\n`
     }
 
     if (threeWinnerVoters[1]) {
-      statusText += `Winner №2: **${new Big(threeWinnerVoters[1].reward).toFixed(2)}** PROM ${threeWinnerVoters[1].like.user.displayedName} (${threeWinnerVoters[1].votingPower} votes)\n`
+      statusText += `Winner №2: **${new Big(threeWinnerVoters[1].reward).toFixed(2)}** PROM ${this.getMarkdownLinkForUser(threeWinnerVoters[1].like.user)} (${threeWinnerVoters[1].votingPower} votes)\n`
     }
 
     if (threeWinnerVoters[2]) {
-      statusText += `Winner №3: **${new Big(threeWinnerVoters[2].reward).toFixed(2)}** PROM ${threeWinnerVoters[2].like.user.displayedName} (${threeWinnerVoters[2].votingPower} votes)\n`
+      statusText += `Winner №3: **${new Big(threeWinnerVoters[2].reward).toFixed(2)}** PROM ${this.getMarkdownLinkForUser(threeWinnerVoters[2].like.user)} (${threeWinnerVoters[2].votingPower} votes)\n`
     }
 
     await this.statusesService.createStatus({
@@ -333,5 +332,9 @@ export class MemezatorService {
     }))
 
     return await this.transactionsRepository.save(transactionsObjects)
+  }
+
+  private getMarkdownLinkForUser(user: User): string {
+    return `[${user.displayedName}](${user.username || user.ethereumAddress})`
   }
 }
