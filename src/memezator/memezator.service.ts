@@ -37,7 +37,13 @@ export class MemezatorService {
 
   @Cron(getCronExpressionForMemezatorCompetitionSumminUpCron())
   async memezatorCompetitionSummingUpCron(): Promise<void> {
-    // await this.startMemezatorCompetitionSummingUp(true)
+    if (!config.additionalConfig.memezator.disableCompetitionSummingUpCron) {
+      this.logger.log("Memezator competition summing up cron job started")
+      await this.startMemezatorCompetitionSummingUp({ startedInCron: true, dryRun: false })
+      this.logger.log("Memezator competition summing up cron job finished")
+    } else {
+      this.logger.warn("Memezator competition summing up cron job is disabled")
+    }
   }
   
   async startMemezatorCompetitionSummingUp(options: {startedInCron: boolean, dryRun: boolean}): Promise<WinnerMemesWithLikes> {

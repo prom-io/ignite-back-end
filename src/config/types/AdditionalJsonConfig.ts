@@ -8,6 +8,7 @@ export interface AdditionalJsonConfig {
     adminUsers?: string[];
     firebase?: FirebaseConfig;
     memezator: {
+        disableCompetitionSummingUpCron?: boolean,
         rewards: {
             [date: string]: MemezatorRewardForPlaces
         }
