@@ -9,11 +9,13 @@ import { StatusesModule } from "../statuses";
 import { UsersRepository } from "../users";
 import { MemezatorContestResultRepository } from "./memezator-contest-result.repository";
 import { TransactionsRepository } from "../transactions/TransactionsRepository";
+import { ScheduleModule } from "nest-schedule";
 
 @Module({
   imports: [
     EtherscanModule,
     StatusesModule,
+    ScheduleModule.register(),
     TypeOrmModule.forFeature([
       TransactionsRepository,
       MemezatorContestResultRepository,
