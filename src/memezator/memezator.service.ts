@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
-import { Cron } from "nest-schedule";
+import { Cron, NestSchedule } from "nest-schedule";
 import { getCronExpressionForMemezatorCompetitionSumminUpCron, delay } from "./utils";
 import { StatusesRepository } from "../statuses/StatusesRepository";
 import _ from "lodash"
@@ -23,7 +23,7 @@ import { TransactionStatus } from "../transactions/types/TransactionStatus.enum"
 import { TransactionSubject } from "../transactions/types/TransactionSubject.enum";
 
 @Injectable()
-export class MemezatorService {
+export class MemezatorService extends NestSchedule {
   constructor(
     private readonly statusesRepository: StatusesRepository,
     private readonly etherscanService: EtherscanService,
@@ -33,9 +33,11 @@ export class MemezatorService {
     private readonly statusesService: StatusesService,
     private readonly memezatorContestResultRepository: MemezatorContestResultRepository,
     private readonly transactionsRepository: TransactionsRepository
-  ) {}
+  ) {
+    super()
+  }
 
-  @Cron(getCronExpressionForMemezatorCompetitionSumminUpCron())
+  @Cron("* * * * *", { immediate: true })
   async memezatorCompetitionSummingUpCron(): Promise<void> {
     if (!config.additionalConfig.memezator.disableCompetitionSummingUpCron) {
       this.logger.log("Memezator competition summing up cron job started")

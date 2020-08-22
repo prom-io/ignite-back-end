@@ -3,11 +3,9 @@
  */
 export function getCronExpressionForMemezatorCompetitionSumminUpCron(): string {
   const midnightInGreenwich = new Date()
-  midnightInGreenwich.setUTCHours(0, 50, 0, 0)
+  midnightInGreenwich.setUTCHours(1, 5, 0, 0)
 
-  const cronExpression = `${midnightInGreenwich.getMinutes()} ${midnightInGreenwich.getHours()} * * *`
-  console.log({ cronExpression })
-  return cronExpression
+  return `${midnightInGreenwich.getMinutes()} ${midnightInGreenwich.getHours()} * * *`
 }
 
 export function delay(milliseconds: number): Promise<void> {
