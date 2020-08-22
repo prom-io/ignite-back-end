@@ -3,7 +3,7 @@
  */
 export function getCronExpressionForMemezatorCompetitionSumminUpCron(): string {
   const midnightInGreenwich = new Date()
-  midnightInGreenwich.setUTCHours(0, 15, 0, 0)
+  midnightInGreenwich.setUTCHours(0, 30, 0, 0)
 
   return `${midnightInGreenwich.getMinutes()} ${midnightInGreenwich.getHours()} * * *`
 }
