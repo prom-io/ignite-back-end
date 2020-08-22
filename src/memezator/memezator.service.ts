@@ -51,7 +51,7 @@ export class MemezatorService extends NestSchedule {
   async startMemezatorCompetitionSummingUp(options: {startedInCron: boolean, dryRun: boolean}): Promise<WinnerMemesWithLikes> {
     let competitionStartDate = new Date()
     if (options.startedInCron) {
-      competitionStartDate = dateFns.sub(competitionStartDate, { hours: 1 })
+      competitionStartDate = dateFns.sub(competitionStartDate, { hours: 2 })
     }
     competitionStartDate.setHours(0, 0, 0, 0)
 
