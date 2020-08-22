@@ -37,7 +37,7 @@ export class MemezatorService extends NestSchedule {
     super()
   }
 
-  @Cron("* * * * *", { immediate: true })
+  @Cron(getCronExpressionForMemezatorCompetitionSumminUpCron())
   async memezatorCompetitionSummingUpCron(): Promise<void> {
     if (!config.additionalConfig.memezator.disableCompetitionSummingUpCron) {
       this.logger.log("Memezator competition summing up cron job started")
@@ -51,7 +51,7 @@ export class MemezatorService extends NestSchedule {
   async startMemezatorCompetitionSummingUp(options: {startedInCron: boolean, dryRun: boolean}): Promise<WinnerMemesWithLikes> {
     let competitionStartDate = new Date()
     if (options.startedInCron) {
-      competitionStartDate = dateFns.sub(competitionStartDate, { hours: 2 })
+      competitionStartDate = dateFns.sub(competitionStartDate, { hours: 1 })
     }
     competitionStartDate.setHours(0, 0, 0, 0)
 
