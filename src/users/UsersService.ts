@@ -35,8 +35,8 @@ import {asyncMap} from "../utils/async-map";
 import {PasswordHashApiClient} from "../password-hash-api";
 import {UserSubscription} from "../user-subscriptions/entities";
 import {UsersSearchFilters} from "./types/request/UsersSearchFilters";
-import { EtherscanService } from "../etherscan";
 import {Big} from "big.js";
+import {TokenExchangeService} from "../token-exchange";
 
 @Injectable()
 export class UsersService {
@@ -53,7 +53,7 @@ export class UsersService {
         private readonly usersMapper: UsersMapper,
         private readonly passwordEncoder: BCryptPasswordEncoder,
         private readonly passwordHashApiClient: PasswordHashApiClient,
-        private readonly etherscanService: EtherscanService,
+        private readonly tokenExchangeService: TokenExchangeService,
         private readonly log: LoggerService
     ) {}
 
@@ -78,14 +78,8 @@ export class UsersService {
             ethPromTokens: null
         })
 
-        const balance = await this.etherscanService.getERC20TokenAccountBalanceForTokenContractAddress(
-            config.PROM_TOKENS_CONTRACT_ADDRESS,
-            user.ethereumAddress
-        ).catch(err => {
-            this.log.error(err)
-            return "0"
-        })
-        userMemeActionsRights.ethPromTokens = this.formatBalanceToPromTokens(balance)
+        const balance = await this.tokenExchangeService.getBalanceInProms(user.ethereumAddress)
+        userMemeActionsRights.ethPromTokens = new Big(balance).toFixed(2)
         userMemeActionsRights.votingPower = this.calculateVotingPower(balance)
 
         const existsMemeStatus =  await this.statusesRepository.findOneMemeByAuthorToday(user)
@@ -106,7 +100,7 @@ export class UsersService {
      * TODO: Fix that issue and use MemezatorService
      */
     calculateVotingPower(balance: string): number {
-        const promTokens = new Big(this.formatBalanceToPromTokens(balance))
+        const promTokens = new Big(balance)
         if (promTokens.lt(2)) {
             return 1
         } else if (promTokens.lt(5)) {
@@ -114,10 +108,6 @@ export class UsersService {
         } else {
             return 80
         }
-    }
-
-    formatBalanceToPromTokens(balance: string): string {
-        return new Big(balance).div("1000000000000000000").toFixed(2)
     }
 
     public async signUpForPrivateBeta(signUpForPrivateBetaTestRequest: SignUpForPrivateBetaTestRequest): Promise<void> {
@@ -259,32 +249,32 @@ export class UsersService {
     private async setPasswordHashInBlockchain(address: string, passwordHash: string, privateKey: string): Promise<void> {
         return new Promise(async (resolve) => {
             let isResolved = false;
-             setTimeout(() => {
-                if (!isResolved){
+            setTimeout(() => {
+                if (!isResolved) {
                      isResolved = true
                      resolve()
-                     this.log.log('setPasswordHashInBlockchain Timeout of 40s exceeded')
+                     this.log.log("setPasswordHashInBlockchain Timeout of 40s exceeded")
                 }
             }, 40000)
-             try {
+            try {
                  await this.passwordHashApiClient.setEthereumPasswordHash({
-                     address: address,
+                     address,
                      passwordHash,
                      privateKey
                  });
                  await this.passwordHashApiClient.setBinancePasswordHash({
-                     address: address,
+                     address,
                      passwordHash,
                      privateKey
                  });
  
-                 if(!isResolved){
+                 if (!isResolved) {
                      isResolved = true
                      resolve()
                  }
              } catch (error) {
                  this.log.log(error);
-                 if(!isResolved){
+                 if (!isResolved) {
                      isResolved = true
                      resolve()
                  }

@@ -1,6 +1,5 @@
 import { Module } from "@nestjs/common";
 import { MemezatorService } from "./memezator.service";
-import { EtherscanModule } from "../etherscan";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { StatusesRepository } from "../statuses/StatusesRepository";
 import { StatusLikesRepository } from "../statuses/StatusLikesRepository";
@@ -10,12 +9,13 @@ import { UsersRepository } from "../users";
 import { MemezatorContestResultRepository } from "./memezator-contest-result.repository";
 import { TransactionsRepository } from "../transactions/TransactionsRepository";
 import { ScheduleModule } from "nest-schedule";
+import { TokenExchangeModule } from "../token-exchange";
 
 @Module({
   imports: [
-    EtherscanModule,
     StatusesModule,
     ScheduleModule.register(),
+    TokenExchangeModule,
     TypeOrmModule.forFeature([
       TransactionsRepository,
       MemezatorContestResultRepository,

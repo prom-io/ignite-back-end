@@ -14,7 +14,8 @@ import { config } from "../config";
         })
       }
     },
-    TokenExchangeService
-  ]
+    TokenExchangeService,
+  ],
+  exports: [TokenExchangeService],
 })
 export class TokenExchangeModule {}

@@ -24,8 +24,8 @@ import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsR
 import {PasswordHashApiModule} from "../password-hash-api";
 import { StatusLikesRepository } from "../statuses/StatusLikesRepository";
 import { StatusesRepository } from "../statuses/StatusesRepository";
-import { EtherscanModule } from "../etherscan";
 import { TransactionsRepository } from "../transactions/TransactionsRepository";
+import { TokenExchangeModule } from "../token-exchange";
 
 @Module({
     controllers: [UsersController, UserByAddressController, SignUpController, SignUpReferencesController],
@@ -49,7 +49,7 @@ import { TransactionsRepository } from "../transactions/TransactionsRepository";
             SignUpReferencesRepository,
             TransactionsRepository,
         ]),
-        EtherscanModule,
+        TokenExchangeModule,
         forwardRef(() => StatusesModule),
         forwardRef(() => UserSubscriptionsModule),
         MailerModule.forRoot({

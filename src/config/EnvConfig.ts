@@ -50,9 +50,6 @@ export class EnvConfig {
     @Env({type: "string"})
     BTFS_API_BASE_URL: string;
 
-    @Env({type: "string"})
-    ETHERSCAN_API_TOKEN: string
-
     @Env({type: "boolean", required: false})
     ENABLE_BTFS_PULLING: boolean = false;
 
