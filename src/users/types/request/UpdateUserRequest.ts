@@ -1,4 +1,4 @@
-import {Expose} from "class-transformer";
+import {Expose, Transform} from "class-transformer";
 import {IsBoolean, IsObject, IsString, MaxLength, ValidateIf, ValidateNested, IsUrl, IsOptional} from "class-validator";
 import {UpdatePreferencesRequest} from "./UpdatePreferencesRequest";
 import {IsValidUsername, ValidatedObjectWithCurrentUser} from "../../../utils/validation";
@@ -13,6 +13,7 @@ export class UpdateUserRequest extends ValidatedObjectWithCurrentUser {
     @IsString()
     @IsValidUsername()
     @MaxLength(50)
+    @Transform(name => name.toLowerCase())
     username?: string;
 
     @ValidateIf((object: UpdateUserRequest) => Boolean(object.avatarId))
