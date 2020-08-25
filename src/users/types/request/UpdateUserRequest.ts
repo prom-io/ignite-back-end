@@ -10,6 +10,7 @@ export class UpdateUserRequest extends ValidatedObjectWithCurrentUser {
     displayName?: string;
 
     @Expose()
+    @ValidateIf((object: UpdateUserRequest) => Boolean(object.username))
     @IsString()
     @IsValidUsername()
     @MaxLength(50)
