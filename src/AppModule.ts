@@ -20,9 +20,12 @@ import {PasswordHashGeneratorModule} from "./passsword-hash-generator";
 import {StatisticsModule} from "./statistics";
 import {ValidationModule} from "./utils/validation";
 import {MemezatorModule} from "./memezator/memezator.module";
+import { StatisticsLogService } from "./statistics-log/statistics-log.service";
+import { StatisticsLogModule } from "./statistics-log/statistics-log.module";
 
 @Module({
     imports: [
+        StatisticsLogModule,
         LoggerModule,
         DefaultAccountProviderModule,
         Web3Module,
