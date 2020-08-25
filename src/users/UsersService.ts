@@ -1,10 +1,8 @@
-import { MEMEZATOR_HASHTAG } from '../common/constants';
-import { StatusLikesRepository } from '../statuses/StatusLikesRepository';
-import { StatusesRepository } from '../statuses/StatusesRepository';
-import { StatusLikesService } from './../statuses/StatusLikesService';
-import { MemezatorActionsRightsResponse, UserMemeActionsRightsReasonCode } from './types/response/MemezatorActionsRightsResponse';
-import { StatusesService } from './../statuses/StatusesService';
-import { asyncForEach } from './../utils/async-foreach';
+import { MEMEZATOR_HASHTAG } from "../common/constants";
+import { StatusLikesRepository } from "../statuses/StatusLikesRepository";
+import { StatusesRepository } from "../statuses/StatusesRepository";
+import { MemezatorActionsRightsResponse, UserMemeActionsRightsReasonCode } from "./types/response/MemezatorActionsRightsResponse";
+import { asyncForEach } from "./../utils/async-foreach";
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import {MailerService} from "@nestjs-modules/mailer";
 import {LoggerService} from "nest-logger";
@@ -37,23 +35,27 @@ import {asyncMap} from "../utils/async-map";
 import {PasswordHashApiClient} from "../password-hash-api";
 import {UserSubscription} from "../user-subscriptions/entities";
 import {UsersSearchFilters} from "./types/request/UsersSearchFilters";
+import { EtherscanService } from "../etherscan";
+import {Big} from "big.js";
 
 @Injectable()
 export class UsersService {
-    constructor(private readonly usersRepository: UsersRepository,
+    constructor(
+        private readonly usersRepository: UsersRepository,
         private readonly statusesRepository: StatusesRepository,
         private readonly statusLikesRepository: StatusLikesRepository,
-                private readonly userStatisticsRepository: UserStatisticsRepository,
-                private readonly userPreferencesRepository: UserPreferencesRepository,
-                private readonly subscriptionsRepository: UserSubscriptionsRepository,
-                private readonly mediaAttachmentsRepository: MediaAttachmentsRepository,
-                private readonly signUpReferencesRepository: SignUpReferencesRepository,
-                private readonly mailerService: MailerService,
-                private readonly usersMapper: UsersMapper,
-                private readonly passwordEncoder: BCryptPasswordEncoder,
-                private readonly passwordHashApiClient: PasswordHashApiClient,
-                private readonly log: LoggerService) {
-    }
+        private readonly userStatisticsRepository: UserStatisticsRepository,
+        private readonly userPreferencesRepository: UserPreferencesRepository,
+        private readonly subscriptionsRepository: UserSubscriptionsRepository,
+        private readonly mediaAttachmentsRepository: MediaAttachmentsRepository,
+        private readonly signUpReferencesRepository: SignUpReferencesRepository,
+        private readonly mailerService: MailerService,
+        private readonly usersMapper: UsersMapper,
+        private readonly passwordEncoder: BCryptPasswordEncoder,
+        private readonly passwordHashApiClient: PasswordHashApiClient,
+        private readonly etherscanService: EtherscanService,
+        private readonly log: LoggerService
+    ) {}
 
     public async searchUsers(searchFilters: UsersSearchFilters, currentUser?: User): Promise<UserResponse[]> {
         const formattedQuery = searchFilters.q && searchFilters.q.trim()
@@ -66,24 +68,56 @@ export class UsersService {
         return asyncMap(users, async user => await this.usersMapper.toUserResponseAsync(user, currentUser))
     }
 
-    public async getMemesActionsRights(user): Promise<MemezatorActionsRightsResponse> {
-          let userMemeActionsRights: MemezatorActionsRightsResponse = {
-              can_create: true,
-              cannot_create_reason_code: null,
-              can_vote: true,
-              cannot_vote_reason_code: null
-          }
-          const existsMemeStatus =  await this.statusesRepository.findOneMemeByAuthorToday(user)
-          if(existsMemeStatus) {
-              userMemeActionsRights.can_create = false
-              userMemeActionsRights.cannot_create_reason_code = UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED
-          } 
-          const amountOfLikedMemes = await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(user)
-          if(amountOfLikedMemes >= 3) {
-              userMemeActionsRights.can_vote = false,
-              userMemeActionsRights.cannot_vote_reason_code = UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED
-          }
-          return userMemeActionsRights; 
+    public async getMemesActionsRights(user: User): Promise<MemezatorActionsRightsResponse> {
+        const userMemeActionsRights = new MemezatorActionsRightsResponse({
+            canCreate: true,
+            cannotCreateReasonCode: null,
+            canVote: true,
+            cannotVoteReasonCode: null,
+            votingPower: null,
+            ethPromTokens: null
+        })
+
+        const balance = await this.etherscanService.getERC20TokenAccountBalanceForTokenContractAddress(
+            config.PROM_TOKENS_CONTRACT_ADDRESS,
+            user.ethereumAddress
+        ).catch(err => {
+            this.log.error(err)
+            return "0"
+        })
+        userMemeActionsRights.ethPromTokens = this.formatBalanceToPromTokens(balance)
+        userMemeActionsRights.votingPower = this.calculateVotingPower(balance)
+
+        const existsMemeStatus =  await this.statusesRepository.findOneMemeByAuthorToday(user)
+        if (existsMemeStatus) {
+            userMemeActionsRights.canCreate = false
+            userMemeActionsRights.cannotCreateReasonCode = UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED
+        }
+        const amountOfLikedMemes = await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(user)
+        if (amountOfLikedMemes >= 1) {
+            userMemeActionsRights.canVote = false,
+            userMemeActionsRights.cannotVoteReasonCode = UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED
+        }
+        return userMemeActionsRights; 
+    }
+
+    /**
+     * Copied from MemezatorService because of circular dep issue 
+     * TODO: Fix that issue and use MemezatorService
+     */
+    calculateVotingPower(balance: string): number {
+        const promTokens = new Big(this.formatBalanceToPromTokens(balance))
+        if (promTokens.lt(2)) {
+            return 1
+        } else if (promTokens.lt(5)) {
+            return 40
+        } else {
+            return 80
+        }
+    }
+
+    formatBalanceToPromTokens(balance: string): string {
+        return new Big(balance).div("1000000000000000000").toFixed(2)
     }
 
     public async signUpForPrivateBeta(signUpForPrivateBetaTestRequest: SignUpForPrivateBetaTestRequest): Promise<void> {
@@ -402,7 +436,7 @@ export class UsersService {
     }
 
     public async getCurrentUser(user: User): Promise<UserResponse> {
-        return this.usersMapper.toUserResponse(user, await this.userStatisticsRepository.findByUser(user))
+        return this.usersMapper.toUserResponseAsync(user, user, false)
     }
 
     public async updateUser(ethereumAddress: string, updateUserRequest: UpdateUserRequest, currentUser: User): Promise<UserResponse> {

@@ -122,5 +122,14 @@ export class EnvConfig {
     @Env({type: "string", required: false})
     KOREAN_PINNED_STATUS_ID: string | undefined = undefined;
 
+    @Env({type: "string", required: true})
+    ADDRESS_OF_MEMEZATOR_OFFICIAL: string;
+
+    @Env({type: "string", required: true})
+    PROM_TOKENS_CONTRACT_ADDRESS: string;
+
+    @Env({type: "string", required: true})
+    MEMEZATOR_PRIZE_FUND_ACCOUNT_ADDRESS: string;
+
     additionalConfig: AdditionalJsonConfig = additionalJsonConfig;
 }

@@ -1,14 +1,18 @@
 import { StatusLike, Status } from "../statuses/entities";
 
-export interface LikeAndVotingPower {
+export interface LikeAndVotingPowerAndReward {
   like: StatusLike;
   votingPower: number;
+  reward: number
 }
 
 export interface MemeWithLikesAndVotingPowers {
   meme: Status;
-  likesWithVotingPowers: LikeAndVotingPower[];
+  rewardForAuthor: number;
+  likesWithVotingPowersAndRewards: LikeAndVotingPowerAndReward[];
+  threeLikesWithVotingPowersAndRewardsWithBiggestRewards: LikeAndVotingPowerAndReward[];
 }
+
 export interface WinnerMemesWithLikes {
   firstPlace?: MemeWithLikesAndVotingPowers | null;
   secondPlace?: MemeWithLikesAndVotingPowers | null;
