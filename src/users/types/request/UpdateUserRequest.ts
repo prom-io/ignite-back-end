@@ -5,14 +5,13 @@ import {IsValidUsername, ValidatedObjectWithCurrentUser} from "../../../utils/va
 
 export class UpdateUserRequest extends ValidatedObjectWithCurrentUser {
     @Expose({name: "display_name"})
-    @IsOptional()
     @IsString()
     @MaxLength(50)
     displayName?: string;
 
     @Expose()
-    @IsOptional()
     @IsString()
+    @IsValidUsername()
     @MaxLength(50)
     @Transform((name) => name.toLowerCase())
     username?: string;
