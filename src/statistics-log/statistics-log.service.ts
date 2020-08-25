@@ -7,10 +7,11 @@ export class StatisticsLogService {
     constructor(private logger: LoggerService){}
 
     async logData(body: Object, request: Request){
-        this.logger.log(`User ip address is ${JSON.stringify(request.ip)}`)
-        if (request.user){
-            this.logger.log(JSON.stringify(`User data: ${JSON.stringify(request.user)}`))
+        let statistics = {
+            ip: JSON.stringify(request.ip),
+            user: request.user ? JSON.stringify(request.user['ethereumAddress']) : null,
+            data: JSON.stringify(body)
         }
-        this.logger.log(JSON.stringify(body))
+        this.logger.log(JSON.stringify(statistics))
     }
 }
