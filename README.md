@@ -55,6 +55,8 @@ Due to the blockchain nature of Ignite, authentication is done through a PROM cr
 
 ## How to run
 
+> Outdated documentation. Need to update. Now running in Docker Compose requires more configuration of depended services and networks.
+
 ### Prerequisites
 
 In order to run Ignite, you have to install:
