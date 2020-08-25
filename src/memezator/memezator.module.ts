@@ -10,12 +10,14 @@ import { MemezatorContestResultRepository } from "./memezator-contest-result.rep
 import { TransactionsRepository } from "../transactions/TransactionsRepository";
 import { ScheduleModule } from "nest-schedule";
 import { TokenExchangeModule } from "../token-exchange";
+import { TransactionsModule } from "../transactions/transactions.module";
 
 @Module({
   imports: [
     StatusesModule,
     ScheduleModule.register(),
     TokenExchangeModule,
+    TransactionsModule,
     TypeOrmModule.forFeature([
       TransactionsRepository,
       MemezatorContestResultRepository,

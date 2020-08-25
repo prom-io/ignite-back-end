@@ -21,6 +21,7 @@ import { TransactionsRepository } from "../transactions/TransactionsRepository";
 import { TransactionStatus } from "../transactions/types/TransactionStatus.enum";
 import { TransactionSubject } from "../transactions/types/TransactionSubject.enum";
 import { TokenExchangeService } from "../token-exchange";
+import { TransactionsService } from "../transactions/transactions.service";
 
 @Injectable()
 export class MemezatorService extends NestSchedule {
@@ -32,7 +33,8 @@ export class MemezatorService extends NestSchedule {
     private readonly statusesService: StatusesService,
     private readonly memezatorContestResultRepository: MemezatorContestResultRepository,
     private readonly transactionsRepository: TransactionsRepository,
-    private readonly tokenExchangeService: TokenExchangeService
+    private readonly tokenExchangeService: TokenExchangeService,
+    private readonly transactionsService: TransactionsService,
   ) {
     super()
   }
@@ -85,7 +87,10 @@ export class MemezatorService extends NestSchedule {
         result: winners,
       })
 
-      await this.createTransactions(winners, memezatorContestResult.id)
+      const transactions = await this.createTransactions(winners, memezatorContestResult.id)
+      await this.transactionsService.performTransactions(transactions).catch(err => {
+        this.logger.error(err)
+      })
     }
 
     return winners

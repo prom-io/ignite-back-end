@@ -131,5 +131,8 @@ export class EnvConfig {
     @Env({type: "string", required: true})
     MEMEZATOR_PRIZE_FUND_ACCOUNT_ADDRESS: string;
 
+    @Env({type: "string", required: true})
+    MEMEZATOR_PRIZE_FUND_ACCOUNT_PRIVATE_KEY: string;
+
     additionalConfig: AdditionalJsonConfig = additionalJsonConfig;
 }
