@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { Cron, NestSchedule } from "nest-schedule";
-import { getCronExpressionForMemezatorCompetitionSumminUpCron, delay } from "./utils";
+import { getCronExpressionForMemezatorCompetitionSumminUpCron } from "./utils";
 import { StatusesRepository } from "../statuses/StatusesRepository";
 import _ from "lodash"
 import { StatusLikesRepository } from "../statuses/StatusLikesRepository";
@@ -116,7 +116,6 @@ export class MemezatorService extends NestSchedule {
         likesWithVotingPowersAndRewards.push({ like, votingPower, reward: null })
 
         votes += votingPower
-        await delay(1000)
       }
 
       const memeWithLikesAndVotingPowers: MemeWithLikesAndVotingPowers = {
@@ -316,20 +315,22 @@ export class MemezatorService extends NestSchedule {
       )
     }
 
-    const transactionsObjects = inputsForTransactionsCreation.map(inputForTransactionsCreation => ({
-      id: uuid(),
-      createdAt: new Date(),
-      txnStatus: TransactionStatus.NOT_STARTED,
-      txnSubj: TransactionSubject.REWARD,
-      txnFrom: config.MEMEZATOR_PRIZE_FUND_ACCOUNT_ADDRESS,
-      txnTo: inputForTransactionsCreation.txnTo,
-      txnSum: inputForTransactionsCreation.txnSum,
-      txnDetails: {
-        memezatorContestResultId
-      }
-    }))
+    const transactions: Transaction[] = inputsForTransactionsCreation.map(
+      inputForTransactionsCreation => new Transaction({
+        id: uuid(),
+        createdAt: new Date(),
+        txnStatus: TransactionStatus.NOT_STARTED,
+        txnSubj: TransactionSubject.REWARD,
+        txnFrom: config.MEMEZATOR_PRIZE_FUND_ACCOUNT_ADDRESS,
+        txnTo: inputForTransactionsCreation.txnTo,
+        txnSum: inputForTransactionsCreation.txnSum,
+        txnDetails: {
+          memezatorContestResultId
+        }
+      })
+    )
 
-    return await this.transactionsRepository.save(transactionsObjects)
+    return await this.transactionsRepository.save(transactions)
   }
 
   private getMarkdownLinkForUser(user: User): string {

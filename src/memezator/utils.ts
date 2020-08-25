@@ -7,9 +7,3 @@ export function getCronExpressionForMemezatorCompetitionSumminUpCron(): string {
 
   return `${midnightInGreenwich.getMinutes()} ${midnightInGreenwich.getHours()} * * *`
 }
-
-export function delay(milliseconds: number): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, milliseconds)
-  })
-}
