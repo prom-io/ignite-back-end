@@ -3,6 +3,9 @@ networks:
   ignite-dds_kafka-net:
     external:
       name: ignite-dds_kafka-net
+  ignite-interproject-network:
+    external:
+      name: ignite-interproject-network
 services:
   postgres:
     image: postgres:latest
@@ -31,8 +34,11 @@ services:
     depends_on:
       - postgres
     networks:
-      - default
-      - ignite-dds_kafka-net
+      default:
+      ignite-dds_kafka-net:
+      ignite-interproject-network:
+        aliases:
+          - ignite-back-end-api
   sia-synchornizer:
     build:
       context: ./sia-synchronizer
