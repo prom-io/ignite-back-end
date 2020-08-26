@@ -253,7 +253,7 @@ export class MemezatorService extends NestSchedule {
       `**MEME №${placeNumber} OF ${dateFns.format(competitionStartDate, "yyyy/MM/dd")}**\n` +
       `Voted: **${winnerMemesWithLikes[place].meme.favoritesCount}** votes\n` +
       `Prize: **${memezatorRewardForPlaces[place].author + memezatorRewardForPlaces[place].voters}** PROM\n` +
-      `\n\n  ` +
+      `\n  ` +
       `Author: ${this.getMarkdownLinkForUser(winnerMemesWithLikes[place].meme.author)} ${new Big(winnerMemesWithLikes[place].rewardForAuthor).toFixed(2)} PROM\n`
 
     if (threeWinnerVoters[0]) {
