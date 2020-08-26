@@ -3,6 +3,9 @@ networks:
   ignite-dds_kafka-net:
     external:
       name: ignite-dds_kafka-net
+  ignite-token-exchange_ignite-back-end:
+    external:
+      name: ignite-token-exchange_ignite-back-end
 services:
   postgres:
     image: postgres:latest
@@ -33,6 +36,7 @@ services:
     networks:
       - default
       - ignite-dds_kafka-net
+      - ignite-token-exchange_ignite-back-end
   sia-synchornizer:
     build:
       context: ./sia-synchronizer

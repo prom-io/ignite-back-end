@@ -50,9 +50,6 @@ export class EnvConfig {
     @Env({type: "string"})
     BTFS_API_BASE_URL: string;
 
-    @Env({type: "string"})
-    ETHERSCAN_API_TOKEN: string
-
     @Env({type: "boolean", required: false})
     ENABLE_BTFS_PULLING: boolean = false;
 
@@ -107,6 +104,9 @@ export class EnvConfig {
     @Env({type: "string", required: true})
     IGNITE_PASSWORD_HASH_API_BASE_URL: string;
 
+    @Env({type: "string", required: true})
+    IGNITE_TOKEN_EXCHANGE_API_BASE_URL: string;
+
     @Env({type: "boolean", required: false})
     ENABLE_UPLOADING_IMAGES_TO_SIA: boolean = true;
 
@@ -130,6 +130,9 @@ export class EnvConfig {
 
     @Env({type: "string", required: true})
     MEMEZATOR_PRIZE_FUND_ACCOUNT_ADDRESS: string;
+
+    @Env({type: "string", required: true})
+    MEMEZATOR_PRIZE_FUND_ACCOUNT_PRIVATE_KEY: string;
 
     additionalConfig: AdditionalJsonConfig = additionalJsonConfig;
 }

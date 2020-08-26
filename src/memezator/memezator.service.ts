@@ -1,9 +1,8 @@
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { Cron, NestSchedule } from "nest-schedule";
-import { getCronExpressionForMemezatorCompetitionSumminUpCron, delay } from "./utils";
+import { getCronExpressionForMemezatorCompetitionSumminUpCron } from "./utils";
 import { StatusesRepository } from "../statuses/StatusesRepository";
 import _ from "lodash"
-import { EtherscanService } from "../etherscan";
 import { StatusLikesRepository } from "../statuses/StatusLikesRepository";
 import { WinnerMemesWithLikes, MemeWithLikesAndVotingPowers, LikeAndVotingPowerAndReward } from "./types";
 import {config} from "../config";
@@ -21,18 +20,21 @@ import { Transaction } from "../transactions/entities/Transaction";
 import { TransactionsRepository } from "../transactions/TransactionsRepository";
 import { TransactionStatus } from "../transactions/types/TransactionStatus.enum";
 import { TransactionSubject } from "../transactions/types/TransactionSubject.enum";
+import { TokenExchangeService } from "../token-exchange";
+import { TransactionsService } from "../transactions/transactions.service";
 
 @Injectable()
 export class MemezatorService extends NestSchedule {
   constructor(
     private readonly statusesRepository: StatusesRepository,
-    private readonly etherscanService: EtherscanService,
     private readonly statusLikeRepository: StatusLikesRepository,
     private readonly logger: LoggerService,
     private readonly usersRepository: UsersRepository,
     private readonly statusesService: StatusesService,
     private readonly memezatorContestResultRepository: MemezatorContestResultRepository,
-    private readonly transactionsRepository: TransactionsRepository
+    private readonly transactionsRepository: TransactionsRepository,
+    private readonly tokenExchangeService: TokenExchangeService,
+    private readonly transactionsService: TransactionsService,
   ) {
     super()
   }
@@ -85,7 +87,10 @@ export class MemezatorService extends NestSchedule {
         result: winners,
       })
 
-      await this.createTransactions(winners, memezatorContestResult.id)
+      const transactions = await this.createTransactions(winners, memezatorContestResult.id)
+      await this.transactionsService.performTransactions(transactions).catch(err => {
+        this.logger.error(err)
+      })
     }
 
     return winners
@@ -110,16 +115,12 @@ export class MemezatorService extends NestSchedule {
       let votes = 0
 
       for (const like of likes) {
-        const userBalance = await this.etherscanService.getERC20TokenAccountBalanceForTokenContractAddress(
-          config.PROM_TOKENS_CONTRACT_ADDRESS,
-          like.user.ethereumAddress
-        )
-        const votingPower = this.calculateVotingPower(userBalance)
+        const balance = await this.tokenExchangeService.getBalanceInProms(like.user.ethereumAddress)
+        const votingPower = this.calculateVotingPower(balance)
 
         likesWithVotingPowersAndRewards.push({ like, votingPower, reward: null })
 
         votes += votingPower
-        await delay(1000)
       }
 
       const memeWithLikesAndVotingPowers: MemeWithLikesAndVotingPowers = {
@@ -181,12 +182,8 @@ export class MemezatorService extends NestSchedule {
     }
   }
 
-  /**
-   * Copied from MemezatorService because of circular dep issue 
-   * TODO: Fix that issue and use MemezatorService
-   */
   calculateVotingPower(balance: string): number {
-    const promTokens = new Big(this.formatBalanceToPromTokens(balance))
+    const promTokens = new Big(balance)
     if (promTokens.lt(2)) {
         return 1
     } else if (promTokens.lt(5)) {
@@ -194,10 +191,6 @@ export class MemezatorService extends NestSchedule {
     } else {
         return 80
     }
-  }
-
-  formatBalanceToPromTokens(balance: string): string {
-      return new Big(balance).div("1000000000000000000").toFixed(2)
   }
 
   getLastMidnightInGreenwich(): Date {
@@ -260,8 +253,9 @@ export class MemezatorService extends NestSchedule {
       `**MEME №${placeNumber} OF ${dateFns.format(competitionStartDate, "yyyy/MM/dd")}**\n` +
       `Voted: **${winnerMemesWithLikes[place].meme.favoritesCount}** votes\n` +
       `Prize: **${memezatorRewardForPlaces[place].author + memezatorRewardForPlaces[place].voters}** PROM\n` +
-      `\n` +
-      `Author: ${this.getMarkdownLinkForUser(winnerMemesWithLikes[place].meme.author)} ${winnerMemesWithLikes[place].rewardForAuthor} PROM\n`
+      `\n  ` +
+      `Author: ${this.getMarkdownLinkForUser(winnerMemesWithLikes[place].meme.author)} ${new Big(winnerMemesWithLikes[place].rewardForAuthor).toFixed(2)} PROM\n`
+
     if (threeWinnerVoters[0]) {
       statusText += `Winner №1: **${new Big(threeWinnerVoters[0].reward).toFixed(2)}** PROM ${this.getMarkdownLinkForUser(threeWinnerVoters[0].like.user)} (${threeWinnerVoters[0].votingPower} votes)\n`
     }
@@ -326,20 +320,22 @@ export class MemezatorService extends NestSchedule {
       )
     }
 
-    const transactionsObjects = inputsForTransactionsCreation.map(inputForTransactionsCreation => ({
-      id: uuid(),
-      createdAt: new Date(),
-      txnStatus: TransactionStatus.NOT_STARTED,
-      txnSubj: TransactionSubject.REWARD,
-      txnFrom: config.MEMEZATOR_PRIZE_FUND_ACCOUNT_ADDRESS,
-      txnTo: inputForTransactionsCreation.txnTo,
-      txnSum: inputForTransactionsCreation.txnSum,
-      txnDetails: {
-        memezatorContestResultId
-      }
-    }))
+    const transactions: Transaction[] = inputsForTransactionsCreation.map(
+      inputForTransactionsCreation => new Transaction({
+        id: uuid(),
+        createdAt: new Date(),
+        txnStatus: TransactionStatus.NOT_STARTED,
+        txnSubj: TransactionSubject.REWARD,
+        txnFrom: config.MEMEZATOR_PRIZE_FUND_ACCOUNT_ADDRESS,
+        txnTo: inputForTransactionsCreation.txnTo,
+        txnSum: inputForTransactionsCreation.txnSum,
+        txnDetails: {
+          memezatorContestResultId
+        }
+      })
+    )
 
-    return await this.transactionsRepository.save(transactionsObjects)
+    return await this.transactionsRepository.save(transactions)
   }
 
   private getMarkdownLinkForUser(user: User): string {

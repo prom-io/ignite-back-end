@@ -33,4 +33,8 @@ export class Transaction {
 
   @Column({ type: "jsonb" })
   txnDetails: object;
+
+  constructor(fields: Transaction) {
+    Object.assign(this, fields)
+  }
 }
