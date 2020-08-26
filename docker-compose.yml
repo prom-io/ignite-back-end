@@ -3,9 +3,13 @@ networks:
   ignite-dds_kafka-net:
     external:
       name: ignite-dds_kafka-net
+  ignite-token-exchange_ignite-back-end:
+    external:
+      name: ignite-token-exchange_ignite-back-end
   ignite-interproject-network:
     external:
       name: ignite-interproject-network
+
 services:
   postgres:
     image: postgres:latest
@@ -36,6 +40,7 @@ services:
     networks:
       default:
       ignite-dds_kafka-net:
+      ignite-token-exchange_ignite-back-end:
       ignite-interproject-network:
         aliases:
           - ignite-back-end-api

@@ -28,8 +28,8 @@ export class StatusLikeEntityEventsSubscriber implements EntitySubscriberInterfa
 
     public async afterInsert(event: InsertEvent<StatusLike>): Promise<void> {
         const statusLike = event.entity;
-
-        if (!statusLike.reverted) {
+        const isMeme = statusLike.status.hashTags.some(hashTag => hashTag.name === "memezator")
+        if (!statusLike.reverted && !isMeme) {
             this.pushNotificationService.processStatusLike(statusLike);
         }
 
