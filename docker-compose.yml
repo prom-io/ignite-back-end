@@ -6,6 +6,10 @@ networks:
   ignite-token-exchange_ignite-back-end:
     external:
       name: ignite-token-exchange_ignite-back-end
+  ignite-interproject-network:
+    external:
+      name: ignite-interproject-network
+
 services:
   postgres:
     image: postgres:latest
@@ -34,9 +38,12 @@ services:
     depends_on:
       - postgres
     networks:
-      - default
-      - ignite-dds_kafka-net
-      - ignite-token-exchange_ignite-back-end
+      default:
+      ignite-dds_kafka-net:
+      ignite-token-exchange_ignite-back-end:
+      ignite-interproject-network:
+        aliases:
+          - ignite-back-end-api
   sia-synchornizer:
     build:
       context: ./sia-synchronizer
