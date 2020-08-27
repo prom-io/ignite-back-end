@@ -13,6 +13,6 @@ export class StatisticsLogService {
             user: request.user ? (request.user as User).ethereumAddress : null,
             data: body,
         }
-        this.logger.log(JSON.stringify(statistics))
+        this.logger.log(`Statistics log ${JSON.stringify(statistics)}`)
     }
 }
