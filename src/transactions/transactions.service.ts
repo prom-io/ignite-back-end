@@ -4,12 +4,17 @@ import { Transaction } from "./entities/Transaction";
 import { TokenExchangeService } from "../token-exchange";
 import { config } from "../config";
 import { TransactionStatus } from "./types/TransactionStatus.enum";
+import { User } from "../users/entities";
+import { TransactionResponse } from "./types/responses/TransactionResponse";
+import { GetTransactionsFilters } from "./types/requests/GetTransactionsFilters";
+import { TransactionMapper } from "./TransactionMapper";
 
 @Injectable()
 export class TransactionsService {
   constructor(
     private readonly transactionsRepository: TransactionsRepository,
     private readonly tokenExchangeService: TokenExchangeService,
+    private readonly transactionsMapper: TransactionMapper,
   ) {}
 
   public async performTransactions(transactions: Transaction[]): Promise<Transaction[]> {
@@ -30,5 +35,10 @@ export class TransactionsService {
     await this.transactionsRepository.save(transaction)
 
     return transaction
+  }
+
+  public async getTransactions(user: User, filters: GetTransactionsFilters): Promise<TransactionResponse[]> {
+    const transactions = await this.transactionsRepository.findByUser(user, filters)
+    return this.transactionsMapper.toTransactionResponses(transactions)
   }
 }
