@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsInt, IsPositive, ValidateIf, IsIn } from "class-validator";
+import { IsString, IsOptional, IsInt, IsPositive, ValidateIf, IsIn, Min } from "class-validator";
 import { SafeTransformToInt } from "../../../utils/validation/safe-transform-to-int.decorator";
 import { Language } from "../../entities";
 import { FollowRecommendationFilters } from "./FollowRecommendationFilters";
@@ -13,7 +13,7 @@ export class UsersSearchFilters {
   @ApiPropertyOptional({ description: "Пагинация: сколько пропустить" })
   @SafeTransformToInt()
   @IsInt()
-  @IsPositive()
+  @Min(0)
   @IsOptional()
   skip?: number
 
