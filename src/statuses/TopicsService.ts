@@ -237,9 +237,9 @@ export class TopicsService {
         let hashTags: HashTag[];
 
         if (getHashTagsRequest.language) {
-            hashTags = await this.hashTagsRepository.findByLanguageOrderByPostsCount(getHashTagsRequest.language, getHashTagsRequest.count);
+            hashTags = await this.hashTagsRepository.findByLanguageOrderByPostsCountExcludeMemezator(getHashTagsRequest.language, getHashTagsRequest.count);
         } else {
-            hashTags = await this.hashTagsRepository.findAllOrderByPostsCount(getHashTagsRequest.count);
+            hashTags = await this.hashTagsRepository.findAllOrderByPostsCountExcludeMemezator(getHashTagsRequest.count);
         }
 
         const hashTagSubscriptionMap = await this.hashTagSubscriptionsRepository.getHashTagSubscriptionMap(hashTags, currentUser);

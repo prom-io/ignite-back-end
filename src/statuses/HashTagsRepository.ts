@@ -1,6 +1,7 @@
-import {EntityRepository, Repository} from "typeorm";
+import {EntityRepository, Repository, Not} from "typeorm";
 import {HashTag} from "./entities";
 import {Language} from "../users/entities";
+import { MEMEZATOR_HASHTAG } from "../common/constants";
 
 @EntityRepository(HashTag)
 export class HashTagsRepository extends Repository<HashTag> {
@@ -48,8 +49,33 @@ export class HashTagsRepository extends Repository<HashTag> {
         })
     }
 
+    public findByLanguageOrderByPostsCountExcludeMemezator(language: Language, count: number) {
+        return this.find({
+            where: {
+                language,
+                name: Not(MEMEZATOR_HASHTAG)
+            },
+            order: {
+                postsCount: "DESC"
+            },
+            take: count
+        })
+    }
+
     public findAllOrderByPostsCount(count: number) {
         return this.find({
+            order: {
+                postsCount: "DESC"
+            },
+            take: count
+        })
+    }
+
+    public findAllOrderByPostsCountExcludeMemezator(count: number) {
+        return this.find({
+            where: {
+                name: Not(MEMEZATOR_HASHTAG),
+            },
             order: {
                 postsCount: "DESC"
             },

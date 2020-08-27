@@ -20,6 +20,7 @@ import {PasswordHashGeneratorModule} from "./passsword-hash-generator";
 import {StatisticsModule} from "./statistics";
 import {ValidationModule} from "./utils/validation";
 import {MemezatorModule} from "./memezator/memezator.module";
+import {TokenExchangeModule} from "./token-exchange";
 import { StatisticsLogService } from "./statistics-log/statistics-log.service";
 import { StatisticsLogModule } from "./statistics-log/statistics-log.module";
 
@@ -44,6 +45,7 @@ import { StatisticsLogModule } from "./statistics-log/statistics-log.module";
         StatisticsModule,
         ValidationModule,
         MemezatorModule,
+        TokenExchangeModule,
         TypeOrmModule.forRoot(
             {
                 ...require("../ormconfig.js"),
