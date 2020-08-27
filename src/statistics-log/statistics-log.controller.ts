@@ -4,7 +4,7 @@ import { StatisticsLogService } from "./statistics-log.service";
 import { ApiOkResponse } from "@nestjs/swagger";
 import { AuthGuard } from "@nestjs/passport";
 
-@Controller("statistics-log")
+@Controller("/api/v1/statistics-logs")
 export class StatisticsLogController {
     constructor(private statisticsLogService: StatisticsLogService) {}
 
