@@ -160,6 +160,7 @@ export class UsersController {
 
     @UseGuards(AuthGuard("jwt"))
     @ApiBearerAuth()
+    @UseInterceptors(ClassSerializerInterceptor)
     @ApiOkResponse({type: () => MemezatorActionsRightsResponse})
     @Get("current/memezator-actions-rights")
     public getMemezatorActionsRights(@Req() req: Request): Promise<MemezatorActionsRightsResponse> {
