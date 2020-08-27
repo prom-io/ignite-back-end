@@ -7,14 +7,28 @@ import {config} from "../config";
     providers: [
         {
             provide: LoggerService,
+
             useValue: new LoggerService(
                 config.LOGGING_LEVEL,
-                "loggingService",
-                [LoggerTransport.CONSOLE]
+                [
+                    LoggerService.console({
+                        timeFormat: "HH:mm",
+                        consoleOptions: {
+                            level: "info",
+                        },
+                    }),
+                    LoggerService.rotate({
+                        colorize: false,
+                        fileOptions: {
+                            filename: "logs/%DATE%.log",
+                            level: "info",
+                            json: true,
+                        },
+                    })
+                ]
             )
         }
     ],
     exports: [LoggerService]
 })
-export class LoggerModule {
-}
+export class LoggerModule {}

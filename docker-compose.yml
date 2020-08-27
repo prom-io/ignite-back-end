@@ -9,7 +9,6 @@ networks:
   ignite-interproject-network:
     external:
       name: ignite-interproject-network
-
 services:
   postgres:
     image: postgres:latest
@@ -31,6 +30,7 @@ services:
     working_dir: /var/www/api
     volumes:
       - media-attachments:${MEDIA_ATTACHMENTS_DIRECTORY}
+      - /data/ignite-back-end/backend/logs/:/var/www/api/logs/
     env_file:
       - .env
     ports:
