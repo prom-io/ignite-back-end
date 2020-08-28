@@ -32,6 +32,7 @@ export class TransactionsRepository extends Repository<Transaction> {
       ],
       take: filters.take,
       skip: filters.skip,
+      order: { createdAt: "DESC" },
     })
   }
 }
