@@ -186,7 +186,13 @@ export class FeedService {
         }
 
         const statusInfoMap = await this.statusesRepository.getStatusesAdditionalInfoMap(statuses, currentUser);
-
+        statuses = statuses.filter(status => {
+            if (status.hashTags.some(hashTag => hashTag.name === "memezator")){
+                return false;
+            } else {
+                return true;
+            }
+        })
         return this.mapStatusesToStatusesResponseByStatusInfo(statuses, statusInfoMap);
     }
 
