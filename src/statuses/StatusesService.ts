@@ -1,3 +1,4 @@
+
 import {HttpException, HttpStatus, Injectable, BadRequestException} from "@nestjs/common";
 import {StatusesRepository} from "./StatusesRepository";
 import {CreateStatusRequest} from "./types/request";
@@ -14,6 +15,7 @@ import {MediaAttachment} from "../media-attachments/entities";
 import {asyncMap} from "../utils/async-map";
 import {UsersService} from "../users";
 import {HttpExceptionWithCode} from "../common/http-exception-with-code";
+import {MEMEZATOR_HASHTAG} from "../common/constants";
 
 @Injectable()
 export class StatusesService {
@@ -31,9 +33,9 @@ export class StatusesService {
             createStatusRequest.status,
         );
 
-        //Убираем все теги кроме memezator
-        if (isContainMemeHashTag) {
-            createStatusRequest.status = '#' + MEMEZATOR_HASHTAG + ' ' + createStatusRequest.status.replace(HASH_TAG_REGEXP, '').trim();
+        // Убираем все теги кроме memezator
+        if (doesContainMemeHashTag) {
+            createStatusRequest.status = "#" + MEMEZATOR_HASHTAG + " " + createStatusRequest.status.replace(HASH_TAG_REGEXP, "").trim();
         }
         if (
             (!createStatusRequest.fromMemezator && doesContainMemeHashTag) ||
