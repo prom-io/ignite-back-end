@@ -1,8 +1,20 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsBoolean, IsEnum, IsIn } from "class-validator";
+import { IsBoolean } from "class-validator";
 import { Expose } from "class-transformer";
 
-export enum UserMemeActionsRightsReasonCode {
+export enum CannotCreateMemeReasonCode {
+    LIMIT_EXCEEDED = "LIMIT_EXCEEDED",
+    DOESNT_HAVE_ENOUGH_POSTS = "DOESNT_HAVE_ENOUGH_POSTS",
+    MISSING_AVATAR_OR_USERNAME_OR_BIO = "MISSING_AVATAR_OR_USERNAME_OR_BIO",
+
+    /**
+     * Когда в конкурсе уже участвуют определенное количество мемов (на данный момент лимит это 100 постов)
+     * то больше никто не может создать мем, независимо от того они сегодня уже создали его или нет.
+     */
+    MEMES_LIMIT_EXCEEDED_FOR_CURRENT_CONTEST = "MEMES_LIMIT_EXCEEDED_FOR_CURRENT_CONTEST"
+}
+
+export enum CannotVoteMemeReasonCode {
     LIMIT_EXCEEDED = "LIMIT_EXCEEDED"
 }
 
@@ -12,9 +24,13 @@ export class MemezatorActionsRightsResponse {
     @Expose({ name: "can_create" })
     canCreate: boolean;
 
-    @ApiPropertyOptional({ name: "cannot_create_reason_code" })
+    @ApiPropertyOptional({
+        name: "cannot_create_reason_code",
+        enum: CannotCreateMemeReasonCode,
+        enumName: "CannotCreateMemeReasonCode",
+    })
     @Expose({ name: "cannot_create_reason_code" })
-    cannotCreateReasonCode?: UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED | null
+    cannotCreateReasonCode?: CannotCreateMemeReasonCode;
 
     @ApiProperty({ name: "can_vote" })
     @IsBoolean()
@@ -23,10 +39,11 @@ export class MemezatorActionsRightsResponse {
     
     @ApiPropertyOptional({
         name: "cannot_vote_reason_code",
-        enum: UserMemeActionsRightsReasonCode
+        enum: CannotVoteMemeReasonCode,
+        enumName: "CannotVoteMemeReasonCode",
     })
     @Expose({ name: "cannot_vote_reason_code" })
-    cannotVoteReasonCode?: UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED | null;
+    cannotVoteReasonCode?: CannotVoteMemeReasonCode;
 
     @ApiProperty({ name: "voting_power", description: "Вес голоса в голосовании Memezator-а" })
     @Expose({ name: "voting_power" })

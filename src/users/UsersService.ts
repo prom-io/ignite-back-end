@@ -1,7 +1,10 @@
-import { MEMEZATOR_HASHTAG } from "../common/constants";
 import { StatusLikesRepository } from "../statuses/StatusLikesRepository";
 import { StatusesRepository } from "../statuses/StatusesRepository";
-import { MemezatorActionsRightsResponse, UserMemeActionsRightsReasonCode } from "./types/response/MemezatorActionsRightsResponse";
+import {
+    MemezatorActionsRightsResponse,
+    CannotCreateMemeReasonCode,
+    CannotVoteMemeReasonCode,
+} from "./types/response/MemezatorActionsRightsResponse";
 import { asyncForEach } from "./../utils/async-foreach";
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import {MailerService} from "@nestjs-modules/mailer";
@@ -69,9 +72,11 @@ export class UsersService {
     }
 
     public async getMemesActionsRights(user: User): Promise<MemezatorActionsRightsResponse> {
+        const memeCreationRight = await this.getMemeCreationRightForUser(user)
+        
         const userMemeActionsRights = new MemezatorActionsRightsResponse({
-            canCreate: true,
-            cannotCreateReasonCode: null,
+            canCreate: memeCreationRight.canCreate,
+            cannotCreateReasonCode: memeCreationRight.cannotCreateReasonCode,
             canVote: true,
             cannotVoteReasonCode: null,
             votingPower: null,
@@ -82,17 +87,38 @@ export class UsersService {
         userMemeActionsRights.ethPromTokens = new Big(balance).toFixed(2)
         userMemeActionsRights.votingPower = this.calculateVotingPower(balance)
 
-        const existsMemeStatus =  await this.statusesRepository.findOneMemeByAuthorToday(user)
-        if (existsMemeStatus) {
-            userMemeActionsRights.canCreate = false
-            userMemeActionsRights.cannotCreateReasonCode = UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED
-        }
         const amountOfLikedMemes = await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(user)
         if (amountOfLikedMemes >= 1) {
             userMemeActionsRights.canVote = false,
-            userMemeActionsRights.cannotVoteReasonCode = UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED
+            userMemeActionsRights.cannotVoteReasonCode = CannotVoteMemeReasonCode.LIMIT_EXCEEDED
         }
         return userMemeActionsRights; 
+    }
+
+    public async getMemeCreationRightForUser(
+        user: User,
+    ): Promise<{canCreate: boolean, cannotCreateReasonCode?: CannotCreateMemeReasonCode}> {
+        const memeCreatedTodayByUser = await this.statusesRepository.findOneMemeByAuthorCreatedToday(user)
+
+        if (memeCreatedTodayByUser) {
+            return {canCreate: false, cannotCreateReasonCode: CannotCreateMemeReasonCode.LIMIT_EXCEEDED}
+        }
+
+        if (user.statistics.statusesCount < 3) {
+            return {canCreate: false, cannotCreateReasonCode: CannotCreateMemeReasonCode.DOESNT_HAVE_ENOUGH_POSTS}
+        }
+
+        if (!user.avatar || !user.bio || !user.username || /0x[\d\w]+/.test(user.username)) {
+            return {canCreate: false, cannotCreateReasonCode: CannotCreateMemeReasonCode.MISSING_AVATAR_OR_USERNAME_OR_BIO}
+        }
+
+        const countOfMemesCreatedInCurrentContest = await this.statusesRepository.countMemesCreatedToday()
+
+        if (countOfMemesCreatedInCurrentContest >= 100) {
+            return {canCreate: false, cannotCreateReasonCode: CannotCreateMemeReasonCode.MEMES_LIMIT_EXCEEDED_FOR_CURRENT_CONTEST}
+        }
+
+        return {canCreate: true, cannotCreateReasonCode: null}
     }
 
     /**
