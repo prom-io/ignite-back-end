@@ -6,7 +6,7 @@ import {StatusResponse} from "./types/response";
 import {StatusesMapper} from "./StatusesMapper";
 import {Status, StatusReferenceType} from "./entities";
 import {FeedCursors} from "./types/request/FeedCursors";
-import {HashTagsRetriever} from "./HashTagsRetriever";
+import {HashTagsRetriever, HASH_TAG_REGEXP} from "./HashTagsRetriever";
 import {Language, User} from "../users/entities";
 import {UsersRepository} from "../users/UsersRepository";
 import {PaginationRequest} from "../utils/pagination";
@@ -27,6 +27,11 @@ export class StatusesService {
         const isContainMemeHashTag = await this.hashTagsRetriever.hasMemeHashTag(
             createStatusRequest.status,
         );
+
+        //Убираем все теги кроме memezator
+        if (isContainMemeHashTag) {
+            createStatusRequest.status = '#' + MEMEZATOR_HASHTAG + ' ' + createStatusRequest.status.replace(HASH_TAG_REGEXP, '').trim();
+        }
         if (
             (!createStatusRequest.fromMemezator && isContainMemeHashTag) ||
             (createStatusRequest.fromMemezator && !isContainMemeHashTag)
