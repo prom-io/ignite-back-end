@@ -27,11 +27,12 @@ export class StatusesService {
         const isContainMemeHashTag = await this.hashTagsRetriever.hasMemeHashTag(
             createStatusRequest.status,
         );
+
+        //Убираем все теги кроме memezator
+        const HASH_TAG_REGEXP = /([#|＃][^\s]+)/g;
         if (isContainMemeHashTag) {
-            const hashTags = this.hashTagsRetriever.getHashTagsStringsFromText(createStatusRequest.status);
-            const  memeHashTag = hashTags.filter(tag => tag.indexOf('memezator') + 1);
             const statusText = this.hashTagsRetriever.getStatusText(createStatusRequest.status);
-            createStatusRequest.status = '#' + memeHashTag + ' ' + statusText;
+            createStatusRequest.status = '#' + MEMEZATOR_HASHTAG +' '+ statusText.replace(HASH_TAG_REGEXP, '');
         }
         if (
             (!createStatusRequest.fromMemezator && isContainMemeHashTag) ||
