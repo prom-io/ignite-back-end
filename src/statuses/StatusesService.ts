@@ -1,4 +1,4 @@
-import { MEMEZATOR_HASHTAG } from './../common/constants';
+
 import {HttpException, HttpStatus, Injectable, BadRequestException} from "@nestjs/common";
 import {StatusesRepository} from "./StatusesRepository";
 import {CreateStatusRequest} from "./types/request";
@@ -13,33 +13,50 @@ import {PaginationRequest} from "../utils/pagination";
 import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
 import {MediaAttachment} from "../media-attachments/entities";
 import {asyncMap} from "../utils/async-map";
+import {UsersService} from "../users";
+import {HttpExceptionWithCode} from "../common/http-exception-with-code";
+import {MEMEZATOR_HASHTAG} from "../common/constants";
 
 @Injectable()
 export class StatusesService {
-    constructor(private readonly statusesRepository: StatusesRepository,
-                private readonly usersRepository: UsersRepository,
-                private readonly mediaAttachmentRepository: MediaAttachmentsRepository,
-                private readonly hashTagsRetriever: HashTagsRetriever,
-                private readonly statusesMapper: StatusesMapper) {
-    }
+    constructor(
+        private readonly statusesRepository: StatusesRepository,
+        private readonly usersRepository: UsersRepository,
+        private readonly mediaAttachmentRepository: MediaAttachmentsRepository,
+        private readonly hashTagsRetriever: HashTagsRetriever,
+        private readonly statusesMapper: StatusesMapper,
+        private readonly usersService: UsersService,
+    ) {}
 
     public async createStatus(createStatusRequest: CreateStatusRequest, currentUser: User): Promise<StatusResponse> {
-        const isContainMemeHashTag = await this.hashTagsRetriever.hasMemeHashTag(
+        const doesContainMemeHashTag = this.hashTagsRetriever.hasMemeHashTag(
             createStatusRequest.status,
         );
 
-        //Убираем все теги кроме memezator
-        if (isContainMemeHashTag) {
-            createStatusRequest.status = '#' + MEMEZATOR_HASHTAG + ' ' + createStatusRequest.status.replace(HASH_TAG_REGEXP, '').trim();
+        // Убираем все теги кроме memezator
+        if (doesContainMemeHashTag) {
+            createStatusRequest.status = "#" + MEMEZATOR_HASHTAG + " " + createStatusRequest.status.replace(HASH_TAG_REGEXP, "").trim();
         }
         if (
-            (!createStatusRequest.fromMemezator && isContainMemeHashTag) ||
-            (createStatusRequest.fromMemezator && !isContainMemeHashTag)
+            (!createStatusRequest.fromMemezator && doesContainMemeHashTag) ||
+            (createStatusRequest.fromMemezator && !doesContainMemeHashTag)
         ) {
             throw new BadRequestException(
-                'Please use Memezator tab to post memes for the contest.',
+                "Please use Memezator tab to post memes for the contest.",
             );
         }
+
+        if (doesContainMemeHashTag) {
+            const memeCreationRight = await this.usersService.getMemeCreationRightForUser(currentUser)
+            if (!memeCreationRight.canCreate) {
+                throw new HttpExceptionWithCode(
+                    "User could repost only one meme status per day.",
+                    HttpStatus.BAD_REQUEST,
+                    memeCreationRight.cannotCreateReasonCode
+                )
+            }
+        }
+
         let mediaAttachments: MediaAttachment[] = [];
 
         if (createStatusRequest.mediaAttachments && createStatusRequest.mediaAttachments.length) {
@@ -47,12 +64,6 @@ export class StatusesService {
         }
 
         let referredStatus: Status | undefined;
-        
-        const isCreatedMemeFromMidnight = await this.statusesRepository.findOneMemeByAuthorToday(currentUser)
-        if (isCreatedMemeFromMidnight && isContainMemeHashTag) {
-            throw new BadRequestException('User could repost only one meme status per day.')
-        }
-
         if (createStatusRequest.referredStatusId) {
             referredStatus = await this.statusesRepository.findById(createStatusRequest.referredStatusId);
 
@@ -98,7 +109,6 @@ export class StatusesService {
         return this.statusesMapper.toStatusResponseAsync(status, currentUser);
     }
     
-
     public async findStatusById(id: string, currentUser?: User): Promise<StatusResponse> {
         const status = await this.statusesRepository.findById(id);
 
@@ -108,8 +118,6 @@ export class StatusesService {
 
         return this.statusesMapper.toStatusResponseAsync(status, currentUser);
     }
-
-
 
     public async findStatusesByUser(
         ethereumAddress: string,

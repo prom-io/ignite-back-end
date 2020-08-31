@@ -1,4 +1,4 @@
-import { MEMEZATOR_HASHTAG } from './../common/constants';
+import { MEMEZATOR_HASHTAG } from "./../common/constants";
 import {Injectable} from "@nestjs/common";
 import uuid from "uuid/v4";
 import {uniq} from "lodash";
@@ -25,7 +25,7 @@ export class HashTagsRetriever {
             .map(chunk => chunk.substring(1, chunk.length));
     }
 
-    public async hasMemeHashTag(text: string) {
+    public hasMemeHashTag(text: string): boolean {
         return this.getHashTagsStringsFromText(text).includes(MEMEZATOR_HASHTAG);
     }
 
