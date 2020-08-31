@@ -207,13 +207,13 @@ export class MemezatorService extends NestSchedule {
   ) {
     const memezatorOfficialAccount = await this.usersRepository.findByEthereumAddress(config.ADDRESS_OF_MEMEZATOR_OFFICIAL)
 
-    if (winners.firstPlace) {
+    if (winners.thirdPlace) {
       await this.createStatusAboutWinner(
         memezatorOfficialAccount,
         winners,
         rewardForCurrentCompetition,
         competitionStartDate,
-        "firstPlace"
+        "thirdPlace"
       )
     }
 
@@ -227,13 +227,13 @@ export class MemezatorService extends NestSchedule {
       )
     }
 
-    if (winners.thirdPlace) {
+    if (winners.firstPlace) {
       await this.createStatusAboutWinner(
         memezatorOfficialAccount,
         winners,
         rewardForCurrentCompetition,
         competitionStartDate,
-        "thirdPlace"
+        "firstPlace"
       )
     }
   }
