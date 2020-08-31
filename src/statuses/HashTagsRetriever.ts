@@ -15,6 +15,13 @@ export class HashTagsRetriever {
     constructor(private readonly hashTagsRepository: HashTagsRepository) {
     }
 
+    public getStatusText(text?: string) {
+        const textArray = text.split(HASH_TAG_REGEXP)
+        .filter(chunk => !HASH_TAG_REGEXP.test(chunk));
+
+        return textArray.filter(value => value.length > 1);
+    }
+
     public getHashTagsStringsFromText(text?: string): string[] {
         if (!text) {
             return [];

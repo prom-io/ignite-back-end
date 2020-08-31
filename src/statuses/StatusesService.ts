@@ -27,6 +27,12 @@ export class StatusesService {
         const isContainMemeHashTag = await this.hashTagsRetriever.hasMemeHashTag(
             createStatusRequest.status,
         );
+        if (isContainMemeHashTag) {
+            const hashTags = this.hashTagsRetriever.getHashTagsStringsFromText(createStatusRequest.status);
+            const  memeHashTag = hashTags.filter(tag => tag.indexOf('memezator') + 1);
+            const statusText = this.hashTagsRetriever.getStatusText(createStatusRequest.status);
+            createStatusRequest.status = '#' + memeHashTag + ' ' + statusText;
+        }
         if (
             (!createStatusRequest.fromMemezator && isContainMemeHashTag) ||
             (createStatusRequest.fromMemezator && !isContainMemeHashTag)
