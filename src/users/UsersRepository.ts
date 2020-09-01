@@ -1,4 +1,4 @@
-import {EntityRepository, In, MoreThan, Not, Repository, Brackets} from "typeorm";
+import {EntityRepository, In, MoreThan, Not, Repository, Brackets, Like} from "typeorm";
 import {subDays} from "date-fns";
 import {SignUpReference, User} from "./entities";
 import {FollowRecommendationFilters} from "./types/request";
@@ -10,6 +10,53 @@ import _ from "lodash";
 
 @EntityRepository(User)
 export class UsersRepository extends Repository<User> {
+
+    public searchByUsernameLike(searchOption: string, take: number, skip: number): Promise<User[]> {
+        return this.find({
+            where: {
+                username: Like(searchOption+`%`)
+            },
+            skip,
+            take
+        })
+    }
+
+    public searchByDisplayednameLike(searchOption: string, take: number): Promise<User[]> {
+        return this.find({
+            where: {
+                displayedName: Like(searchOption+`%`)
+            },
+            take
+        })
+    }
+
+    public getCountByDisplayednameLike(searchOption: string): Promise<number> {
+        return this.count({
+            where: {
+                displayedName: Like(`${searchOption}%`),
+            }
+        })
+    }
+
+    public searchByDisplayedNameLikeNotInUsername(searchOption: string, take: number): Promise<User[]> {
+        const qb = this.createQueryBuilder("user")
+            .leftJoinAndSelect("user.avatar", "avatar")
+            .leftJoinAndSelect("user.preferences", "preferences")
+            .leftJoinAndSelect("user.statistics", "statistics")
+        qb.andWhere(`user.username NOT IN ${qb.subQuery().select("user.username").from(User, `user`).where("user.username LIKE :matchPattern").getQuery()}`)
+        .take(take)
+        .setParameter("matchPattern", `${searchOption}%`)
+        return qb.getMany()  
+    }
+
+    public getCountByUsernameLike(searchOption): Promise<number> {
+        return this.count({
+            where: {
+                username: Like(searchOption+`%`)
+            }
+        })
+    }
+
     public search(filters: UsersSearchFilters): Promise<User[]> {
         const qb = this.createQueryBuilder("user")
             .leftJoinAndSelect("user.avatar", "avatar")

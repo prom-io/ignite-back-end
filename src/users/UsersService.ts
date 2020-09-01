@@ -52,26 +52,44 @@ export class UsersService {
                 private readonly usersMapper: UsersMapper,
                 private readonly passwordEncoder: BCryptPasswordEncoder,
                 private readonly passwordHashApiClient: PasswordHashApiClient,
+                private readonly userRepository: UsersRepository,
                 private readonly log: LoggerService) {
     }
 
     public async searchUsers(searchFilters: UsersSearchFilters, currentUser?: User): Promise<UserResponse[]> {
         const formattedQuery = searchFilters.q && searchFilters.q.trim()
+        const skip = searchFilters.skip;
+        const take = searchFilters.take;
 
-        const users = await this.usersRepository.search({
-            ...searchFilters,
-            q: formattedQuery
-        })
+        const countByUsername: number = await this.userRepository.getCountByUsernameLike(formattedQuery)
+        let selectedUsersByUsername: User[] = [];
+        let selectedUsersByDisplayedname: User[] = [];
+
+        if(countByUsername >= take + skip) {
+            selectedUsersByUsername = await this.userRepository.searchByUsernameLike(formattedQuery, take, skip)
+        }
+
+        if(countByUsername < take + skip && skip < countByUsername) {
+            selectedUsersByUsername = await this.userRepository.searchByUsernameLike(formattedQuery, undefined, skip)
+            let numberOfItemsByDisplayedname = take - selectedUsersByUsername.length;
+            selectedUsersByDisplayedname = await this.userRepository.searchByDisplayedNameLikeNotInUsername(formattedQuery, numberOfItemsByDisplayedname)
+        }
+
+        if(countByUsername < (take + skip) && skip >= countByUsername) {
+            selectedUsersByDisplayedname = await this.userRepository.searchByDisplayednameLike(formattedQuery, take)
+        }
+
+        const users = selectedUsersByUsername.concat(selectedUsersByDisplayedname)
 
         return asyncMap(users, async user => await this.usersMapper.toUserResponseAsync(user, currentUser))
     }
 
     public async getMemesActionsRights(user): Promise<MemezatorActionsRightsResponse> {
-          let userMemeActionsRights: MemezatorActionsRightsResponse = {
-              can_create: true,
-              cannot_create_reason_code: null,
-              can_vote: true,
-              cannot_vote_reason_code: null
+        let userMemeActionsRights: MemezatorActionsRightsResponse = {
+            can_create: true,
+            cannot_create_reason_code: null,
+            can_vote: true,
+            cannot_vote_reason_code: null
           }
           const existsMemeStatus =  await this.statusesRepository.findOneMemeByAuthorToday(user)
           if(existsMemeStatus) {
