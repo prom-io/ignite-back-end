@@ -178,7 +178,8 @@ export class StatusesMapper {
             referredStatus,
             statusReferenceType: createStatusRequest.statusReferenceType,
             hashTags,
-            favoritesCount: 0
+            favoritesCount: 0,
+            repostsCount: 0
         }
     }
 }
