@@ -294,6 +294,12 @@ export class MemezatorService extends NestSchedule {
     if (threeRandomTickets[2]) { 
       threeRandomTickets[2].reward += rewardPool * rewardFractions.rewardFractionFor3rdRandomVoter;
     }
+
+    memeWithLikesAndVotingPowers.threeLikesWithVotingPowersAndRewardsWithBiggestRewards =
+      _.takeRight(
+        _.sortBy(memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards, likeWithVotingPowerAndReward => likeWithVotingPowerAndReward.reward),
+        3,
+      )
   }
 
   private async createStatusesAboutWinners(
