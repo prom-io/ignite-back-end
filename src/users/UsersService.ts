@@ -469,7 +469,7 @@ export class UsersService {
 
         if (
             updateUserRequest.username &&
-            user.username.toLowerCase() !== updateUserRequest.username.toLowerCase() &&
+            (!user.username || user.username.toLowerCase() !== updateUserRequest.username.toLowerCase()) &&
             user.ethereumAddress.toLowerCase() !== updateUserRequest.username.toLowerCase()
         ) {
             if (await this.usersRepository.existsByUsername(updateUserRequest.username)
