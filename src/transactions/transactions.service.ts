@@ -25,7 +25,7 @@ export class TransactionsService {
     for (const transaction of transactions) {
       await this.performTransaction(transaction)
         .then(resultingTransaction => {
-          transactions.push(resultingTransaction)
+          completeTransactions.push(resultingTransaction)
           this.logger.info(`performTransactions: transaction complete: ${JSON.stringify(resultingTransaction)}`)
         })
         .catch(err => {
