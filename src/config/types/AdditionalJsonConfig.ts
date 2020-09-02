@@ -11,6 +11,9 @@ export interface AdditionalJsonConfig {
         disableCompetitionSummingUpCron?: boolean,
         rewards: {
             [date: string]: MemezatorRewardForPlaces
+        },
+        rewardPoolsByDate: {
+            [date: string]: number
         }
     }
 }

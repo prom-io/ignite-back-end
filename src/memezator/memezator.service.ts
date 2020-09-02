@@ -4,11 +4,10 @@ import { getCronExpressionForMemezatorCompetitionSumminUpCron } from "./utils";
 import { StatusesRepository } from "../statuses/StatusesRepository";
 import _ from "lodash"
 import { StatusLikesRepository } from "../statuses/StatusLikesRepository";
-import { WinnerMemesWithLikes, MemeWithLikesAndVotingPowers, LikeAndVotingPowerAndReward } from "./types";
+import { WinnerMemesWithLikes, MemeWithLikesAndVotingPowers, LikeAndVotingPowerAndReward, RewardFractions } from "./types";
 import {config} from "../config";
 import * as dateFns from "date-fns"
 import { LoggerService } from "nest-logger";
-import { MemezatorRewardForPlaces } from "../config/types/MemezatorReward";
 import { UsersRepository } from "../users";
 import { StatusesService } from "../statuses";
 import { User } from "../users/entities";
@@ -65,20 +64,20 @@ export class MemezatorService extends NestSchedule {
 
     const formattedCompetitionStartDate = dateFns.format(competitionStartDate, "yyyy.MM.dd")
 
-    const rewardForCurrentCompetition = config.additionalConfig.memezator.rewards[formattedCompetitionStartDate]
-    if (!rewardForCurrentCompetition) {
+    const rewardPool = config.additionalConfig.memezator.rewardPoolsByDate[formattedCompetitionStartDate]
+    if (!rewardPool) {
       throw new InternalServerErrorException(`Not found memezator reward for ${formattedCompetitionStartDate}`)
     }
 
     const winners = await this.calculateWinnersWithLikesAndRewards(
-      rewardForCurrentCompetition,
+      rewardPool,
       competitionStartDate,
       competitionEndDate,
       options.dryRun ? false : true
     )
 
     if (!options.dryRun) {
-      await this.createStatusesAboutWinners(winners, rewardForCurrentCompetition, competitionStartDate)
+      await this.createStatusesAboutWinners(winners, rewardPool, competitionStartDate)
 
       const memezatorContestResult = await this.memezatorContestResultRepository.save({
         id: uuid(),
@@ -97,7 +96,7 @@ export class MemezatorService extends NestSchedule {
   }
 
   async calculateWinnersWithLikesAndRewards(
-    memezatorRewardForPlaces: MemezatorRewardForPlaces,
+    rewardPool: number,
     competitionStartDate: Date,
     competitionEndDate: Date,
     saveVotesOfMemeInDB: boolean
@@ -146,33 +145,42 @@ export class MemezatorService extends NestSchedule {
     }
 
     if (firstPlace) {
-      firstPlace.rewardForAuthor = memezatorRewardForPlaces.firstPlace.author
-      firstPlace.likesWithVotingPowersAndRewards.forEach((likeWithVotingPowerAndReward) => {
-        likeWithVotingPowerAndReward.reward =
-          (likeWithVotingPowerAndReward.votingPower / firstPlace.meme.favoritesCount) * memezatorRewardForPlaces.firstPlace.voters
+      this.calculateAndAssignRewardsToVoters(firstPlace, rewardPool, {
+        rewardFractionForAuthor: 0.10,
+        rewardFractionToEqualyShareBetweenEveryVoter: 0.12,
+        rewardFractionToEqualyShareBetweenEvery2ndRandomVoter: 0.18,
+        rewardFractionToEqualyShareBetweenEvery4thRandomVoter: 0.138,
+        rewardFractionToEqualyShareBetweenEvery20thRandomVoter: 0.09,
+        rewardFractionFor1stRandomVoter: 0.03,
+        rewardFractionFor2ndRandomVoter: 0.024,
+        rewardFractionFor3rdRandomVoter: 0.018,
       })
-      firstPlace.threeLikesWithVotingPowersAndRewardsWithBiggestRewards =
-        _.take(_.sortBy(firstPlace.likesWithVotingPowersAndRewards, likeWithVotingPowerAndReward => -likeWithVotingPowerAndReward.reward), 3)
     }
 
     if (secondPlace) {
-      secondPlace.rewardForAuthor = memezatorRewardForPlaces.secondPlace.author
-      secondPlace.likesWithVotingPowersAndRewards.forEach((likeWithVotingPowerAndReward) => {
-        likeWithVotingPowerAndReward.reward =
-          (likeWithVotingPowerAndReward.votingPower / secondPlace.meme.favoritesCount) * memezatorRewardForPlaces.secondPlace.voters
+      this.calculateAndAssignRewardsToVoters(secondPlace, rewardPool, {
+        rewardFractionForAuthor: 0.06,
+        rewardFractionToEqualyShareBetweenEveryVoter: 0.02,
+        rewardFractionToEqualyShareBetweenEvery2ndRandomVoter: 0.03,
+        rewardFractionToEqualyShareBetweenEvery4thRandomVoter: 0.023,
+        rewardFractionToEqualyShareBetweenEvery20thRandomVoter: 0.015,
+        rewardFractionFor1stRandomVoter: 0.005,
+        rewardFractionFor2ndRandomVoter: 0.004,
+        rewardFractionFor3rdRandomVoter: 0.003,
       })
-      secondPlace.threeLikesWithVotingPowersAndRewardsWithBiggestRewards =
-        _.take(_.sortBy(secondPlace.likesWithVotingPowersAndRewards, likeWithVotingPowerAndReward => -likeWithVotingPowerAndReward.reward), 3)
     }
 
     if (thirdPlace) {
-      thirdPlace.rewardForAuthor = memezatorRewardForPlaces.thirdPlace.author
-      thirdPlace.likesWithVotingPowersAndRewards.forEach((likeWithVotingPowerAndReward) => {
-        likeWithVotingPowerAndReward.reward =
-          (likeWithVotingPowerAndReward.votingPower / thirdPlace.meme.favoritesCount) * memezatorRewardForPlaces.thirdPlace.voters
+      this.calculateAndAssignRewardsToVoters(thirdPlace, rewardPool, {
+        rewardFractionForAuthor: 0.04,
+        rewardFractionToEqualyShareBetweenEveryVoter: 0.02,
+        rewardFractionToEqualyShareBetweenEvery2ndRandomVoter: 0.03,
+        rewardFractionToEqualyShareBetweenEvery4thRandomVoter: 0.023,
+        rewardFractionToEqualyShareBetweenEvery20thRandomVoter: 0.015,
+        rewardFractionFor1stRandomVoter: 0.005,
+        rewardFractionFor2ndRandomVoter: 0.004,
+        rewardFractionFor3rdRandomVoter: 0.003,
       })
-      thirdPlace.threeLikesWithVotingPowersAndRewardsWithBiggestRewards =
-        _.take(_.sortBy(thirdPlace.likesWithVotingPowersAndRewards, likeWithVotingPowerAndReward => -likeWithVotingPowerAndReward.reward), 3)
     }
 
     return {
@@ -200,61 +208,153 @@ export class MemezatorService extends NestSchedule {
     return midnightInGreenwich
   }
 
+  /**
+   * This algorithm is pretty hard to understand, so i strongly recommend you to read the docs first
+   * @see https://docs.google.com/document/d/1fAbkRuZBXe6UQUGd-6_q6t8jEc0EfT2g1wKItrBP6iE/edit?usp=sharing
+   * 
+   * @param memeWithLikesAndVotingPowers meme for which voters the algorithm should run
+   * @param rewardPool the reward pool for todays contest
+   * @param rewardFractions 
+   */
+  private calculateAndAssignRewardsToVoters(
+    memeWithLikesAndVotingPowers: MemeWithLikesAndVotingPowers,
+    rewardPool: number,
+    rewardFractions: RewardFractions,
+  ): void {
+    // First of all, do the easiest work: calculate the reward for meme author
+    memeWithLikesAndVotingPowers.rewardForAuthor = rewardPool * rewardFractions.rewardFractionForAuthor
+
+    // Here goes the hard part - calculating rewards for voters
+
+    // Calculate the reward that every voter should get
+    const rewardForEveryVoter =
+      (rewardPool * rewardFractions.rewardFractionToEqualyShareBetweenEveryVoter) /
+        memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards.length;
+
+    // In these 3 sets in the below forEach we will insert indexes
+    // of some randomly selected voters.
+    const indexesOfEvery2ndRandomVoter = new Set<number>()
+    const indexesOfEvery4thRandomVoter = new Set<number>()
+    const indexesOfEvery20thRandomVoter = new Set<number>()
+
+    memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards.forEach((likeWithVotingPowerAndReward, i) => {
+      // then we assign the calculated reward that every voter should get
+      likeWithVotingPowerAndReward.reward = rewardForEveryVoter
+
+      // and by the way randomly select some voters, we will
+      // use them below for further calculations.
+      // Here we randomly take every 2nd, every 4th and very 20the voter.
+      // Note that one voter may be selected at most once, thats why we use "else if",
+      // in other words the intersection of those 3 sets is empty ;)
+      if (Math.random() > 0.5) {
+        indexesOfEvery2ndRandomVoter.add(i)
+      } else if (Math.random() > 0.75) {
+        indexesOfEvery4thRandomVoter.add(i)
+      } else if (Math.random() > 0.95) {
+        indexesOfEvery20thRandomVoter.add(i)
+      }
+    })
+
+    /**
+     * Calculate the reward that every n-th voter should get
+     */
+    const rewardForEvery2ndRandomVoter = 
+      (rewardPool * rewardFractions.rewardFractionToEqualyShareBetweenEvery2ndRandomVoter) / indexesOfEvery2ndRandomVoter.size;
+    const rewardForEvery4thRandomVoter =
+      (rewardPool * rewardFractions.rewardFractionToEqualyShareBetweenEvery4thRandomVoter) / indexesOfEvery4thRandomVoter.size;
+    const rewardForEvery20thRandomVoter =
+      (rewardPool * rewardFractions.rewardFractionToEqualyShareBetweenEvery20thRandomVoter) / indexesOfEvery20thRandomVoter.size;
+
+    /**
+     * Give every n-th voter the reward that they should get
+     */
+    indexesOfEvery2ndRandomVoter.forEach(index => {
+      memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards[index].reward += rewardForEvery2ndRandomVoter
+    })
+
+    indexesOfEvery4thRandomVoter.forEach(index => {
+      memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards[index].reward += rewardForEvery4thRandomVoter
+    })
+
+    indexesOfEvery20thRandomVoter.forEach(index => {
+      memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards[index].reward += rewardForEvery20thRandomVoter
+    })
+
+    /**
+     * Now we are giving some rewards to 3 randomly selected voters
+     */
+    const threeRandomTickets = _.sampleSize(memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards, 3)
+
+    if (threeRandomTickets[0]) { 
+      threeRandomTickets[0].reward += rewardPool * rewardFractions.rewardFractionFor1stRandomVoter;
+    }
+    if (threeRandomTickets[1]) { 
+      threeRandomTickets[1].reward += rewardPool * rewardFractions.rewardFractionFor2ndRandomVoter;
+    }
+    if (threeRandomTickets[2]) { 
+      threeRandomTickets[2].reward += rewardPool * rewardFractions.rewardFractionFor3rdRandomVoter;
+    }
+
+    memeWithLikesAndVotingPowers.threeLikesWithVotingPowersAndRewardsWithBiggestRewards =
+      _.takeRight(
+        _.sortBy(memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards, likeWithVotingPowerAndReward => likeWithVotingPowerAndReward.reward),
+        3,
+      )
+  }
+
   private async createStatusesAboutWinners(
     winners: WinnerMemesWithLikes,
-    rewardForCurrentCompetition: MemezatorRewardForPlaces,
-    competitionStartDate: Date
-  ) {
+    rewardPool: number,
+    competitionStartDate: Date,
+  ): Promise<void> {
     const memezatorOfficialAccount = await this.usersRepository.findByEthereumAddress(config.ADDRESS_OF_MEMEZATOR_OFFICIAL)
 
     if (winners.thirdPlace) {
       await this.createStatusAboutWinner(
         memezatorOfficialAccount,
-        winners,
-        rewardForCurrentCompetition,
+        winners.thirdPlace,
+        rewardPool,
         competitionStartDate,
-        "thirdPlace"
+        3,
       )
     }
 
     if (winners.secondPlace) {
       await this.createStatusAboutWinner(
         memezatorOfficialAccount,
-        winners,
-        rewardForCurrentCompetition,
+        winners.secondPlace,
+        rewardPool,
         competitionStartDate,
-        "secondPlace"
+        2,
       )
     }
 
     if (winners.firstPlace) {
       await this.createStatusAboutWinner(
         memezatorOfficialAccount,
-        winners,
-        rewardForCurrentCompetition,
+        winners.firstPlace,
+        rewardPool,
         competitionStartDate,
-        "firstPlace"
+        1,
       )
     }
   }
 
   private async createStatusAboutWinner(
     memezatorOfficialAccount: User,
-    winnerMemesWithLikes: WinnerMemesWithLikes,
-    memezatorRewardForPlaces: MemezatorRewardForPlaces,
+    memeWithLikesAndVotingPowers: MemeWithLikesAndVotingPowers,
+    rewardPool: number,
     competitionStartDate: Date,
-    place: "firstPlace" | "secondPlace" | "thirdPlace"
-  ) {
-    const threeWinnerVoters = winnerMemesWithLikes[place].threeLikesWithVotingPowersAndRewardsWithBiggestRewards
-
-    const placeNumber = ({ firstPlace: 1, secondPlace: 2, thirdPlace: 3 })[place]
+    place: 1 | 2 | 3
+  ): Promise<void> {
+    const threeWinnerVoters = memeWithLikesAndVotingPowers.threeLikesWithVotingPowersAndRewardsWithBiggestRewards
 
     let statusText =
-      `**MEME №${placeNumber} OF ${dateFns.format(competitionStartDate, "yyyy/MM/dd")}**\n` +
-      `Voted: **${winnerMemesWithLikes[place].meme.favoritesCount}** votes\n` +
-      `Prize: **${memezatorRewardForPlaces[place].author + memezatorRewardForPlaces[place].voters}** PROM\n` +
+      `**MEME №${place} OF ${dateFns.format(competitionStartDate, "yyyy/MM/dd")}**\n` +
+      `Voted: **${memeWithLikesAndVotingPowers.meme.favoritesCount}** votes\n` +
+      `Prize: **${rewardPool}** PROM\n` +
       `\n  ` +
-      `Author: ${this.getMarkdownLinkForUser(winnerMemesWithLikes[place].meme.author)} ${new Big(winnerMemesWithLikes[place].rewardForAuthor).toFixed(2)} PROM\n`
+      `Author: ${this.getMarkdownLinkForUser(memeWithLikesAndVotingPowers.meme.author)} ${new Big(memeWithLikesAndVotingPowers.rewardForAuthor).toFixed(2)} PROM\n`
 
     if (threeWinnerVoters[0]) {
       statusText += `Winner №1: **${new Big(threeWinnerVoters[0].reward).toFixed(2)}** PROM ${this.getMarkdownLinkForUser(threeWinnerVoters[0].like.user)} (${threeWinnerVoters[0].votingPower} votes)\n`
@@ -270,7 +370,7 @@ export class MemezatorService extends NestSchedule {
 
     await this.statusesService.createStatus({
         status: statusText, 
-        referredStatusId: winnerMemesWithLikes[place].meme.id,
+        referredStatusId: memeWithLikesAndVotingPowers.meme.id,
         statusReferenceType: StatusReferenceType.REPOST,
         mediaAttachments: [],
       },
