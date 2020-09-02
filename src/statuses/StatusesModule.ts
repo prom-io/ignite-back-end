@@ -27,6 +27,7 @@ import {TopicsController} from "./TopicsController";
 import {TopicsService} from "./TopicsService";
 import {HashTagsMapper} from "./HashTagsMapper";
 import {HashTagSubscriptionsRepository} from "./HashTagSubscriptionsRepository";
+import { StatusesWithoutMemesRepository } from "./StatusesWithoutMemesRepository";
 
 @Module({
     controllers: [StatusesController, TimelineController, TopicsController],
@@ -45,6 +46,7 @@ import {HashTagSubscriptionsRepository} from "./HashTagSubscriptionsRepository";
     imports: [
         TypeOrmModule.forFeature([
             StatusesRepository,
+            StatusesWithoutMemesRepository,
             StatusLikesRepository,
             UsersRepository,
             UserSubscriptionsRepository,

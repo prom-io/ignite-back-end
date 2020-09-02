@@ -1259,7 +1259,7 @@ export class StatusesRepository extends Repository<Status> {
             .groupBy(`"statusId"`)
     }
 
-    public createStatusQueryBuilder(): SelectQueryBuilder<Status> {
+    private createStatusQueryBuilder(): SelectQueryBuilder<Status> {
         return this.createQueryBuilder("status")
             .leftJoinAndSelect("status.hashTags", "filteredHashTag")
             .leftJoinAndSelect("status.hashTags", "hashTag")

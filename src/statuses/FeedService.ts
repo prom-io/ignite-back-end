@@ -13,6 +13,7 @@ import {UsersRepository, UserStatisticsRepository} from "../users";
 import {asyncMap} from "../utils/async-map";
 import {config} from "../config";
 import {isAdmin} from "../utils/is-admin";
+import { StatusesWithoutMemesRepository } from "./StatusesWithoutMemesRepository";
 
 @Injectable()
 export class FeedService {
@@ -20,6 +21,7 @@ export class FeedService {
                 private readonly userStatisticsRepository: UserStatisticsRepository,
                 private readonly usersRepository: UsersRepository,
                 private readonly statusesRepository: StatusesRepository,
+                private readonly statusesWithoutMemesRepository: StatusesWithoutMemesRepository,
                 private readonly statusLikesRepository: StatusLikesRepository,
                 private readonly userSubscriptionRepository: UserSubscriptionsRepository,
                 private readonly hashTagSubscriptionsRepository: HashTagSubscriptionsRepository,
@@ -122,14 +124,14 @@ export class FeedService {
                 const maxCursor = await this.findStatusById(feedCursors.maxId);
 
                 if (shouldFilterUsers) {
-                    statuses = await this.statusesRepository.findByAuthorInAndCreatedAtBetween(
+                    statuses = await this.statusesWithoutMemesRepository.findByAuthorInAndCreatedAtBetween(
                         displayedUsers,
                         sinceCursor.createdAt,
                         maxCursor.createdAt,
                         paginationRequest
                     );
                 } else {
-                    statuses = await this.statusesRepository.findByCreatedAtBetween(
+                    statuses = await this.statusesWithoutMemesRepository.findByCreatedAtBetween(
                         sinceCursor.createdAt,
                         maxCursor.createdAt,
                         paginationRequest
@@ -139,35 +141,35 @@ export class FeedService {
                 const maxCursor = await this.findStatusById(feedCursors.maxId);
 
                 if (shouldFilterUsers) {
-                    statuses = await this.statusesRepository.findByAuthorInAndCreatedAtBefore(
+                    statuses = await this.statusesWithoutMemesRepository.findByAuthorInAndCreatedAtBefore(
                         displayedUsers,
                         maxCursor.createdAt,
                         paginationRequest
                     );
                 } else {
-                    statuses = await this.statusesRepository.findByCreatedAtBefore(maxCursor.createdAt, paginationRequest);
+                    statuses = await this.statusesWithoutMemesRepository.findByCreatedAtBefore(maxCursor.createdAt, paginationRequest);
                 }
             }
         } else if (feedCursors.sinceId) {
             const sinceCursor = await this.findStatusById(feedCursors.sinceId);
 
             if (shouldFilterUsers) {
-                statuses = await this.statusesRepository.findByAuthorInAndCreatedAfter(
+                statuses = await this.statusesWithoutMemesRepository.findByAuthorInAndCreatedAfter(
                     displayedUsers,
                     sinceCursor.createdAt,
                     paginationRequest
                 );
             } else {
-                statuses = await this.statusesRepository.findByCreatedAtAfter(sinceCursor.createdAt, paginationRequest);
+                statuses = await this.statusesWithoutMemesRepository.findByCreatedAtAfter(sinceCursor.createdAt, paginationRequest);
             }
         } else {
             if (shouldFilterUsers) {
-                statuses = await this.statusesRepository.findByAuthorIn(
+                statuses = await this.statusesWithoutMemesRepository.findByAuthorIn(
                     displayedUsers,
                     paginationRequest
                 );
             } else {
-                statuses = await this.statusesRepository.findAllBy(paginationRequest);
+                statuses = await this.statusesWithoutMemesRepository.findAllBy(paginationRequest);
             }
 
             if (!currentUser && config.ENABLE_PINNED_STATUSES_FOR_UNAUTHORIZED_USERS) {
