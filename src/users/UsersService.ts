@@ -456,6 +456,8 @@ export class UsersService {
     }
 
     public async updateUser(ethereumAddress: string, updateUserRequest: UpdateUserRequest, currentUser: User): Promise<UserResponse> {
+        this.log.info(`updateUser: ${JSON.stringify({updateUserRequest, currentUser: { username: currentUser.username, ethereumAddress: currentUser.ethereumAddress }})}`)
+
         let user = await this.findUserEntityByEthereumAddress(ethereumAddress);
 
         if (user.id !== currentUser.id) {
