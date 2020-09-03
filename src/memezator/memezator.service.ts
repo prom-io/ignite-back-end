@@ -298,7 +298,7 @@ export class MemezatorService extends NestSchedule {
     }
 
     memeWithLikesAndVotingPowers.threeLikesWithVotingPowersAndRewardsWithBiggestRewards =
-      _.takeRight(
+      _.take(
         _.sortBy(memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards, likeWithVotingPowerAndReward => likeWithVotingPowerAndReward.reward),
         3,
       )
