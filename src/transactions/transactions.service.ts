@@ -19,6 +19,11 @@ export class TransactionsService {
     private readonly logger: LoggerService,
   ) {}
 
+  /**
+   * Don't use `Promise.all` instead of `for`, and do not parallel invocations of performTransaction(),
+   * because the ignite-token-exchange service expects the exchanges to be sequenced
+   * because of some implementation details of Binance.
+   */
   public async performTransactions(transactions: Transaction[]): Promise<Transaction[]> {
     const completeTransactions: Transaction[] = []
 
