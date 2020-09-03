@@ -17,13 +17,13 @@ export class StatusLikesRepository extends Repository<StatusLike> {
     }
             
     public async getAmountOfLikedMemesCreatedTodayByUser(user: User): Promise<number> {
-        const lastMidnightInGreenwich = new Date()
-        lastMidnightInGreenwich.setUTCHours(0, 0, 0, 0)
+        const lastMidnightInCET = new Date()
+        lastMidnightInCET.setUTCHours(2, 0, 0, 0)
         return this.count({
             join: { alias: "statuslikes", leftJoin: { status: "statuslikes.status", hashTag: "status.hashTags" } },
             where: qb => {
                 qb.where({ 
-                    createdAt: MoreThan(lastMidnightInGreenwich),
+                    createdAt: MoreThan(lastMidnightInCET),
                     user: user.id,
                     reverted: false
                 })

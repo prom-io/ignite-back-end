@@ -101,14 +101,14 @@ export class StatusesMapper {
 
     public toStatusResponse(options: ToStatusResponseOptions): StatusResponse {
         const isMeme = options.status.hashTags.some(hashTag => hashTag.name === "memezator")
-        const lastMidnightInGreenwich = new Date()
-        lastMidnightInGreenwich.setUTCHours(0, 0, 0, 0)
+        const lastMidnightInCET = new Date()
+        lastMidnightInCET.setUTCHours(2, 0, 0, 0)
 
         /**
          * If meme is created before the current competition started,
          * then it does not participate in the current competition
          */
-        const memeDoesNotParticipateInCompetition = options.status.createdAt.valueOf() < lastMidnightInGreenwich.valueOf()
+        const memeDoesNotParticipateInCompetition = options.status.createdAt.valueOf() < lastMidnightInCET.valueOf()
 
         const {
             status,

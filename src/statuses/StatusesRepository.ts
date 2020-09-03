@@ -228,22 +228,22 @@ export class StatusesRepository extends Repository<Status> {
     }
 
     public async findOneMemeByAuthorCreatedToday(user: User): Promise<Status> {
-        const lastMidnightInGreenwich = new Date()
-        lastMidnightInGreenwich.setUTCHours(0, 0, 0, 0)
+        const lastMidnightInCET = new Date()
+        lastMidnightInCET.setUTCHours(2, 0, 0, 0)
         return this.createStatusQueryBuilder()
             .where(`"filteredHashTag"."name" = :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
             .andWhere(`status."authorId" = :userId`, {userId: user.id})
-            .andWhere(`status."createdAt" >= :createdAtAfter`, { createdAtAfter: lastMidnightInGreenwich })
+            .andWhere(`status."createdAt" >= :createdAtAfter`, { createdAtAfter: lastMidnightInCET })
             .getOne()
     }
 
     public async countMemesCreatedToday(): Promise<number> {
-        const lastMidnightInGreenwich = new Date()
-        lastMidnightInGreenwich.setUTCHours(0, 0, 0, 0)
+        const lastMidnightInCET = new Date()
+        lastMidnightInCET.setUTCHours(2, 0, 0, 0)
         return this.createQueryBuilder("status")
             .leftJoinAndSelect("status.hashTags", "filteredHashTag")
             .where(`"filteredHashTag"."name" = :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
-            .andWhere(`status."createdAt" >= :createdAtAfter`, { createdAtAfter: lastMidnightInGreenwich })
+            .andWhere(`status."createdAt" >= :createdAtAfter`, { createdAtAfter: lastMidnightInCET })
             .getCount()
     }
 

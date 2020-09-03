@@ -62,12 +62,12 @@ export class MemezatorService extends NestSchedule {
     if (options.startedInCron) {
       competitionStartDate = dateFns.sub(competitionStartDate, { hours: 1 })
     }
-    competitionStartDate.setHours(0, 0, 0, 0)
+    competitionStartDate.setHours(2, 0, 0, 0)
 
     const competitionEndDate = new Date()
 
     if (options.startedInCron) {
-      competitionEndDate.setHours(0, 0, 0, 0)
+      competitionEndDate.setHours(2, 0, 0, 0)
     }
 
     const formattedCompetitionStartDate = dateFns.format(competitionStartDate, "yyyy.MM.dd")
@@ -182,13 +182,6 @@ export class MemezatorService extends NestSchedule {
     } else {
         return 80
     }
-  }
-
-  getLastMidnightInGreenwich(): Date {
-    const midnightInGreenwich = new Date()
-    midnightInGreenwich.setUTCHours(0, 0, 0, 0)
-
-    return midnightInGreenwich
   }
 
   /**
