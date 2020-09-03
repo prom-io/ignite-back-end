@@ -104,6 +104,11 @@ export class UsersService {
             return {canCreate: false, cannotCreateReasonCode: CannotCreateMemeReasonCode.LIMIT_EXCEEDED}
         }
 
+        const countOfStatusesCreatedTodayByUser = await this.statusesRepository.countStatusesCreatedTodayByAuthor(user)
+        if (!countOfStatusesCreatedTodayByUser) {
+            return {canCreate: false, cannotCreateReasonCode: CannotCreateMemeReasonCode.DOESNT_HAVE_STATUS_CREATED_IN_LAST_24H}
+        }
+
         if (user.statistics.statusesCount < 3) {
             return {canCreate: false, cannotCreateReasonCode: CannotCreateMemeReasonCode.DOESNT_HAVE_ENOUGH_POSTS}
         }

@@ -11,7 +11,12 @@ export enum CannotCreateMemeReasonCode {
      * Когда в конкурсе уже участвуют определенное количество мемов (на данный момент лимит это 100 постов)
      * то больше никто не может создать мем, независимо от того они сегодня уже создали его или нет.
      */
-    MEMES_LIMIT_EXCEEDED_FOR_CURRENT_CONTEST = "MEMES_LIMIT_EXCEEDED_FOR_CURRENT_CONTEST"
+    MEMES_LIMIT_EXCEEDED_FOR_CURRENT_CONTEST = "MEMES_LIMIT_EXCEEDED_FOR_CURRENT_CONTEST",
+
+    /**
+     * To create a meme user has to have a status created in the last 24 hours
+     */
+    DOESNT_HAVE_STATUS_CREATED_IN_LAST_24H = "DOESNT_HAVE_STATUS_CREATED_IN_LAST_24H",
 }
 
 export enum CannotVoteMemeReasonCode {

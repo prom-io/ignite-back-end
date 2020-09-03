@@ -247,6 +247,17 @@ export class StatusesRepository extends Repository<Status> {
             .getCount()
     }
 
+    public countStatusesCreatedTodayByAuthor(author: User): Promise<number> {
+        const dayAgo = subDays(new Date(), 1)
+
+        return this.count({
+            where: {
+                author,
+                createdAt: MoreThan(dayAgo),
+            }
+        })
+    }
+
     public findByAuthorInAndHashTagsInAndCreatedAtBetween(
         authors: User[],
         hashTags: HashTag[],
