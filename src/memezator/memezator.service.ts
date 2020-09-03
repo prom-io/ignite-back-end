@@ -21,6 +21,14 @@ import { TransactionStatus } from "../transactions/types/TransactionStatus.enum"
 import { TransactionSubject } from "../transactions/types/TransactionSubject.enum";
 import { TokenExchangeService } from "../token-exchange";
 import { TransactionsService } from "../transactions/transactions.service";
+import {
+  rewardFractionsForFirstPlace,
+  rewardFractionsForSecondPlace,
+  rewardFractionsForThirdsPlace,
+  overallRewardFractionForFirstPlace,
+  overallRewardFractionForSecondPlace,
+  overallRewardFractionForThirdPlace
+} from "./constants";
 
 @Injectable()
 export class MemezatorService extends NestSchedule {
@@ -147,42 +155,15 @@ export class MemezatorService extends NestSchedule {
     }
 
     if (firstPlace) {
-      this.calculateAndAssignRewardsToVoters(firstPlace, rewardPool, {
-        rewardFractionForAuthor: 0.10,
-        rewardFractionToEqualyShareBetweenEveryVoter: 0.12,
-        rewardFractionToEqualyShareBetweenEvery2ndRandomVoter: 0.18,
-        rewardFractionToEqualyShareBetweenEvery4thRandomVoter: 0.138,
-        rewardFractionToEqualyShareBetweenEvery20thRandomVoter: 0.09,
-        rewardFractionFor1stRandomVoter: 0.03,
-        rewardFractionFor2ndRandomVoter: 0.024,
-        rewardFractionFor3rdRandomVoter: 0.018,
-      })
+      this.calculateAndAssignRewardsToVoters(firstPlace, rewardPool, rewardFractionsForFirstPlace)
     }
 
     if (secondPlace) {
-      this.calculateAndAssignRewardsToVoters(secondPlace, rewardPool, {
-        rewardFractionForAuthor: 0.06,
-        rewardFractionToEqualyShareBetweenEveryVoter: 0.02,
-        rewardFractionToEqualyShareBetweenEvery2ndRandomVoter: 0.03,
-        rewardFractionToEqualyShareBetweenEvery4thRandomVoter: 0.023,
-        rewardFractionToEqualyShareBetweenEvery20thRandomVoter: 0.015,
-        rewardFractionFor1stRandomVoter: 0.005,
-        rewardFractionFor2ndRandomVoter: 0.004,
-        rewardFractionFor3rdRandomVoter: 0.003,
-      })
+      this.calculateAndAssignRewardsToVoters(secondPlace, rewardPool, rewardFractionsForSecondPlace)
     }
 
     if (thirdPlace) {
-      this.calculateAndAssignRewardsToVoters(thirdPlace, rewardPool, {
-        rewardFractionForAuthor: 0.04,
-        rewardFractionToEqualyShareBetweenEveryVoter: 0.02,
-        rewardFractionToEqualyShareBetweenEvery2ndRandomVoter: 0.03,
-        rewardFractionToEqualyShareBetweenEvery4thRandomVoter: 0.023,
-        rewardFractionToEqualyShareBetweenEvery20thRandomVoter: 0.015,
-        rewardFractionFor1stRandomVoter: 0.005,
-        rewardFractionFor2ndRandomVoter: 0.004,
-        rewardFractionFor3rdRandomVoter: 0.003,
-      })
+      this.calculateAndAssignRewardsToVoters(thirdPlace, rewardPool, rewardFractionsForThirdsPlace)
     }
 
     return {
@@ -229,57 +210,77 @@ export class MemezatorService extends NestSchedule {
     // Here goes the hard part - calculating rewards for voters
 
     // Calculate the reward that every voter should get
-    const rewardForEveryVoter =
+    const rewardForEveryTicket =
       (rewardPool * rewardFractions.rewardFractionToEqualyShareBetweenEveryVoter) /
-        memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards.length;
+        _.sumBy(
+          memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards,
+          likesWithVotingPowersAndRewards => likesWithVotingPowersAndRewards.votingPower
+        );
 
     // In these 3 sets in the below forEach we will insert indexes
     // of some randomly selected voters.
-    const indexesOfEvery2ndRandomVoter = new Set<number>()
-    const indexesOfEvery4thRandomVoter = new Set<number>()
-    const indexesOfEvery20thRandomVoter = new Set<number>()
+    const indexesOfEvery2ndRandomTicket: {[index: number]: number} = {}
+    const indexesOfEvery4thRandomTicket: {[index: number]: number} = {}
+    const indexesOfEvery20thRandomTicket: {[index: number]: number} = {}
 
     memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards.forEach((likeWithVotingPowerAndReward, i) => {
       // then we assign the calculated reward that every voter should get
-      likeWithVotingPowerAndReward.reward = rewardForEveryVoter
+      likeWithVotingPowerAndReward.reward = rewardForEveryTicket * likeWithVotingPowerAndReward.votingPower
 
       // and by the way randomly select some voters, we will
       // use them below for further calculations.
       // Here we randomly take every 2nd, every 4th and very 20the voter.
       // Note that one voter may be selected at most once, thats why we use "else if",
       // in other words the intersection of those 3 sets is empty ;)
-      if (Math.random() > 0.5) {
-        indexesOfEvery2ndRandomVoter.add(i)
-      } else if (Math.random() > 0.75) {
-        indexesOfEvery4thRandomVoter.add(i)
-      } else if (Math.random() > 0.95) {
-        indexesOfEvery20thRandomVoter.add(i)
-      }
+      _.times(likeWithVotingPowerAndReward.votingPower, () => {
+        if (Math.random() > 0.5) {
+          if (indexesOfEvery2ndRandomTicket[i]) {
+            indexesOfEvery2ndRandomTicket[i]++
+          } else {
+            indexesOfEvery2ndRandomTicket[i] = 1
+          }
+        } else if (Math.random() > 0.75) {
+          if (indexesOfEvery4thRandomTicket[i]) {
+            indexesOfEvery4thRandomTicket[i]++
+          } else {
+            indexesOfEvery4thRandomTicket[i] = 1
+          }
+        } else if (Math.random() > 0.95) {
+          if (indexesOfEvery20thRandomTicket[i]) {
+            indexesOfEvery20thRandomTicket[i]++
+          } else {
+            indexesOfEvery20thRandomTicket[i] = 1
+          }
+        }
+      })
     })
 
     /**
      * Calculate the reward that every n-th voter should get
      */
-    const rewardForEvery2ndRandomVoter = 
-      (rewardPool * rewardFractions.rewardFractionToEqualyShareBetweenEvery2ndRandomVoter) / indexesOfEvery2ndRandomVoter.size;
-    const rewardForEvery4thRandomVoter =
-      (rewardPool * rewardFractions.rewardFractionToEqualyShareBetweenEvery4thRandomVoter) / indexesOfEvery4thRandomVoter.size;
-    const rewardForEvery20thRandomVoter =
-      (rewardPool * rewardFractions.rewardFractionToEqualyShareBetweenEvery20thRandomVoter) / indexesOfEvery20thRandomVoter.size;
+    const rewardForEvery2ndRandomTicket =
+      (rewardPool * rewardFractions.rewardFractionToEqualyShareBetweenEvery2ndRandomVoter) / _.sum(_.values(indexesOfEvery2ndRandomTicket));
+    const rewardForEvery4thRandomTicket =
+      (rewardPool * rewardFractions.rewardFractionToEqualyShareBetweenEvery4thRandomVoter) / _.sum(_.values(indexesOfEvery4thRandomTicket));
+    const rewardForEvery20thRandomTicket =
+      (rewardPool * rewardFractions.rewardFractionToEqualyShareBetweenEvery20thRandomVoter) / _.sum(_.values(indexesOfEvery20thRandomTicket));
 
     /**
      * Give every n-th voter the reward that they should get
      */
-    indexesOfEvery2ndRandomVoter.forEach(index => {
-      memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards[index].reward += rewardForEvery2ndRandomVoter
+    _.forEach(indexesOfEvery2ndRandomTicket, (howManyTimesGetsRewardForEvery2ndRandomTicket, index) => {
+      memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards[+index].reward +=
+        howManyTimesGetsRewardForEvery2ndRandomTicket * rewardForEvery2ndRandomTicket
     })
 
-    indexesOfEvery4thRandomVoter.forEach(index => {
-      memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards[index].reward += rewardForEvery4thRandomVoter
+    _.forEach(indexesOfEvery4thRandomTicket, (howManyTimesGetsRewardForEvery4thRandomTicket, index) => {
+      memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards[+index].reward +=
+        howManyTimesGetsRewardForEvery4thRandomTicket * rewardForEvery4thRandomTicket
     })
 
-    indexesOfEvery20thRandomVoter.forEach(index => {
-      memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards[index].reward += rewardForEvery20thRandomVoter
+    _.forEach(indexesOfEvery20thRandomTicket, (howManyTimesGetsRewardForEvery20thRandomTicket, index) => {
+      memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards[+index].reward +=
+      howManyTimesGetsRewardForEvery20thRandomTicket * rewardForEvery20thRandomTicket
     })
 
     /**
@@ -298,10 +299,11 @@ export class MemezatorService extends NestSchedule {
     }
 
     memeWithLikesAndVotingPowers.threeLikesWithVotingPowersAndRewardsWithBiggestRewards =
-      _.take(
-        _.sortBy(memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards, likeWithVotingPowerAndReward => likeWithVotingPowerAndReward.reward),
-        3,
-      )
+      _(memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards)
+        .sortBy(likeWithVotingPowerAndReward => likeWithVotingPowerAndReward.reward)
+        .takeRight(3)
+        .reverse()
+        .value()
   }
 
   private async createStatusesAboutWinners(
@@ -316,6 +318,7 @@ export class MemezatorService extends NestSchedule {
         memezatorOfficialAccount,
         winners.thirdPlace,
         rewardPool,
+        overallRewardFractionForThirdPlace,
         competitionStartDate,
         3,
       )
@@ -326,6 +329,7 @@ export class MemezatorService extends NestSchedule {
         memezatorOfficialAccount,
         winners.secondPlace,
         rewardPool,
+        overallRewardFractionForSecondPlace,
         competitionStartDate,
         2,
       )
@@ -336,6 +340,7 @@ export class MemezatorService extends NestSchedule {
         memezatorOfficialAccount,
         winners.firstPlace,
         rewardPool,
+        overallRewardFractionForFirstPlace,
         competitionStartDate,
         1,
       )
@@ -346,6 +351,7 @@ export class MemezatorService extends NestSchedule {
     memezatorOfficialAccount: User,
     memeWithLikesAndVotingPowers: MemeWithLikesAndVotingPowers,
     rewardPool: number,
+    overallRewardFraction: number,
     competitionStartDate: Date,
     place: 1 | 2 | 3
   ): Promise<void> {
@@ -354,7 +360,7 @@ export class MemezatorService extends NestSchedule {
     let statusText =
       `**MEME №${place} OF ${dateFns.format(competitionStartDate, "yyyy/MM/dd")}**\n` +
       `Voted: **${memeWithLikesAndVotingPowers.meme.favoritesCount}** votes\n` +
-      `Prize: **${rewardPool}** PROM\n` +
+      `Prize: **${new Big(rewardPool * overallRewardFraction).toFixed(2)}** PROM\n` +
       `\n  ` +
       `Author: ${this.getMarkdownLinkForUser(memeWithLikesAndVotingPowers.meme.author)} ${new Big(memeWithLikesAndVotingPowers.rewardForAuthor).toFixed(2)} PROM\n`
 
@@ -442,5 +448,36 @@ export class MemezatorService extends NestSchedule {
 
   private getMarkdownLinkForUser(user: User): string {
     return `[${user.displayedName}](${user.username || user.ethereumAddress})`
+  }
+
+  public getTextOfStatusAboutWinners(
+    memeWithLikesAndVotingPowers: MemeWithLikesAndVotingPowers,
+    rewardPool: number,
+    competitionStartDate: Date,
+    prizePoolFraction: number,
+    place: 1 | 2 | 3
+  ) {
+    const threeWinnerVoters = memeWithLikesAndVotingPowers.threeLikesWithVotingPowersAndRewardsWithBiggestRewards
+
+    let statusText =
+      `**MEME №${place} OF ${dateFns.format(competitionStartDate, "yyyy/MM/dd")}**\n` +
+      `Voted: **${memeWithLikesAndVotingPowers.meme.favoritesCount}** votes\n` +
+      `Prize: **${new Big(rewardPool * prizePoolFraction).toFixed(2)}** PROM\n` +
+      `\n  ` +
+      `Author: ${this.getMarkdownLinkForUser(memeWithLikesAndVotingPowers.meme.author)} ${new Big(memeWithLikesAndVotingPowers.rewardForAuthor).toFixed(2)} PROM\n`
+
+    if (threeWinnerVoters[0]) {
+      statusText += `Winner №1: **${new Big(threeWinnerVoters[0].reward).toFixed(2)}** PROM ${this.getMarkdownLinkForUser(threeWinnerVoters[0].like.user)} (${threeWinnerVoters[0].votingPower} votes)\n`
+    }
+
+    if (threeWinnerVoters[1]) {
+      statusText += `Winner №2: **${new Big(threeWinnerVoters[1].reward).toFixed(2)}** PROM ${this.getMarkdownLinkForUser(threeWinnerVoters[1].like.user)} (${threeWinnerVoters[1].votingPower} votes)\n`
+    }
+
+    if (threeWinnerVoters[2]) {
+      statusText += `Winner №3: **${new Big(threeWinnerVoters[2].reward).toFixed(2)}** PROM ${this.getMarkdownLinkForUser(threeWinnerVoters[2].like.user)} (${threeWinnerVoters[2].votingPower} votes)\n`
+    }
+
+    return statusText
   }
 }

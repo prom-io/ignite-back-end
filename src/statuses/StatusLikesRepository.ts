@@ -16,7 +16,7 @@ export class StatusLikesRepository extends Repository<StatusLike> {
         })
     }
             
-    public async getAmountOfLikedMemesCreatedTodayByUser(user: User): Promise<Number> {
+    public async getAmountOfLikedMemesCreatedTodayByUser(user: User): Promise<number> {
         const lastMidnightInGreenwich = new Date()
         lastMidnightInGreenwich.setUTCHours(0, 0, 0, 0)
         return this.count({
