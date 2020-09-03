@@ -4,6 +4,11 @@ import { Expose } from "class-transformer";
 
 export enum CannotCreateMemeReasonCode {
     LIMIT_EXCEEDED = "LIMIT_EXCEEDED",
+
+    /**
+     * To create a meme user has to have 3 created statuses and
+     * a status created in the last 24 hours
+     */
     DOESNT_HAVE_ENOUGH_POSTS = "DOESNT_HAVE_ENOUGH_POSTS",
     MISSING_AVATAR_OR_USERNAME_OR_BIO = "MISSING_AVATAR_OR_USERNAME_OR_BIO",
 
@@ -12,11 +17,6 @@ export enum CannotCreateMemeReasonCode {
      * то больше никто не может создать мем, независимо от того они сегодня уже создали его или нет.
      */
     MEMES_LIMIT_EXCEEDED_FOR_CURRENT_CONTEST = "MEMES_LIMIT_EXCEEDED_FOR_CURRENT_CONTEST",
-
-    /**
-     * To create a meme user has to have a status created in the last 24 hours
-     */
-    DOESNT_HAVE_STATUS_CREATED_IN_LAST_24H = "DOESNT_HAVE_STATUS_CREATED_IN_LAST_24H",
 }
 
 export enum CannotVoteMemeReasonCode {
