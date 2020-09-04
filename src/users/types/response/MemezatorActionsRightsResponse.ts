@@ -20,7 +20,14 @@ export enum CannotCreateMemeReasonCode {
 }
 
 export enum CannotVoteMemeReasonCode {
-    LIMIT_EXCEEDED = "LIMIT_EXCEEDED"
+    LIMIT_EXCEEDED = "LIMIT_EXCEEDED",
+
+    /**
+     * To create a meme user has to have 3 created statuses and
+     * a status created in the last 24 hours
+     */
+    DOESNT_HAVE_ENOUGH_POSTS = "DOESNT_HAVE_ENOUGH_POSTS",
+    MISSING_AVATAR_OR_USERNAME_OR_BIO = "MISSING_AVATAR_OR_USERNAME_OR_BIO",
 }
 
 export class MemezatorActionsRightsResponse {

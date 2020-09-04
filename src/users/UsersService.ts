@@ -73,12 +73,13 @@ export class UsersService {
 
     public async getMemesActionsRights(user: User): Promise<MemezatorActionsRightsResponse> {
         const memeCreationRight = await this.getMemeCreationRightForUser(user)
+        const memeVotingRight = await this.getMemeVotingRightForUser(user)
         
         const userMemeActionsRights = new MemezatorActionsRightsResponse({
             canCreate: memeCreationRight.canCreate,
             cannotCreateReasonCode: memeCreationRight.cannotCreateReasonCode,
-            canVote: true,
-            cannotVoteReasonCode: null,
+            canVote: memeVotingRight.canVote,
+            cannotVoteReasonCode: memeVotingRight.cannotVoteReasonCode,
             votingPower: null,
             ethPromTokens: null
         })
@@ -87,11 +88,6 @@ export class UsersService {
         userMemeActionsRights.ethPromTokens = new Big(balance).toFixed(2)
         userMemeActionsRights.votingPower = this.calculateVotingPower(balance)
 
-        const amountOfLikedMemes = await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(user)
-        if (amountOfLikedMemes >= 1) {
-            userMemeActionsRights.canVote = false,
-            userMemeActionsRights.cannotVoteReasonCode = CannotVoteMemeReasonCode.LIMIT_EXCEEDED
-        }
         return userMemeActionsRights; 
     }
 
@@ -104,13 +100,16 @@ export class UsersService {
             return {canCreate: false, cannotCreateReasonCode: CannotCreateMemeReasonCode.LIMIT_EXCEEDED}
         }
 
-        const countOfStatusesCreatedTodayByUser = await this.statusesRepository.countStatusesCreatedTodayByAuthor(user)
+        const {
+            countOfStatusesCreatedTodayByUser,
+            missingAvatarOrUsernameOrBio
+        } = await this.getCommonInfoForMemezatorActionsRightsForUser(user)
 
         if (user.statistics.statusesCount < 3 || !countOfStatusesCreatedTodayByUser) {
             return {canCreate: false, cannotCreateReasonCode: CannotCreateMemeReasonCode.DOESNT_HAVE_ENOUGH_POSTS}
         }
 
-        if (!user.avatar || !user.bio || !user.username || /0x[\d\w]+/.test(user.username)) {
+        if (missingAvatarOrUsernameOrBio) {
             return {canCreate: false, cannotCreateReasonCode: CannotCreateMemeReasonCode.MISSING_AVATAR_OR_USERNAME_OR_BIO}
         }
 
@@ -121,6 +120,54 @@ export class UsersService {
         }
 
         return {canCreate: true, cannotCreateReasonCode: null}
+    }
+
+    public async getMemeVotingRightForUser(
+        user: User,
+    ): Promise<{canVote: boolean, cannotVoteReasonCode?: CannotVoteMemeReasonCode}>  {
+        const amountOfLikedMemes = await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(user)
+        if (amountOfLikedMemes >= 1) {
+            return {canVote: false, cannotVoteReasonCode: CannotVoteMemeReasonCode.LIMIT_EXCEEDED}
+        }
+
+        const {
+            countOfStatusesCreatedTodayByUser,
+            missingAvatarOrUsernameOrBio
+        } = await this.getCommonInfoForMemezatorActionsRightsForUser(user)
+
+        if (user.statistics.statusesCount < 3 || !countOfStatusesCreatedTodayByUser) {
+            return {canVote: false, cannotVoteReasonCode: CannotVoteMemeReasonCode.DOESNT_HAVE_ENOUGH_POSTS}
+        }
+
+        if (missingAvatarOrUsernameOrBio) {
+            return {canVote: false, cannotVoteReasonCode: CannotVoteMemeReasonCode.MISSING_AVATAR_OR_USERNAME_OR_BIO}
+        }
+
+        return { canVote: true, cannotVoteReasonCode: null }
+    }
+
+    /**
+     * `getMemeCreationRightForUser` and `getMemeVotingRightForUser` requires same
+     * information, so i created this method to avoid code duplication
+     */
+    private async getCommonInfoForMemezatorActionsRightsForUser(
+        user: User,
+    ): Promise<{countOfStatusesCreatedTodayByUser: number, missingAvatarOrUsernameOrBio: boolean}> {
+        const countOfStatusesCreatedTodayByUser = await this.statusesRepository.countStatusesCreatedTodayByAuthor(user)
+
+        const missingAvatarOrUsernameOrBio = !(
+            !user.avatar ||
+            !user.bio ||
+            !user.username ||
+            /0x[\d\w]+/.test(user.username) ||
+            !user.displayedName ||
+            /0x[\d\w]+/.test(user.displayedName)
+        )
+
+        return {
+            countOfStatusesCreatedTodayByUser,
+            missingAvatarOrUsernameOrBio,
+        }
     }
 
     /**

@@ -7,13 +7,17 @@ import {StatusesMapper} from "./StatusesMapper";
 import {StatusResponse} from "./types/response";
 import {User} from "../users/entities";
 import { MEMEZATOR_HASHTAG } from "../common/constants";
+import { UsersService } from "../users";
+import { HttpExceptionWithCode } from "../common/http-exception-with-code";
 
 @Injectable()
 export class StatusLikesService {
-    constructor(private readonly statusLikesRepository: StatusLikesRepository,
-                private readonly statusesRepository: StatusesRepository,
-                private readonly statusesMapper: StatusesMapper) {
-    }
+    constructor(
+        private readonly statusLikesRepository: StatusLikesRepository,
+        private readonly statusesRepository: StatusesRepository,
+        private readonly statusesMapper: StatusesMapper,
+        private readonly usersService: UsersService,
+    ) {}
 
     public async createStatusLike(statusId: string, currentUser: User): Promise<StatusResponse> {
         const status = await this.statusesRepository.findById(statusId);
@@ -46,8 +50,15 @@ export class StatusLikesService {
             );
         }
 
-        if (isMeme && await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(currentUser) >= 1) {
-            throw new ForbiddenException("You can vote for a meme here only once per day")
+        if (isMeme) {
+            const memeVotingRight = await this.usersService.getMemeVotingRightForUser(currentUser)
+            if (!memeVotingRight.canVote) {
+                throw new HttpExceptionWithCode(
+                    "You can vote for a meme here only once per day",
+                    HttpStatus.FORBIDDEN,
+                    memeVotingRight.cannotVoteReasonCode
+                )
+            }
         }
 
         const statusLike: StatusLike = {
