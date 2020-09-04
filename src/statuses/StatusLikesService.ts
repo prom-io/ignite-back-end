@@ -9,6 +9,7 @@ import {User} from "../users/entities";
 import { MEMEZATOR_HASHTAG } from "../common/constants";
 import { UsersService } from "../users";
 import { HttpExceptionWithCode } from "../common/http-exception-with-code";
+import { ErrorCode } from "../common/error-code";
 
 @Injectable()
 export class StatusLikesService {
@@ -22,10 +23,11 @@ export class StatusLikesService {
     public async createStatusLike(statusId: string, currentUser: User): Promise<StatusResponse> {
         const status = await this.statusesRepository.findById(statusId);
         if (!status) {
-            throw new HttpException(
+            throw new HttpExceptionWithCode(
                 `Could not find status with id ${statusId}`,
-                HttpStatus.NOT_FOUND
-            );
+                HttpStatus.NOT_FOUND,
+                ErrorCode.STATUS_NOT_FOUND,
+            )
         }
 
         const isMeme = status.hashTags.some(hashTag => hashTag.name === MEMEZATOR_HASHTAG)
@@ -33,21 +35,27 @@ export class StatusLikesService {
         lastMidnightInCET.setHours(-2, 0, 0, 0)
 
         if (isMeme && status.createdAt.valueOf() < lastMidnightInCET.valueOf()) {
-            throw new HttpException("These are old memes. Please vote for newer ones", HttpStatus.FORBIDDEN)
+            throw new HttpExceptionWithCode(
+                "These are old memes. Please vote for newer ones",
+                HttpStatus.FORBIDDEN,
+                ErrorCode.CANNOT_VOTE_FOR_OLD_MEMES,
+            )
         }
 
         if (isMeme && status.author.id === currentUser.id) {
-            throw new HttpException(
+            throw new HttpExceptionWithCode(
                 "We appreciate that you like your meme, but please vote for another one.",
-                HttpStatus.FORBIDDEN
-            );
+                HttpStatus.FORBIDDEN,
+                ErrorCode.CANNOT_VOTE_FOR_OWN_MEME,
+            )
         }
 
         if (await this.statusLikesRepository.existByStatusAndUserNotReverted(status, currentUser)) {
-            throw new HttpException(
+            throw new HttpExceptionWithCode(
                 "Current user has already liked this status",
-                HttpStatus.FORBIDDEN
-            );
+                HttpStatus.FORBIDDEN,
+                ErrorCode.YOU_ALREADY_LIKED_THIS_STATUS,
+            )
         }
 
         if (isMeme) {
