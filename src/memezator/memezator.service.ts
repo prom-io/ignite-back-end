@@ -62,12 +62,12 @@ export class MemezatorService extends NestSchedule {
     if (options.startedInCron) {
       competitionStartDate = dateFns.sub(competitionStartDate, { hours: 1 })
     }
-    competitionStartDate.setHours(2, 0, 0, 0)
+    competitionStartDate.setHours(-2, 0, 0, 0)
 
     const competitionEndDate = new Date()
 
     if (options.startedInCron) {
-      competitionEndDate.setHours(2, 0, 0, 0)
+      competitionEndDate.setHours(-2, 0, 0, 0)
     }
 
     const formattedCompetitionStartDate = dateFns.format(competitionStartDate, "yyyy.MM.dd")

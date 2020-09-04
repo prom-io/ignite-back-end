@@ -26,7 +26,7 @@ export class StatusLikesService {
 
         const isMeme = status.hashTags.some(hashTag => hashTag.name === MEMEZATOR_HASHTAG)
         const lastMidnightInCET = new Date()
-        lastMidnightInCET.setHours(2, 0, 0, 0)
+        lastMidnightInCET.setHours(-2, 0, 0, 0)
 
         if (isMeme && status.createdAt.valueOf() < lastMidnightInCET.valueOf()) {
             throw new HttpException("These are old memes. Please vote for newer ones", HttpStatus.FORBIDDEN)
