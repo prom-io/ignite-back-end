@@ -155,7 +155,7 @@ export class UsersService {
     ): Promise<{countOfStatusesCreatedTodayByUser: number, missingAvatarOrUsernameOrBio: boolean}> {
         const countOfStatusesCreatedTodayByUser = await this.statusesRepository.countStatusesCreatedTodayByAuthor(user)
 
-        const missingAvatarOrUsernameOrBio = !(
+        const missingAvatarOrUsernameOrBio = !!(
             !user.avatar ||
             !user.bio ||
             !user.username ||
