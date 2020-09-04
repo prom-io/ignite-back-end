@@ -89,27 +89,30 @@ export class StatusLikesService {
     public async deleteStatusLike(statusId: string, currentUser: User): Promise<StatusResponse> {
         const status = await this.statusesRepository.findById(statusId);
         if (!status) {
-            throw new HttpException(
+            throw new HttpExceptionWithCode(
                 `Could not find status with id ${statusId}`,
-                HttpStatus.NOT_FOUND
-            );
+                HttpStatus.NOT_FOUND,
+                ErrorCode.STATUS_NOT_FOUND,
+            )
         }
 
-        const statusHashTags = status.hashTags.map(hashTag => hashTag.name);
-        if (statusHashTags.includes("memezator")) {
-            throw new HttpException(
+        const isMeme = status.hashTags.some(hashTag => hashTag.name === MEMEZATOR_HASHTAG)
+        if (isMeme) {
+            throw new HttpExceptionWithCode(
                 "Your vote is already in, please choose more wisely next time.",
-                HttpStatus.FORBIDDEN
-            );
+                HttpStatus.FORBIDDEN,
+                ErrorCode.CANNOT_DISLIKE_A_MEME,
+            )
         }
         
         const statusLike = await this.statusLikesRepository.findByStatusAndUserNotReverted(status, currentUser);
 
         if (!statusLike) {
-            throw new HttpException(
+            throw new HttpExceptionWithCode(
                 "Statuses which have not been liked by current user can't be unliked",
-                HttpStatus.FORBIDDEN
-            );
+                HttpStatus.FORBIDDEN,
+                ErrorCode.STATUS_HAVE_NOT_BEEN_LIKED,
+            )
         }
 
         statusLike.reverted = true;
