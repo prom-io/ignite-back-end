@@ -121,6 +121,8 @@ export class MemezatorService extends NestSchedule {
 
     for (const meme of memes) {
       const likes = await this.statusLikeRepository.findByStatus(meme)
+      this.logger.info(`calculateWinnersWithLikesAndRewards: for meme ${meme.id} found those likes: ${JSON.stringify(likes.map(like => like.id))}`)
+
       const likesWithVotingPowersAndRewards: LikeAndVotingPowerAndReward[] = []
       let votes = 0
 
@@ -442,36 +444,5 @@ export class MemezatorService extends NestSchedule {
 
   private getMarkdownLinkForUser(user: User): string {
     return `[${user.displayedName}](${user.username || user.ethereumAddress})`
-  }
-
-  public getTextOfStatusAboutWinners(
-    memeWithLikesAndVotingPowers: MemeWithLikesAndVotingPowers,
-    rewardPool: number,
-    competitionStartDate: Date,
-    prizePoolFraction: number,
-    place: 1 | 2 | 3
-  ) {
-    const threeWinnerVoters = memeWithLikesAndVotingPowers.threeLikesWithVotingPowersAndRewardsWithBiggestRewards
-
-    let statusText =
-      `**MEME №${place} OF ${dateFns.format(competitionStartDate, "yyyy/MM/dd")}**\n` +
-      `Voted: **${memeWithLikesAndVotingPowers.meme.favoritesCount}** votes\n` +
-      `Prize: **${new Big(rewardPool * prizePoolFraction).toFixed(2)}** PROM\n` +
-      `\n  ` +
-      `Author: ${this.getMarkdownLinkForUser(memeWithLikesAndVotingPowers.meme.author)} ${new Big(memeWithLikesAndVotingPowers.rewardForAuthor).toFixed(2)} PROM\n`
-
-    if (threeWinnerVoters[0]) {
-      statusText += `Winner №1: **${new Big(threeWinnerVoters[0].reward).toFixed(2)}** PROM ${this.getMarkdownLinkForUser(threeWinnerVoters[0].like.user)} (${threeWinnerVoters[0].votingPower} votes)\n`
-    }
-
-    if (threeWinnerVoters[1]) {
-      statusText += `Winner №2: **${new Big(threeWinnerVoters[1].reward).toFixed(2)}** PROM ${this.getMarkdownLinkForUser(threeWinnerVoters[1].like.user)} (${threeWinnerVoters[1].votingPower} votes)\n`
-    }
-
-    if (threeWinnerVoters[2]) {
-      statusText += `Winner №3: **${new Big(threeWinnerVoters[2].reward).toFixed(2)}** PROM ${this.getMarkdownLinkForUser(threeWinnerVoters[2].like.user)} (${threeWinnerVoters[2].votingPower} votes)\n`
-    }
-
-    return statusText
   }
 }
