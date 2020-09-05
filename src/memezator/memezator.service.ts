@@ -154,8 +154,11 @@ export class MemezatorService extends NestSchedule {
       }
 
       if (!firstPlace || votes > firstPlace.meme.favoritesCount) {
+        thirdPlace = secondPlace
+        secondPlace = firstPlace
         firstPlace = memeWithLikesAndVotingPowers
       } else if (!secondPlace || votes > secondPlace.meme.favoritesCount) {
+        thirdPlace = secondPlace
         secondPlace = memeWithLikesAndVotingPowers
       } else if (!thirdPlace || votes > thirdPlace.meme.favoritesCount) {
         thirdPlace = memeWithLikesAndVotingPowers
