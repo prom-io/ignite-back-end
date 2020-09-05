@@ -64,7 +64,7 @@ export class MemezatorService extends NestSchedule {
 
     if (options.startedInCron) {
       competitionEndDate = getCurrentMemezatorContestStartTime()
-      competitionStartDate = competitionEndDate.subtract({ day: 1 })
+      competitionStartDate = competitionEndDate.clone().subtract({ day: 1 })
     } else {
       competitionStartDate = getCurrentMemezatorContestStartTime()
       competitionEndDate = momentTZ()
