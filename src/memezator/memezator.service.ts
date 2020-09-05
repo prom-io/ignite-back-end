@@ -100,9 +100,17 @@ export class MemezatorService extends NestSchedule {
       })
 
       const transactions = await this.createTransactions(winners, memezatorContestResult.id)
-      await this.transactionsService.performTransactions(transactions).catch(err => {
-        this.logger.error(err)
-      })
+
+      if (config.additionalConfig.memezator.performTransactions) {
+        this.logger.info(`startMemezatorCompetitionSummingUp: started to perform transactions`)
+        await this.transactionsService.performTransactions(transactions).catch(err => {
+          this.logger.error(err)
+        })
+        this.logger.info(`startMemezatorCompetitionSummingUp: finished to perform transactions`)
+      } else {
+        this.logger.info(`startMemezatorCompetitionSummingUp: transactions performing is disabled`)
+      }
+      
     }
 
     return winners
