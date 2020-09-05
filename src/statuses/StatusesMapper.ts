@@ -12,6 +12,9 @@ import {MediaAttachmentsMapper} from "../media-attachments/MediaAttachmentsMappe
 import {BtfsHash} from "../btfs-sync/entities";
 import {BtfsHashesMapper} from "../btfs-sync/mappers";
 import {HashTagsMapper} from "./HashTagsMapper";
+import { LoggerService } from "nest-logger";
+import { getCurrentMemezatorContestStartTime } from "../memezator/utils";
+import { MEMEZATOR_HASHTAG } from "../common/constants";
 
 export interface ToStatusResponseOptions {
     status: Status,
@@ -33,13 +36,15 @@ export interface ToStatusResponseOptions {
 
 @Injectable()
 export class StatusesMapper {
-    constructor(private readonly userMapper: UsersMapper,
-                private readonly mediaAttachmentsMapper: MediaAttachmentsMapper,
-                private readonly btfsHashesMapper: BtfsHashesMapper,
-                private readonly statusesRepository: StatusesRepository,
-                private readonly hashTagsMapper: HashTagsMapper,
-                private readonly statusMappingOptionsProvider: StatusMappingOptionsProvider) {
-    }
+    constructor(
+        private readonly userMapper: UsersMapper,
+        private readonly mediaAttachmentsMapper: MediaAttachmentsMapper,
+        private readonly btfsHashesMapper: BtfsHashesMapper,
+        private readonly statusesRepository: StatusesRepository,
+        private readonly hashTagsMapper: HashTagsMapper,
+        private readonly statusMappingOptionsProvider: StatusMappingOptionsProvider,
+        private readonly logger: LoggerService,
+    ) {}
 
     public async toStatusResponseByStatusInfo(status: Status,
                                               statusInfo: StatusAdditionalInfo,
@@ -100,15 +105,14 @@ export class StatusesMapper {
     }
 
     public toStatusResponse(options: ToStatusResponseOptions): StatusResponse {
-        const isMeme = options.status.hashTags.some(hashTag => hashTag.name === "memezator")
-        const lastMidnightInCET = new Date()
-        lastMidnightInCET.setUTCHours(0, 0, 0, 0)
+        const isMeme = options.status.hashTags.some(hashTag => hashTag.name === MEMEZATOR_HASHTAG)
+        const currentMemezatorContestStartTime = getCurrentMemezatorContestStartTime()
 
         /**
          * If meme is created before the current competition started,
          * then it does not participate in the current competition
          */
-        const memeDoesNotParticipateInCompetition = options.status.createdAt.valueOf() < lastMidnightInCET.valueOf()
+        const memeDoesNotParticipateInCompetition = currentMemezatorContestStartTime.isAfter(options.status.createdAt)
 
         const {
             status,
@@ -131,7 +135,7 @@ export class StatusesMapper {
             account: this.userMapper.toUserResponse(status.author, userStatistics, followingAuthor, followedByAuthor),
             createdAt: status.createdAt.toISOString(),
             id: status.id,
-            favoritesCount: !isMeme || memeDoesNotParticipateInCompetition ? status.favoritesCount : null,
+            favoritesCount: (!isMeme || memeDoesNotParticipateInCompetition) ? status.favoritesCount : null,
             favourited,
             content: status.text,
             mediaAttachments: status.mediaAttachments.map(mediaAttachment => this.mediaAttachmentsMapper.toMediaAttachmentResponse(mediaAttachment)),

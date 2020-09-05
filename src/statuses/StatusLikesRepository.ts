@@ -4,6 +4,7 @@ import {EntityRepository, LessThan, MoreThan, Repository} from "typeorm";
 import {Status} from "./entities";
 import {calculateOffset, PaginationRequest} from "../utils/pagination";
 import {User} from "../users/entities";
+import { getCurrentMemezatorContestStartTime } from "../memezator/utils";
 
 @EntityRepository(StatusLike)
 export class StatusLikesRepository extends Repository<StatusLike> {
@@ -15,19 +16,19 @@ export class StatusLikesRepository extends Repository<StatusLike> {
             }
         })
     }
-            
+
     public async getAmountOfLikedMemesCreatedTodayByUser(user: User): Promise<number> {
-        const lastMidnightInCET = new Date()
-        lastMidnightInCET.setUTCHours(-2, 0, 0, 0)
+        const currentMemezatorContestStartTime = getCurrentMemezatorContestStartTime()
+
         return this.count({
             join: { alias: "statuslikes", leftJoin: { status: "statuslikes.status", hashTag: "status.hashTags" } },
             where: qb => {
                 qb.where({ 
-                    createdAt: MoreThan(lastMidnightInCET),
+                    createdAt: MoreThan(currentMemezatorContestStartTime),
                     user: user.id,
                     reverted: false
                 })
-            .andWhere("\"hashTag\".\"name\" = :name", { name: MEMEZATOR_HASHTAG });
+                .andWhere("\"hashTag\".\"name\" = :name", { name: MEMEZATOR_HASHTAG });
             }
         })
     }

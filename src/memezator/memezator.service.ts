@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { Cron, NestSchedule } from "nest-schedule";
-import { getCronExpressionForMemezatorCompetitionSumminUpCron } from "./utils";
+import { getCronExpressionForMemezatorCompetitionSumminUpCron, getCurrentMemezatorContestStartTime } from "./utils";
 import { StatusesRepository } from "../statuses/StatusesRepository";
 import _ from "lodash"
 import { StatusLikesRepository } from "../statuses/StatusLikesRepository";
@@ -29,6 +29,7 @@ import {
   overallRewardFractionForSecondPlace,
   overallRewardFractionForThirdPlace
 } from "./constants";
+import momentTZ from "moment-timezone"
 
 @Injectable()
 export class MemezatorService extends NestSchedule {
@@ -46,7 +47,7 @@ export class MemezatorService extends NestSchedule {
     super()
   }
 
-  @Cron(getCronExpressionForMemezatorCompetitionSumminUpCron())
+  @Cron(getCronExpressionForMemezatorCompetitionSumminUpCron(), { enable: false })
   async memezatorCompetitionSummingUpCron(): Promise<void> {
     if (!config.additionalConfig.memezator.disableCompetitionSummingUpCron) {
       this.logger.log("Memezator competition summing up cron job started")
@@ -56,36 +57,40 @@ export class MemezatorService extends NestSchedule {
       this.logger.warn("Memezator competition summing up cron job is disabled")
     }
   }
-  
+
   async startMemezatorCompetitionSummingUp(options: {startedInCron: boolean, dryRun: boolean}): Promise<WinnerMemesWithLikes> {
-    let competitionStartDate = new Date()
-    if (options.startedInCron) {
-      competitionStartDate = dateFns.sub(competitionStartDate, { hours: 1 })
-    }
-    competitionStartDate.setHours(-2, 0, 0, 0)
-
-    const competitionEndDate = new Date()
+    let competitionEndDate: momentTZ.Moment;
+    let competitionStartDate: momentTZ.Moment;
 
     if (options.startedInCron) {
-      competitionEndDate.setHours(-2, 0, 0, 0)
+      competitionEndDate = getCurrentMemezatorContestStartTime()
+      competitionStartDate = competitionEndDate.clone().subtract({ day: 1 })
+    } else {
+      competitionStartDate = getCurrentMemezatorContestStartTime()
+      competitionEndDate = momentTZ()
     }
 
-    const formattedCompetitionStartDate = dateFns.format(competitionStartDate, "yyyy.MM.dd")
+    this.logger.info(`startMemezatorCompetitionSummingUp: ${JSON.stringify({competitionStartDate, competitionEndDate})}`)
+
+    const formattedCompetitionStartDate = competitionStartDate.format("YYYY.MM.DD")
 
     const rewardPool = config.additionalConfig.memezator.rewardPoolsByDate[formattedCompetitionStartDate]
+
     if (!rewardPool) {
       throw new InternalServerErrorException(`Not found memezator reward for ${formattedCompetitionStartDate}`)
     }
 
+    this.logger.info(`Reward pool for ${formattedCompetitionStartDate} (${competitionStartDate.format()}) is ${rewardPool}`)
+
     const winners = await this.calculateWinnersWithLikesAndRewards(
       rewardPool,
-      competitionStartDate,
-      competitionEndDate,
+      competitionStartDate.toDate(),
+      competitionEndDate.toDate(),
       options.dryRun ? false : true
     )
 
     if (!options.dryRun) {
-      await this.createStatusesAboutWinners(winners, rewardPool, competitionStartDate)
+      await this.createStatusesAboutWinners(winners, rewardPool, competitionStartDate.toDate())
 
       const memezatorContestResult = await this.memezatorContestResultRepository.save({
         id: uuid(),
@@ -95,9 +100,17 @@ export class MemezatorService extends NestSchedule {
       })
 
       const transactions = await this.createTransactions(winners, memezatorContestResult.id)
-      await this.transactionsService.performTransactions(transactions).catch(err => {
-        this.logger.error(err)
-      })
+
+      if (config.additionalConfig.memezator.performTransactions) {
+        this.logger.info(`startMemezatorCompetitionSummingUp: started to perform transactions`)
+        await this.transactionsService.performTransactions(transactions).catch(err => {
+          this.logger.error(err)
+        })
+        this.logger.info(`startMemezatorCompetitionSummingUp: finished to perform transactions`)
+      } else {
+        this.logger.info(`startMemezatorCompetitionSummingUp: transactions performing is disabled`)
+      }
+      
     }
 
     return winners
@@ -149,8 +162,11 @@ export class MemezatorService extends NestSchedule {
       }
 
       if (!firstPlace || votes > firstPlace.meme.favoritesCount) {
+        thirdPlace = secondPlace
+        secondPlace = firstPlace
         firstPlace = memeWithLikesAndVotingPowers
       } else if (!secondPlace || votes > secondPlace.meme.favoritesCount) {
+        thirdPlace = secondPlace
         secondPlace = memeWithLikesAndVotingPowers
       } else if (!thirdPlace || votes > thirdPlace.meme.favoritesCount) {
         thirdPlace = memeWithLikesAndVotingPowers

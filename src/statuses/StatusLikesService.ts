@@ -10,6 +10,7 @@ import { MEMEZATOR_HASHTAG } from "../common/constants";
 import { UsersService } from "../users";
 import { HttpExceptionWithCode } from "../common/http-exception-with-code";
 import { ErrorCode } from "../common/error-code";
+import { getCurrentMemezatorContestStartTime } from "../memezator/utils";
 
 @Injectable()
 export class StatusLikesService {
@@ -31,10 +32,9 @@ export class StatusLikesService {
         }
 
         const isMeme = status.hashTags.some(hashTag => hashTag.name === MEMEZATOR_HASHTAG)
-        const lastMidnightInCET = new Date()
-        lastMidnightInCET.setHours(-2, 0, 0, 0)
+        const currentMemezatorContestStartTime = getCurrentMemezatorContestStartTime()
 
-        if (isMeme && status.createdAt.valueOf() < lastMidnightInCET.valueOf()) {
+        if (isMeme && status.createdAt.valueOf() < currentMemezatorContestStartTime.valueOf()) {
             throw new HttpExceptionWithCode(
                 "These are old memes. Please vote for newer ones",
                 HttpStatus.FORBIDDEN,

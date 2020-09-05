@@ -5,6 +5,7 @@ import {HashTag, Status, StatusAdditionalInfo, StatusInfoMap, StatusLike, Status
 import {Language, User} from "../users/entities";
 import {calculateOffset, PaginationRequest} from "../utils/pagination";
 import {UserSubscription} from "../user-subscriptions/entities";
+import { getCurrentMemezatorContestStartTime } from "../memezator/utils";
 
 @EntityRepository(Status)
 export class StatusesRepository extends Repository<Status> {
@@ -228,22 +229,22 @@ export class StatusesRepository extends Repository<Status> {
     }
 
     public async findOneMemeByAuthorCreatedToday(user: User): Promise<Status> {
-        const lastMidnightInCET = new Date()
-        lastMidnightInCET.setUTCHours(-2, 0, 0, 0)
+        const currentMemezatorContestStartTime = getCurrentMemezatorContestStartTime()
+
         return this.createStatusQueryBuilder()
             .where(`"filteredHashTag"."name" = :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
             .andWhere(`status."authorId" = :userId`, {userId: user.id})
-            .andWhere(`status."createdAt" >= :createdAtAfter`, { createdAtAfter: lastMidnightInCET })
+            .andWhere(`status."createdAt" >= :createdAtAfter`, { createdAtAfter: currentMemezatorContestStartTime })
             .getOne()
     }
 
     public async countMemesCreatedToday(): Promise<number> {
-        const lastMidnightInCET = new Date()
-        lastMidnightInCET.setUTCHours(-2, 0, 0, 0)
+        const currentMemezatorContestStartTime = getCurrentMemezatorContestStartTime()
+
         return this.createQueryBuilder("status")
             .leftJoinAndSelect("status.hashTags", "filteredHashTag")
             .where(`"filteredHashTag"."name" = :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
-            .andWhere(`status."createdAt" >= :createdAtAfter`, { createdAtAfter: lastMidnightInCET })
+            .andWhere(`status."createdAt" >= :createdAtAfter`, { createdAtAfter: currentMemezatorContestStartTime })
             .getCount()
     }
 
