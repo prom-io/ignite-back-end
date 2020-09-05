@@ -57,11 +57,11 @@ export class MemezatorService extends NestSchedule {
       this.logger.warn("Memezator competition summing up cron job is disabled")
     }
   }
-  
+
   async startMemezatorCompetitionSummingUp(options: {startedInCron: boolean, dryRun: boolean}): Promise<WinnerMemesWithLikes> {
     let competitionEndDate: momentTZ.Moment;
     let competitionStartDate: momentTZ.Moment;
-    
+
     if (options.startedInCron) {
       competitionEndDate = getCurrentMemezatorContestStartTime()
       competitionStartDate = competitionEndDate.subtract({ day: 1 })
@@ -70,10 +70,12 @@ export class MemezatorService extends NestSchedule {
       competitionEndDate = momentTZ()
     }
 
+    this.logger.info(`startMemezatorCompetitionSummingUp: ${JSON.stringify({competitionStartDate, competitionEndDate})}`)
+
     const formattedCompetitionStartDate = competitionStartDate.format("YYYY.MM.DD")
-    
+
     const rewardPool = config.additionalConfig.memezator.rewardPoolsByDate[formattedCompetitionStartDate]
-    
+
     if (!rewardPool) {
       throw new InternalServerErrorException(`Not found memezator reward for ${formattedCompetitionStartDate}`)
     }
