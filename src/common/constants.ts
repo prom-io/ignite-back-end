@@ -1,1 +1,1 @@
-export const MEMEZATOR_HASHTAG = 'memezator'
+export const MEMEZATOR_HASHTAG = "memezator";

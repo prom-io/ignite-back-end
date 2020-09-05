@@ -16,6 +16,8 @@ import {asyncMap} from "../utils/async-map";
 import {UsersService} from "../users";
 import {HttpExceptionWithCode} from "../common/http-exception-with-code";
 import {MEMEZATOR_HASHTAG} from "../common/constants";
+import _ from "lodash"
+import { ErrorCode } from "../common/error-code";
 
 @Injectable()
 export class StatusesService {
@@ -55,6 +57,14 @@ export class StatusesService {
                     memeCreationRight.cannotCreateReasonCode
                 )
             }
+        }
+
+        if (doesContainMemeHashTag && _.isEmpty(createStatusRequest.mediaAttachments)) {
+            throw new HttpExceptionWithCode(
+                "Please attach file to take part in memezator contest",
+                HttpStatus.FORBIDDEN,
+                ErrorCode.CANNOT_CREATE_MEME_WITHOUT_ATTACHMENTS
+            )
         }
 
         let mediaAttachments: MediaAttachment[] = [];
