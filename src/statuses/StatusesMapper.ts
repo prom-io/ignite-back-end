@@ -12,6 +12,7 @@ import {MediaAttachmentsMapper} from "../media-attachments/MediaAttachmentsMappe
 import {BtfsHash} from "../btfs-sync/entities";
 import {BtfsHashesMapper} from "../btfs-sync/mappers";
 import {HashTagsMapper} from "./HashTagsMapper";
+import moment from "moment-timezone"
 
 export interface ToStatusResponseOptions {
     status: Status,
@@ -101,14 +102,13 @@ export class StatusesMapper {
 
     public toStatusResponse(options: ToStatusResponseOptions): StatusResponse {
         const isMeme = options.status.hashTags.some(hashTag => hashTag.name === "memezator")
-        const lastMidnightInCET = new Date()
-        lastMidnightInCET.setUTCHours(0, 0, 0, 0)
+        const lastMidnightInCet = moment().tz("Europe/Berlin").hours(0).minutes(0).seconds(0).milliseconds(0)
 
         /**
          * If meme is created before the current competition started,
          * then it does not participate in the current competition
          */
-        const memeDoesNotParticipateInCompetition = options.status.createdAt.valueOf() < lastMidnightInCET.valueOf()
+        const memeDoesNotParticipateInCompetition = lastMidnightInCet.isBefore(options.status.createdAt)
 
         const {
             status,
