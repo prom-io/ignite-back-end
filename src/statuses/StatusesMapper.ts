@@ -13,7 +13,7 @@ import {BtfsHash} from "../btfs-sync/entities";
 import {BtfsHashesMapper} from "../btfs-sync/mappers";
 import {HashTagsMapper} from "./HashTagsMapper";
 import { LoggerService } from "nest-logger";
-import { getLastMemezatorContestStartTime } from "../memezator/utils";
+import { getCurrentMemezatorContestStartTime } from "../memezator/utils";
 
 export interface ToStatusResponseOptions {
     status: Status,
@@ -105,13 +105,13 @@ export class StatusesMapper {
 
     public toStatusResponse(options: ToStatusResponseOptions): StatusResponse {
         const isMeme = options.status.hashTags.some(hashTag => hashTag.name === "memezator")
-        const lastMemezatorContestStartTime = getLastMemezatorContestStartTime()
+        const currentMemezatorContestStartTime = getCurrentMemezatorContestStartTime()
 
         /**
          * If meme is created before the current competition started,
          * then it does not participate in the current competition
          */
-        const memeDoesNotParticipateInCompetition = lastMemezatorContestStartTime.isAfter(options.status.createdAt)
+        const memeDoesNotParticipateInCompetition = currentMemezatorContestStartTime.isAfter(options.status.createdAt)
 
         const {
             status,

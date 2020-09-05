@@ -1,4 +1,4 @@
-import momentTZ from "moment-timezone"
+import momentTZ, { Moment } from "moment-timezone"
 
 /**
  * Cron with this expression will run every day at 00:00 in greenwich time
@@ -13,7 +13,7 @@ export function getCronExpressionForMemezatorCompetitionSumminUpCron(): string {
 /**
  * The memezator contest starts at midnight in CET, which is the midnight in Berlin. 
  */
-export function getLastMemezatorContestStartTime() {
+export function getCurrentMemezatorContestStartTime(): Moment {
   const lastMidnightInCet = momentTZ().tz("Europe/Berlin").hours(0).minutes(0).seconds(0).milliseconds(0)
 
   return lastMidnightInCet
