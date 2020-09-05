@@ -14,6 +14,7 @@ import {BtfsHashesMapper} from "../btfs-sync/mappers";
 import {HashTagsMapper} from "./HashTagsMapper";
 import { LoggerService } from "nest-logger";
 import { getCurrentMemezatorContestStartTime } from "../memezator/utils";
+import { MEMEZATOR_HASHTAG } from "../common/constants";
 
 export interface ToStatusResponseOptions {
     status: Status,
@@ -104,7 +105,7 @@ export class StatusesMapper {
     }
 
     public toStatusResponse(options: ToStatusResponseOptions): StatusResponse {
-        const isMeme = options.status.hashTags.some(hashTag => hashTag.name === "memezator")
+        const isMeme = options.status.hashTags.some(hashTag => hashTag.name === MEMEZATOR_HASHTAG)
         const currentMemezatorContestStartTime = getCurrentMemezatorContestStartTime()
 
         /**
