@@ -10,6 +10,9 @@ export function getCronExpressionForMemezatorCompetitionSumminUpCron(): string {
   return `${midnightInCET.getMinutes()} ${midnightInCET.getHours()} * * *`
 }
 
+/**
+ * The memezator contest starts at midnight in CET, which is the midnight in Berlin. 
+ */
 export function getLastMemezatorContestStartTime() {
   const lastMidnightInCet = momentTZ().tz("Europe/Berlin").hours(0).minutes(0).seconds(0).milliseconds(0)
 
