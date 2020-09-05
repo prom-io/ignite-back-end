@@ -4,7 +4,7 @@ import momentTZ from "moment-timezone"
  * Cron with this expression will run every day at 00:00 in greenwich time
  */
 export function getCronExpressionForMemezatorCompetitionSumminUpCron(): string {
-  const lastMidnightInCetConvertedToLocalTime = momentTZ().tz("Asia/Tashkent").hours(0).minutes(13).seconds(0).milliseconds(0).local()
+  const lastMidnightInCetConvertedToLocalTime = momentTZ().tz("Asia/Tashkent").hours(0).minutes(18).seconds(0).milliseconds(0).local()
 
   const cronExpression = `${lastMidnightInCetConvertedToLocalTime.minutes()} ${lastMidnightInCetConvertedToLocalTime.hours()} * * *`
 
