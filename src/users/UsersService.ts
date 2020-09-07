@@ -266,29 +266,33 @@ export class UsersService {
                      this.log.log('setPasswordHashInBlockchain Timeout of 40s exceeded')
                 }
             }, 40000)
-             try {
-                 await this.passwordHashApiClient.setEthereumPasswordHash({
-                     address: address,
-                     passwordHash,
-                     privateKey
-                 });
+
+            try {
+                await this.passwordHashApiClient.setEthereumPasswordHash({
+                    address,
+                    passwordHash,
+                    privateKey
+                });
+            }   catch (error) {
+                this.log.log(error);
+            } 
+
+            try {
                  await this.passwordHashApiClient.setBinancePasswordHash({
                      address: address,
                      passwordHash,
                      privateKey
                  });
- 
-                 if(!isResolved){
-                     isResolved = true
-                     resolve()
-                 }
-             } catch (error) {
+
+            } catch (error) {
                  this.log.log(error);
-                 if(!isResolved){
-                     isResolved = true
-                     resolve()
-                 }
-             }
+                 
+            } finally {
+                if (!isResolved) {
+                    isResolved = true
+                    resolve()
+                }
+            }
       })
      }
 
