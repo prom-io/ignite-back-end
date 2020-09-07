@@ -283,28 +283,30 @@ export class UsersService {
                 }
             }, 40000)
             try {
-                 await this.passwordHashApiClient.setEthereumPasswordHash({
-                     address,
-                     passwordHash,
-                     privateKey
-                 });
+                await this.passwordHashApiClient.setEthereumPasswordHash({
+                    address,
+                    passwordHash,
+                    privateKey
+                });
+            }   catch (error) {
+                this.log.log(error);
+            } 
+
+            try {
                  await this.passwordHashApiClient.setBinancePasswordHash({
-                     address,
-                     passwordHash,
-                     privateKey
+                    address: address,
+                    passwordHash,
+                    privateKey
                  });
- 
-                 if (!isResolved) {
-                     isResolved = true
-                     resolve()
-                 }
-             } catch (error) {
+
+            } catch (error) {
                  this.log.log(error);
-                 if (!isResolved) {
-                     isResolved = true
-                     resolve()
-                 }
-             }
+            } finally {
+                if (!isResolved) {
+                    isResolved = true
+                    resolve()
+                }
+            }
       })
      }
 
