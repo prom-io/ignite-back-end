@@ -14,6 +14,7 @@ export interface MemeWithLikesAndVotingPowers {
 }
 
 export interface WinnerMemesWithLikes {
+  idsOfMemes?: string[],
   firstPlace?: MemeWithLikesAndVotingPowers | null;
   secondPlace?: MemeWithLikesAndVotingPowers | null;
   thirdPlace?: MemeWithLikesAndVotingPowers | null;

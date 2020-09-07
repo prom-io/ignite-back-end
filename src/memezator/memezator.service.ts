@@ -125,8 +125,9 @@ export class MemezatorService extends NestSchedule {
     // Memes created after last greenwich midnight
     const memes = await this.statusesRepository.findContainingMemeHashTagAndCreatedAtBetween(competitionStartDate, competitionEndDate)
 
+    const idsOfMemes: string[] = memes.map(meme => meme.id)
     this.logger.info(`calculateWinnersWithLikesAndRewards: found ${memes.length} memes created between ${competitionStartDate.toISOString()} and ${competitionEndDate.toISOString()}`)
-    this.logger.info(`calculateWinnersWithLikesAndRewards: IDs of memes: ${JSON.stringify(memes.map(meme => meme.id))}`)
+    this.logger.info(`calculateWinnersWithLikesAndRewards: IDs of memes: ${JSON.stringify(idsOfMemes)}`)
 
     let firstPlace: MemeWithLikesAndVotingPowers | null = null
     let secondPlace: MemeWithLikesAndVotingPowers | null = null
@@ -186,6 +187,7 @@ export class MemezatorService extends NestSchedule {
     }
 
     return {
+      idsOfMemes,
       firstPlace,
       secondPlace,
       thirdPlace
