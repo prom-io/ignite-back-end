@@ -5,7 +5,7 @@ import { StatusLikesService } from './../statuses/StatusLikesService';
 import { MemezatorActionsRightsResponse, UserMemeActionsRightsReasonCode } from './types/response/MemezatorActionsRightsResponse';
 import { StatusesService } from './../statuses/StatusesService';
 import { asyncForEach } from './../utils/async-foreach';
-import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
+import {HttpException, HttpStatus, Injectable, Logger} from "@nestjs/common";
 import {MailerService} from "@nestjs-modules/mailer";
 import {LoggerService} from "nest-logger";
 import uuid from "uuid/v4";
@@ -61,7 +61,7 @@ export class UsersService {
         const skip = searchFilters.skip;
         const take = searchFilters.take;
 
-        const countByUsername: number = await this.userRepository.getCountByUsernameLike(formattedQuery)
+        const countByUsername: number = await this.userRepository.countByUsernameLike(formattedQuery)
         let selectedUsersByUsername: User[] = [];
         let selectedUsersByDisplayedname: User[] = [];
 
@@ -72,11 +72,12 @@ export class UsersService {
         if(countByUsername < take + skip && skip < countByUsername) {
             selectedUsersByUsername = await this.userRepository.searchByUsernameLike(formattedQuery, undefined, skip)
             let numberOfItemsByDisplayedname = take - selectedUsersByUsername.length;
-            selectedUsersByDisplayedname = await this.userRepository.searchByDisplayedNameLikeNotInUsername(formattedQuery, numberOfItemsByDisplayedname)
+            selectedUsersByDisplayedname = await this.userRepository.searchByDisplayedNameLikeNotInUsername(formattedQuery, numberOfItemsByDisplayedname, undefined)
         }
 
         if(countByUsername < (take + skip) && skip >= countByUsername) {
-            selectedUsersByDisplayedname = await this.userRepository.searchByDisplayednameLike(formattedQuery, take)
+            const skipUserByDisplayedName = skip - countByUsername;
+            selectedUsersByDisplayedname = await this.userRepository.searchByDisplayedNameLikeNotInUsername(formattedQuery, take, skipUserByDisplayedName)
         }
 
         const users = selectedUsersByUsername.concat(selectedUsersByDisplayedname)
