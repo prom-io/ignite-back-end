@@ -22,8 +22,8 @@ export class MemezatorController {
     @Query() options: GetResultsForGivenRangeOfDatesOptions,
   ) {
     return this.memezatorService.calculateMemezatorContestResultsForGivenRangeOfDate(
-      momentTZ(options.competitionStartDate),
-      momentTZ(options.competitionEndDate),
+      momentTZ(options.competitionStartDate).tz("Europe/Berlin"),
+      momentTZ(options.competitionEndDate).tz("Europe/Berlin"),
       options.rewardPool,
     )
   }
