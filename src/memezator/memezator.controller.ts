@@ -1,5 +1,7 @@
-import { Controller, Post, Get, Body } from "@nestjs/common";
+import { Controller, Post, Get, Body, Query } from "@nestjs/common";
 import { MemezatorService } from "./memezator.service";
+import { GetResultsForGivenRangeOfDatesOptions } from "./types/request/GetResultsForGivenRangeOfDatesOptions";
+import momentTZ from "moment-timezone"
 
 @Controller("api/v1/memezator")
 export class MemezatorController {
@@ -13,6 +15,17 @@ export class MemezatorController {
   ) {
     const startedInCron = typeof startedInCronRaw === "boolean" ?  startedInCronRaw : false;
     return this.memezatorService.startMemezatorCompetitionSummingUp({ startedInCron, dryRun: false });
+  }
+
+  @Get("calculate-memezator-contest-results-for-given-range-of-date")
+  public calculateMemezatorContestResultsForGivenRangeOfDate(
+    @Query() options: GetResultsForGivenRangeOfDatesOptions,
+  ) {
+    return this.memezatorService.calculateMemezatorContestResultsForGivenRangeOfDate(
+      momentTZ(options.competitionStartDate),
+      momentTZ(options.competitionEndDate),
+      options.rewardPool,
+    )
   }
 
   @Get("dry-run-competition-summing-up")

@@ -192,6 +192,29 @@ export class MemezatorService extends NestSchedule {
     }
   }
 
+  async calculateMemezatorContestResultsForGivenRangeOfDate(
+    competitionStartDate: momentTZ.Moment,
+    competitionEndDate: momentTZ.Moment,
+    rewardPool: number,
+  ) {
+    this.logger.info(`startMemezatorCompetitionSummingUp: ${JSON.stringify({competitionStartDate, competitionEndDate})}`)
+
+    const formattedCompetitionStartDate = competitionStartDate.format("YYYY.MM.DD")
+
+    this.logger.info(`Reward pool for ${formattedCompetitionStartDate} (${competitionStartDate.format()}) is ${rewardPool}`)
+
+    const winners = await this.calculateWinnersWithLikesAndRewards(
+      rewardPool,
+      competitionStartDate.toDate(),
+      competitionEndDate.toDate(),
+      true,
+    )
+
+    const transactions = await this.createTransactions(winners, null, false)
+
+    return {winners, transactions}
+  }
+
   calculateVotingPower(balance: string): number {
     const promTokens = new Big(balance)
     if (promTokens.lt(2)) {
@@ -398,7 +421,11 @@ export class MemezatorService extends NestSchedule {
     )
   }
 
-  private async createTransactions(winners: WinnerMemesWithLikes, memezatorContestResultId: string): Promise<Transaction[]> {
+  private async createTransactions(
+    winners: WinnerMemesWithLikes,
+    memezatorContestResultId: string,
+    saveToDB: boolean = true,
+  ): Promise<Transaction[]> {
     const inputsForTransactionsCreation: Array<{txnTo: string, txnSum: string}> = []
 
     if (winners.firstPlace) {
@@ -455,7 +482,11 @@ export class MemezatorService extends NestSchedule {
       })
     )
 
-    return await this.transactionsRepository.save(transactions)
+    if (saveToDB) {
+      await this.transactionsRepository.save(transactions)
+    }
+
+    return transactions
   }
 
   private getMarkdownLinkForUser(user: User): string {
