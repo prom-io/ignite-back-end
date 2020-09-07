@@ -63,7 +63,7 @@ export class UsersService {
 
         const countByUsername: number = await this.userRepository.countByUsernameLike(formattedQuery)
         let selectedUsersByUsername: User[] = [];
-        let selectedUsersByDisplayedname: User[] = [];
+        let selectedUsersByDisplayname: User[] = [];
 
         if(countByUsername >= take + skip) {
             selectedUsersByUsername = await this.userRepository.searchByUsernameLike(formattedQuery, take, skip)
@@ -71,16 +71,16 @@ export class UsersService {
 
         if(countByUsername < take + skip && skip < countByUsername) {
             selectedUsersByUsername = await this.userRepository.searchByUsernameLike(formattedQuery, undefined, skip)
-            let numberOfItemsByDisplayedname = take - selectedUsersByUsername.length;
-            selectedUsersByDisplayedname = await this.userRepository.searchByDisplayedNameLikeNotInUsername(formattedQuery, numberOfItemsByDisplayedname, undefined)
+            let numberOfItemsByDisplayname = take - selectedUsersByUsername.length;
+            selectedUsersByDisplayname = await this.userRepository.searchByDisplayedNameLikeNotInUsername(formattedQuery, numberOfItemsByDisplayname, undefined)
         }
 
         if(countByUsername < (take + skip) && skip >= countByUsername) {
-            const skipUserByDisplayedName = skip - countByUsername;
-            selectedUsersByDisplayedname = await this.userRepository.searchByDisplayedNameLikeNotInUsername(formattedQuery, take, skipUserByDisplayedName)
+            const skipUserByDisplayName = skip - countByUsername;
+            selectedUsersByDisplayname = await this.userRepository.searchByDisplayedNameLikeNotInUsername(formattedQuery, take, skipUserByDisplayName)
         }
 
-        const users = selectedUsersByUsername.concat(selectedUsersByDisplayedname)
+        const users = selectedUsersByUsername.concat(selectedUsersByDisplayname)
 
         return asyncMap(users, async user => await this.usersMapper.toUserResponseAsync(user, currentUser))
     }
