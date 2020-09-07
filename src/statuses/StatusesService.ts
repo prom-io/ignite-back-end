@@ -71,8 +71,8 @@ export class StatusesService {
         }
 
         if(referredStatus && createStatusRequest.statusReferenceType === StatusReferenceType.COMMENT) {
-            referredStatus.commentsCount++
-            await this.statusesRepository.save(referredStatus)
+            await this.statusesRepository.increment({id: referredStatus.id}, "commentsCount", 1)
+            referredStatus.commentsCount += 1;
         }
 
         const hashTags = await this.hashTagsRetriever.getHashTagsEntitiesFromText(
