@@ -63,7 +63,7 @@
     "mime-type": "^3.0.7",
     "multiaddr": "^7.4.3",
     "nedb": "^1.8.0",
-    "nest-logger": "^2.1.0",
+    "nest-logger": "^6.0.0",
     "nest-schedule": "^0.6.4",
     "nodemailer": "^6.4.6",
     "optional-require": "^1.0.0",
