@@ -342,11 +342,12 @@ export class UsersService {
             } 
 
             try {
-                 await this.passwordHashApiClient.setBinancePasswordHash({
-                    address: address,
-                    passwordHash,
-                    privateKey
-                 });
+                // temporarily commented
+                // await this.passwordHashApiClient.setBinancePasswordHash({
+                //     address,
+                //     passwordHash,
+                //     privateKey
+                // });
 
             } catch (error) {
                  this.log.log(error);
