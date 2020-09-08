@@ -400,16 +400,16 @@ export class MemezatorService extends NestSchedule {
 
   private async createTransactions(winners: WinnerMemesWithLikes, memezatorContestResultId: string): Promise<Transaction[]> {
     const inputsForTransactionsCreation: Array<{txnTo: string, txnSum: string}> = []
-    
+
     if (winners.firstPlace) {
       inputsForTransactionsCreation.push(
         {
           txnTo: winners.firstPlace.meme.author.ethereumAddress,
-          txnSum: _.toString(winners.firstPlace.rewardForAuthor)
+          txnSum: new Big(winners.firstPlace.rewardForAuthor).round(18).toString()
         },
         ...winners.firstPlace.likesWithVotingPowersAndRewards.map(likeWithVotingPowerAndReward => ({
           txnTo: likeWithVotingPowerAndReward.like.user.ethereumAddress,
-          txnSum: _.toString(likeWithVotingPowerAndReward.reward)
+          txnSum: new Big(likeWithVotingPowerAndReward.reward).round(18).toString()
         }))
       )
     }
@@ -418,11 +418,11 @@ export class MemezatorService extends NestSchedule {
       inputsForTransactionsCreation.push(
         {
           txnTo: winners.secondPlace.meme.author.ethereumAddress,
-          txnSum: _.toString(winners.secondPlace.rewardForAuthor)
+          txnSum: new Big(winners.secondPlace.rewardForAuthor).round(18).toString()
         },
         ...winners.secondPlace.likesWithVotingPowersAndRewards.map(likeWithVotingPowerAndReward => ({
           txnTo: likeWithVotingPowerAndReward.like.user.ethereumAddress,
-          txnSum: _.toString(likeWithVotingPowerAndReward.reward)
+          txnSum: new Big(likeWithVotingPowerAndReward.reward).round(18).toString()
         }))
       )
     }
@@ -431,11 +431,11 @@ export class MemezatorService extends NestSchedule {
       inputsForTransactionsCreation.push(
         {
           txnTo: winners.thirdPlace.meme.author.ethereumAddress,
-          txnSum: _.toString(winners.thirdPlace.rewardForAuthor)
+          txnSum: new Big(winners.thirdPlace.rewardForAuthor).round(18).toString()
         },
         ...winners.thirdPlace.likesWithVotingPowersAndRewards.map(likeWithVotingPowerAndReward => ({
           txnTo: likeWithVotingPowerAndReward.like.user.ethereumAddress,
-          txnSum: _.toString(likeWithVotingPowerAndReward.reward)
+          txnSum: new Big(likeWithVotingPowerAndReward.reward).round(18).toString()
         }))
       )
     }
