@@ -34,7 +34,7 @@ export class TransactionsService {
           this.logger.info(`performTransactions: transaction complete: ${JSON.stringify(resultingTransaction)}`)
         })
         .catch(err => {
-          this.logger.error(`performTransactions: error occurred: ${JSON.stringify(err)}`)
+          this.logger.error(`performTransactions: error occurred: ${JSON.stringify(err)} for transaction ${JSON.stringify(transaction)}`)
         })
     }
 

@@ -33,4 +33,11 @@ export class MemezatorController {
     return this.memezatorService.startMemezatorCompetitionSummingUp({ startedInCron: false, dryRun: true })
   }
 
+  @Post("perform-transactions")
+  async performTransactions(
+    @Body() transactionsPlainObjects: object[],
+  ) {
+    return this.memezatorService.createAndPerformTransactions(transactionsPlainObjects as any)
+  }
+
 }

@@ -491,6 +491,18 @@ export class MemezatorService extends NestSchedule {
     return transactions
   }
 
+  public async createAndPerformTransactions(transactionsPlainObjects: Transaction[]): Promise<Transaction[]> {
+    const transactions = await this.transactionsRepository.save(transactionsPlainObjects)
+    
+    this.logger.info(`startMemezatorCompetitionSummingUp: started to perform transactions`)
+    await this.transactionsService.performTransactions(transactions).catch(err => {
+      this.logger.error(err)
+    })
+    this.logger.info(`startMemezatorCompetitionSummingUp: finished to perform transactions`)
+
+    return transactions;
+  }
+
   private getMarkdownLinkForUser(user: User): string {
     return `[${user.displayedName}](${user.username || user.ethereumAddress})`
   }
