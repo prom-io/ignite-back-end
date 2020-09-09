@@ -6,14 +6,15 @@ export class statusesRepostsCount1599040152931 implements MigrationInterface {
         await queryRunner.addColumn('status', new TableColumn({type: 'int', name: 'repostsCount', default: 0}));
         await queryRunner.query(`
         UPDATE status
-	        SET "repostsCount" = reposts_count_per_status.reposts_count
+	    SET "repostsCount" = reposts_count_per_status.reposts_count
 	        FROM (
                 SELECT count(id) AS reposts_count, status."referredStatusId" AS status_id
                 FROM status 
-                WHERE "referredStatusId" IS NOT NULL
+                WHERE "referredStatusId" IS NOT NULL AND "statusReferenceType" = 'REPOST'
                 GROUP BY status_id
-                ) AS reposts_count_per_status
-	        WHERE status.id = reposts_count_per_status.status_id;
+                ) 
+        AS reposts_count_per_status
+	    WHERE status.id = reposts_count_per_status.status_id;
         `)
     }
 
