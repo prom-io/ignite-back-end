@@ -1,4 +1,4 @@
-import {HttpException, HttpStatus, Injectable, BadRequestException} from "@nestjs/common";
+import {HttpException, HttpStatus, Injectable, BadRequestException, Logger} from "@nestjs/common";
 import {LoggerService} from "nest-logger";
 import {Response} from "express";
 import {promisify} from "util"
@@ -23,6 +23,7 @@ export class MediaAttachmentsService {
                 private readonly mediaAttachmentsMapper: MediaAttachmentsMapper,
                 private readonly skynetClient: SkynetClient,
                 private readonly log: LoggerService) {
+
     }
 
     public async saveMediaAttachment(multipartFile: MultipartFile): Promise<MediaAttachmentResponse> {
@@ -69,14 +70,18 @@ export class MediaAttachmentsService {
 
         // if the preview is requested, then find or create it if it does not exist in required size
         if (options && options.size) {
-            let previewInRequiredSize =
-                await this.mediaAttachmentRepository.findPreviewByOriginalIdAndSize(mediaAttachment.id, options.size)
-            
-            if (!previewInRequiredSize) {
-                previewInRequiredSize = await this.createPreview(mediaAttachment, options.size)
-            }
 
-            mediaAttachment = previewInRequiredSize
+            if(mediaAttachment.format !== "gif") {
+
+                let previewInRequiredSize =
+                await this.mediaAttachmentRepository.findPreviewByOriginalIdAndSize(mediaAttachment.id, options.size)
+                
+                if (!previewInRequiredSize) {
+                    previewInRequiredSize = await this.createPreview(mediaAttachment, options.size)
+                }
+                
+                mediaAttachment = previewInRequiredSize
+            }
         }
 
         const filePath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, mediaAttachment.name)
