@@ -1,4 +1,4 @@
-import {Injectable} from "@nestjs/common";
+import {Injectable, InternalServerErrorException} from "@nestjs/common";
 import {LoggerService} from "nest-logger";
 import {differenceInMinutes} from "date-fns";
 import {subDays, subMonths, subWeeks} from "date-fns";
@@ -114,5 +114,13 @@ export class StatisticsService {
             lastTwoWeeksUsersCount
         });
         this.lastCalculationDate = new Date();
+    }
+
+    public async healthCheck(): Promise<void> {
+        // test DB
+        const user = await this.usersRepository.findOne()
+        if (!user) {
+            throw new InternalServerErrorException("No user found in DB");
+        }
     }
 }

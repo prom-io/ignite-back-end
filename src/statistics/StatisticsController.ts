@@ -12,4 +12,9 @@ export class StatisticsController {
     public getStatistics(): Promise<IgniteStatisticsResponse> {
         return this.statisticsService.getStatistics();
     }
+
+    @Get("health-check")
+    public healthCheck() {
+        return this.statisticsService.healthCheck()
+    }
 }
