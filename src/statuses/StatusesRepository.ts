@@ -503,13 +503,6 @@ export class StatusesRepository extends Repository<Status> {
                     .where(`"referredStatusId" = status.id`)
                     .andWhere(`"statusReferenceType" = 'COMMENT'`)
             )
-            .addSelect(
-                subquery => subquery
-                    .select("count(distinct(id))", "reposts_count")
-                    .from(Status, "compared_status")
-                    .where(`"referredStatusId" = status.id`)
-                    .andWhere(`"statusReferenceType" = 'REPOST'`)
-            );
 
         if (currentUser) {
             queryBuilder = queryBuilder
