@@ -1,4 +1,4 @@
-0x24dA9c6cc8465a62cA5De048e3f1f3943B6B7f47import { StatusLikesRepository } from "../statuses/StatusLikesRepository";
+import { StatusLikesRepository } from "../statuses/StatusLikesRepository";
 import { StatusesRepository } from "../statuses/StatusesRepository";
 import {
     MemezatorActionsRightsResponse,
