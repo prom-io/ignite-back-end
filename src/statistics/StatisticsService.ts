@@ -12,6 +12,7 @@ import {StatusReferenceType} from "../statuses/entities";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {User} from "../users/entities";
 import {TransactionsStatisticsService} from "./TransactionsStatisticsService";
+import { promiseTimeout, PromiseTimeoutError } from "../utils/promise-timeout";
 
 @Injectable()
 export class StatisticsService {
@@ -118,7 +119,15 @@ export class StatisticsService {
 
     public async healthCheck(): Promise<void> {
         // test DB
-        const user = await this.usersRepository.findOne()
+        const user = await promiseTimeout(this.usersRepository.findOne(), 10000)
+            .catch(err => {
+                if (err instanceof PromiseTimeoutError) {
+                    throw new InternalServerErrorException("Database request is processing more than 10000ms")
+                }
+
+                throw err;
+            })
+
         if (!user) {
             throw new InternalServerErrorException("No user found in DB");
         }
