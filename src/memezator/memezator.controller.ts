@@ -1,4 +1,4 @@
-import { Controller, Post, Get } from "@nestjs/common";
+import { Controller, Post, Get, Body } from "@nestjs/common";
 import { MemezatorService } from "./memezator.service";
 
 @Controller("api/v1/memezator")
@@ -8,8 +8,11 @@ export class MemezatorController {
   ) {}
 
   @Post("start-competition-summing-up")
-  public startCompetitionSummingUp() {
-    return this.memezatorService.startMemezatorCompetitionSummingUp({ startedInCron: false, dryRun: false })
+  public startCompetitionSummingUp(
+    @Body("startedInCron") startedInCronRaw?: any,
+  ) {
+    const startedInCron = typeof startedInCronRaw === "boolean" ?  startedInCronRaw : false;
+    return this.memezatorService.startMemezatorCompetitionSummingUp({ startedInCron, dryRun: false });
   }
 
   @Get("dry-run-competition-summing-up")
