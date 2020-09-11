@@ -692,7 +692,6 @@ export class StatusesRepository extends Repository<Status> {
         if (ids.length === 0) {
             return [];
         }
-
         return this.createStatusQueryBuilder()
             .leftJoinAndSelect(
                 this.createLastWeekLikesCountSubquery(),
@@ -701,7 +700,7 @@ export class StatusesRepository extends Repository<Status> {
             )
             .where("status.id in (:...ids)", {ids})
             .orderBy({
-                "likes_count": {
+                "status.\"favoritesCount\"": {
                     order: "DESC",
                     nulls: "NULLS LAST"
                 },
@@ -732,7 +731,7 @@ export class StatusesRepository extends Repository<Status> {
                     {createdAtBefore, createdAtAfter, minLikes, maxLikes}
                     )
                 .orderBy({
-                    "likes_count": {
+                    "favorites_count": {
                         order: "DESC",
                         nulls: "NULLS LAST"
                     },
@@ -756,7 +755,7 @@ export class StatusesRepository extends Repository<Status> {
             )
             .where("status.id in (:...ids)", {ids})
             .orderBy({
-                "likes_count": "DESC",
+                "status.\"favoritesCount\"": "DESC",
                 "status.\"createdAt\"": "DESC"
             })
             .getMany();
@@ -803,7 +802,7 @@ export class StatusesRepository extends Repository<Status> {
             )
             .where("status.id in (:...ids)", {ids})
             .orderBy({
-                "likes_count": {
+                "status.\"favoritesCount\"": {
                     order: "DESC",
                     nulls: "NULLS LAST"
                 },
@@ -853,7 +852,7 @@ export class StatusesRepository extends Repository<Status> {
             )
             .where("status.id in (:...ids)", {ids})
             .orderBy({
-                "likes_count": {
+                "status.\"favoritesCount\"": {
                     order: "DESC",
                     nulls: "NULLS LAST"
                 },
