@@ -141,8 +141,10 @@ export class MemezatorService extends NestSchedule {
       let votes = 0
 
       for (const like of likes) {
+        this.logger.info(`calculateWinnersWithLikesAndRewards: get balance for ${like.id} ${like.user.ethereumAddress}`)
         const balance = await this.tokenExchangeService.getBalanceInProms(like.user.ethereumAddress)
         const votingPower = this.calculateVotingPower(balance)
+        this.logger.info(`calculateWinnersWithLikesAndRewards: found balance for ${like.id} ${like.user.ethereumAddress}`)
 
         likesWithVotingPowersAndRewards.push({ like, votingPower, reward: null })
 
