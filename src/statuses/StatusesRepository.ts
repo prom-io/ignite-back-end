@@ -731,7 +731,7 @@ export class StatusesRepository extends Repository<Status> {
                     {createdAtBefore, createdAtAfter, minLikes, maxLikes}
                     )
                 .orderBy({
-                    "favorites_count": {
+                    "status.\"favoritesCount\"": {
                         order: "DESC",
                         nulls: "NULLS LAST"
                     },
