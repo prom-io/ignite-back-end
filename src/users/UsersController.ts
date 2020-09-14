@@ -56,6 +56,7 @@ export class UsersController {
     }
 
     @UseInterceptors(ClassSerializerInterceptor)
+    @UseGuards(OptionalJwtAuthGuard)
     @Get()
     public async searchUsers(
         @Query() searchFilters: UsersSearchFilters,
