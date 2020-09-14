@@ -229,7 +229,7 @@ export class UsersService {
             }
 
             const usersToSubscribe = await this.usersRepository.findByEthereumAddressIn(addresses);
-            setTimeout(() => this.subscribeToUsers(user, usersToSubscribe), 2000);
+            setTimeout(async () => await this.subscribeToUsers(user, usersToSubscribe), 2000);
         }
 
         if (signUpReference) {
@@ -237,7 +237,7 @@ export class UsersService {
             if (signUpReference.config.accountsToSubscribe.length !== 0) {
                 this.log.debug(`Subscribing registered users to ${JSON.stringify(signUpReference.config.accountsToSubscribe)}`);
                 const usersToSubscribe = await this.usersRepository.findAllByAddresses(signUpReference.config.accountsToSubscribe);
-                setTimeout(() => this.subscribeToUsers(user, usersToSubscribe), 2000);
+                setTimeout(async () => await this.subscribeToUsers(user, usersToSubscribe), 2000);
             }
         }
 
@@ -256,7 +256,7 @@ export class UsersService {
         }
         await this.userStatisticsRepository.save(userStatistics);
 
-        setTimeout(() => this.forceRecalculateUserFollowsCount(user), 3000);
+        setTimeout(async () => await this.forceRecalculateUserFollowsCount(user), 3000);
 
         return this.usersMapper.toUserResponse(user, userStatistics, false, false);
     }
@@ -502,7 +502,7 @@ export class UsersService {
     }
 
     public async getCurrentUser(user: User): Promise<UserResponse> {
-        return this.usersMapper.toUserResponseAsync(user, user, false)
+        return await this.usersMapper.toUserResponseAsync(user, user, false)
     }
 
     public async updateUser(ethereumAddress: string, updateUserRequest: UpdateUserRequest, currentUser: User): Promise<UserResponse> {
@@ -610,7 +610,7 @@ export class UsersService {
     public async findUserByEthereumAddress(address: string, currentUser?: User): Promise<UserResponse> {
         const user = await this.findUserEntityByEthereumAddress(address);
 
-        return this.usersMapper.toUserResponseAsync(user, currentUser);
+        return await this.usersMapper.toUserResponseAsync(user, currentUser);
     }
 
     public async findUserEntityByEthereumAddress(address: string): Promise<User> {
