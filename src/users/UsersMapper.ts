@@ -26,11 +26,10 @@ export class UsersMapper {
             currentUser,
             user
         );
-        const followed = currentUser && await this.userSubscriptionsRepository.existsBySubscribedUserAndSubscribedToNotReverted(
+        const followed = currentUser && await this.userSubscriptionsRepository.existsBySubscribedUserAndSubscribedToNotReverted( 
             user,
             currentUser
         );
-
         return this.toUserResponse(user, userStatistics, following, followed, includePasswordHash, userBalance);
     }
 
