@@ -3,8 +3,12 @@ import Axios from "axios";
 import {WalletGeneratorController} from "./WalletGeneratorController";
 import {WalletGeneratorApiClient} from "./WalletGeneratorApiClient";
 import {config} from "../config";
+import { RateLimiterModule } from "nestjs-rate-limiter";
 
 @Module({
+    imports: [
+        RateLimiterModule,
+    ],
     controllers: [WalletGeneratorController],
     providers: [
         {
