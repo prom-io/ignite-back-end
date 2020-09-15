@@ -229,7 +229,7 @@ export class UsersService {
             }
 
             const usersToSubscribe = await this.usersRepository.findByEthereumAddressIn(addresses);
-            setTimeout(async () => await this.subscribeToUsers(user, usersToSubscribe), 2000);
+            setTimeout(async () => await this.subscribeToUsers(user, usersToSubscribe).catch((e) => this.log.error(JSON.stringify(e))), 2000);
         }
 
         if (signUpReference) {
@@ -237,7 +237,7 @@ export class UsersService {
             if (signUpReference.config.accountsToSubscribe.length !== 0) {
                 this.log.debug(`Subscribing registered users to ${JSON.stringify(signUpReference.config.accountsToSubscribe)}`);
                 const usersToSubscribe = await this.usersRepository.findAllByAddresses(signUpReference.config.accountsToSubscribe);
-                setTimeout(async () => await this.subscribeToUsers(user, usersToSubscribe), 2000);
+                setTimeout(async () => await this.subscribeToUsers(user, usersToSubscribe).catch((e) => this.log.error(JSON.stringify(e))), 2000);
             }
         }
 
@@ -256,7 +256,7 @@ export class UsersService {
         }
         await this.userStatisticsRepository.save(userStatistics);
 
-        setTimeout(async () => await this.forceRecalculateUserFollowsCount(user), 3000);
+        setTimeout(async () => await this.forceRecalculateUserFollowsCount(user).catch((e) => this.log.error(JSON.stringify(e))), 3000);
 
         return this.usersMapper.toUserResponse(user, userStatistics, false, false);
     }

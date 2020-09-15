@@ -9,7 +9,7 @@ export class SignUpController {
     }
 
     @Post()
-    public async signUp(@Body() signUpRequest: SignUpRequest): Promise<UserResponse> {
-        return await this.usersService.signUp(signUpRequest);
+    public signUp(@Body() signUpRequest: SignUpRequest): Promise<UserResponse> {
+        return this.usersService.signUp(signUpRequest);
     }
 }

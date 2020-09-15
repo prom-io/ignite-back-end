@@ -27,32 +27,32 @@ export class SignUpReferencesController {
     @UseGuards(AuthGuard("jwt"), AdminGuard)
     @RequiresAdmin()
     @Post()
-    public async createSignUpReference(@Body() createSignUpReferenceRequest: CreateSignUpReferenceRequest,
+    public createSignUpReference(@Body() createSignUpReferenceRequest: CreateSignUpReferenceRequest,
                                  @Req() request: Request): Promise<SignUpReferenceResponse> {
-        return await this.signUpReferencesService.createSignUpReference(createSignUpReferenceRequest, request.user as User);
+        return this.signUpReferencesService.createSignUpReference(createSignUpReferenceRequest, request.user as User);
     }
 
     @UseInterceptors(ClassSerializerInterceptor)
     @UseGuards(AuthGuard("jwt"), AdminGuard)
     @RequiresAdmin()
     @Get()
-    public async findAllSignUpReferences(@Req() request: Request): Promise<SignUpReferenceResponse[]> {
-        return await this.signUpReferencesService.findAllSignUpReferences(request.user as User);
+    public findAllSignUpReferences(@Req() request: Request): Promise<SignUpReferenceResponse[]> {
+        return this.signUpReferencesService.findAllSignUpReferences(request.user as User);
     }
 
     @UseInterceptors(ClassSerializerInterceptor)
     @UseGuards(AuthGuard("jwt"), AdminGuard)
     @RequiresAdmin()
     @Get(":id/users")
-    public async findUsersBySignUpReference(@Param("id") id: string, @Req() request: Request): Promise<UserResponse[]> {
-        return await this.signUpReferencesService.findUsersBySignUpReference(id, request.user as User);
+    public findUsersBySignUpReference(@Param("id") id: string, @Req() request: Request): Promise<UserResponse[]> {
+        return this.signUpReferencesService.findUsersBySignUpReference(id, request.user as User);
     }
 
     @UseInterceptors(ClassSerializerInterceptor)
     @UseGuards(AuthGuard("jwt"), AdminGuard)
     @RequiresAdmin()
     @Get(":id")
-    public async findSignUpReferenceById(@Param("id") id: string, @Req() request: Request): Promise<SignUpReferenceResponse> {
-        return await this.signUpReferencesService.findSignUpReferenceById(id, request.user as User);
+    public findSignUpReferenceById(@Param("id") id: string, @Req() request: Request): Promise<SignUpReferenceResponse> {
+        return this.signUpReferencesService.findSignUpReferenceById(id, request.user as User);
     }
 }
