@@ -9,8 +9,8 @@ export class WalletGeneratorController {
     }
 
     @UseInterceptors(RateLimiterInterceptor, ClassSerializerInterceptor)
-    // one request per 30m per IP
-    @RateLimit({ points: 1, duration: 30 * 60 })
+    // one request per 1h per IP
+    @RateLimit({ points: 1, duration: 60 * 60 })
     @Post()
     public generateWallet(): Promise<GenerateWalletResponse> {
         return this.walletGeneratorApiClient.generateWallet();
