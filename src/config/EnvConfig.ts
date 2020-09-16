@@ -5,6 +5,13 @@ import {AdditionalJsonConfig} from "./types/AdditionalJsonConfig";
 const additionalJsonConfig = optionalRequire(require)("../../additional-config.json") || {} as AdditionalJsonConfig;
 
 export class EnvConfig {
+
+    @Env({type: "string"})
+    NODE_ENV: string;
+
+    @Env({type: "string"})
+    GOOGLE_RECAPTCHA_SECRET_KEY: string
+
     @Env({required: true, type: "number"})
     IGNITE_API_PORT: number;
 
