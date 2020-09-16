@@ -1,4 +1,4 @@
-import {forwardRef, Module} from "@nestjs/common";
+import {BadRequestException, forwardRef, Module} from "@nestjs/common";
 import {TypeOrmModule} from "@nestjs/typeorm";
 import {MailerModule} from "@nestjs-modules/mailer";
 import {UsersService} from "./UsersService";
@@ -26,6 +26,7 @@ import { StatusLikesRepository } from "../statuses/StatusLikesRepository";
 import { StatusesRepository } from "../statuses/StatusesRepository";
 import { TransactionsRepository } from "../transactions/TransactionsRepository";
 import { TokenExchangeModule } from "../token-exchange";
+import { GoogleRecaptchaModule } from "@nestlab/google-recaptcha";
 
 @Module({
     controllers: [UsersController, UserByAddressController, SignUpController, SignUpReferencesController],
@@ -62,6 +63,14 @@ import { TokenExchangeModule } from "../token-exchange";
                 },
                 secure: true
             },
+        }),
+        GoogleRecaptchaModule.forRoot({
+            secretKey: config.GOOGLE_RECAPTCHA_SECRET_KEY,
+            response: req => req.headers["x-recaptcha"],
+            skipIf: req => config.NODE_ENV !== "production",
+            onError: () => {
+                throw new BadRequestException("Invalid recaptcha.")
+            }
         }),
         DefaultAccountProviderModule,
         PasswordHashApiModule

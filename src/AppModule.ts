@@ -1,4 +1,4 @@
-import {Module} from "@nestjs/common";
+import {Module, BadRequestException} from "@nestjs/common";
 import {TypeOrmModule} from "@nestjs/typeorm";
 import {LoggerModule} from "./logging";
 import {Web3Module} from "./web3";
@@ -22,6 +22,7 @@ import {ValidationModule} from "./utils/validation";
 import {MemezatorModule} from "./memezator/memezator.module";
 import {TokenExchangeModule} from "./token-exchange";
 import { StatisticsLogService } from "./statistics-log/statistics-log.service";
+
 import { StatisticsLogModule } from "./statistics-log/statistics-log.module";
 
 @Module({
