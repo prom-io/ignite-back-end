@@ -18,6 +18,7 @@ async function bootstrap() {
     const app = await NestFactory.create(AppModule);
     app.use(bodyParser.json({limit: Infinity}));
     app.useGlobalPipes(new ValidationPipe({transform: true}));
+    app.set('trust proxy', 1);
     app.enableCors();
     setupSwagger(app)
     await app.listen(envConfig.IGNITE_API_PORT);
