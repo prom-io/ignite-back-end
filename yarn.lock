@@ -659,6 +659,13 @@
     iterare "1.2.0"
     tslib "1.11.2"
 
+"@nestlab/google-recaptcha@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@nestlab/google-recaptcha/-/google-recaptcha-1.0.2.tgz#e8ea8bc02939c907a8ceaa8466347f124a7b86c0"
+  integrity sha512-n1fNfPYA1AF+/iO+DuURZzMaDdohAE2nOaDAde65p6BEBoTSuqRkuppU83fG2ihv3iGFIwoaC/kKI/he095dLg==
+  dependencies:
+    ts-loader "^8.0.0"
+
 "@nuxtjs/opencollective@0.2.2":
   version "0.2.2"
   resolved "https://registry.yarnpkg.com/@nuxtjs/opencollective/-/opencollective-0.2.2.tgz#26a761ebf588cc92a422d7cee996a66bd6e2761e"
@@ -9909,6 +9916,17 @@ ts-loader@^6.1.1:
   version "6.2.1"
   resolved "https://registry.yarnpkg.com/ts-loader/-/ts-loader-6.2.1.tgz#67939d5772e8a8c6bdaf6277ca023a4812da02ef"
   integrity sha512-Dd9FekWuABGgjE1g0TlQJ+4dFUfYGbYcs52/HQObE0ZmUNjQlmLAS7xXsSzy23AMaMwipsx5sNHvoEpT2CZq1g==
+  dependencies:
+    chalk "^2.3.0"
+    enhanced-resolve "^4.0.0"
+    loader-utils "^1.0.2"
+    micromatch "^4.0.0"
+    semver "^6.0.0"
+
+ts-loader@^8.0.0:
+  version "8.0.3"
+  resolved "https://registry.yarnpkg.com/ts-loader/-/ts-loader-8.0.3.tgz#56858f4296edf1ed55e01f8520552984d3f0911c"
+  integrity sha512-wsqfnVdB7xQiqhqbz2ZPLGHLPZbHVV5Qn/MNFZkCFxRU1miDyxKORucDGxKtsQJ63Rfza0udiUxWF5nHY6bpdQ==
   dependencies:
     chalk "^2.3.0"
     enhanced-resolve "^4.0.0"
