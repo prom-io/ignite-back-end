@@ -1,4 +1,3 @@
-import { GoogleRecaptchaModule } from 'nest-google-recaptcha';
 import {Module, BadRequestException} from "@nestjs/common";
 import {TypeOrmModule} from "@nestjs/typeorm";
 import {LoggerModule} from "./logging";
