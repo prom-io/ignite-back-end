@@ -78,7 +78,7 @@ export class UsersService {
         const userMemeActionsRights = new MemezatorActionsRightsResponse({
             canCreate: memeCreationRight.canCreate,
             cannotCreateReasonCode: memeCreationRight.cannotCreateReasonCode,
-            canVote: memeVotingRight.canVote,
+            canVote: memeVotingRight.canVote, 
             cannotVoteReasonCode: memeVotingRight.cannotVoteReasonCode,
             votingPower: null,
             ethPromTokens: null

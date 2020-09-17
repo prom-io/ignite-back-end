@@ -9,10 +9,6 @@ export class WalletGeneratorController {
 
     }
 
-    @UseInterceptors(RateLimiterInterceptor, ClassSerializerInterceptor)
-    // one request per 1h per IP
-    @RateLimit({ points: 1, duration: 60 * 60 })
-
     @UseInterceptors(ClassSerializerInterceptor)
     @RateLimit({ points: 1, duration: 60 * 60 })
     @Post()
