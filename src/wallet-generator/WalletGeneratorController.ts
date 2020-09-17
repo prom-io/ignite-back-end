@@ -1,18 +1,24 @@
-import {ClassSerializerInterceptor, Controller, Post, UseInterceptors} from "@nestjs/common";
+import {ClassSerializerInterceptor, Controller, Post, UseInterceptors, BadRequestException} from "@nestjs/common";
 import {WalletGeneratorApiClient} from "./WalletGeneratorApiClient";
 import {GenerateWalletResponse} from "./types/response";
 import { RateLimit, RateLimiterInterceptor } from "nestjs-rate-limiter";
+import moment from "moment";
 
 @Controller("api/v1/wallet")
 export class WalletGeneratorController {
-    constructor(private readonly walletGeneratorApiClient: WalletGeneratorApiClient) {
-
-    }
+    private lastWalletCreationDate: moment.Moment = null;
+    constructor(private readonly walletGeneratorApiClient: WalletGeneratorApiClient) {}
 
     @UseInterceptors(ClassSerializerInterceptor, RateLimiterInterceptor)
     @RateLimit({ points: 1, duration: 60 * 60 })
     @Post()
     public generateWallet(): Promise<GenerateWalletResponse> {
+        if (moment().diff(this.lastWalletCreationDate, "minutes") >= 2) {
+            throw new BadRequestException("Hit the registration limit")
+        }
+
+        this.lastWalletCreationDate = moment();
+
         return this.walletGeneratorApiClient.generateWallet();
     }
 }
