@@ -14,7 +14,7 @@ export class WalletGeneratorController {
     @Post()
     public generateWallet(): Promise<GenerateWalletResponse> {
         if (moment().diff(this.lastWalletCreationDate, "minutes") >= 2) {
-            throw new BadRequestException("Hit the registration limit")
+            return null
         }
 
         this.lastWalletCreationDate = moment();
