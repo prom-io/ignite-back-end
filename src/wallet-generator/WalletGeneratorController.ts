@@ -14,7 +14,6 @@ export class WalletGeneratorController {
     @UseInterceptors(RateLimiterInterceptor, ClassSerializerInterceptor)
     // one request per 1h per IP
     @RateLimit({ points: 1, duration: 60 * 60 })
-    @Recaptcha()
     @UseInterceptors(ClassSerializerInterceptor)
     @Post()
     public generateWallet(): Promise<GenerateWalletResponse> {

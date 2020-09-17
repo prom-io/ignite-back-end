@@ -1,4 +1,5 @@
-import {forwardRef, Module} from "@nestjs/common";
+import { GoogleRecaptchaModule } from '@nestlab/google-recaptcha';
+import {forwardRef, Module, BadRequestException} from "@nestjs/common";
 import {TypeOrmModule} from "@nestjs/typeorm";
 import {MailerModule} from "@nestjs-modules/mailer";
 import {UsersService} from "./UsersService";
@@ -48,7 +49,16 @@ import { TokenExchangeModule } from "../token-exchange";
             UserPreferencesRepository,
             SignUpReferencesRepository,
             TransactionsRepository,
+            
         ]),
+        GoogleRecaptchaModule.forRoot({
+            secretKey: config.GOOGLE_RECAPTCHA_SECRET_KEY,
+            response: req => req.headers["x-recaptcha"],
+            skipIf: req => config.NODE_ENV !== 'production',
+            onError: () => {
+                throw new BadRequestException('Invalid recaptcha.')
+            }
+        }),
         TokenExchangeModule,
         forwardRef(() => StatusesModule),
         forwardRef(() => UserSubscriptionsModule),
