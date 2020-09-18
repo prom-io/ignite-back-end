@@ -693,11 +693,6 @@ export class StatusesRepository extends Repository<Status> {
             return [];
         }
         return this.createStatusQueryBuilder()
-            .leftJoinAndSelect(
-                this.createLastWeekLikesCountSubquery(),
-                "status_like",
-                `status_like."statusId" = status.id`
-            )
             .where("status.id in (:...ids)", {ids})
             .orderBy({
                 "status.\"favoritesCount\"": {
@@ -748,11 +743,6 @@ export class StatusesRepository extends Repository<Status> {
         }
 
         return this.createStatusQueryBuilder()
-            .leftJoinAndSelect(
-                this.createLastWeekLikesCountSubquery(),
-                "status_like",
-                `status_like."statusId" = status.id`
-            )
             .where("status.id in (:...ids)", {ids})
             .orderBy({
                 "status.\"favoritesCount\"": "DESC",
@@ -795,11 +785,6 @@ export class StatusesRepository extends Repository<Status> {
         }
 
         return this.createStatusQueryBuilder()
-            .leftJoinAndSelect(
-                this.createLastWeekLikesCountSubquery(),
-                "status_like",
-                `status_like."statusId" = status.id`
-            )
             .where("status.id in (:...ids)", {ids})
             .orderBy({
                 "status.\"favoritesCount\"": {
@@ -845,11 +830,6 @@ export class StatusesRepository extends Repository<Status> {
         }
 
         return this.createStatusQueryBuilder()
-            .leftJoinAndSelect(
-                this.createLastWeekLikesCountSubquery(),
-                "status_like",
-                `status_like."statusId" = status.id`
-            )
             .where("status.id in (:...ids)", {ids})
             .orderBy({
                 "status.\"favoritesCount\"": {
@@ -1043,14 +1023,9 @@ export class StatusesRepository extends Repository<Status> {
         }
 
         return this.createStatusQueryBuilder()
-            .leftJoinAndSelect(
-                this.createLastWeekLikesCountSubquery(),
-                "status_like",
-                `status_like."statusId" = status.id`
-            )
             .where("status.id in (:...ids)", {ids})
             .orderBy({
-                "likes_count": {
+                "status.\"favoritesCount\"": {
                     order: "DESC",
                     nulls: "NULLS LAST"
                 },
