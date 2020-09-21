@@ -176,15 +176,15 @@ export class MemezatorService extends NestSchedule {
     }
 
     if (firstPlace) {
-      this.calculateAndAssignRewardsToVoters(firstPlace, rewardPool, rewardFractionsForFirstPlace)
+      await this.calculateAndAssignRewardsToVoters(firstPlace, rewardPool, rewardFractionsForFirstPlace)
     }
 
     if (secondPlace) {
-      this.calculateAndAssignRewardsToVoters(secondPlace, rewardPool, rewardFractionsForSecondPlace)
+      await this.calculateAndAssignRewardsToVoters(secondPlace, rewardPool, rewardFractionsForSecondPlace)
     }
 
     if (thirdPlace) {
-      this.calculateAndAssignRewardsToVoters(thirdPlace, rewardPool, rewardFractionsForThirdsPlace)
+      await this.calculateAndAssignRewardsToVoters(thirdPlace, rewardPool, rewardFractionsForThirdsPlace)
     }
 
     return {
