@@ -7157,13 +7157,6 @@ nest-schedule@^0.6.4:
   optionalDependencies:
     "@nestcloud/core" "^0.2.3"
 
-nestjs-rate-limiter@^2.4.0:
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/nestjs-rate-limiter/-/nestjs-rate-limiter-2.4.0.tgz#88c7cbc52e0be4e471041219a9d8ee7122350fa0"
-  integrity sha512-0oEhTK/QiiC/ioicYlgHzd54WAZvo8FFPmt6lxzNyelaz+yb3iOl5wPP6fG41s3aS5+CRym7LAyiVXo/e+tObQ==
-  dependencies:
-    rate-limiter-flexible "2.1.10"
-
 netmask@^1.0.6:
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/netmask/-/netmask-1.0.6.tgz#20297e89d86f6f6400f250d9f4f6b4c1945fcd35"
@@ -8399,11 +8392,6 @@ range-parser@~1.2.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/range-parser/-/range-parser-1.2.1.tgz#3cf37023d199e1c24d1a55b84800c2f3e6468031"
   integrity sha512-Hrgsx+orqoygnmhFbKaHE6c296J+HTAQXoxEF6gNupROmmGJRoyzfG3ccAveqCBrwr/2yxQ5BVd/GTl5agOwSg==
-
-rate-limiter-flexible@2.1.10:
-  version "2.1.10"
-  resolved "https://registry.yarnpkg.com/rate-limiter-flexible/-/rate-limiter-flexible-2.1.10.tgz#5bf7c841bd8cbddd483a95ab65f765efe652aabf"
-  integrity sha512-Pa+8TPD4xYaiCUB5K4a/+j2FHDUe4HP1g49JmKEmkOkhqPaeVqxJsZuuVaza/svSCOT+V73vtsyBiSFK/e1yXw==
 
 raw-body@2.4.0:
   version "2.4.0"
