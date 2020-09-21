@@ -16,5 +16,6 @@ export interface AdditionalJsonConfig {
         rewardPoolsByDate: {
             [date: string]: number
         }
-    }
+    },
+    disableGoogleRecaptchaForSignUp?: boolean,
 }
