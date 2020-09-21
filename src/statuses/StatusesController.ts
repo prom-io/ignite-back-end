@@ -21,6 +21,7 @@ import {User} from "../users/entities";
 import {TopicsService} from "./TopicsService";
 import {FeedService} from "./FeedService";
 import { ApiOkResponse, ApiCreatedResponse } from "@nestjs/swagger";
+import { Recaptcha } from "@nestlab/google-recaptcha";
 
 @Controller("api/v1/statuses")
 export class StatusesController {
@@ -45,6 +46,7 @@ export class StatusesController {
     @UseInterceptors(ClassSerializerInterceptor)
     @UseGuards(AuthGuard("jwt"))
     @ApiCreatedResponse({type: () => StatusResponse})
+    @Recaptcha()
     @Post()
     public createStatus(@Body() createStatusRequest: CreateStatusRequest,
                         @Req() request: Request): Promise<StatusResponse> {

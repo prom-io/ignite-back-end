@@ -74,14 +74,6 @@ import { TokenExchangeModule } from "../token-exchange";
                 secure: true
             },
         }),
-        GoogleRecaptchaModule.forRoot({
-            secretKey: config.GOOGLE_RECAPTCHA_SECRET_KEY,
-            response: req => req.headers["x-recaptcha"],
-            skipIf: req => config.NODE_ENV !== "production",
-            onError: () => {
-                throw new BadRequestException("Invalid recaptcha.")
-            }
-        }),
         DefaultAccountProviderModule,
         PasswordHashApiModule
     ],
