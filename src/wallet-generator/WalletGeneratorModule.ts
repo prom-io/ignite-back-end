@@ -1,9 +1,10 @@
-import {Module} from "@nestjs/common";
+import {MiddlewareConsumer, Module, NestModule, RequestMethod} from "@nestjs/common";
 import Axios from "axios";
 import {WalletGeneratorController} from "./WalletGeneratorController";
 import {WalletGeneratorApiClient} from "./WalletGeneratorApiClient";
 import {config} from "../config";
 import { RateLimiterModule } from "nestjs-rate-limiter";
+import expressRateLimit from "express-rate-limit";
 
 @Module({
     imports: [
@@ -20,5 +21,15 @@ import { RateLimiterModule } from "nestjs-rate-limiter";
         WalletGeneratorApiClient
     ]
 })
-export class WalletGeneratorModule {
+export class WalletGeneratorModule implements NestModule {
+    configure(consumer: MiddlewareConsumer) {
+        consumer
+            .apply(
+                expressRateLimit({
+                    windowMs: 10 * 60 * 1000,
+                    max: 1,
+                })
+            )
+            .forRoutes({ path: "api/v1/wallet", method: RequestMethod.POST });
+    }
 }
