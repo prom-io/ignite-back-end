@@ -884,6 +884,7 @@ export class StatusesRepository extends Repository<Status> {
 
         return this.createStatusQueryBuilder()
             .where("status.id in (:...ids)", {ids})
+            .andWhere(`"filteredHashTag"."name" != :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
             .orderBy(`status."createdAt"`, "DESC")
             .getMany();
     }
@@ -921,6 +922,7 @@ export class StatusesRepository extends Repository<Status> {
 
         return this.createStatusQueryBuilder()
             .where("status.id in (:...ids)", {ids})
+            .andWhere(`"filteredHashTag"."name" != :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
             .orderBy(`status."createdAt"`, "DESC")
             .getMany();
     }
@@ -949,6 +951,7 @@ export class StatusesRepository extends Repository<Status> {
 
         return this.createStatusQueryBuilder()
             .where("status.id in (:...ids)", {ids})
+            .andWhere(`"filteredHashTag"."name" != :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
             .orderBy(`status."createdAt"`, "DESC")
             .getMany();
     }
@@ -978,6 +981,7 @@ export class StatusesRepository extends Repository<Status> {
 
         return this.createStatusQueryBuilder()
             .where("status.id in (:...ids)", {ids})
+            .andWhere(`"filteredHashTag"."name" != :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
             .orderBy(`status."createdAt"`, "DESC")
             .getMany();
     }
@@ -1050,6 +1054,7 @@ export class StatusesRepository extends Repository<Status> {
                 `status_like."statusId" = status.id`
             )
             .where("status.id in (:...ids)", {ids})
+            .andWhere(`"filteredHashTag"."name" != :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
             .orderBy({
                 "likes_count": {
                     order: "DESC",
@@ -1101,6 +1106,7 @@ export class StatusesRepository extends Repository<Status> {
                 `status_like."statusId" = status.id`
             )
             .where("status.id in (:...ids)", {ids})
+            .andWhere(`"filteredHashTag"."name" != :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
             .orderBy({
                 "likes_count": {
                     order: "DESC",
@@ -1222,6 +1228,7 @@ export class StatusesRepository extends Repository<Status> {
                 `status_like."statusId" = status.id`
             )
             .where("status.id in (:...ids)", {ids})
+            .andWhere(`"filteredHashTag"."name" != :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
             .orderBy({
                 "last_week_likes_count": "DESC",
                 "status.\"createdAt\"": "DESC"
@@ -1250,6 +1257,7 @@ export class StatusesRepository extends Repository<Status> {
             )
             .where(`"status_hashTag"."hashTagId" is not null`)
             .andWhere(`"hashTag"."language" = :language`, {language})
+            .andWhere(`"filteredHashTag"."name" != :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
             .andWhere(`status."createdAt" between(:createdAtBefore, :createdAtAfter)`, {createdAtBefore, createdAtAfter})
             .orderBy({
                 "last_week_likes_count": "DESC",
