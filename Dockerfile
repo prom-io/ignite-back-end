@@ -11,4 +11,5 @@ COPY ./ ./
 
 EXPOSE ${IGNITE_API_PORT}
 
+ENV NODE_ENV=production
 CMD ["yarn", "run", "start"]
