@@ -69,19 +69,17 @@ export class MediaAttachmentsService {
         }
 
         // if the preview is requested, then find or create it if it does not exist in required size
-        if (options && options.size) {
+        if (options && options.size && mediaAttachment.format !== "gif") {
 
-            if(mediaAttachment.format !== "gif") {
-
-                let previewInRequiredSize =
-                await this.mediaAttachmentRepository.findPreviewByOriginalIdAndSize(mediaAttachment.id, options.size)
-                
-                if (!previewInRequiredSize) {
-                    previewInRequiredSize = await this.createPreview(mediaAttachment, options.size)
-                }
-                
-                mediaAttachment = previewInRequiredSize
+            let previewInRequiredSize =
+            await this.mediaAttachmentRepository.findPreviewByOriginalIdAndSize(mediaAttachment.id, options.size)
+            
+            if (!previewInRequiredSize) {
+                previewInRequiredSize = await this.createPreview(mediaAttachment, options.size)
             }
+            
+            mediaAttachment = previewInRequiredSize
+            
         }
 
         const filePath = path.join(config.MEDIA_ATTACHMENTS_DIRECTORY, mediaAttachment.name)
