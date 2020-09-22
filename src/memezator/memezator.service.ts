@@ -58,6 +58,14 @@ export class MemezatorService extends NestSchedule {
     }
   }
 
+  async getWinnersByLikes() {
+    return this.memezatorContestResultRepository.find({
+      where: {
+        createdAt: new Date()
+      }
+    })
+  }
+
   async startMemezatorCompetitionSummingUp(options: {startedInCron: boolean, dryRun: boolean}): Promise<WinnerMemesWithLikes> {
     let competitionEndDate: momentTZ.Moment;
     let competitionStartDate: momentTZ.Moment;
@@ -82,12 +90,22 @@ export class MemezatorService extends NestSchedule {
 
     this.logger.info(`Reward pool for ${formattedCompetitionStartDate} (${competitionStartDate.format()}) is ${rewardPool}`)
 
-    const winners = await this.calculateWinnersWithLikesAndRewards(
+    const winners: WinnerMemesWithLikes = await this.calculateWinnersWithLikesAndRewards(
       rewardPool,
       competitionStartDate.toDate(),
       competitionEndDate.toDate(),
       options.dryRun ? false : true
     )
+
+    const winnersByLikes: LikeAndVotingPowerAndReward[] = Object.keys(winners).map(winner => {
+        return  winners[winner].likesWithVotingPowersAndRewards as LikeAndVotingPowerAndReward
+    })
+
+    let winnersByLikesSortedByDesc: LikeAndVotingPowerAndReward[] = _.orderBy(winnersByLikes, 'reward', ['desc'])
+
+    if(winnersByLikesSortedByDesc.length > 10) {
+      winnersByLikesSortedByDesc = winnersByLikesSortedByDesc.slice(0, 10)
+    }
 
     if (!options.dryRun) {
       await this.createStatusesAboutWinners(winners, rewardPool, competitionStartDate.toDate())
@@ -97,6 +115,7 @@ export class MemezatorService extends NestSchedule {
         createdAt: new Date(),
         updatedAt: null,
         result: winners,
+        winnersByLikes: winnersByLikesSortedByDesc
       })
 
       const transactions = await this.createTransactions(winners, memezatorContestResult.id)

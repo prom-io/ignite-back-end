@@ -20,4 +20,9 @@ export class MemezatorController {
     return this.memezatorService.startMemezatorCompetitionSummingUp({ startedInCron: false, dryRun: true })
   }
 
+  @Get("get-winners-by-likes")
+  public getWinnersByLIkes() {
+    return this.memezatorService.getWinnersByLikes()
+  }
+
 }

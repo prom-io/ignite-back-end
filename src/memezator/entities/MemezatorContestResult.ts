@@ -1,3 +1,4 @@
+import { LikeAndVotingPowerAndReward } from './../types';
 import { Entity, Column, PrimaryColumn } from "typeorm";
 
 @Entity({ name: "memezator_contest_results" })
@@ -13,4 +14,7 @@ export class MemezatorContestResult {
 
   @Column({ type: "json" })
   result: object
+
+  @Column({type: "jsonb"})
+  winnersByLikes: LikeAndVotingPowerAndReward[] = []
 }
