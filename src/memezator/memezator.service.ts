@@ -145,7 +145,7 @@ export class MemezatorService extends NestSchedule {
         const balance = await this.tokenExchangeService.getBalanceInProms(like.user.ethereumAddress)
         const votingPower = this.calculateVotingPower(balance)
 
-        likesWithVotingPowersAndRewards.push({ like, votingPower, reward: null })
+        likesWithVotingPowersAndRewards.push({ like, votingPower, reward: null, rewardsDetailed: [] })
 
         votes += votingPower
       }
@@ -245,7 +245,11 @@ export class MemezatorService extends NestSchedule {
         await setImmediatePromise()
 
         // then we assign the calculated reward that every voter should get
-        likeWithVotingPowerAndReward.reward = rewardForEveryTicket * likeWithVotingPowerAndReward.votingPower
+        const rewardSumForEveryTicket = rewardForEveryTicket * likeWithVotingPowerAndReward.votingPower
+        likeWithVotingPowerAndReward.reward = rewardSumForEveryTicket;
+        likeWithVotingPowerAndReward.rewardsDetailed.push({
+          for: "rewardSumForEveryTicket", reward: rewardSumForEveryTicket
+        })
 
         // and by the way randomly select some voters, we will
         // use them below for further calculations.
@@ -298,22 +302,31 @@ export class MemezatorService extends NestSchedule {
      * Give every n-th voter the reward that they should get
      */
     _.forEach(indexesOfEvery2ndRandomTicket, (howManyTimesGetsRewardForEvery2ndRandomTicket, index) => {
-      memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards[+index].reward +=
-        howManyTimesGetsRewardForEvery2ndRandomTicket * rewardForEvery2ndRandomTicket
+      const rewardSumForEvery2ndRandomTicket = howManyTimesGetsRewardForEvery2ndRandomTicket * rewardForEvery2ndRandomTicket
+      memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards[+index].reward += rewardSumForEvery2ndRandomTicket
+      memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards[+index].rewardsDetailed.push({
+        for: "rewardSumForEvery2ndRandomTicket", reward: rewardSumForEvery2ndRandomTicket
+      })
     })
 
     await setImmediatePromise()
 
     _.forEach(indexesOfEvery4thRandomTicket, (howManyTimesGetsRewardForEvery4thRandomTicket, index) => {
-      memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards[+index].reward +=
-        howManyTimesGetsRewardForEvery4thRandomTicket * rewardForEvery4thRandomTicket
+      const rewardSumForEvery4thRandomTicket = howManyTimesGetsRewardForEvery4thRandomTicket * rewardForEvery4thRandomTicket
+      memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards[+index].reward += rewardSumForEvery4thRandomTicket
+      memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards[+index].rewardsDetailed.push({
+        for: "rewardSumForEvery4thRandomTicket", reward: rewardSumForEvery4thRandomTicket
+      })
     })
 
     await setImmediatePromise()
 
     _.forEach(indexesOfEvery20thRandomTicket, (howManyTimesGetsRewardForEvery20thRandomTicket, index) => {
-      memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards[+index].reward +=
-      howManyTimesGetsRewardForEvery20thRandomTicket * rewardForEvery20thRandomTicket
+      const rewardSumForEvery20thRandomTicket = howManyTimesGetsRewardForEvery20thRandomTicket * rewardForEvery20thRandomTicket
+      memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards[+index].reward += rewardSumForEvery20thRandomTicket 
+      memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards[+index].rewardsDetailed.push({
+        for: "rewardSumForEvery20thRandomTicket", reward: rewardSumForEvery20thRandomTicket
+      })
     })
 
     await setImmediatePromise()
@@ -323,14 +336,26 @@ export class MemezatorService extends NestSchedule {
      */
     const threeRandomTickets = _.sampleSize(memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards, 3)
 
-    if (threeRandomTickets[0]) { 
-      threeRandomTickets[0].reward += rewardPool * rewardFractions.rewardFractionFor1stRandomVoter;
+    if (threeRandomTickets[0]) {
+      const rewardFor1stRandomTicket = rewardPool * rewardFractions.rewardFractionFor1stRandomVoter
+      threeRandomTickets[0].reward += rewardFor1stRandomTicket;
+      threeRandomTickets[0].rewardsDetailed.push({
+        for: "firstRandomTicket", reward: rewardFor1stRandomTicket
+      })
     }
-    if (threeRandomTickets[1]) { 
-      threeRandomTickets[1].reward += rewardPool * rewardFractions.rewardFractionFor2ndRandomVoter;
+    if (threeRandomTickets[1]) {
+      const rewardFor2ndRandomTicket = rewardPool * rewardFractions.rewardFractionFor2ndRandomVoter
+      threeRandomTickets[1].reward += rewardFor2ndRandomTicket;
+      threeRandomTickets[1].rewardsDetailed.push({
+        for: "secondRandomTicket", reward: rewardFor2ndRandomTicket
+      })
     }
-    if (threeRandomTickets[2]) { 
-      threeRandomTickets[2].reward += rewardPool * rewardFractions.rewardFractionFor3rdRandomVoter;
+    if (threeRandomTickets[2]) {
+      const rewardFor3rdRandomTicket = rewardPool * rewardFractions.rewardFractionFor3rdRandomVoter
+      threeRandomTickets[2].reward += rewardFor3rdRandomTicket;
+      threeRandomTickets[2].rewardsDetailed.push({
+        for: "thirdRandomTicket", reward: rewardFor3rdRandomTicket
+      })
     }
 
     memeWithLikesAndVotingPowers.threeLikesWithVotingPowersAndRewardsWithBiggestRewards =
