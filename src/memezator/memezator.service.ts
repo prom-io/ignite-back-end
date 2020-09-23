@@ -32,6 +32,7 @@ import {
 import momentTZ from "moment-timezone"
 import { setImmediatePromise } from "../utils/sest-intermediate-promise";
 import { asyncForEach } from "../utils/async-foreach";
+import { uniqueRandoms } from "../utils/unique-randoms";
 
 @Injectable()
 export class MemezatorService extends NestSchedule {
@@ -334,28 +335,44 @@ export class MemezatorService extends NestSchedule {
     /**
      * Now we are giving some rewards to 3 randomly selected voters
      */
-    const threeRandomTickets = _.sampleSize(memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards, 3)
+    const threeRandomTicketsIndexes: number[] = _.sortBy(uniqueRandoms(1, memeWithLikesAndVotingPowers.meme.favoritesCount, 3))
 
-    if (threeRandomTickets[0]) {
-      const rewardFor1stRandomTicket = rewardPool * rewardFractions.rewardFractionFor1stRandomVoter
-      threeRandomTickets[0].reward += rewardFor1stRandomTicket;
-      threeRandomTickets[0].rewardsDetailed.push({
-        for: "firstRandomTicket", reward: rewardFor1stRandomTicket
-      })
-    }
-    if (threeRandomTickets[1]) {
-      const rewardFor2ndRandomTicket = rewardPool * rewardFractions.rewardFractionFor2ndRandomVoter
-      threeRandomTickets[1].reward += rewardFor2ndRandomTicket;
-      threeRandomTickets[1].rewardsDetailed.push({
-        for: "secondRandomTicket", reward: rewardFor2ndRandomTicket
-      })
-    }
-    if (threeRandomTickets[2]) {
-      const rewardFor3rdRandomTicket = rewardPool * rewardFractions.rewardFractionFor3rdRandomVoter
-      threeRandomTickets[2].reward += rewardFor3rdRandomTicket;
-      threeRandomTickets[2].rewardsDetailed.push({
-        for: "thirdRandomTicket", reward: rewardFor3rdRandomTicket
-      })
+    let passedTicketsCount = 0
+
+    for (const likeWithVotingPowerAndRewards of memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards) {
+      await setImmediatePromise();
+
+      if (threeRandomTicketsIndexes.length === 0) {
+        break;
+      }
+
+      const rewardFractionForCurrentRandomTicket: number = ({
+        3: rewardFractions.rewardFractionFor1stRandomVoter,
+        2: rewardFractions.rewardFractionFor2ndRandomVoter,
+        1: rewardFractions.rewardFractionFor3rdRandomVoter,
+      })[threeRandomTicketsIndexes.length];
+
+      const rewardForDetail: "firstRandomTicket" | "secondRandomTicket" | "thirdRandomTicket" = ({
+        3: "firstRandomTicket",
+        2: "secondRandomTicket",
+        1: "thirdRandomTicket",
+      })[threeRandomTicketsIndexes.length];
+
+      if (
+        threeRandomTicketsIndexes[0] > passedTicketsCount &&
+        threeRandomTicketsIndexes[0] <= passedTicketsCount + likeWithVotingPowerAndRewards.votingPower
+      ) {
+        const rewardForCurrentRandomTicket = rewardPool * rewardFractionForCurrentRandomTicket;
+
+        likeWithVotingPowerAndRewards.reward += rewardForCurrentRandomTicket;
+        likeWithVotingPowerAndRewards.rewardsDetailed.push({
+          for: rewardForDetail, reward: rewardForCurrentRandomTicket
+        });
+
+        threeRandomTicketsIndexes.shift();
+      }
+
+      passedTicketsCount += likeWithVotingPowerAndRewards.votingPower;
     }
 
     memeWithLikesAndVotingPowers.threeLikesWithVotingPowersAndRewardsWithBiggestRewards =
