@@ -19,5 +19,5 @@ export class MemezatorContestResult {
   top10WinnersByLikes: LikeAndVotingPowerAndReward[] = []
 
   @Column()
-  competitionStartDate: Date
+  competitionStartDate?: Date
 }

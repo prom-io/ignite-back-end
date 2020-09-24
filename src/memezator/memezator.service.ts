@@ -61,11 +61,20 @@ export class MemezatorService extends NestSchedule {
     }
   }
 
-  async getWinnersByLikes(competitionStartDate) {
+  async getWinnersByLikes(competitionStartDate: Date) {
+
+    if(competitionStartDate) {
+      return this.memezatorContestResultRepository.find({
+        where: {
+          createdAt: competitionStartDate
+        }
+      })
+    } 
     return this.memezatorContestResultRepository.find({
-      where: {
-        createdAt: competitionStartDate
-      }
+      order: {
+        createdAt: "DESC"
+      },
+      take: 1
     })
   }
 
@@ -108,9 +117,7 @@ export class MemezatorService extends NestSchedule {
 
     let top10WinnersByLikesSortedByDesc: LikeAndVotingPowerAndReward[] = _.orderBy(winnersByLikes, 'reward', ['desc'])
 
-    if(top10WinnersByLikesSortedByDesc.length > 10) {
       top10WinnersByLikesSortedByDesc = top10WinnersByLikesSortedByDesc.slice(0, 10)
-    }
 
     if (!options.dryRun) {
       await this.createStatusesAboutWinners(winners, rewardPool, competitionStartDate.toDate())
