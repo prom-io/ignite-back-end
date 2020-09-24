@@ -1,4 +1,7 @@
-import { Controller, Post, Get, Body } from "@nestjs/common";
+import { Controller, Post, Get, Body, UseGuards, Query } from "@nestjs/common";
+import { AuthGuard } from "@nestjs/passport";
+import { AdminGuard } from "../jwt-auth/AdminGuard";
+import { RequiresAdmin } from "../jwt-auth/RequiresAdmin";
 import { MemezatorService } from "./memezator.service";
 
 @Controller("api/v1/memezator")
@@ -8,6 +11,8 @@ export class MemezatorController {
   ) {}
 
   @Post("start-competition-summing-up")
+  @UseGuards(AuthGuard("jwt"), AdminGuard)
+  @RequiresAdmin()
   public startCompetitionSummingUp(
     @Body("startedInCron") startedInCronRaw?: any,
   ) {
@@ -16,8 +21,12 @@ export class MemezatorController {
   }
 
   @Get("dry-run-competition-summing-up")
-  public dryRunCompetitionSummingUp() {
-    return this.memezatorService.startMemezatorCompetitionSummingUp({ startedInCron: false, dryRun: true })
+  @UseGuards(AuthGuard("jwt"), AdminGuard)
+  @RequiresAdmin()
+  public dryRunCompetitionSummingUp(
+    @Query("startedInCron") startedInCronRaw?: any,
+  ) {
+    const startedInCron = startedInCronRaw === "true" ? true : false;
+    return this.memezatorService.startMemezatorCompetitionSummingUp({ startedInCron, dryRun: true })
   }
-
 }

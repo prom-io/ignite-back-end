@@ -3,7 +3,18 @@ import { StatusLike, Status } from "../statuses/entities";
 export interface LikeAndVotingPowerAndReward {
   like: StatusLike;
   votingPower: number;
-  reward: number
+  reward: number;
+  rewardsDetailed: Array<{
+    for: 
+      | "rewardSumForEveryTicket"
+      | "rewardSumForEvery2ndRandomTicket"
+      | "rewardSumForEvery4thRandomTicket"
+      | "rewardSumForEvery20thRandomTicket"
+      | "firstRandomTicket"
+      | "secondRandomTicket"
+      | "thirdRandomTicket",
+    reward: number,
+  }>
 }
 
 export interface MemeWithLikesAndVotingPowers {

@@ -30,6 +30,9 @@ import {
   overallRewardFractionForThirdPlace
 } from "./constants";
 import momentTZ from "moment-timezone"
+import { setImmediatePromise } from "../utils/sest-intermediate-promise";
+import { asyncForEach } from "../utils/async-foreach";
+import { uniqueRandoms } from "../utils/unique-randoms";
 
 @Injectable()
 export class MemezatorService extends NestSchedule {
@@ -143,7 +146,7 @@ export class MemezatorService extends NestSchedule {
         const balance = await this.tokenExchangeService.getBalanceInProms(like.user.ethereumAddress)
         const votingPower = this.calculateVotingPower(balance)
 
-        likesWithVotingPowersAndRewards.push({ like, votingPower, reward: null })
+        likesWithVotingPowersAndRewards.push({ like, votingPower, reward: null, rewardsDetailed: [] })
 
         votes += votingPower
       }
@@ -174,15 +177,15 @@ export class MemezatorService extends NestSchedule {
     }
 
     if (firstPlace) {
-      this.calculateAndAssignRewardsToVoters(firstPlace, rewardPool, rewardFractionsForFirstPlace)
+      await this.calculateAndAssignRewardsToVoters(firstPlace, rewardPool, rewardFractionsForFirstPlace)
     }
 
     if (secondPlace) {
-      this.calculateAndAssignRewardsToVoters(secondPlace, rewardPool, rewardFractionsForSecondPlace)
+      await this.calculateAndAssignRewardsToVoters(secondPlace, rewardPool, rewardFractionsForSecondPlace)
     }
 
     if (thirdPlace) {
-      this.calculateAndAssignRewardsToVoters(thirdPlace, rewardPool, rewardFractionsForThirdsPlace)
+      await this.calculateAndAssignRewardsToVoters(thirdPlace, rewardPool, rewardFractionsForThirdsPlace)
     }
 
     return {
@@ -211,11 +214,11 @@ export class MemezatorService extends NestSchedule {
    * @param rewardPool the reward pool for todays contest
    * @param rewardFractions 
    */
-  private calculateAndAssignRewardsToVoters(
+  private async calculateAndAssignRewardsToVoters(
     memeWithLikesAndVotingPowers: MemeWithLikesAndVotingPowers,
     rewardPool: number,
     rewardFractions: RewardFractions,
-  ): void {
+  ): Promise<void> {
     // First of all, do the easiest work: calculate the reward for meme author
     memeWithLikesAndVotingPowers.rewardForAuthor = rewardPool * rewardFractions.rewardFractionForAuthor
 
@@ -228,6 +231,8 @@ export class MemezatorService extends NestSchedule {
           memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards,
           likesWithVotingPowersAndRewards => likesWithVotingPowersAndRewards.votingPower
         );
+    
+    await setImmediatePromise()
 
     // In these 3 sets in the below forEach we will insert indexes
     // of some randomly selected voters.
@@ -235,80 +240,106 @@ export class MemezatorService extends NestSchedule {
     const indexesOfEvery4thRandomTicket: {[index: number]: number} = {}
     const indexesOfEvery20thRandomTicket: {[index: number]: number} = {}
 
-    memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards.forEach((likeWithVotingPowerAndReward, i) => {
-      // then we assign the calculated reward that every voter should get
-      likeWithVotingPowerAndReward.reward = rewardForEveryTicket * likeWithVotingPowerAndReward.votingPower
+    await asyncForEach(
+      memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards,
+      async (likeWithVotingPowerAndReward, i) => {
+        await setImmediatePromise()
 
-      // and by the way randomly select some voters, we will
-      // use them below for further calculations.
-      // Here we randomly take every 2nd, every 4th and very 20the voter.
-      // Note that one voter may be selected at most once, thats why we use "else if",
-      // in other words the intersection of those 3 sets is empty ;)
-      _.times(likeWithVotingPowerAndReward.votingPower, () => {
-        if (Math.random() > 0.5) {
-          if (indexesOfEvery2ndRandomTicket[i]) {
-            indexesOfEvery2ndRandomTicket[i]++
-          } else {
-            indexesOfEvery2ndRandomTicket[i] = 1
+        // then we assign the calculated reward that every voter should get
+        const rewardSumForEveryTicket = rewardForEveryTicket * likeWithVotingPowerAndReward.votingPower
+        likeWithVotingPowerAndReward.reward = rewardSumForEveryTicket;
+        likeWithVotingPowerAndReward.rewardsDetailed.push({
+          for: "rewardSumForEveryTicket", reward: rewardSumForEveryTicket
+        })
+
+        // and by the way randomly select some voters, we will
+        // use them below for further calculations.
+        // Here we randomly take every 2nd, every 4th and very 20the voter.
+        // Note that one voter may be selected at most once, thats why we use "else if",
+        // in other words the intersection of those 3 sets is empty ;)
+        _.times(likeWithVotingPowerAndReward.votingPower, () => {
+          if (Math.random() > 0.5) {
+            if (indexesOfEvery2ndRandomTicket[i]) {
+              indexesOfEvery2ndRandomTicket[i]++
+            } else {
+              indexesOfEvery2ndRandomTicket[i] = 1
+            }
+          } else if (Math.random() > 0.75) {
+            if (indexesOfEvery4thRandomTicket[i]) {
+              indexesOfEvery4thRandomTicket[i]++
+            } else {
+              indexesOfEvery4thRandomTicket[i] = 1
+            }
+          } else if (Math.random() > 0.95) {
+            if (indexesOfEvery20thRandomTicket[i]) {
+              indexesOfEvery20thRandomTicket[i]++
+            } else {
+              indexesOfEvery20thRandomTicket[i] = 1
+            }
           }
-        } else if (Math.random() > 0.75) {
-          if (indexesOfEvery4thRandomTicket[i]) {
-            indexesOfEvery4thRandomTicket[i]++
-          } else {
-            indexesOfEvery4thRandomTicket[i] = 1
-          }
-        } else if (Math.random() > 0.95) {
-          if (indexesOfEvery20thRandomTicket[i]) {
-            indexesOfEvery20thRandomTicket[i]++
-          } else {
-            indexesOfEvery20thRandomTicket[i] = 1
-          }
-        }
-      })
-    })
+        })
+      }
+    )
 
     /**
      * Calculate the reward that every n-th voter should get
      */
     const rewardForEvery2ndRandomTicket =
       (rewardPool * rewardFractions.rewardFractionToEqualyShareBetweenEvery2ndRandomVoter) / _.sum(_.values(indexesOfEvery2ndRandomTicket));
+    
+    await setImmediatePromise()
+    
     const rewardForEvery4thRandomTicket =
       (rewardPool * rewardFractions.rewardFractionToEqualyShareBetweenEvery4thRandomVoter) / _.sum(_.values(indexesOfEvery4thRandomTicket));
+    
+    await setImmediatePromise()
+    
     const rewardForEvery20thRandomTicket =
       (rewardPool * rewardFractions.rewardFractionToEqualyShareBetweenEvery20thRandomVoter) / _.sum(_.values(indexesOfEvery20thRandomTicket));
+
+    await setImmediatePromise()
 
     /**
      * Give every n-th voter the reward that they should get
      */
     _.forEach(indexesOfEvery2ndRandomTicket, (howManyTimesGetsRewardForEvery2ndRandomTicket, index) => {
-      memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards[+index].reward +=
-        howManyTimesGetsRewardForEvery2ndRandomTicket * rewardForEvery2ndRandomTicket
+      const rewardSumForEvery2ndRandomTicket = howManyTimesGetsRewardForEvery2ndRandomTicket * rewardForEvery2ndRandomTicket
+      memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards[+index].reward += rewardSumForEvery2ndRandomTicket
+      memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards[+index].rewardsDetailed.push({
+        for: "rewardSumForEvery2ndRandomTicket", reward: rewardSumForEvery2ndRandomTicket
+      })
     })
+
+    await setImmediatePromise()
 
     _.forEach(indexesOfEvery4thRandomTicket, (howManyTimesGetsRewardForEvery4thRandomTicket, index) => {
-      memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards[+index].reward +=
-        howManyTimesGetsRewardForEvery4thRandomTicket * rewardForEvery4thRandomTicket
+      const rewardSumForEvery4thRandomTicket = howManyTimesGetsRewardForEvery4thRandomTicket * rewardForEvery4thRandomTicket
+      memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards[+index].reward += rewardSumForEvery4thRandomTicket
+      memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards[+index].rewardsDetailed.push({
+        for: "rewardSumForEvery4thRandomTicket", reward: rewardSumForEvery4thRandomTicket
+      })
     })
 
+    await setImmediatePromise()
+
     _.forEach(indexesOfEvery20thRandomTicket, (howManyTimesGetsRewardForEvery20thRandomTicket, index) => {
-      memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards[+index].reward +=
-      howManyTimesGetsRewardForEvery20thRandomTicket * rewardForEvery20thRandomTicket
+      const rewardSumForEvery20thRandomTicket = howManyTimesGetsRewardForEvery20thRandomTicket * rewardForEvery20thRandomTicket
+      memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards[+index].reward += rewardSumForEvery20thRandomTicket 
+      memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards[+index].rewardsDetailed.push({
+        for: "rewardSumForEvery20thRandomTicket", reward: rewardSumForEvery20thRandomTicket
+      })
     })
+
+    await setImmediatePromise()
 
     /**
      * Now we are giving some rewards to 3 randomly selected voters
      */
-    const threeRandomTickets = _.sampleSize(memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards, 3)
-
-    if (threeRandomTickets[0]) { 
-      threeRandomTickets[0].reward += rewardPool * rewardFractions.rewardFractionFor1stRandomVoter;
-    }
-    if (threeRandomTickets[1]) { 
-      threeRandomTickets[1].reward += rewardPool * rewardFractions.rewardFractionFor2ndRandomVoter;
-    }
-    if (threeRandomTickets[2]) { 
-      threeRandomTickets[2].reward += rewardPool * rewardFractions.rewardFractionFor3rdRandomVoter;
-    }
+    await this.calculateAndAssignRewardsTo3RandomTickets({
+      memeWithLikesAndVotingPowers,
+      rewardFractions,
+      rewardPool,
+    })
 
     memeWithLikesAndVotingPowers.threeLikesWithVotingPowersAndRewardsWithBiggestRewards =
       _(memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards)
@@ -316,6 +347,68 @@ export class MemezatorService extends NestSchedule {
         .takeRight(3)
         .reverse()
         .value()
+  }
+
+  /**
+   * Calculates and gives rewards to 3 randomly selected tickets. Read more in docs about memezator algorithm
+   * @see https://docs.google.com/document/d/1fAbkRuZBXe6UQUGd-6_q6t8jEc0EfT2g1wKItrBP6iE/edit?usp=sharing
+   * look at the 'One/Second/Third random ticket' parts 
+   */
+  private async calculateAndAssignRewardsTo3RandomTickets(
+    { memeWithLikesAndVotingPowers, rewardFractions, rewardPool }: {
+      memeWithLikesAndVotingPowers: MemeWithLikesAndVotingPowers,
+      rewardFractions: RewardFractions,
+      rewardPool: number,
+    }
+  ): Promise<void> {
+    // The indexes (or numbers or offsets) of 3 randomly selected tokens.
+    // This array will contain up to 3 elements (not more than 3 elements, but may be less than 3 elements). 
+    const threeRandomTicketsIndexes: number[] = _.sortBy(uniqueRandoms(1, memeWithLikesAndVotingPowers.meme.favoritesCount, 3))
+    let threeRandomTicketsIndexesProcessedCount = 0;
+    let passedTicketsCount = 0;
+
+    for (const likeWithVotingPowerAndRewards of memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards) {
+      await setImmediatePromise();
+
+      // already gave rewards to authors of 3 random tickets, so no need to continue
+      if (threeRandomTicketsIndexesProcessedCount >= 3) {
+        break;
+      }
+
+      // the currently processing ticket from the threeRandomTicketsIndexes array, that we randomly selected above.
+      const randomTicketIndex = threeRandomTicketsIndexes[threeRandomTicketsIndexesProcessedCount]
+
+      // check if the currently processing randomly selected ticket was given with this likeWithVotingPowerAndRewards object
+      if (
+        randomTicketIndex > passedTicketsCount &&
+        randomTicketIndex <= passedTicketsCount + likeWithVotingPowerAndRewards.votingPower
+      ) {
+        // if so, then increment the counter
+        threeRandomTicketsIndexesProcessedCount++;
+
+        const rewardFractionForCurrentRandomTicket = ({
+          1: rewardFractions.rewardFractionFor1stRandomVoter,
+          2: rewardFractions.rewardFractionFor2ndRandomVoter,
+          3: rewardFractions.rewardFractionFor3rdRandomVoter,
+        })[threeRandomTicketsIndexesProcessedCount]
+
+        const rewardForDetail: "firstRandomTicket" | "secondRandomTicket" | "thirdRandomTicket" = ({
+          1: "firstRandomTicket",
+          2: "secondRandomTicket",
+          3: "thirdRandomTicket",
+        })[threeRandomTicketsIndexesProcessedCount];
+
+        const rewardForCurrentRandomTicket = rewardPool * rewardFractionForCurrentRandomTicket;
+
+        likeWithVotingPowerAndRewards.reward += rewardForCurrentRandomTicket;
+
+        likeWithVotingPowerAndRewards.rewardsDetailed.push({
+          for: rewardForDetail, reward: rewardForCurrentRandomTicket
+        });
+      }
+
+      passedTicketsCount += likeWithVotingPowerAndRewards.votingPower;
+    }
   }
 
   private async createStatusesAboutWinners(

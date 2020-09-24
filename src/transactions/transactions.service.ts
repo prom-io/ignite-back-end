@@ -19,6 +19,15 @@ export class TransactionsService {
     private readonly logger: LoggerService,
   ) {}
 
+  public async performTransactionsByIds(transactionsIds: string[]): Promise<Transaction[]> {
+    this.logger.info(`performTransactionsByIds: Performing transactions with ${transactionsIds.length} transaction ids: ${JSON.stringify(transactionsIds)}`);
+    const transactions = await this.transactionsRepository.findByIds(transactionsIds)
+    this.logger.info(`performTransactionsByIds: Found ${transactions.length} transactions. Started performing`);
+    const completeTransactions = await this.performTransactions(transactions)
+    this.logger.info(`performTransactionsByIds: Performed ${completeTransactions.length} out of ${transactions.length} transactions`)
+    return completeTransactions;
+  }
+
   /**
    * Don't use `Promise.all` instead of `for`, and do not parallel invocations of performTransaction(),
    * because the ignite-token-exchange service expects the exchanges to be sequenced

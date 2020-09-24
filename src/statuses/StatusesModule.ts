@@ -60,7 +60,6 @@ import { config } from '../config';
             secretKey: config.GOOGLE_RECAPTCHA_SECRET_KEY,
             response: req => req.headers["x-recaptcha"],
             skipIf: req => {
-                Logger.log(req.body)
                return config.NODE_ENV === 'production' && req.body.fromMemezator !== true
             },
             onError: () => {
