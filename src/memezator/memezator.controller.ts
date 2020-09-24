@@ -25,8 +25,10 @@ export class MemezatorController {
   @RequiresAdmin()
   public dryRunCompetitionSummingUp(
     @Query("startedInCron") startedInCronRaw?: any,
+    @Query("saveResultsInDryRun") saveResultsInDryRunRaw?: any,
   ) {
     const startedInCron = startedInCronRaw === "true" ? true : false;
-    return this.memezatorService.startMemezatorCompetitionSummingUp({ startedInCron, dryRun: true })
+    const saveResultsInDryRun = saveResultsInDryRunRaw === "true" ? true : false;
+    return this.memezatorService.startMemezatorCompetitionSummingUp({ startedInCron, dryRun: true, saveResultsInDryRun })
   }
 }
