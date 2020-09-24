@@ -1,6 +1,5 @@
-import { Controller, Post, Get, Body, UseGuards } from "@nestjs/common";
+import { Controller, Post, Get, Body, UseGuards, Query } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
-import { ApiBody } from "@nestjs/swagger";
 import { AdminGuard } from "../jwt-auth/AdminGuard";
 import { RequiresAdmin } from "../jwt-auth/RequiresAdmin";
 import { MemezatorService } from "./memezator.service";
@@ -28,9 +27,11 @@ export class MemezatorController {
     return this.memezatorService.startMemezatorCompetitionSummingUp({ startedInCron: false, dryRun: true })
   }
 
-  @Get("get-winners-by-likes")
-  public getWinnersByLIkes() {
-    return this.memezatorService.getWinnersByLikes()
+  @Get("top-10-winners")
+  public getWinnersByLIkes(
+    @Query() date: Date
+  ) {
+    return this.memezatorService.getWinnersByLikes(date)
   }
 
 }

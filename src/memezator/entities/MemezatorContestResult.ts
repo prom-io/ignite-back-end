@@ -16,5 +16,8 @@ export class MemezatorContestResult {
   result: object
 
   @Column({type: "jsonb"})
-  winnersByLikes: LikeAndVotingPowerAndReward[] = []
+  top10WinnersByLikes: LikeAndVotingPowerAndReward[] = []
+
+  @Column()
+  competitionStartDate: Date
 }

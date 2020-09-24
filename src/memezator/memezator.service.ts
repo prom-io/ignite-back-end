@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from "@nestjs/common";
+import { Injectable, InternalServerErrorException, Logger } from "@nestjs/common";
 import { Cron, NestSchedule } from "nest-schedule";
 import { getCronExpressionForMemezatorCompetitionSumminUpCron, getCurrentMemezatorContestStartTime } from "./utils";
 import { StatusesRepository } from "../statuses/StatusesRepository";
@@ -60,10 +60,10 @@ export class MemezatorService extends NestSchedule {
     }
   }
 
-  async getWinnersByLikes() {
+  async getWinnersByLikes(competitionStartDate) {
     return this.memezatorContestResultRepository.find({
       where: {
-        createdAt: new Date()
+        createdAt: competitionStartDate
       }
     })
   }
@@ -99,14 +99,16 @@ export class MemezatorService extends NestSchedule {
       options.dryRun ? false : true
     )
 
-    const winnersByLikes: LikeAndVotingPowerAndReward[] = Object.keys(winners).map(winner => {
-        return  winners[winner].likesWithVotingPowersAndRewards as LikeAndVotingPowerAndReward
-    })
+    const winnersByLikes: LikeAndVotingPowerAndReward[] = [
+      ...winners.firstPlace.likesWithVotingPowersAndRewards, 
+      ...winners.secondPlace.likesWithVotingPowersAndRewards, 
+      ...winners.thirdPlace.likesWithVotingPowersAndRewards
+    ]
 
-    let winnersByLikesSortedByDesc: LikeAndVotingPowerAndReward[] = _.orderBy(winnersByLikes, 'reward', ['desc'])
+    let top10WinnersByLikesSortedByDesc: LikeAndVotingPowerAndReward[] = _.orderBy(winnersByLikes, 'reward', ['desc'])
 
-    if(winnersByLikesSortedByDesc.length > 10) {
-      winnersByLikesSortedByDesc = winnersByLikesSortedByDesc.slice(0, 10)
+    if(top10WinnersByLikesSortedByDesc.length > 10) {
+      top10WinnersByLikesSortedByDesc = top10WinnersByLikesSortedByDesc.slice(0, 10)
     }
 
     if (!options.dryRun) {
@@ -117,7 +119,8 @@ export class MemezatorService extends NestSchedule {
         createdAt: new Date(),
         updatedAt: null,
         result: winners,
-        winnersByLikes: winnersByLikesSortedByDesc
+        top10WinnersByLikes: top10WinnersByLikesSortedByDesc,
+        competitionStartDate: competitionStartDate.toDate()
       })
 
       const transactions = await this.createTransactions(winners, memezatorContestResult.id)
