@@ -335,45 +335,11 @@ export class MemezatorService extends NestSchedule {
     /**
      * Now we are giving some rewards to 3 randomly selected voters
      */
-    const threeRandomTicketsIndexes: number[] = _.sortBy(uniqueRandoms(1, memeWithLikesAndVotingPowers.meme.favoritesCount, 3))
-
-    let passedTicketsCount = 0
-
-    for (const likeWithVotingPowerAndRewards of memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards) {
-      await setImmediatePromise();
-
-      if (threeRandomTicketsIndexes.length === 0) {
-        break;
-      }
-
-      const rewardFractionForCurrentRandomTicket: number = ({
-        3: rewardFractions.rewardFractionFor1stRandomVoter,
-        2: rewardFractions.rewardFractionFor2ndRandomVoter,
-        1: rewardFractions.rewardFractionFor3rdRandomVoter,
-      })[threeRandomTicketsIndexes.length];
-
-      const rewardForDetail: "firstRandomTicket" | "secondRandomTicket" | "thirdRandomTicket" = ({
-        3: "firstRandomTicket",
-        2: "secondRandomTicket",
-        1: "thirdRandomTicket",
-      })[threeRandomTicketsIndexes.length];
-
-      if (
-        threeRandomTicketsIndexes[0] > passedTicketsCount &&
-        threeRandomTicketsIndexes[0] <= passedTicketsCount + likeWithVotingPowerAndRewards.votingPower
-      ) {
-        const rewardForCurrentRandomTicket = rewardPool * rewardFractionForCurrentRandomTicket;
-
-        likeWithVotingPowerAndRewards.reward += rewardForCurrentRandomTicket;
-        likeWithVotingPowerAndRewards.rewardsDetailed.push({
-          for: rewardForDetail, reward: rewardForCurrentRandomTicket
-        });
-
-        threeRandomTicketsIndexes.shift();
-      }
-
-      passedTicketsCount += likeWithVotingPowerAndRewards.votingPower;
-    }
+    await this.calculateAndAssignRewardsTo3RandomTickets({
+      memeWithLikesAndVotingPowers,
+      rewardFractions,
+      rewardPool,
+    })
 
     memeWithLikesAndVotingPowers.threeLikesWithVotingPowersAndRewardsWithBiggestRewards =
       _(memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards)
@@ -381,6 +347,68 @@ export class MemezatorService extends NestSchedule {
         .takeRight(3)
         .reverse()
         .value()
+  }
+
+  /**
+   * Calculates and gives rewards to 3 randomly selected tickets. Read more in docs about memezator algorithm
+   * @see https://docs.google.com/document/d/1fAbkRuZBXe6UQUGd-6_q6t8jEc0EfT2g1wKItrBP6iE/edit?usp=sharing
+   * look at the 'One/Second/Third random ticket' parts 
+   */
+  private async calculateAndAssignRewardsTo3RandomTickets(
+    { memeWithLikesAndVotingPowers, rewardFractions, rewardPool }: {
+      memeWithLikesAndVotingPowers: MemeWithLikesAndVotingPowers,
+      rewardFractions: RewardFractions,
+      rewardPool: number,
+    }
+  ): Promise<void> {
+    // The indexes (or numbers or offsets) of 3 randomly selected tokens.
+    // This array will contain up to 3 elements (not more than 3 elements, but may be less than 3 elements). 
+    const threeRandomTicketsIndexes: number[] = _.sortBy(uniqueRandoms(1, memeWithLikesAndVotingPowers.meme.favoritesCount, 3))
+    let threeRandomTicketsIndexesProcessedCount = 0;
+    let passedTicketsCount = 0;
+
+    for (const likeWithVotingPowerAndRewards of memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards) {
+      await setImmediatePromise();
+
+      // already gave rewards to authors of 3 random tickets, so no need to continue
+      if (threeRandomTicketsIndexesProcessedCount >= 3) {
+        break;
+      }
+
+      // the currently processing ticket from the threeRandomTicketsIndexes array, that we randomly selected above.
+      const randomTicketIndex = threeRandomTicketsIndexes[threeRandomTicketsIndexesProcessedCount]
+
+      // check if the currently processing randomly selected ticket was given with this likeWithVotingPowerAndRewards object
+      if (
+        randomTicketIndex > passedTicketsCount &&
+        randomTicketIndex <= passedTicketsCount + likeWithVotingPowerAndRewards.votingPower
+      ) {
+        // if so, then increment the counter
+        threeRandomTicketsIndexesProcessedCount++;
+
+        const rewardFractionForCurrentRandomTicket = ({
+          1: rewardFractions.rewardFractionFor1stRandomVoter,
+          2: rewardFractions.rewardFractionFor2ndRandomVoter,
+          3: rewardFractions.rewardFractionFor3rdRandomVoter,
+        })[threeRandomTicketsIndexesProcessedCount]
+
+        const rewardForDetail: "firstRandomTicket" | "secondRandomTicket" | "thirdRandomTicket" = ({
+          1: "firstRandomTicket",
+          2: "secondRandomTicket",
+          3: "thirdRandomTicket",
+        })[threeRandomTicketsIndexesProcessedCount];
+
+        const rewardForCurrentRandomTicket = rewardPool * rewardFractionForCurrentRandomTicket;
+
+        likeWithVotingPowerAndRewards.reward += rewardForCurrentRandomTicket;
+
+        likeWithVotingPowerAndRewards.rewardsDetailed.push({
+          for: rewardForDetail, reward: rewardForCurrentRandomTicket
+        });
+      }
+
+      passedTicketsCount += likeWithVotingPowerAndRewards.votingPower;
+    }
   }
 
   private async createStatusesAboutWinners(
