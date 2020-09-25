@@ -5,13 +5,14 @@ import { TransactionsRepository } from "./TransactionsRepository";
 import { TokenExchangeModule } from "../token-exchange";
 import { TransactionsController } from "./transactions.controller";
 import { TransactionMapper } from "./TransactionMapper";
+import { TransactionsPerformerCronService } from "./transactions-performer-cron.service";
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([TransactionsRepository]),
     TokenExchangeModule,
   ],
-  providers: [TransactionsService, TransactionMapper],
+  providers: [TransactionsService, TransactionMapper, TransactionsPerformerCronService],
   exports: [TransactionsService],
   controllers: [TransactionsController],
 })
