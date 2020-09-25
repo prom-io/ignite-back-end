@@ -1,4 +1,3 @@
-import { Not, IsNull } from 'typeorm';
 import { In } from 'typeorm';
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { Cron, NestSchedule } from "nest-schedule";
@@ -35,6 +34,7 @@ import momentTZ from "moment-timezone"
 import { setImmediatePromise } from "../utils/sest-intermediate-promise";
 import { asyncForEach } from "../utils/async-foreach";
 import { uniqueRandoms } from "../utils/unique-randoms";
+import { MemezatorContestResult } from "./entities/MemezatorContestResult";
 
 @Injectable()
 export class MemezatorService extends NestSchedule {
@@ -100,7 +100,13 @@ export class MemezatorService extends NestSchedule {
     return updatedTop10Winners;
   }
 
-  async startMemezatorCompetitionSummingUp(options: {startedInCron: boolean, dryRun: boolean}): Promise<WinnerMemesWithLikes> {
+  
+  async startMemezatorCompetitionSummingUp(options: {
+    startedInCron: boolean,
+    dryRun: boolean,
+    saveResultsInDryRun?: boolean,
+  }): Promise<WinnerMemesWithLikes> {
+
     let competitionEndDate: momentTZ.Moment;
     let competitionStartDate: momentTZ.Moment;
 
@@ -130,6 +136,8 @@ export class MemezatorService extends NestSchedule {
       competitionEndDate.toDate(),
       options.dryRun ? false : true
     )
+    
+    let memezatorContestResult: MemezatorContestResult | null = null
 
     const winnersByLikes: LikeAndVotingPowerAndReward[] = [
       ...winners.firstPlace.likesWithVotingPowersAndRewards, 
@@ -141,10 +149,8 @@ export class MemezatorService extends NestSchedule {
 
       top10WinnersByLikesSortedByDesc = top10WinnersByLikesSortedByDesc.slice(0, 10)
 
-    if (!options.dryRun) {
-      await this.createStatusesAboutWinners(winners, rewardPool, competitionStartDate.toDate())
-
-      const memezatorContestResult = await this.memezatorContestResultRepository.save({
+    if (!options.dryRun || options.saveResultsInDryRun) {
+      memezatorContestResult = await this.memezatorContestResultRepository.save({
         id: uuid(),
         createdAt: new Date(),
         updatedAt: null,
@@ -152,6 +158,10 @@ export class MemezatorService extends NestSchedule {
         top10WinnersByLikes: top10WinnersByLikesSortedByDesc,
         competitionStartDate: competitionStartDate.toDate()
       })
+    }
+
+    if (!options.dryRun) {
+      await this.createStatusesAboutWinners(winners, rewardPool, competitionStartDate.toDate())
 
       const transactions = await this.createTransactions(winners, memezatorContestResult.id)
 
@@ -344,7 +354,7 @@ export class MemezatorService extends NestSchedule {
       (rewardPool * rewardFractions.rewardFractionToEqualyShareBetweenEvery4thRandomVoter) / _.sum(_.values(indexesOfEvery4thRandomTicket));
     
     await setImmediatePromise()
-    
+
     const rewardForEvery20thRandomTicket =
       (rewardPool * rewardFractions.rewardFractionToEqualyShareBetweenEvery20thRandomVoter) / _.sum(_.values(indexesOfEvery20thRandomTicket));
 

@@ -1,4 +1,6 @@
-import {BadRequestException, forwardRef, Module} from "@nestjs/common";
+import { GoogleRecaptchaModule } from '@nestlab/google-recaptcha';
+import {forwardRef, Module, BadRequestException} from "@nestjs/common";
+
 import {TypeOrmModule} from "@nestjs/typeorm";
 import {MailerModule} from "@nestjs-modules/mailer";
 import {UsersService} from "./UsersService";
@@ -26,7 +28,6 @@ import { StatusLikesRepository } from "../statuses/StatusLikesRepository";
 import { StatusesRepository } from "../statuses/StatusesRepository";
 import { TransactionsRepository } from "../transactions/TransactionsRepository";
 import { TokenExchangeModule } from "../token-exchange";
-import { GoogleRecaptchaModule } from "@nestlab/google-recaptcha";
 
 @Module({
     controllers: [UsersController, UserByAddressController, SignUpController, SignUpReferencesController],
@@ -49,6 +50,7 @@ import { GoogleRecaptchaModule } from "@nestlab/google-recaptcha";
             UserPreferencesRepository,
             SignUpReferencesRepository,
             TransactionsRepository,
+            
         ]),
         TokenExchangeModule,
         forwardRef(() => StatusesModule),

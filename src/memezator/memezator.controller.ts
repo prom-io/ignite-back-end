@@ -23,8 +23,13 @@ export class MemezatorController {
   @Get("dry-run-competition-summing-up")
   @UseGuards(AuthGuard("jwt"), AdminGuard)
   @RequiresAdmin()
-  public dryRunCompetitionSummingUp() {
-    return this.memezatorService.startMemezatorCompetitionSummingUp({ startedInCron: false, dryRun: true })
+  public dryRunCompetitionSummingUp(
+    @Query("startedInCron") startedInCronRaw?: any,
+    @Query("saveResultsInDryRun") saveResultsInDryRunRaw?: any,
+  ) {
+    const startedInCron = startedInCronRaw === "true" ? true : false;
+    const saveResultsInDryRun = saveResultsInDryRunRaw === "true" ? true : false;
+    return this.memezatorService.startMemezatorCompetitionSummingUp({ startedInCron, dryRun: true, saveResultsInDryRun })
   }
 
   @Get("top-10-winners")
