@@ -1,4 +1,6 @@
-import { Injectable, InternalServerErrorException, Logger } from "@nestjs/common";
+import { Not, IsNull } from 'typeorm';
+import { In } from 'typeorm';
+import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { Cron, NestSchedule } from "nest-schedule";
 import { getCronExpressionForMemezatorCompetitionSumminUpCron, getCurrentMemezatorContestStartTime } from "./utils";
 import { StatusesRepository } from "../statuses/StatusesRepository";
@@ -61,21 +63,41 @@ export class MemezatorService extends NestSchedule {
     }
   }
 
-  async getWinnersByLikes(competitionStartDate: Date) {
+  async getWinnersByLikes(competitionStartDate?: Date) {
 
+    let top10WinnersByLikes
     if(competitionStartDate) {
-      return this.memezatorContestResultRepository.find({
+      top10WinnersByLikes = await this.memezatorContestResultRepository.find({
+        select: ["top10WinnersByLikes"],
         where: {
           createdAt: competitionStartDate
-        }
+        },
+        take: 1
       })
-    } 
-    return this.memezatorContestResultRepository.find({
-      order: {
-        createdAt: "DESC"
-      },
-      take: 1
+    } else {
+      top10WinnersByLikes = await this.memezatorContestResultRepository.find({
+        select: ["top10WinnersByLikes"],
+        order: {
+          createdAt: "DESC"
+        },
+        take: 1
+      })
+    }
+    const top10StatusLikes = await this.statusLikeRepository.find({
+      where: {
+        id: In(top10WinnersByLikes.map(winner => winner.like.id))
+      }
     })
+
+    // Information about winners is kept as json
+    // Any changes related to statuses would not affect the data of the winners 
+    // Because of that below code replace statuses in top10Winners with the same status placed in statusLIkes table.
+    const updatedTop10Winners: LikeAndVotingPowerAndReward = top10WinnersByLikes.map((winner) => {
+      winner.like = top10StatusLikes.find(status => status.id === winner.like.id)
+      return winner;
+    })
+
+    return updatedTop10Winners;
   }
 
   async startMemezatorCompetitionSummingUp(options: {startedInCron: boolean, dryRun: boolean}): Promise<WinnerMemesWithLikes> {
