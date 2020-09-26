@@ -1,4 +1,4 @@
-import { Recaptcha } from '@nestlab/google-recaptcha';
+import { Recaptcha } from "@nestlab/google-recaptcha";
 import {Body, Controller, Post} from "@nestjs/common";
 import {UsersService} from "./UsersService";
 import {SignUpRequest} from "./types/request";
