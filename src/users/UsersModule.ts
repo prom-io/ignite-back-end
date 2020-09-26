@@ -1,4 +1,4 @@
-import { GoogleRecaptchaModule } from '@nestlab/google-recaptcha';
+import { GoogleRecaptchaModule } from "@nestlab/google-recaptcha";
 import {forwardRef, Module, BadRequestException} from "@nestjs/common";
 
 import {TypeOrmModule} from "@nestjs/typeorm";
