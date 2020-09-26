@@ -63,7 +63,7 @@ export class MemezatorService extends NestSchedule {
     }
   }
 
-  async getWinnersByLikes(competitionStartDate?: Date) {
+  async getWinnersByLikes(competitionStartDate?: Date): Promise<LikeAndVotingPowerAndReward> {
 
     let top10WinnersByLikes
     if(competitionStartDate) {
@@ -90,8 +90,8 @@ export class MemezatorService extends NestSchedule {
     })
 
     // Information about winners is kept as json
-    // Any changes related to statuses would not affect the data of the winners 
-    // Because of that below code replace statuses in top10Winners with the same status placed in statusLIkes table.
+    // Any changes related to like of status  would not affect the data of the winners 
+    // Because of that below code replace liked statuses in top10Winners with the same status placed in statusLIkes table.
     const updatedTop10Winners: LikeAndVotingPowerAndReward = top10WinnersByLikes.map((winner) => {
       winner.like = top10StatusLikes.find(status => status.id === winner.like.id)
       return winner;
@@ -100,7 +100,6 @@ export class MemezatorService extends NestSchedule {
     return updatedTop10Winners;
   }
 
-  
   async startMemezatorCompetitionSummingUp(options: {
     startedInCron: boolean,
     dryRun: boolean,
