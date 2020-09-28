@@ -1,5 +1,5 @@
-import { Request } from 'express';
-import { GoogleRecaptchaModule } from '@nestlab/google-recaptcha';
+import { Request } from "express";
+import { GoogleRecaptchaModule } from "@nestlab/google-recaptcha";
 import {Module, BadRequestException} from "@nestjs/common";
 import {TypeOrmModule} from "@nestjs/typeorm";
 import {LoggerModule} from "./logging";
@@ -26,7 +26,7 @@ import {TokenExchangeModule} from "./token-exchange";
 import { StatisticsLogService } from "./statistics-log/statistics-log.service";
 
 import { StatisticsLogModule } from "./statistics-log/statistics-log.module";
-import { config } from './config';
+import { config } from "./config";
 
 @Module({
     imports: [
@@ -64,18 +64,18 @@ import { config } from './config';
                     return req.headers["x-recaptcha"]
                 },
                 skipIf: (req: Request) => {
-                    if(req.path === "/api/v1/sign-up" && req.method === "POST") {
-                        return config.NODE_ENV !== "production" || config.additionalConfig.disableGoogleRecaptchaForSignUp === true
+                    if (req.path === "/api/v1/sign-up" && req.method === "POST") {
+                        return config.NODE_ENV !== "production" || config.additionalConfig.disableGoogleRecaptchaForSignUp === true;
                     }
-                    if(req.path === "/api/v1/statuses" && req.method === "POST") {
-                        return config.NODE_ENV !== 'production' && req.body.fromMemezator !== true
+                    if (req.path === "/api/v1/statuses" && req.method === "POST") {
+                        return config.NODE_ENV !== "production" || req.body.from_emezator !== true;
                     }
                 },
                 onError: () => {
-                    throw new BadRequestException('Invalid recaptcha.')
+                    throw new BadRequestException("Invalid recaptcha.")
                 }
             }),
-            // кастильный метод
+            // костыльный метод
             global: true
         },
     ]
