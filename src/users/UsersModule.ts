@@ -1,4 +1,6 @@
-import {BadRequestException, forwardRef, Module} from "@nestjs/common";
+import { GoogleRecaptchaModule } from "@nestlab/google-recaptcha";
+import {forwardRef, Module, BadRequestException, MiddlewareConsumer, NestModule, RequestMethod} from "@nestjs/common";
+
 import {TypeOrmModule} from "@nestjs/typeorm";
 import {MailerModule} from "@nestjs-modules/mailer";
 import {UsersService} from "./UsersService";
@@ -26,7 +28,7 @@ import { StatusLikesRepository } from "../statuses/StatusLikesRepository";
 import { StatusesRepository } from "../statuses/StatusesRepository";
 import { TransactionsRepository } from "../transactions/TransactionsRepository";
 import { TokenExchangeModule } from "../token-exchange";
-import { GoogleRecaptchaModule } from "@nestlab/google-recaptcha";
+import expressRateLimit from "express-rate-limit";
 
 @Module({
     controllers: [UsersController, UserByAddressController, SignUpController, SignUpReferencesController],
@@ -49,6 +51,7 @@ import { GoogleRecaptchaModule } from "@nestlab/google-recaptcha";
             UserPreferencesRepository,
             SignUpReferencesRepository,
             TransactionsRepository,
+            
         ]),
         TokenExchangeModule,
         forwardRef(() => StatusesModule),
@@ -77,5 +80,19 @@ import { GoogleRecaptchaModule } from "@nestlab/google-recaptcha";
     ],
     exports: [UsersService, UsersMapper]
 })
-export class UsersModule {
+export class UsersModule implements NestModule {
+    configure(consumer: MiddlewareConsumer) {
+        consumer
+            .apply(
+                expressRateLimit({
+                    windowMs: 10 * 60 * 1000,
+                    max: 1,
+                    skip: req => {
+                        console.log(`Sign up request from ${req.ip}`)
+                        return (config.additionalConfig.disableRateLimitForSignUpForIps || []).includes(req.ip)
+                    },
+                })
+            )
+            .forRoutes({ path: "api/v1/sign-up", method: RequestMethod.POST });
+    }
 }

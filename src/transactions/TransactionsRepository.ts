@@ -2,6 +2,10 @@ import { Repository, EntityRepository, FindConditions } from "typeorm";
 import { Transaction } from "./entities/Transaction";
 import { User } from "../users/entities";
 import { GetTransactionsFilters } from "./types/requests/GetTransactionsFilters";
+import _ from "lodash";
+import { TransactionStatus } from "./types/TransactionStatus.enum";
+import { TransactionSubject } from "./types/TransactionSubject.enum";
+import { NotStartedRewardTxnsIdsAndReceiverAndRewardsSum } from "./types/NotStartedRewardTxnsIdsAndReceiverAndRewardsSum.interface";
 
 @EntityRepository(Transaction)
 export class TransactionsRepository extends Repository<Transaction> {
@@ -34,5 +38,34 @@ export class TransactionsRepository extends Repository<Transaction> {
       skip: filters.skip,
       order: { createdAt: "DESC" },
     })
+  }
+
+  async getNotStartedRewardTxnsIdsAndReceiversAndRewardsSums(
+    options: {createdAtFrom?: Date, createdAtTo?: Date, receiversLimit?: number}
+  ): Promise<NotStartedRewardTxnsIdsAndReceiverAndRewardsSum[]> {
+    const qb = this.createQueryBuilder("transaction")
+      .select(`LOWER(transaction."txnTo")`, "txnTo") // transaction receiver
+      .addSelect(`array_agg(transaction.id)`, "txnIds") // an array, containing ids of transactions
+      .addSelect(`SUM(transaction."txnSum")`, "rewardsSum")
+      .where(`transaction.txnStatus = :txnStatus`, { txnStatus: TransactionStatus.NOT_STARTED })
+      .andWhere(`transaction.txnSubj = :txnType`, { txnType: TransactionSubject.REWARD });
+
+    if (options.createdAtFrom) {
+      qb.andWhere(`transaction."createdAt" >= :createdAtFrom`, { createdAtFrom: options.createdAtFrom });
+    }
+
+    if (options.createdAtTo) {
+      qb.andWhere(`transaction."createdAt" < :createdAtTo`, { createdAtTo: options.createdAtTo });
+    }
+
+    if (options.receiversLimit) {
+      qb.limit(options.receiversLimit);
+    }
+
+    qb
+      .groupBy(`LOWER(transaction."txnTo")`)
+      .orderBy(`LOWER(transaction."txnTo")`);
+
+    return qb.getRawMany() as Promise<NotStartedRewardTxnsIdsAndReceiverAndRewardsSum[]>;
   }
 }

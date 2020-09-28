@@ -24,6 +24,7 @@ export class WalletGeneratorModule implements NestModule {
                 expressRateLimit({
                     windowMs: 10 * 60 * 1000,
                     max: 1,
+                    skip: req => (config.additionalConfig.disableRateLimitForSignUpForIps || []).includes(req.ip),
                 })
             )
             .forRoutes({ path: "api/v1/wallet", method: RequestMethod.POST });

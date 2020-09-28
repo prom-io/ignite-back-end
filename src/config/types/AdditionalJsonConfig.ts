@@ -18,4 +18,5 @@ export interface AdditionalJsonConfig {
         }
     },
     disableGoogleRecaptchaForSignUp?: boolean,
+    disableRateLimitForSignUpForIps?: string[],
 }
