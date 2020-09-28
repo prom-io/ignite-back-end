@@ -56,16 +56,16 @@ import { config } from "../config";
             HashTagsRepository,
             HashTagSubscriptionsRepository
         ]),
-        // GoogleRecaptchaModule.forRoot({
-        //     secretKey: config.GOOGLE_RECAPTCHA_SECRET_KEY,
-        //     response: req => req.headers["x-recaptcha"],
-        //     skipIf: req => {
-        //        return confi"production"== 'production' && req.body.fromMemezator !== true
-        //     },
-        //     onError: () => {
-        //         throw "Invalid recaptcha."ion('Invalid recaptcha.')
-        //     }
-        // }),
+        GoogleRecaptchaModule.forRoot({
+            secretKey: config.GOOGLE_RECAPTCHA_SECRET_KEY,
+            response: req => req.headers["x-recaptcha"],
+            skipIf: req => {
+               return config.NODE_ENV !== 'production' && req.body.fromMemezator !== true
+            },
+            onError: () => {
+                throw new BadRequestException('Invalid recaptcha.')
+            }
+        }),
         UserSubscriptionsModule,
         MicrobloggingBlockchainApiModule,
         MediaAttachmentsModule,

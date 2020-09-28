@@ -46,7 +46,7 @@ export class StatusesController {
     @UseInterceptors(ClassSerializerInterceptor)
     @UseGuards(AuthGuard("jwt"))
     @ApiCreatedResponse({type: () => StatusResponse})
-    // @Recaptcha()
+    @Recaptcha()
     @Post()
     public createStatus(@Body() createStatusRequest: CreateStatusRequest,
                         @Req() request: Request): Promise<StatusResponse> {
