@@ -1,5 +1,4 @@
-import { GoogleRecaptchaModule } from "@nestlab/google-recaptcha";
-import {forwardRef, Module, BadRequestException, MiddlewareConsumer, NestModule, RequestMethod} from "@nestjs/common";
+import {forwardRef, Module, MiddlewareConsumer, NestModule, RequestMethod, Logger} from "@nestjs/common";
 
 import {TypeOrmModule} from "@nestjs/typeorm";
 import {MailerModule} from "@nestjs-modules/mailer";
@@ -66,14 +65,6 @@ import expressRateLimit from "express-rate-limit";
                 },
                 secure: true
             },
-        }),
-        GoogleRecaptchaModule.forRoot({
-            secretKey: config.GOOGLE_RECAPTCHA_SECRET_KEY,
-            response: req => req.headers["x-recaptcha"],
-            skipIf: req => config.NODE_ENV !== "production" || config.additionalConfig.disableGoogleRecaptchaForSignUp === true,
-            onError: () => {
-                throw new BadRequestException("Invalid recaptcha.")
-            }
         }),
         DefaultAccountProviderModule,
         PasswordHashApiModule
