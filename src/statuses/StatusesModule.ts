@@ -28,7 +28,6 @@ import {TopicsController} from "./TopicsController";
 import {TopicsService} from "./TopicsService";
 import {HashTagsMapper} from "./HashTagsMapper";
 import {HashTagSubscriptionsRepository} from "./HashTagSubscriptionsRepository";
-import { config } from "../config";
 
 @Module({
     controllers: [StatusesController, TimelineController, TopicsController],
@@ -56,16 +55,6 @@ import { config } from "../config";
             HashTagsRepository,
             HashTagSubscriptionsRepository
         ]),
-        GoogleRecaptchaModule.forRoot({
-            secretKey: config.GOOGLE_RECAPTCHA_SECRET_KEY,
-            response: req => req.headers["x-recaptcha"],
-            skipIf: req => {
-               return config.NODE_ENV !== 'production' && req.body.fromMemezator !== true
-            },
-            onError: () => {
-                throw new BadRequestException('Invalid recaptcha.')
-            }
-        }),
         UserSubscriptionsModule,
         MicrobloggingBlockchainApiModule,
         MediaAttachmentsModule,
