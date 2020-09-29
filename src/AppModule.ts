@@ -68,7 +68,7 @@ import { config } from "./config";
                         return config.NODE_ENV !== "production" || config.additionalConfig.disableGoogleRecaptchaForSignUp === true;
                     }
                     if (req.path === "/api/v1/statuses" && req.method === "POST") {
-                        return config.NODE_ENV !== "production" || req.body.from_emezator !== true;
+                        return config.NODE_ENV !== "production" || req.body.from_memezator !== true;
                     }
                 },
                 onError: () => {
