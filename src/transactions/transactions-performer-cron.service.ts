@@ -88,7 +88,7 @@ export class TransactionsPerformerCronService extends NestSchedule {
             id: In(rewardReceiverWithRewardsSumAndTxnIds.txnIds),
           },
           {
-            txnStatus: TransactionStatus.FAILED,
+            txnStatus: TransactionStatus.PROBLEM,
           },
         );
       }

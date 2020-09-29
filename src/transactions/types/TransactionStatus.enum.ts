@@ -7,5 +7,6 @@ export enum TransactionStatus {
   NOT_STARTED = "NOT_STARTED",
   PERFORMING = "PERFORMING",
   PERFORMED = "PERFORMED",
-  FAILED = "FAILED"
+  FAILED = "FAILED",
+  PROBLEM = "PROBLEM"
 }
