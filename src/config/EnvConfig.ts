@@ -141,5 +141,11 @@ export class EnvConfig {
     @Env({type: "string", required: true})
     MEMEZATOR_PRIZE_FUND_ACCOUNT_PRIVATE_KEY: string;
 
+    @Env({type: "string", required: true})
+    VOTING_POWER_PURCHASE_ADDRESS: string;
+
+    @Env({type: "number", required: true})
+    VOTING_POWER_CONST: number;
+
     additionalConfig: AdditionalJsonConfig = additionalJsonConfig;
 }

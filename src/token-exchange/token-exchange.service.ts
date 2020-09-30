@@ -58,4 +58,37 @@ export class TokenExchangeService {
 
     return response.data.result
   }
+
+  async getTransactions() {
+    return [
+      {
+        txnHash: "0xa6b9deba6d4ded99e4d441eba2453f197be69d538830f570de1f48bd07283164",
+        tokenQnt: 2,
+        txnDate: "2020-09-03 22:12:33.841+00",
+        addressFrom: "0x7e760d6A6d63304A46289DdBdB9248d4863b3Ba7",
+        addressTo: "0x611b5752C064BA307Ef459ee96733a7A1815B160"
+      },
+      {
+        txnHash: "0xa6b9deba6d4ded99e4d441eba2453f197be69d538830f570de1f48bd07283164",
+        tokenQnt: 3,
+        txnDate: "2020-09-03 22:12:33.841+00",
+        addressFrom: "0x7e760d6A6d63304A46289DdBdB9248d4863b3Ba7",
+        addressTo: "0x611b5752C064BA307Ef459ee96733a7A1815B160"
+      },
+      {
+        txnHash: "0xa6b9deba6d4ded99e4d441eba2453f197be69d538830f570de1f48bd07283164",
+        tokenQnt: 4,
+        txnDate: "2020-09-03 22:12:33.841+00",
+        addressFrom: "0x7e760d6A6d63304A46289DdBdB9248d4863b3Ba7",
+        addressTo: "0x611b5752C064BA307Ef459ee96733a7A1815B160"
+      },
+      {
+        txnHash: "0xa6b9deba6d4ded99e4d441eba2453f197be69d538830f570de1f48bd07283164",
+        tokenQnt: 5,
+        txnDate: "2020-09-03 22:12:33.841+00",
+        addressFrom: "0x7e760d6A6d63304A46289DdBdB9248d4863b3Ba7",
+        addressTo: "0x611b5752C064BA307Ef459ee96733a7A1815B160"
+      }
+    ]
+  }
 }

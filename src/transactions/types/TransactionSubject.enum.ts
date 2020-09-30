@@ -1,4 +1,5 @@
 export enum TransactionSubject {
   TRANSFER = "TRANSFER",
-  REWARD = "REWARD"
+  REWARD = "REWARD",
+  VOTING_POWER_PURCHASE = "VOTING_POWER_PURCHASE"
 }
