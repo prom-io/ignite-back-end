@@ -6,6 +6,7 @@ import {BtfsHash} from "./btfs-sync/entities";
 import {Notification, UserDevice} from "./push-notifications/entities";
 import {MemezatorContestResult} from "./memezator/entities/MemezatorContestResult";
 import { Transaction } from "./transactions/entities/Transaction";
+import { VotingPowerPurchase } from "./transactions/entities/VotingPowerPurchase";
 
 export const entities = [
     User,
@@ -23,4 +24,5 @@ export const entities = [
     SignUpReference,
     MemezatorContestResult,
     Transaction,
+    VotingPowerPurchase
 ];

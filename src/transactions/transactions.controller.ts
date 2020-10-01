@@ -10,12 +10,14 @@ import { AdminGuard } from "../jwt-auth/AdminGuard";
 import { RequiresAdmin } from "../jwt-auth/RequiresAdmin";
 import { Transaction } from "./entities/Transaction";
 import { TransactionsPerformerCronService } from "./transactions-performer-cron.service";
+import { TransactionsSyncCronService } from "./transactions-sync-cron.service";
 
 @Controller("api/v1")
 export class TransactionsController {
   constructor(
     private readonly transactionsService: TransactionsService,
     private readonly transactionsPerformerCron: TransactionsPerformerCronService,
+    private readonly transactionsSyncCronService: TransactionsSyncCronService
   ) {}
 
   @UseInterceptors(ClassSerializerInterceptor)
@@ -43,5 +45,10 @@ export class TransactionsController {
     @Body("receiversLimit", new ParseIntPipe()) receiversLimit: number,
   ) {
     return this.transactionsPerformerCron.performNotStartedRewardTransactions({ receiversLimit })
+  }
+
+  @Get('sync')
+  public syncTrans(){
+    return this.transactionsSyncCronService.synchronizeTransactions();
   }
 }

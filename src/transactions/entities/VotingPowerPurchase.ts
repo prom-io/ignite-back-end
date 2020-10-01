@@ -20,8 +20,8 @@ export class VotingPowerPurchase {
   @Column({ type: "timestamptz" })
   txnDate: Date
 
-  @Column({ type: "float" })
-  tokenQnt: number
+  @Column({ type: "numeric" })
+  tokenQnt: string
 
   @Column({ type: "float" })
   votingPower: number

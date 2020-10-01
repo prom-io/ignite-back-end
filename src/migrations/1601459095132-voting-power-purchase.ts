@@ -54,7 +54,7 @@ export class votingPowerPurchase1601459095132 implements MigrationInterface {
             },
             {
                 name: "tokenQnt",
-                type: "float"
+                type: "numeric"
             },
             {
                 name: "votingPower",
