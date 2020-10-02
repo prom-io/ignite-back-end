@@ -6,9 +6,9 @@ import { TokenExchangeModule } from "../token-exchange";
 import { TransactionsController } from "./transactions.controller";
 import { TransactionMapper } from "./TransactionMapper";
 import { TransactionsPerformerCronService } from "./transactions-performer-cron.service";
-import { VotingPowerPurchaseRepository } from "./voting-power-purchase.repository";
+import { VotingPowerPurchaseRepository } from "../memezator/voting-power-purchase.repository";
 import { UsersRepository } from "../users";
-import { TransactionsSyncCronService } from "./transactions-sync-cron.service";
+import { TransactionsSyncCronService } from "../memezator/voting-power-purchase-cron.service";
 
 @Module({
   imports: [

@@ -10,14 +10,14 @@ import { AdminGuard } from "../jwt-auth/AdminGuard";
 import { RequiresAdmin } from "../jwt-auth/RequiresAdmin";
 import { Transaction } from "./entities/Transaction";
 import { TransactionsPerformerCronService } from "./transactions-performer-cron.service";
-import { TransactionsSyncCronService } from "./transactions-sync-cron.service";
+import { VotingPowerPurchaseCronService } from "../memezator/voting-power-purchase-cron.service";
 
 @Controller("api/v1")
 export class TransactionsController {
   constructor(
     private readonly transactionsService: TransactionsService,
     private readonly transactionsPerformerCron: TransactionsPerformerCronService,
-    private readonly transactionsSyncCronService: TransactionsSyncCronService
+    private readonly transactionsSyncCronService: VotingPowerPurchaseCronService
   ) {}
 
   @UseInterceptors(ClassSerializerInterceptor)
@@ -47,8 +47,10 @@ export class TransactionsController {
     return this.transactionsPerformerCron.performNotStartedRewardTransactions({ receiversLimit })
   }
 
+  @UseGuards(AuthGuard("jwt"))
+  @ApiOkResponse({ type: () => TransactionResponse, isArray: true })
   @Get('sync')
-  public syncTrans(){
-    return this.transactionsSyncCronService.synchronizeTransactions();
+  public syncTransactions(){
+    return this.transactionsSyncCronService.getVotingPowerPurchaseTransactions();
   }
 }
