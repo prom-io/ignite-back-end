@@ -211,11 +211,12 @@ export class UsersService {
                 signUpRequest.walletAddress!,
                 signUpRequest.privateKey!,
                 signUpRequest.password!,
+                signUpRequest.isCommunty,
                 signUpRequest.language,
-                signUpReference
+                signUpReference,
             )
         } else {
-            user = await this.registerUserByTransactionId(signUpRequest.transactionId!, signUpRequest.language, signUpReference);
+            user = await this.registerUserByTransactionId(signUpRequest.transactionId!, signUpRequest.isCommunty, signUpRequest.language, signUpReference);
         }
 
         if (config.ENABLE_ACCOUNTS_SUBSCRIPTION_UPON_SIGN_UP && config.additionalConfig.accountsToSubscribe) {
@@ -272,6 +273,7 @@ export class UsersService {
         ethereumAddress: string,
         privateKey: string,
         password: string,
+        isCommunity: boolean,
         language?: Language,
         signUpReference?: SignUpReference,
     ): Promise<User> {
@@ -304,7 +306,8 @@ export class UsersService {
                 privateKey: passwordHash,
                 remote: false,
                 createdAt: new Date(),
-                signUpReference
+                signUpReference,
+                isCommunity: isCommunity
             };
             await this.usersRepository.save(user);
 
@@ -358,7 +361,7 @@ export class UsersService {
       })
      }
 
-    private async registerUserByTransactionId(transactionId: string, language?: Language, signUpReference?: SignUpReference): Promise<User> {
+    private async registerUserByTransactionId(transactionId: string,  isCommunity: boolean, language?: Language, signUpReference?: SignUpReference): Promise<User> {
         try {
             const passwordHashResponse = await this.passwordHashApiClient.getPasswordHashByTransaction(transactionId);
             const {hash, address: ethereumAddress} = passwordHashResponse;
@@ -393,7 +396,8 @@ export class UsersService {
                     privateKey: hash,
                     remote: false,
                     createdAt: new Date(),
-                    signUpReference
+                    signUpReference,
+                    isCommunity: isCommunity
                 };
                 await this.usersRepository.save(user);
 
