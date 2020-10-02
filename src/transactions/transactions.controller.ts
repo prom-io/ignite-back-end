@@ -47,4 +47,11 @@ export class TransactionsController {
   ) {
     return this.transactionsPerformerCron.performNotStartedRewardTransactions({ receiversLimit })
   }
+
+  @UseGuards(AuthGuard("jwt"))
+  @ApiOkResponse({ type: () => TransactionResponse, isArray: true })
+  @Get('accounts/current/transactions/sync')
+  public refreshTransactions(@Param() param: RefreshTransactionsRequest){
+    return this.transactionsService.refreshTransactions(param);
+  }
 }

@@ -10,6 +10,7 @@ import { GetTransactionsFilters } from "./types/requests/GetTransactionsFilters"
 import { TransactionMapper } from "./TransactionMapper";
 import { LoggerService } from "nest-logger";
 import { RefreshTransactionsRequest } from "./types/requests/RefreshTransactionsRequest";
+import uuid from "uuid";
 
 @Injectable()
 export class TransactionsService {
@@ -70,5 +71,29 @@ export class TransactionsService {
   public async getTransactions(user: User, filters: GetTransactionsFilters): Promise<TransactionResponse[]> {
     const transactions = await this.transactionsRepository.findByUser(user, filters)
     return this.transactionsMapper.toTransactionResponses(transactions)
+  }
+
+  public async refreshTransactions(param: RefreshTransactionsRequest){
+    const transactions = await this.tokenExchangeService.getTransactions();
+
+    for (const transaction of transactions) {
+      const transactionRecord = await this.transactionsRepository.findOne({where: {txnHash: transaction.txnHash}})
+
+      if (!transactionRecord){
+        const newTransaction = this.transactionsRepository.create({
+          id: uuid(),
+          createdAt: new Date(),
+          txnDate: transaction.txnDate,
+          txnFrom: transaction.addressFrom,
+          txnTo: transaction.addressTo,
+          txnHash: transaction.txnHash,
+          txnSum: transaction.tokenQnt,
+          txnStatus: transaction.txnStatus,
+        })
+        await this.transactionsRepository.save(newTransaction);
+      } else if (transactionRecord.txnStatus != transaction.txnStatus){
+        await this.transactionsRepository.update({id: transactionRecord.id}, {txnStatus: transaction.txnStatus})
+      }
+    }
   }
 }
