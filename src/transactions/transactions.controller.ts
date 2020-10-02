@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseInterceptors, ClassSerializerInterceptor, UseGuards, Req, Body, Post, ParseIntPipe } from "@nestjs/common";
+import { Controller, Get, Query, UseInterceptors, ClassSerializerInterceptor, UseGuards, Req, Body, Post, ParseIntPipe, Param } from "@nestjs/common";
 import { GetTransactionsFilters } from "./types/requests/GetTransactionsFilters";
 import { TransactionResponse } from "./types/responses/TransactionResponse";
 import { TransactionsService } from "./transactions.service";
@@ -11,6 +11,7 @@ import { RequiresAdmin } from "../jwt-auth/RequiresAdmin";
 import { Transaction } from "./entities/Transaction";
 import { TransactionsPerformerCronService } from "./transactions-performer-cron.service";
 import { VotingPowerPurchaseCronService } from "../memezator/voting-power-purchase-cron.service";
+import { RefreshTransactionsRequest } from "./types/requests/RefreshTransactionsRequest";
 
 @Controller("api/v1")
 export class TransactionsController {
@@ -45,12 +46,5 @@ export class TransactionsController {
     @Body("receiversLimit", new ParseIntPipe()) receiversLimit: number,
   ) {
     return this.transactionsPerformerCron.performNotStartedRewardTransactions({ receiversLimit })
-  }
-
-  @UseGuards(AuthGuard("jwt"))
-  @ApiOkResponse({ type: () => TransactionResponse, isArray: true })
-  @Get('sync')
-  public syncTransactions(){
-    return this.transactionsSyncCronService.getVotingPowerPurchaseTransactions();
   }
 }

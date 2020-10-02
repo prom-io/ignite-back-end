@@ -9,6 +9,7 @@ import { TransactionResponse } from "./types/responses/TransactionResponse";
 import { GetTransactionsFilters } from "./types/requests/GetTransactionsFilters";
 import { TransactionMapper } from "./TransactionMapper";
 import { LoggerService } from "nest-logger";
+import { RefreshTransactionsRequest } from "./types/requests/RefreshTransactionsRequest";
 
 @Injectable()
 export class TransactionsService {

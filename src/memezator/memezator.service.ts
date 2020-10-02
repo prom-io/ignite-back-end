@@ -34,6 +34,7 @@ import { setImmediatePromise } from "../utils/sest-intermediate-promise";
 import { asyncForEach } from "../utils/async-foreach";
 import { uniqueRandoms } from "../utils/unique-randoms";
 import { MemezatorContestResult } from "./entities/MemezatorContestResult";
+import { VotingPowerPurchaseRepository } from "./voting-power-purchase.repository";
 
 @Injectable()
 export class MemezatorService extends NestSchedule {
@@ -47,6 +48,7 @@ export class MemezatorService extends NestSchedule {
     private readonly transactionsRepository: TransactionsRepository,
     private readonly tokenExchangeService: TokenExchangeService,
     private readonly transactionsService: TransactionsService,
+    private readonly votingPowerPurchaseRepository: VotingPowerPurchaseRepository
   ) {
     super()
   }
@@ -153,8 +155,14 @@ export class MemezatorService extends NestSchedule {
 
       for (const like of likes) {
         const balance = await this.tokenExchangeService.getBalanceInProms(like.user.ethereumAddress)
-        const votingPower = this.calculateVotingPower(balance)
-
+        const votingPowerPurchase = await this.votingPowerPurchaseRepository.findOne({where: {userId: like.user.id}})
+        let votingPower: number;
+        if (votingPowerPurchase){
+          votingPower = this.calculateVotingPower(balance) + votingPowerPurchase.votingPower;
+        } else {
+          votingPower = this.calculateVotingPower(balance)
+        }
+         
         likesWithVotingPowersAndRewards.push({ like, votingPower, reward: null, rewardsDetailed: [] })
 
         votes += votingPower
