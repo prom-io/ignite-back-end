@@ -94,7 +94,7 @@ export class TransactionsPerformerCronService extends NestSchedule {
       }
     }
 
-    this.logger.info(`performNotStartedRewardTransactions: found ${rewardReceiversWithRewardsSumsAndTxnIds.length} reward receivers`)
+    this.logger.info(`performNotStartedRewardTransactions: processed ${rewardReceiversWithRewardsSumsAndTxnIds.length} reward receivers`)
   }
 
   private async checkIfTransactionsAreStillInNotStartedStatus(transactionIds: string[]) {
