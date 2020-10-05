@@ -11,6 +11,7 @@ import { TransactionsRepository } from "../transactions/TransactionsRepository";
 import { ScheduleModule } from "nest-schedule";
 import { TokenExchangeModule } from "../token-exchange";
 import { TransactionsModule } from "../transactions/transactions.module";
+import { VotingPowerPurchaseRepository } from "./voting-power-purchase.repository";
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { TransactionsModule } from "../transactions/transactions.module";
       StatusesRepository,
       StatusLikesRepository,
       UsersRepository,
+      VotingPowerPurchaseRepository
     ])
   ],
   providers: [MemezatorService],
