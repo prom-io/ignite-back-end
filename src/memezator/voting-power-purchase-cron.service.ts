@@ -25,7 +25,6 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
     @Cron('* 60 * * * *')
     public async getVotingPowerPurchaseTransactions(){
       const transactions = await this.tokenExchangeService.getTransactions();
-      console.log('fff')
       for (const transaction of transactions){
         const transactionRecord = await this.transactionsRep.findOne({where: {txnHash: transaction.txnHash}})
         if (!transactionRecord){
