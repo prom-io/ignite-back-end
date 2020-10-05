@@ -153,11 +153,13 @@ export class MemezatorService extends NestSchedule {
 
       for (const like of likes) {
         const balance = await this.tokenExchangeService.getBalanceInProms(like.user.ethereumAddress)
-        const votingPower = this.calculateVotingPower(balance)
+        const transactionBalance = await this.transactionsRepository.getBalanceByAddress(like.user.ethereumAddress)
 
-        likesWithVotingPowersAndRewards.push({ like, votingPower, reward: null, rewardsDetailed: [] })
-
-        votes += votingPower
+        if((Number(balance) + Number(transactionBalance)) > 2) {
+          const votingPower = this.calculateVotingPower(balance)
+          likesWithVotingPowersAndRewards.push({ like, votingPower, reward: null, rewardsDetailed: [] })
+          votes += votingPower
+        }
       }
 
       const memeWithLikesAndVotingPowers: MemeWithLikesAndVotingPowers = {

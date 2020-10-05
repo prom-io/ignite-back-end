@@ -1,5 +1,7 @@
-import { GoogleRecaptchaModule } from "@nestlab/google-recaptcha";
-import {forwardRef, Module, BadRequestException, Logger} from "@nestjs/common";
+import { TransactionsRepository } from './../transactions/TransactionsRepository';
+import { TransactionsModule } from './../transactions/transactions.module';
+import { TokenExchangeModule } from './../token-exchange/token-exchange.module';
+import {forwardRef, Module } from "@nestjs/common";
 import {TypeOrmModule} from "@nestjs/typeorm";
 import {TimelineController} from "./TimelineController";
 import {FeedService} from "./FeedService";
@@ -53,8 +55,11 @@ import {HashTagSubscriptionsRepository} from "./HashTagSubscriptionsRepository";
             MediaAttachmentsRepository,
             BtfsHashRepository,
             HashTagsRepository,
-            HashTagSubscriptionsRepository
+            HashTagSubscriptionsRepository,
+            TransactionsRepository
         ]),
+        TokenExchangeModule,
+        TransactionsModule,
         UserSubscriptionsModule,
         MicrobloggingBlockchainApiModule,
         MediaAttachmentsModule,
