@@ -46,9 +46,9 @@ export class StatusLikesService {
             )
         }
 
-        const userBalanceInProms = await this.tokenExchangeService.getBalanceInProms(currentUser.ethereumAddress)
-        const userBalance = await this.transactionsRepository.getBalanceByAddress(currentUser.ethereumAddress)
-        const userTotalBalance = Number(userBalance) + Number(userBalanceInProms)
+        const ethereumBalance = await this.tokenExchangeService.getBalanceInProms(currentUser.ethereumAddress)
+        const binanceBalance = await this.transactionsRepository.getBalanceByAddress(currentUser.ethereumAddress)
+        const userTotalBalance = Number(binanceBalance) + Number(ethereumBalance)
 
         if(isMeme && userTotalBalance < 2) {
             throw new HttpExceptionWithCode(
