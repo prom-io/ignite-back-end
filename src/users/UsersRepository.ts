@@ -30,6 +30,7 @@ export class UsersRepository extends Repository<User> {
         qb.andWhere(`user.displayedName LIKE :matchPattern`)
         .skip(skip)
         .take(take)
+        .orderBy(`user."displayedName"`, "ASC")
         .setParameter("matchPattern", `${searchOption}%`)
         return qb.getMany()  
     }
