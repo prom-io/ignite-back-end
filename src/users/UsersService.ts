@@ -1,3 +1,6 @@
+import { MEMEZATOR_HASHTAG } from '../common/constants';
+import { StatusLikesService } from './../statuses/StatusLikesService';
+import { StatusesService } from './../statuses/StatusesService';
 import { StatusLikesRepository } from "../statuses/StatusLikesRepository";
 import { StatusesRepository } from "../statuses/StatusesRepository";
 import {
@@ -6,7 +9,7 @@ import {
     CannotVoteMemeReasonCode,
 } from "./types/response/MemezatorActionsRightsResponse";
 import { asyncForEach } from "./../utils/async-foreach";
-import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
+import {HttpException, HttpStatus, Injectable, Logger} from "@nestjs/common";
 import {MailerService} from "@nestjs-modules/mailer";
 import {LoggerService} from "nest-logger";
 import uuid from "uuid/v4";
@@ -57,16 +60,35 @@ export class UsersService {
         private readonly passwordEncoder: BCryptPasswordEncoder,
         private readonly passwordHashApiClient: PasswordHashApiClient,
         private readonly tokenExchangeService: TokenExchangeService,
+        private readonly userRepository: UsersRepository,
         private readonly log: LoggerService
     ) {}
 
     public async searchUsers(searchFilters: UsersSearchFilters, currentUser?: User): Promise<UserResponse[]> {
         const formattedQuery = searchFilters.q && searchFilters.q.trim()
+        const skip = searchFilters.skip;
+        const take = searchFilters.take;
 
-        const users = await this.usersRepository.search({
-            ...searchFilters,
-            q: formattedQuery
-        })
+        const countByUsername: number = await this.userRepository.countByUsernameLike(formattedQuery)
+        let selectedUsersByUsername: User[] = [];
+        let selectedUsersByDisplayname: User[] = [];
+
+        if(countByUsername >= take + skip) {
+            selectedUsersByUsername = await this.userRepository.searchByUsernameLike(formattedQuery, take, skip)
+        }
+
+        if(countByUsername < take + skip && skip < countByUsername) {
+            selectedUsersByUsername = await this.userRepository.searchByUsernameLike(formattedQuery, undefined, skip)
+            let numberOfItemsByDisplayname = take - selectedUsersByUsername.length;
+            selectedUsersByDisplayname = await this.userRepository.searchByDisplayedNameLikeNotInUsername(formattedQuery, numberOfItemsByDisplayname, undefined)
+        }
+
+        if(countByUsername < (take + skip) && skip >= countByUsername) {
+            const skipUserByDisplayName = skip - countByUsername;
+            selectedUsersByDisplayname = await this.userRepository.searchByDisplayedNameLikeNotInUsername(formattedQuery, take, skipUserByDisplayName)
+        }
+
+        const users = selectedUsersByUsername.concat(selectedUsersByDisplayname)
 
         return asyncMap(users, async user => await this.usersMapper.toUserResponseAsync(user, currentUser))
     }
