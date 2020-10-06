@@ -145,7 +145,7 @@ export class EnvConfig {
     VOTING_POWER_PURCHASE_ADDRESS: string;
 
     @Env({type: "number", required: true})
-    VOTING_POWER_CONST: number;
+    PROM_TO_VOTING_POWER_RATIO: number;
 
     additionalConfig: AdditionalJsonConfig = additionalJsonConfig;
 }

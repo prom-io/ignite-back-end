@@ -24,15 +24,10 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
 
     @Cron('* 60 * * * *')
     public async getVotingPowerPurchaseTransactions(){
-      const transactions = await this.tokenExchangeService.getTransactions();
+      const transactions = await this.tokenExchangeService.getIncomingTokenTransfersToVotingPowerPurchaseAccount();
       for (const transaction of transactions){
-        const transactionRecord = await this.transactionsRep.findOne({where: {txnHash: transaction.txnHash}})
-        if (!transactionRecord){
-          this.logger.warn(`Transaction not found: ${JSON.stringify(transaction)}`);
-          continue;
-        }
         const user = await this.usersRepository.findByEthereumAddress(transaction.addressFrom);
-        const votingPowerPurchaseExist = await this.votingPowerPurchaseRepository.findOne({where: {txnId: transactionRecord.id}})
+        const votingPowerPurchaseExist = await this.votingPowerPurchaseRepository.findOne({where: {txnHash: transaction.txnHash}})
         if (!votingPowerPurchaseExist) {
         const newVotingPowerPurchase = this.votingPowerPurchaseRepository.create({
           id: uuid(),
@@ -40,9 +35,8 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
           txnHash: transaction.txnHash,
           txnDate: transaction.txnDate,
           userId: user.id,
-          txnId: transactionRecord.id,
           tokenQnt: transaction.tokenQnt,
-          votingPower: parseFloat(transaction.tokenQnt) * config.VOTING_POWER_CONST
+          votingPower: parseFloat(transaction.tokenQnt) * config.PROM_TO_VOTING_POWER_RATIO
         });
         await this.votingPowerPurchaseRepository.save(newVotingPowerPurchase);
       }

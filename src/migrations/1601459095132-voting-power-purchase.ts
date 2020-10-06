@@ -40,7 +40,7 @@ export class votingPowerPurchase1601459095132 implements MigrationInterface {
             {
                 name: "txnId",
                 type: "uuid",
-                isNullable: false
+                isNullable: true
             },
             {
                 name: "txnHash",

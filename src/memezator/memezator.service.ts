@@ -155,10 +155,10 @@ export class MemezatorService extends NestSchedule {
 
       for (const like of likes) {
         const balance = await this.tokenExchangeService.getBalanceInProms(like.user.ethereumAddress)
-        const votingPowerPurchase = await this.votingPowerPurchaseRepository.findOne({where: {userId: like.user.id}})
+        const votingPowerPurchase = await this.votingPowerPurchaseRepository.calculateVotingPowerForUser(like.user.id);
         let votingPower: number;
         if (votingPowerPurchase){
-          votingPower = this.calculateVotingPower(balance) + votingPowerPurchase.votingPower;
+          votingPower = this.calculateVotingPower(balance) + votingPowerPurchase;
         } else {
           votingPower = this.calculateVotingPower(balance)
         }

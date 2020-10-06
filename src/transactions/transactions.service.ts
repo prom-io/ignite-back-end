@@ -73,8 +73,9 @@ export class TransactionsService {
     return this.transactionsMapper.toTransactionResponses(transactions)
   }
 
+  /*
   public async refreshTransactions(param: RefreshTransactionsRequest){
-    const transactions = await this.tokenExchangeService.getTransactions();
+    const transactions = await this.tokenExchangeService.getIncomingTokenTransfersToVotingPowerPurchaseAccount();
 
     for (const transaction of transactions) {
       const transactionRecord = await this.transactionsRepository.findOne({where: {txnHash: transaction.txnHash}})
@@ -96,4 +97,5 @@ export class TransactionsService {
       }
     }
   }
+  */
 }

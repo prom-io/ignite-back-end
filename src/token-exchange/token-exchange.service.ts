@@ -60,7 +60,7 @@ export class TokenExchangeService {
     return response.data.result
   }
 
-  async getTransactions() {
+  async getIncomingTokenTransfersToVotingPowerPurchaseAccount() {
     return [
       /*
       {
