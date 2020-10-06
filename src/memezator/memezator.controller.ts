@@ -31,4 +31,12 @@ export class MemezatorController {
     const saveResultsInDryRun = saveResultsInDryRunRaw === "true" ? true : false;
     return this.memezatorService.startMemezatorCompetitionSummingUp({ startedInCron, dryRun: true, saveResultsInDryRun })
   }
+
+  @Get("top-10-winners")
+  public getWinnersByLIkes(
+    @Query() date: Date
+  ) {
+    return this.memezatorService.getWinnersByLikes(date)
+  }
+
 }

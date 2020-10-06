@@ -1,3 +1,4 @@
+import { In } from 'typeorm';
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { Cron, NestSchedule } from "nest-schedule";
 import { getCronExpressionForMemezatorCompetitionSumminUpCron, getCurrentMemezatorContestStartTime } from "./utils";
@@ -62,11 +63,49 @@ export class MemezatorService extends NestSchedule {
     }
   }
 
+  async getWinnersByLikes(competitionStartDate?: Date): Promise<LikeAndVotingPowerAndReward> {
+
+    let top10WinnersByLikes
+    if(competitionStartDate) {
+      top10WinnersByLikes = await this.memezatorContestResultRepository.find({
+        select: ["top10WinnersByLikes"],
+        where: {
+          createdAt: competitionStartDate
+        },
+        take: 1
+      })
+    } else {
+      top10WinnersByLikes = await this.memezatorContestResultRepository.find({
+        select: ["top10WinnersByLikes"],
+        order: {
+          createdAt: "DESC"
+        },
+        take: 1
+      })
+    }
+    const top10StatusLikes = await this.statusLikeRepository.find({
+      where: {
+        id: In(top10WinnersByLikes.map(winner => winner.like.id))
+      }
+    })
+
+    // Information about winners is kept as json
+    // Any changes related to like of status  would not affect the data of the winners 
+    // Because of that below code replace liked statuses in top10Winners with the same status placed in statusLIkes table.
+    const updatedTop10Winners: LikeAndVotingPowerAndReward = top10WinnersByLikes.map((winner) => {
+      winner.like = top10StatusLikes.find(status => status.id === winner.like.id)
+      return winner;
+    })
+
+    return updatedTop10Winners;
+  }
+
   async startMemezatorCompetitionSummingUp(options: {
     startedInCron: boolean,
     dryRun: boolean,
     saveResultsInDryRun?: boolean,
   }): Promise<WinnerMemesWithLikes> {
+
     let competitionEndDate: momentTZ.Moment;
     let competitionStartDate: momentTZ.Moment;
 
@@ -90,7 +129,7 @@ export class MemezatorService extends NestSchedule {
 
     this.logger.info(`Reward pool for ${formattedCompetitionStartDate} (${competitionStartDate.format()}) is ${rewardPool}`)
 
-    const winners = await this.calculateWinnersWithLikesAndRewards(
+    const winners: WinnerMemesWithLikes = await this.calculateWinnersWithLikesAndRewards(
       rewardPool,
       competitionStartDate.toDate(),
       competitionEndDate.toDate(),
@@ -99,12 +138,24 @@ export class MemezatorService extends NestSchedule {
     
     let memezatorContestResult: MemezatorContestResult | null = null
 
+    const winnersByLikes: LikeAndVotingPowerAndReward[] = [
+      ...winners.firstPlace.likesWithVotingPowersAndRewards, 
+      ...winners.secondPlace.likesWithVotingPowersAndRewards, 
+      ...winners.thirdPlace.likesWithVotingPowersAndRewards
+    ]
+
+    let top10WinnersByLikesSortedByDesc: LikeAndVotingPowerAndReward[] = _.orderBy(winnersByLikes, 'reward', ['desc'])
+
+      top10WinnersByLikesSortedByDesc = top10WinnersByLikesSortedByDesc.slice(0, 10)
+
     if (!options.dryRun || options.saveResultsInDryRun) {
       memezatorContestResult = await this.memezatorContestResultRepository.save({
         id: uuid(),
         createdAt: new Date(),
         updatedAt: null,
         result: winners,
+        top10WinnersByLikes: top10WinnersByLikesSortedByDesc,
+        competitionStartDate: competitionStartDate.toDate()
       })
     }
 
