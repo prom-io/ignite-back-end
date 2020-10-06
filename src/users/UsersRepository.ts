@@ -26,7 +26,7 @@ export class UsersRepository extends Repository<User> {
             .leftJoinAndSelect("user.avatar", "avatar")
             .leftJoinAndSelect("user.preferences", "preferences")
             .leftJoinAndSelect("user.statistics", "statistics")
-        qb.andWhere(`user.id NOT IN ${qb.subQuery().select("user.id").from(User, `user`).where("user.username LIKE :matchPattern").getQuery()}`)
+        .andWhere(`user.username NOT LIKE :matchPattern`)
         qb.andWhere(`user.displayedName LIKE :matchPattern`)
         .skip(skip)
         .take(take)
