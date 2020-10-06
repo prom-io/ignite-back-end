@@ -1,10 +1,14 @@
 import { MEMEZATOR_HASHTAG } from '../common/constants';
-import { StatusLikesRepository } from '../statuses/StatusLikesRepository';
-import { StatusesRepository } from '../statuses/StatusesRepository';
 import { StatusLikesService } from './../statuses/StatusLikesService';
-import { MemezatorActionsRightsResponse, UserMemeActionsRightsReasonCode } from './types/response/MemezatorActionsRightsResponse';
 import { StatusesService } from './../statuses/StatusesService';
-import { asyncForEach } from './../utils/async-foreach';
+import { StatusLikesRepository } from "../statuses/StatusLikesRepository";
+import { StatusesRepository } from "../statuses/StatusesRepository";
+import {
+    MemezatorActionsRightsResponse,
+    CannotCreateMemeReasonCode,
+    CannotVoteMemeReasonCode,
+} from "./types/response/MemezatorActionsRightsResponse";
+import { asyncForEach } from "./../utils/async-foreach";
 import {HttpException, HttpStatus, Injectable, Logger} from "@nestjs/common";
 import {MailerService} from "@nestjs-modules/mailer";
 import {LoggerService} from "nest-logger";
@@ -37,24 +41,28 @@ import {asyncMap} from "../utils/async-map";
 import {PasswordHashApiClient} from "../password-hash-api";
 import {UserSubscription} from "../user-subscriptions/entities";
 import {UsersSearchFilters} from "./types/request/UsersSearchFilters";
+import {Big} from "big.js";
+import {TokenExchangeService} from "../token-exchange";
 
 @Injectable()
 export class UsersService {
-    constructor(private readonly usersRepository: UsersRepository,
+    constructor(
+        private readonly usersRepository: UsersRepository,
         private readonly statusesRepository: StatusesRepository,
         private readonly statusLikesRepository: StatusLikesRepository,
-                private readonly userStatisticsRepository: UserStatisticsRepository,
-                private readonly userPreferencesRepository: UserPreferencesRepository,
-                private readonly subscriptionsRepository: UserSubscriptionsRepository,
-                private readonly mediaAttachmentsRepository: MediaAttachmentsRepository,
-                private readonly signUpReferencesRepository: SignUpReferencesRepository,
-                private readonly mailerService: MailerService,
-                private readonly usersMapper: UsersMapper,
-                private readonly passwordEncoder: BCryptPasswordEncoder,
-                private readonly passwordHashApiClient: PasswordHashApiClient,
-                private readonly userRepository: UsersRepository,
-                private readonly log: LoggerService) {
-    }
+        private readonly userStatisticsRepository: UserStatisticsRepository,
+        private readonly userPreferencesRepository: UserPreferencesRepository,
+        private readonly subscriptionsRepository: UserSubscriptionsRepository,
+        private readonly mediaAttachmentsRepository: MediaAttachmentsRepository,
+        private readonly signUpReferencesRepository: SignUpReferencesRepository,
+        private readonly mailerService: MailerService,
+        private readonly usersMapper: UsersMapper,
+        private readonly passwordEncoder: BCryptPasswordEncoder,
+        private readonly passwordHashApiClient: PasswordHashApiClient,
+        private readonly tokenExchangeService: TokenExchangeService,
+        private readonly userRepository: UsersRepository,
+        private readonly log: LoggerService
+    ) {}
 
     public async searchUsers(searchFilters: UsersSearchFilters, currentUser?: User): Promise<UserResponse[]> {
         const formattedQuery = searchFilters.q && searchFilters.q.trim()
@@ -85,24 +93,118 @@ export class UsersService {
         return asyncMap(users, async user => await this.usersMapper.toUserResponseAsync(user, currentUser))
     }
 
-    public async getMemesActionsRights(user): Promise<MemezatorActionsRightsResponse> {
-        let userMemeActionsRights: MemezatorActionsRightsResponse = {
-            can_create: true,
-            cannot_create_reason_code: null,
-            can_vote: true,
-            cannot_vote_reason_code: null
-          }
-          const existsMemeStatus =  await this.statusesRepository.findOneMemeByAuthorToday(user)
-          if(existsMemeStatus) {
-              userMemeActionsRights.can_create = false
-              userMemeActionsRights.cannot_create_reason_code = UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED
-          } 
-          const amountOfLikedMemes = await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(user)
-          if(amountOfLikedMemes >= 3) {
-              userMemeActionsRights.can_vote = false,
-              userMemeActionsRights.cannot_vote_reason_code = UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED
-          }
-          return userMemeActionsRights; 
+    public async getMemesActionsRights(user: User): Promise<MemezatorActionsRightsResponse> {
+        const memeCreationRight = await this.getMemeCreationRightForUser(user)
+        const memeVotingRight = await this.getMemeVotingRightForUser(user)
+        
+        const userMemeActionsRights = new MemezatorActionsRightsResponse({
+            canCreate: memeCreationRight.canCreate,
+            cannotCreateReasonCode: memeCreationRight.cannotCreateReasonCode,
+            canVote: memeVotingRight.canVote, 
+            cannotVoteReasonCode: memeVotingRight.cannotVoteReasonCode,
+            votingPower: null,
+            ethPromTokens: null
+        })
+
+        const balance = await this.tokenExchangeService.getBalanceInProms(user.ethereumAddress)
+        userMemeActionsRights.ethPromTokens = new Big(balance).toFixed(2)
+        userMemeActionsRights.votingPower = this.calculateVotingPower(balance)
+
+        return userMemeActionsRights; 
+    }
+
+    public async getMemeCreationRightForUser(
+        user: User,
+    ): Promise<{canCreate: boolean, cannotCreateReasonCode?: CannotCreateMemeReasonCode}> {
+        const memeCreatedTodayByUser = await this.statusesRepository.findOneMemeByAuthorCreatedToday(user)
+
+        if (memeCreatedTodayByUser) {
+            return {canCreate: false, cannotCreateReasonCode: CannotCreateMemeReasonCode.LIMIT_EXCEEDED}
+        }
+
+        const {
+            countOfStatusesCreatedTodayByUser,
+            missingAvatarOrUsernameOrBio
+        } = await this.getCommonInfoForMemezatorActionsRightsForUser(user)
+
+        if (user.statistics.statusesCount < 3 || !countOfStatusesCreatedTodayByUser) {
+            return {canCreate: false, cannotCreateReasonCode: CannotCreateMemeReasonCode.DOESNT_HAVE_ENOUGH_POSTS}
+        }
+
+        if (missingAvatarOrUsernameOrBio) {
+            return {canCreate: false, cannotCreateReasonCode: CannotCreateMemeReasonCode.MISSING_AVATAR_OR_USERNAME_OR_BIO}
+        }
+
+        const countOfMemesCreatedInCurrentContest = await this.statusesRepository.countMemesCreatedToday()
+
+        if (countOfMemesCreatedInCurrentContest >= 100) {
+            return {canCreate: false, cannotCreateReasonCode: CannotCreateMemeReasonCode.MEMES_LIMIT_EXCEEDED_FOR_CURRENT_CONTEST}
+        }
+
+        return {canCreate: true, cannotCreateReasonCode: null}
+    }
+
+    public async getMemeVotingRightForUser(
+        user: User,
+    ): Promise<{canVote: boolean, cannotVoteReasonCode?: CannotVoteMemeReasonCode}>  {
+        const amountOfLikedMemes = await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(user)
+        if (amountOfLikedMemes >= 1) {
+            return {canVote: false, cannotVoteReasonCode: CannotVoteMemeReasonCode.LIMIT_EXCEEDED}
+        }
+
+        const {
+            countOfStatusesCreatedTodayByUser,
+            missingAvatarOrUsernameOrBio
+        } = await this.getCommonInfoForMemezatorActionsRightsForUser(user)
+
+        if (user.statistics.statusesCount < 3 || !countOfStatusesCreatedTodayByUser) {
+            return {canVote: false, cannotVoteReasonCode: CannotVoteMemeReasonCode.DOESNT_HAVE_ENOUGH_POSTS}
+        }
+
+        if (missingAvatarOrUsernameOrBio) {
+            return {canVote: false, cannotVoteReasonCode: CannotVoteMemeReasonCode.MISSING_AVATAR_OR_USERNAME_OR_BIO}
+        }
+
+        return { canVote: true, cannotVoteReasonCode: null }
+    }
+
+    /**
+     * `getMemeCreationRightForUser` and `getMemeVotingRightForUser` requires same
+     * information, so i created this method to avoid code duplication
+     */
+    private async getCommonInfoForMemezatorActionsRightsForUser(
+        user: User,
+    ): Promise<{countOfStatusesCreatedTodayByUser: number, missingAvatarOrUsernameOrBio: boolean}> {
+        const countOfStatusesCreatedTodayByUser = await this.statusesRepository.countStatusesCreatedTodayByAuthor(user)
+
+        const missingAvatarOrUsernameOrBio = !!(
+            !user.avatar ||
+            !user.bio ||
+            !user.username ||
+            /0x[\d\w]+/.test(user.username) ||
+            !user.displayedName ||
+            /0x[\d\w]+/.test(user.displayedName)
+        )
+
+        return {
+            countOfStatusesCreatedTodayByUser,
+            missingAvatarOrUsernameOrBio,
+        }
+    }
+
+    /**
+     * Copied from MemezatorService because of circular dep issue 
+     * TODO: Fix that issue and use MemezatorService
+     */
+    calculateVotingPower(balance: string): number {
+        const promTokens = new Big(balance)
+        if (promTokens.lt(2)) {
+            return 1
+        } else if (promTokens.lt(5)) {
+            return 40
+        } else {
+            return 80
+        }
     }
 
     public async signUpForPrivateBeta(signUpForPrivateBetaTestRequest: SignUpForPrivateBetaTestRequest): Promise<void> {
@@ -149,7 +251,7 @@ export class UsersService {
             }
 
             const usersToSubscribe = await this.usersRepository.findByEthereumAddressIn(addresses);
-            setTimeout(() => this.subscribeToUsers(user, usersToSubscribe), 2000);
+            // setTimeout(() => this.subscribeToUsers(user, usersToSubscribe), 2000);
         }
 
         if (signUpReference) {
@@ -157,7 +259,7 @@ export class UsersService {
             if (signUpReference.config.accountsToSubscribe.length !== 0) {
                 this.log.debug(`Subscribing registered users to ${JSON.stringify(signUpReference.config.accountsToSubscribe)}`);
                 const usersToSubscribe = await this.usersRepository.findAllByAddresses(signUpReference.config.accountsToSubscribe);
-                setTimeout(() => this.subscribeToUsers(user, usersToSubscribe), 2000);
+                // setTimeout(() => this.subscribeToUsers(user, usersToSubscribe), 2000);
             }
         }
 
@@ -176,7 +278,7 @@ export class UsersService {
         }
         await this.userStatisticsRepository.save(userStatistics);
 
-        setTimeout(() => this.forceRecalculateUserFollowsCount(user), 3000);
+        // setTimeout(() => this.forceRecalculateUserFollowsCount(user), 3000);
 
         return this.usersMapper.toUserResponse(user, userStatistics, false, false);
     }
@@ -244,36 +346,37 @@ export class UsersService {
     private async setPasswordHashInBlockchain(address: string, passwordHash: string, privateKey: string): Promise<void> {
         return new Promise(async (resolve) => {
             let isResolved = false;
-             setTimeout(() => {
-                if (!isResolved){
+            setTimeout(() => {
+                if (!isResolved) {
                      isResolved = true
                      resolve()
-                     this.log.log('setPasswordHashInBlockchain Timeout of 40s exceeded')
+                     this.log.log("setPasswordHashInBlockchain Timeout of 40s exceeded")
                 }
             }, 40000)
-             try {
-                 await this.passwordHashApiClient.setEthereumPasswordHash({
-                     address: address,
-                     passwordHash,
-                     privateKey
-                 });
-                 await this.passwordHashApiClient.setBinancePasswordHash({
-                     address: address,
-                     passwordHash,
-                     privateKey
-                 });
- 
-                 if(!isResolved){
-                     isResolved = true
-                     resolve()
-                 }
-             } catch (error) {
+            try {
+                await this.passwordHashApiClient.setEthereumPasswordHash({
+                    address,
+                    passwordHash,
+                    privateKey
+                });
+            }   catch (error) {
+                this.log.log(error);
+            } 
+
+            try {
+                await this.passwordHashApiClient.setBinancePasswordHash({
+                    address,
+                    passwordHash,
+                    privateKey
+                });
+            } catch (error) {
                  this.log.log(error);
-                 if(!isResolved){
-                     isResolved = true
-                     resolve()
-                 }
-             }
+            } finally {
+                if (!isResolved) {
+                    isResolved = true
+                    resolve()
+                }
+            }
       })
      }
 
@@ -421,10 +524,12 @@ export class UsersService {
     }
 
     public async getCurrentUser(user: User): Promise<UserResponse> {
-        return this.usersMapper.toUserResponse(user, await this.userStatisticsRepository.findByUser(user))
+        return this.usersMapper.toUserResponseAsync(user, user, false)
     }
 
     public async updateUser(ethereumAddress: string, updateUserRequest: UpdateUserRequest, currentUser: User): Promise<UserResponse> {
+        this.log.info(`updateUser: ${JSON.stringify({updateUserRequest, currentUser: { username: currentUser.username, ethereumAddress: currentUser.ethereumAddress }})}`)
+
         let user = await this.findUserEntityByEthereumAddress(ethereumAddress);
 
         if (user.id !== currentUser.id) {
@@ -434,7 +539,11 @@ export class UsersService {
             )
         }
 
-        if (updateUserRequest.username && user.username !== updateUserRequest.username && user.ethereumAddress !== updateUserRequest.username) {
+        if (
+            updateUserRequest.username &&
+            (!user.username || user.username.toLowerCase() !== updateUserRequest.username.toLowerCase()) &&
+            user.ethereumAddress.toLowerCase() !== updateUserRequest.username.toLowerCase()
+        ) {
             if (await this.usersRepository.existsByUsername(updateUserRequest.username)
                 || await this.usersRepository.existsByEthereumAddress(updateUserRequest.username)) {
                 throw new HttpException(

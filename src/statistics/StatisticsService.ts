@@ -1,4 +1,4 @@
-import {Injectable} from "@nestjs/common";
+import {Injectable, InternalServerErrorException} from "@nestjs/common";
 import {LoggerService} from "nest-logger";
 import {differenceInMinutes} from "date-fns";
 import {subDays, subMonths, subWeeks} from "date-fns";
@@ -12,6 +12,7 @@ import {StatusReferenceType} from "../statuses/entities";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import {User} from "../users/entities";
 import {TransactionsStatisticsService} from "./TransactionsStatisticsService";
+import { promiseTimeout, PromiseTimeoutError } from "../utils/promise-timeout";
 
 @Injectable()
 export class StatisticsService {
@@ -114,5 +115,21 @@ export class StatisticsService {
             lastTwoWeeksUsersCount
         });
         this.lastCalculationDate = new Date();
+    }
+
+    public async healthCheck(): Promise<void> {
+        // test DB
+        const user = await promiseTimeout(this.usersRepository.findOne(), 10000)
+            .catch(err => {
+                if (err instanceof PromiseTimeoutError) {
+                    throw new InternalServerErrorException("Database request is processing more than 10000ms")
+                }
+
+                throw err;
+            })
+
+        if (!user) {
+            throw new InternalServerErrorException("No user found in DB");
+        }
     }
 }

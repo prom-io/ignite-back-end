@@ -19,6 +19,7 @@ export class AuthService {
         try {
             this.log.info(`Login attempt with the following username: ${username}`);
             const user = await this.usersService.findUserEntityByEthereumAddress(username);
+            this.log.info(`Found user object during login attempt: ${user.id}`)
 
             if (this.bCryptPasswordEncoder.matches(password, user.privateKey)) {
                 return user;

@@ -16,6 +16,8 @@ const ormConfig = {
   cli: {
     migrationsDir: "src/migrations"
   },
+  // @ts-ignore
+  abortTransactionOnError: true,
 };
 
 module.exports = ormConfig;

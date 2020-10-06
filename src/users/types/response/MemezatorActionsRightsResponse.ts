@@ -1,22 +1,74 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsBoolean, IsEnum, IsIn } from "class-validator";
+import { IsBoolean } from "class-validator";
+import { Expose } from "class-transformer";
 
-export enum UserMemeActionsRightsReasonCode {
-    LIMIT_EXCEEDED = "LIMIT_EXCEEDED"
+export enum CannotCreateMemeReasonCode {
+    LIMIT_EXCEEDED = "LIMIT_EXCEEDED",
+
+    /**
+     * To create a meme user has to have 3 created statuses and
+     * a status created in the last 24 hours
+     */
+    DOESNT_HAVE_ENOUGH_POSTS = "DOESNT_HAVE_ENOUGH_POSTS",
+    MISSING_AVATAR_OR_USERNAME_OR_BIO = "MISSING_AVATAR_OR_USERNAME_OR_BIO",
+
+    /**
+     * Когда в конкурсе уже участвуют определенное количество мемов (на данный момент лимит это 100 постов)
+     * то больше никто не может создать мем, независимо от того они сегодня уже создали его или нет.
+     */
+    MEMES_LIMIT_EXCEEDED_FOR_CURRENT_CONTEST = "MEMES_LIMIT_EXCEEDED_FOR_CURRENT_CONTEST",
+}
+
+export enum CannotVoteMemeReasonCode {
+    LIMIT_EXCEEDED = "LIMIT_EXCEEDED",
+
+    /**
+     * To create a meme user has to have 3 created statuses and
+     * a status created in the last 24 hours
+     */
+    DOESNT_HAVE_ENOUGH_POSTS = "DOESNT_HAVE_ENOUGH_POSTS",
+    MISSING_AVATAR_OR_USERNAME_OR_BIO = "MISSING_AVATAR_OR_USERNAME_OR_BIO",
 }
 
 export class MemezatorActionsRightsResponse {
-    @ApiProperty()
+    @ApiProperty({ name: "can_create" })
     @IsBoolean()
-    can_create: boolean;
+    @Expose({ name: "can_create" })
+    canCreate: boolean;
 
-    @ApiPropertyOptional()
-    cannot_create_reason_code?: UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED | null
+    @ApiPropertyOptional({
+        name: "cannot_create_reason_code",
+        enum: CannotCreateMemeReasonCode,
+        enumName: "CannotCreateMemeReasonCode",
+    })
+    @Expose({ name: "cannot_create_reason_code" })
+    cannotCreateReasonCode?: CannotCreateMemeReasonCode;
 
-    @ApiProperty()
+    @ApiProperty({ name: "can_vote" })
     @IsBoolean()
-    can_vote: boolean;
+    @Expose({ name: "can_vote" })
+    canVote: boolean;
     
-    @ApiPropertyOptional({enum: UserMemeActionsRightsReasonCode})
-    cannot_vote_reason_code?: UserMemeActionsRightsReasonCode.LIMIT_EXCEEDED | null 
+    @ApiPropertyOptional({
+        name: "cannot_vote_reason_code",
+        enum: CannotVoteMemeReasonCode,
+        enumName: "CannotVoteMemeReasonCode",
+    })
+    @Expose({ name: "cannot_vote_reason_code" })
+    cannotVoteReasonCode?: CannotVoteMemeReasonCode;
+
+    @ApiProperty({ name: "voting_power", description: "Вес голоса в голосовании Memezator-а" })
+    @Expose({ name: "voting_power" })
+    votingPower: number;
+
+    @ApiProperty({
+        name: "eth_prom_tokens",
+        description: "Account balance in Ethereum. Note: this is string, not a number."
+    })
+    @Expose({ name: "eth_prom_tokens" })
+    ethPromTokens: string
+
+    constructor(data: MemezatorActionsRightsResponse) {
+        Object.assign(this, data)
+    }
 }

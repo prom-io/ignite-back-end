@@ -1,4 +1,5 @@
-import {forwardRef, Module} from "@nestjs/common";
+import {forwardRef, Module, MiddlewareConsumer, NestModule, RequestMethod, Logger} from "@nestjs/common";
+
 import {TypeOrmModule} from "@nestjs/typeorm";
 import {MailerModule} from "@nestjs-modules/mailer";
 import {UsersService} from "./UsersService";
@@ -24,6 +25,9 @@ import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsR
 import {PasswordHashApiModule} from "../password-hash-api";
 import { StatusLikesRepository } from "../statuses/StatusLikesRepository";
 import { StatusesRepository } from "../statuses/StatusesRepository";
+import { TransactionsRepository } from "../transactions/TransactionsRepository";
+import { TokenExchangeModule } from "../token-exchange";
+import expressRateLimit from "express-rate-limit";
 
 @Module({
     controllers: [UsersController, UserByAddressController, SignUpController, SignUpReferencesController],
@@ -44,8 +48,11 @@ import { StatusesRepository } from "../statuses/StatusesRepository";
             UserSubscriptionsRepository,
             MediaAttachmentsRepository,
             UserPreferencesRepository,
-            SignUpReferencesRepository
+            SignUpReferencesRepository,
+            TransactionsRepository,
+            
         ]),
+        TokenExchangeModule,
         forwardRef(() => StatusesModule),
         forwardRef(() => UserSubscriptionsModule),
         MailerModule.forRoot({
@@ -64,5 +71,19 @@ import { StatusesRepository } from "../statuses/StatusesRepository";
     ],
     exports: [UsersService, UsersMapper]
 })
-export class UsersModule {
+export class UsersModule implements NestModule {
+    configure(consumer: MiddlewareConsumer) {
+        consumer
+            .apply(
+                expressRateLimit({
+                    windowMs: 10 * 60 * 1000,
+                    max: 1,
+                    skip: req => {
+                        console.log(`Sign up request from ${req.ip}`)
+                        return (config.additionalConfig.disableRateLimitForSignUpForIps || []).includes(req.ip)
+                    },
+                })
+            )
+            .forRoutes({ path: "api/v1/sign-up", method: RequestMethod.POST });
+    }
 }

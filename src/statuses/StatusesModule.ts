@@ -1,4 +1,5 @@
-import {forwardRef, Module} from "@nestjs/common";
+import { GoogleRecaptchaModule } from "@nestlab/google-recaptcha";
+import {forwardRef, Module, BadRequestException, Logger} from "@nestjs/common";
 import {TypeOrmModule} from "@nestjs/typeorm";
 import {TimelineController} from "./TimelineController";
 import {FeedService} from "./FeedService";

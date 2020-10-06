@@ -9,6 +9,7 @@ import {DefaultAccountProviderService} from "../default-account-provider/Default
 import {config} from "../config";
 import {BtfsKafkaClient} from "../btfs-sync/BtfsKafkaClient";
 import {PushNotificationsService} from "../push-notifications/PushNotificationsService";
+import { MEMEZATOR_HASHTAG } from "../common/constants";
 
 @Injectable()
 export class StatusLikeEntityEventsSubscriber implements EntitySubscriberInterface<StatusLike> {
@@ -28,8 +29,8 @@ export class StatusLikeEntityEventsSubscriber implements EntitySubscriberInterfa
 
     public async afterInsert(event: InsertEvent<StatusLike>): Promise<void> {
         const statusLike = event.entity;
-
-        if (!statusLike.reverted) {
+        const isMeme = statusLike.status.hashTags.some(hashTag => hashTag.name === MEMEZATOR_HASHTAG)
+        if (!statusLike.reverted && !isMeme) {
             this.pushNotificationService.processStatusLike(statusLike);
         }
 

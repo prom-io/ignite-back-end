@@ -1,15 +1,24 @@
+import momentTZ from "moment-timezone"
+
 /**
  * Cron with this expression will run every day at 00:00 in greenwich time
  */
 export function getCronExpressionForMemezatorCompetitionSumminUpCron(): string {
-  const midnightInGreenwich = new Date()
-  midnightInGreenwich.setUTCHours(0, 0, 0, 0)
+  const lastMidnightInCetConvertedToLocalTime = momentTZ().tz("Europe/Berlin").hours(0).minutes(0).seconds(0).milliseconds(0).local()
 
-  return `${midnightInGreenwich.getMinutes()} ${midnightInGreenwich.getHours} * * *`
+  const cronExpression = `${lastMidnightInCetConvertedToLocalTime.minutes()} ${lastMidnightInCetConvertedToLocalTime.hours()} * * *`
+
+  // tslint:disable-next-line: no-console
+  console.log("getCronExpressionForMemezatorCompetitionSumminUpCron", {cronExpression, lastMidnightInCetConvertedToLocalTime})
+
+  return cronExpression
 }
 
-export function delay(milliseconds: number): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, milliseconds)
-  })
+/**
+ * The memezator contest starts at midnight in CET, which is the midnight in Berlin. 
+ */
+export function getCurrentMemezatorContestStartTime(): momentTZ.Moment {
+  const lastMidnightInCet = momentTZ().tz("Europe/Berlin").hours(0).minutes(0).seconds(0).milliseconds(0)
+
+  return lastMidnightInCet
 }

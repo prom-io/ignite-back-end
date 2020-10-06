@@ -56,6 +56,7 @@ export class UsersController {
     }
 
     @UseInterceptors(ClassSerializerInterceptor)
+    @UseGuards(OptionalJwtAuthGuard)
     @Get()
     public async searchUsers(
         @Query() searchFilters: UsersSearchFilters,
@@ -160,6 +161,7 @@ export class UsersController {
 
     @UseGuards(AuthGuard("jwt"))
     @ApiBearerAuth()
+    @UseInterceptors(ClassSerializerInterceptor)
     @ApiOkResponse({type: () => MemezatorActionsRightsResponse})
     @Get("current/memezator-actions-rights")
     public getMemezatorActionsRights(@Req() req: Request): Promise<MemezatorActionsRightsResponse> {

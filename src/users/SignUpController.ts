@@ -1,3 +1,4 @@
+import { Recaptcha } from "@nestlab/google-recaptcha";
 import {Body, Controller, Post} from "@nestjs/common";
 import {UsersService} from "./UsersService";
 import {SignUpRequest} from "./types/request";
@@ -9,6 +10,7 @@ export class SignUpController {
     }
 
     @Post()
+    @Recaptcha()
     public signUp(@Body() signUpRequest: SignUpRequest): Promise<UserResponse> {
         return this.usersService.signUp(signUpRequest);
     }

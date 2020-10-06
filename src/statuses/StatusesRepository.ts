@@ -5,6 +5,7 @@ import {HashTag, Status, StatusAdditionalInfo, StatusInfoMap, StatusLike, Status
 import {Language, User} from "../users/entities";
 import {calculateOffset, PaginationRequest} from "../utils/pagination";
 import {UserSubscription} from "../user-subscriptions/entities";
+import { getCurrentMemezatorContestStartTime } from "../memezator/utils";
 
 @EntityRepository(Status)
 export class StatusesRepository extends Repository<Status> {
@@ -227,18 +228,35 @@ export class StatusesRepository extends Repository<Status> {
         })
     }
 
-    public async findOneMemeByAuthorToday(user: User): Promise<Status> {
-        const lastMidnightInGreenwich = new Date()
-        lastMidnightInGreenwich.setUTCHours(0, 0, 0, 0)
-        return await this.findOneByAuthorAndHashTagAndCretaedAtAfter(user, lastMidnightInGreenwich)
-    } 
+    public async findOneMemeByAuthorCreatedToday(user: User): Promise<Status> {
+        const currentMemezatorContestStartTime = getCurrentMemezatorContestStartTime()
 
-    public async findOneByAuthorAndHashTagAndCretaedAtAfter(user: User, createdAtAfter: Date): Promise<Status> {
-        return await this.createStatusQueryBuilder()
-        .where(`"hashTag"."name" = :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
-        .andWhere(`status."authorId" = :userId`, {userId: user.id})
-        .andWhere(`status."createdAt" >= :createdAtAfter`, {createdAtAfter})
-        .getOne()
+        return this.createStatusQueryBuilder()
+            .where(`"filteredHashTag"."name" = :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
+            .andWhere(`status."authorId" = :userId`, {userId: user.id})
+            .andWhere(`status."createdAt" >= :createdAtAfter`, { createdAtAfter: currentMemezatorContestStartTime })
+            .getOne()
+    }
+
+    public async countMemesCreatedToday(): Promise<number> {
+        const currentMemezatorContestStartTime = getCurrentMemezatorContestStartTime()
+
+        return this.createQueryBuilder("status")
+            .leftJoinAndSelect("status.hashTags", "filteredHashTag")
+            .where(`"filteredHashTag"."name" = :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
+            .andWhere(`status."createdAt" >= :createdAtAfter`, { createdAtAfter: currentMemezatorContestStartTime })
+            .getCount()
+    }
+
+    public countStatusesCreatedTodayByAuthor(author: User): Promise<number> {
+        const dayAgo = subDays(new Date(), 1)
+
+        return this.count({
+            where: {
+                author,
+                createdAt: MoreThan(dayAgo),
+            }
+        })
     }
 
     public findByAuthorInAndHashTagsInAndCreatedAtBetween(
@@ -866,6 +884,7 @@ export class StatusesRepository extends Repository<Status> {
 
         return this.createStatusQueryBuilder()
             .where("status.id in (:...ids)", {ids})
+            .andWhere(`"filteredHashTag"."name" != :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
             .orderBy(`status."createdAt"`, "DESC")
             .getMany();
     }
@@ -903,6 +922,7 @@ export class StatusesRepository extends Repository<Status> {
 
         return this.createStatusQueryBuilder()
             .where("status.id in (:...ids)", {ids})
+            .andWhere(`"filteredHashTag"."name" != :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
             .orderBy(`status."createdAt"`, "DESC")
             .getMany();
     }
@@ -931,6 +951,7 @@ export class StatusesRepository extends Repository<Status> {
 
         return this.createStatusQueryBuilder()
             .where("status.id in (:...ids)", {ids})
+            .andWhere(`"filteredHashTag"."name" != :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
             .orderBy(`status."createdAt"`, "DESC")
             .getMany();
     }
@@ -960,6 +981,7 @@ export class StatusesRepository extends Repository<Status> {
 
         return this.createStatusQueryBuilder()
             .where("status.id in (:...ids)", {ids})
+            .andWhere(`"filteredHashTag"."name" != :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
             .orderBy(`status."createdAt"`, "DESC")
             .getMany();
     }
@@ -1032,6 +1054,7 @@ export class StatusesRepository extends Repository<Status> {
                 `status_like."statusId" = status.id`
             )
             .where("status.id in (:...ids)", {ids})
+            .andWhere(`"filteredHashTag"."name" != :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
             .orderBy({
                 "likes_count": {
                     order: "DESC",
@@ -1083,6 +1106,7 @@ export class StatusesRepository extends Repository<Status> {
                 `status_like."statusId" = status.id`
             )
             .where("status.id in (:...ids)", {ids})
+            .andWhere(`"filteredHashTag"."name" != :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
             .orderBy({
                 "likes_count": {
                     order: "DESC",
@@ -1152,6 +1176,17 @@ export class StatusesRepository extends Repository<Status> {
             .getMany();
     }
 
+    public async findContainingMemeHashTagAndCreatedAtBetween(
+        createdAtBefore: Date,
+        createdAtAfter: Date,
+    ): Promise<Status[]> {
+        return this.createStatusQueryBuilder()
+            .where(`"filteredHashTag"."name" = :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
+            .andWhere(`(status."createdAt" BETWEEN :createdAtBefore AND :createdAtAfter)`, {createdAtBefore, createdAtAfter})
+            .orderBy(`status."createdAt"`, "DESC")
+            .getMany();
+    }
+
     public async findContainingHashTagsByLanguageAndCreatedAtAfterAndLikesForLastWeekMoreThanOrderByNumberOfLikesForLastWeek(
         language: Language,
         createdAtAfter: Date,
@@ -1193,6 +1228,7 @@ export class StatusesRepository extends Repository<Status> {
                 `status_like."statusId" = status.id`
             )
             .where("status.id in (:...ids)", {ids})
+            .andWhere(`"filteredHashTag"."name" != :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
             .orderBy({
                 "last_week_likes_count": "DESC",
                 "status.\"createdAt\"": "DESC"
@@ -1221,6 +1257,7 @@ export class StatusesRepository extends Repository<Status> {
             )
             .where(`"status_hashTag"."hashTagId" is not null`)
             .andWhere(`"hashTag"."language" = :language`, {language})
+            .andWhere(`"filteredHashTag"."name" != :hashTag`, {hashTag: MEMEZATOR_HASHTAG})
             .andWhere(`status."createdAt" between(:createdAtBefore, :createdAtAfter)`, {createdAtBefore, createdAtAfter})
             .orderBy({
                 "last_week_likes_count": "DESC",

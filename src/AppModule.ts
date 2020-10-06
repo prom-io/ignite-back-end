@@ -1,4 +1,6 @@
-import {Module} from "@nestjs/common";
+import { Request } from "express";
+import { GoogleRecaptchaModule } from "@nestlab/google-recaptcha";
+import {Module, BadRequestException} from "@nestjs/common";
 import {TypeOrmModule} from "@nestjs/typeorm";
 import {LoggerModule} from "./logging";
 import {Web3Module} from "./web3";
@@ -20,9 +22,15 @@ import {PasswordHashGeneratorModule} from "./passsword-hash-generator";
 import {StatisticsModule} from "./statistics";
 import {ValidationModule} from "./utils/validation";
 import {MemezatorModule} from "./memezator/memezator.module";
+import {TokenExchangeModule} from "./token-exchange";
+import { StatisticsLogService } from "./statistics-log/statistics-log.service";
+
+import { StatisticsLogModule } from "./statistics-log/statistics-log.module";
+import { config } from "./config";
 
 @Module({
     imports: [
+        StatisticsLogModule,
         LoggerModule,
         DefaultAccountProviderModule,
         Web3Module,
@@ -41,13 +49,35 @@ import {MemezatorModule} from "./memezator/memezator.module";
         StatisticsModule,
         ValidationModule,
         MemezatorModule,
+        TokenExchangeModule,
         TypeOrmModule.forRoot(
             {
                 ...require("../ormconfig.js"),
                 entities,
                 subscribers,
             }
-        )
+        ),
+        {
+            ...GoogleRecaptchaModule.forRoot({
+                secretKey: config.GOOGLE_RECAPTCHA_SECRET_KEY,
+                response: req => {
+                    return req.headers["x-recaptcha"]
+                },
+                skipIf: (req: Request) => {
+                    if (req.path === "/api/v1/sign-up" && req.method === "POST") {
+                        return config.NODE_ENV !== "production" || config.additionalConfig.disableGoogleRecaptchaForSignUp === true;
+                    }
+                    if (req.path === "/api/v1/statuses" && req.method === "POST") {
+                        return config.NODE_ENV !== "production" || req.body.from_memezator !== true;
+                    }
+                },
+                onError: () => {
+                    throw new BadRequestException("Invalid recaptcha.")
+                }
+            }),
+            // костыльный метод
+            global: true
+        },
     ]
 })
 export class AppModule {
