@@ -154,9 +154,10 @@ export class MemezatorService extends NestSchedule {
       for (const like of likes) {
         const ethereumBalance = await this.tokenExchangeService.getBalanceInProms(like.user.ethereumAddress)
         const binanceBalance = await this.transactionsRepository.getBalanceByAddress(like.user.ethereumAddress)
+        const totalBalance = ethereumBalance + binanceBalance;
 
         if((Number(ethereumBalance) + Number(binanceBalance)) >= 2) {
-          const votingPower = this.calculateVotingPower(ethereumBalance)
+          const votingPower = this.calculateVotingPower(totalBalance)
           likesWithVotingPowersAndRewards.push({ like, votingPower, reward: null, rewardsDetailed: [] })
           votes += votingPower
         } else {
