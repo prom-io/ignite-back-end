@@ -14,7 +14,8 @@ export class UsersRepository extends Repository<User> {
     public searchByUsernameLike(searchOption: string, take: number, skip: number): Promise<User[]> {
         return this.find({
             where: {
-                username: Like(searchOption+`%`)
+                username: Like(searchOption+`%`),
+                isCommunity: false
             },
             skip,
             take
@@ -22,23 +23,24 @@ export class UsersRepository extends Repository<User> {
     }
 
     public searchByDisplayedNameLikeNotInUsername(searchOption: string, take: number, skip: number | undefined): Promise<User[]> {
-        const qb = this.createQueryBuilder("user")
+        return this.createQueryBuilder("user")
             .leftJoinAndSelect("user.avatar", "avatar")
             .leftJoinAndSelect("user.preferences", "preferences")
             .leftJoinAndSelect("user.statistics", "statistics")
-        .andWhere(`user.username NOT LIKE :matchPattern`)
-        qb.andWhere(`user.displayedName LIKE :matchPattern`)
+        .andWhere(`user.username NOT LIKE :matchPattern`, {matchPattern: `${searchOption}%`})
+        .andWhere(`user.displayedName LIKE :matchPattern`, {matchPattern: `${searchOption}%`})
+        .andWhere(`user.isCommunity=false`)
+        .orderBy(`user.displayedName`, "ASC")
         .skip(skip)
         .take(take)
-        .orderBy(`user."displayedName"`, "ASC")
-        .setParameter("matchPattern", `${searchOption}%`)
-        return qb.getMany()  
+        .getMany()  
     }
 
     public countByUsernameLike(searchOption): Promise<number> {
         return this.count({
             where: {
-                username: Like(searchOption+`%`)
+                username: Like(searchOption+`%`),
+                isCommunity: false
             }
         })
     }

@@ -60,32 +60,31 @@ export class UsersService {
         private readonly passwordEncoder: BCryptPasswordEncoder,
         private readonly passwordHashApiClient: PasswordHashApiClient,
         private readonly tokenExchangeService: TokenExchangeService,
-        private readonly userRepository: UsersRepository,
         private readonly log: LoggerService
     ) {}
 
     public async searchUsers(searchFilters: UsersSearchFilters, currentUser?: User): Promise<UserResponse[]> {
         const formattedQuery = searchFilters.q && searchFilters.q.trim()
-        const skip = searchFilters.skip;
-        const take = searchFilters.take;
+        const skip = searchFilters.skip || 0;
+        const take = searchFilters.take || 0;
 
-        const countByUsername: number = await this.userRepository.countByUsernameLike(formattedQuery)
+        const countByUsername: number = await this.usersRepository.countByUsernameLike(formattedQuery)
         let selectedUsersByUsername: User[] = [];
         let selectedUsersByDisplayname: User[] = [];
 
         if(countByUsername >= take + skip) {
-            selectedUsersByUsername = await this.userRepository.searchByUsernameLike(formattedQuery, take, skip)
+            selectedUsersByUsername = await this.usersRepository.searchByUsernameLike(formattedQuery, take, skip)
         }
 
         if(countByUsername < take + skip && skip < countByUsername) {
-            selectedUsersByUsername = await this.userRepository.searchByUsernameLike(formattedQuery, undefined, skip)
+            selectedUsersByUsername = await this.usersRepository.searchByUsernameLike(formattedQuery, undefined, skip)
             let numberOfItemsByDisplayname = take - selectedUsersByUsername.length;
-            selectedUsersByDisplayname = await this.userRepository.searchByDisplayedNameLikeNotInUsername(formattedQuery, numberOfItemsByDisplayname, undefined)
+            selectedUsersByDisplayname = await this.usersRepository.searchByDisplayedNameLikeNotInUsername(formattedQuery, numberOfItemsByDisplayname, undefined)
         }
 
         if(countByUsername < (take + skip) && skip >= countByUsername) {
             const skipUserByDisplayName = skip - countByUsername;
-            selectedUsersByDisplayname = await this.userRepository.searchByDisplayedNameLikeNotInUsername(formattedQuery, take, skipUserByDisplayName)
+            selectedUsersByDisplayname = await this.usersRepository.searchByDisplayedNameLikeNotInUsername(formattedQuery, take, skipUserByDisplayName)
         }
 
         const users = selectedUsersByUsername.concat(selectedUsersByDisplayname)
@@ -484,6 +483,8 @@ export class UsersService {
 
         if (existingUser) {
             if (existingUser.username !== createUserRequest.username) {
+                existingUser.displayedName = createUserRequest.displayedName
+                existingUser.isCommunity = createUserRequest.isCommunity
                 existingUser.username = createUserRequest.username && createUserRequest.username.length !== 0
                     ? createUserRequest.username
                     : createUserRequest.address;
