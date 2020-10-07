@@ -22,7 +22,7 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
         super()
       }
 
-    @Cron('* 60 * * * *')
+    @Cron('0 * * * * *')
     public async getVotingPowerPurchaseTransactions(){
       const transactions = await this.tokenExchangeService.getIncomingTokenTransfersToVotingPowerPurchaseAccount();
       for (const transaction of transactions){
