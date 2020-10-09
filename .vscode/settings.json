@@ -1,5 +1,7 @@
 {
   "cSpell.words": [
     "memezator"
-  ]
+  ],
+  "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "modifications"
 }
