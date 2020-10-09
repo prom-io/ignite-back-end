@@ -446,7 +446,8 @@ export class UsersService {
                     subscribedTo,
                     reverted: false,
                     saveUnsubscriptionToBtfs: true,
-                    createdAt: new Date()
+                    createdAt: new Date(),
+                    isSubscribedToCommunity: false
                 };
                 return await this.subscriptionsRepository.save(userSubscription);
             });

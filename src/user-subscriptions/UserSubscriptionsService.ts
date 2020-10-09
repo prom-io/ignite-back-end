@@ -1,3 +1,4 @@
+import { CheckSubscriptionToCommunity } from './types/request/CheckSubscriptionToCommunityREquest';
 import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
 import uuid from "uuid";
 import {UserSubscription} from "./entities";
@@ -11,6 +12,7 @@ import {PaginationRequest} from "../utils/pagination";
 import {UserResponse} from "../users/types/response";
 import {UsersMapper} from "../users/UsersMapper";
 import {asyncMap} from "../utils/async-map";
+import _ from "lodash";
 
 @Injectable()
 export class UserSubscriptionsService {
@@ -21,8 +23,13 @@ export class UserSubscriptionsService {
                 private readonly usersMapper: UsersMapper) {
     }
 
+    public async getUserSubscriptionCommunities(currentUser: User): Promise<UserSubscription[]> {
+        return await this.userSubscriptionsRepository.findBySubscribedUserAndIsSubscribedToCommunity(currentUser)
+    }
+
     public async followUser(address: string,
-                            currentUser: User): Promise<UserResponse> {
+                            currentUser: User,
+                            checkSubscriptionToCommunity: CheckSubscriptionToCommunity): Promise<UserResponse> {
         let targetUser = await this.usersRepository.findByEthereumAddress(address);
 
         if (!targetUser) {
@@ -56,7 +63,8 @@ export class UserSubscriptionsService {
             subscribedTo: targetUser,
             createdAt: new Date(),
             reverted: false,
-            revertedAt: null
+            revertedAt: null,
+            isSubscribedToCommunity: checkSubscriptionToCommunity.isSubscribedToCommunity
         };
         await this.userSubscriptionsRepository.save(subscription);
 
