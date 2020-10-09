@@ -1,32 +1,27 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { NestSchedule, Cron } from "nest-schedule";
 import { config } from '../config';
-import { VotingPowerPurchase } from './entities/VotingPowerPurchase';
 import { VotingPowerPurchaseRepository } from './voting-power-purchase.repository';
-import { TokenExchangeService } from '../token-exchange';
 import { UsersRepository } from '../users';
-import { TransactionSubject } from '../transactions/types/TransactionSubject.enum';
 import uuid from 'uuid';
 import { TransactionsRepository } from '../transactions/TransactionsRepository';
-import { LoggerService } from 'nest-logger';
+
 
 @Injectable()
 export class VotingPowerPurchaseCronService extends NestSchedule {
     constructor(
         private readonly transactionsRep: TransactionsRepository,
-        private readonly tokenExchangeService: TokenExchangeService,
         private readonly votingPowerPurchaseRepository: VotingPowerPurchaseRepository,
-        private readonly usersRepository: UsersRepository,
-        private readonly logger: LoggerService
+        private readonly usersRepository: UsersRepository
       ) {
         super()
       }
 
     @Cron('0 * * * * *')
     public async getVotingPowerPurchaseTransactions(){
-      const transactions = await this.tokenExchangeService.getIncomingTokenTransfersToVotingPowerPurchaseAccount();
+      const transactions = await this.transactionsRep.find({where: {txnTo:config.VOTING_POWER_PURCHASE_ADDRESS}});
       for (const transaction of transactions){
-        const user = await this.usersRepository.findByEthereumAddress(transaction.addressFrom);
+        const user = await this.usersRepository.findByEthereumAddress(transaction.txnFrom);
         const votingPowerPurchaseExist = await this.votingPowerPurchaseRepository.findOne({where: {txnHash: transaction.txnHash}})
         if (!votingPowerPurchaseExist) {
         const newVotingPowerPurchase = this.votingPowerPurchaseRepository.create({
@@ -35,8 +30,8 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
           txnHash: transaction.txnHash,
           txnDate: transaction.txnDate,
           userId: user.id,
-          tokenQnt: transaction.tokenQnt,
-          votingPower: parseFloat(transaction.tokenQnt) * config.PROM_TO_VOTING_POWER_RATIO
+          txnSum: transaction.txnSum,
+          votingPower: parseFloat(transaction.txnSum) * config.PROM_TO_VOTING_POWER_RATIO
         });
         await this.votingPowerPurchaseRepository.save(newVotingPowerPurchase);
       }

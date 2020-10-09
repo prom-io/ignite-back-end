@@ -7,7 +7,7 @@ export class VotingPowerPurchaseRepository extends Repository<VotingPowerPurchas
 public async calculateVotingPowerForUser(userId: string){
     const currentDate = new Date();
     const lastDayDate = currentDate.getTime() - 24*60*60*1000;
-    const purchasesForLastDay = await this.find({where: {createdAt: MoreThan(lastDayDate)}})
+    const purchasesForLastDay = await this.find({where: {createdAt: MoreThan(lastDayDate), userId}})
     const reducer = (accumulator, currentValue) => accumulator + currentValue;
     const userVotingPowerForLastDay = purchasesForLastDay.map(purchase => purchase.votingPower).reduce(reducer);
     return userVotingPowerForLastDay;

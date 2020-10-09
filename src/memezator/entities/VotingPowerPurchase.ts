@@ -21,7 +21,7 @@ export class VotingPowerPurchase {
   txnDate: Date
 
   @Column({ type: "numeric" })
-  tokenQnt: string
+  txnSum: string
 
   @Column({ type: "float" })
   votingPower: number
