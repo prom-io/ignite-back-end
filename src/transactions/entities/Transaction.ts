@@ -1,4 +1,5 @@
 import { Entity, PrimaryColumn, Column } from "typeorm";
+import { TokenTransfer } from "../../bsc-api/types";
 import { TransactionStatus } from "../types/TransactionStatus.enum";
 import { TransactionSubject } from "../types/TransactionSubject.enum";
 
@@ -32,7 +33,10 @@ export class Transaction {
   txnSubj: TransactionSubject;
 
   @Column({ type: "jsonb" })
-  txnDetails: object;
+  txnDetails: {
+    tokenTransfer?: TokenTransfer,
+    memezatorContestResultId?: string,
+  };
 
   constructor(fields: Transaction) {
     Object.assign(this, fields)
