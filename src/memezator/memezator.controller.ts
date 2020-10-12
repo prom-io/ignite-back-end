@@ -1,34 +1,56 @@
 import { Controller, Post, Get, Body, UseGuards, Query } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
+import { ApiOkResponse } from "@nestjs/swagger";
+import { config } from "../config";
 import { AdminGuard } from "../jwt-auth/AdminGuard";
 import { RequiresAdmin } from "../jwt-auth/RequiresAdmin";
 import { MemezatorService } from "./memezator.service";
 
 @Controller("api/v1/memezator")
 export class MemezatorController {
-  constructor(
-    private readonly memezatorService: MemezatorService,
-  ) {}
+    constructor(private readonly memezatorService: MemezatorService) {}
 
-  @Post("start-competition-summing-up")
-  @UseGuards(AuthGuard("jwt"), AdminGuard)
-  @RequiresAdmin()
-  public startCompetitionSummingUp(
-    @Body("startedInCron") startedInCronRaw?: any,
-  ) {
-    const startedInCron = typeof startedInCronRaw === "boolean" ?  startedInCronRaw : false;
-    return this.memezatorService.startMemezatorCompetitionSummingUp({ startedInCron, dryRun: false });
-  }
+    @Post("start-competition-summing-up")
+    @UseGuards(AuthGuard("jwt"), AdminGuard)
+    @RequiresAdmin()
+    public startCompetitionSummingUp(
+        @Body("startedInCron") startedInCronRaw?: any,
+    ) {
+        const startedInCron =
+            typeof startedInCronRaw === "boolean" ? startedInCronRaw : false;
+        return this.memezatorService.startMemezatorCompetitionSummingUp({
+            startedInCron,
+            dryRun: false,
+        });
+    }
 
-  @Get("dry-run-competition-summing-up")
-  @UseGuards(AuthGuard("jwt"), AdminGuard)
-  @RequiresAdmin()
-  public dryRunCompetitionSummingUp(
-    @Query("startedInCron") startedInCronRaw?: any,
-    @Query("saveResultsInDryRun") saveResultsInDryRunRaw?: any,
-  ) {
-    const startedInCron = startedInCronRaw === "true" ? true : false;
-    const saveResultsInDryRun = saveResultsInDryRunRaw === "true" ? true : false;
-    return this.memezatorService.startMemezatorCompetitionSummingUp({ startedInCron, dryRun: true, saveResultsInDryRun })
-  }
+    @Get("dry-run-competition-summing-up")
+    @UseGuards(AuthGuard("jwt"), AdminGuard)
+    @RequiresAdmin()
+    public dryRunCompetitionSummingUp(
+        @Query("startedInCron") startedInCronRaw?: any,
+        @Query("saveResultsInDryRun") saveResultsInDryRunRaw?: any,
+    ) {
+        const startedInCron = startedInCronRaw === "true" ? true : false;
+        const saveResultsInDryRun =
+            saveResultsInDryRunRaw === "true" ? true : false;
+        return this.memezatorService.startMemezatorCompetitionSummingUp({
+            startedInCron,
+            dryRun: true,
+            saveResultsInDryRun,
+        });
+    }
+
+    @Get("voting-power-purchase-address")
+    @ApiOkResponse({
+        type: "object",
+        schema: {
+            properties: { votingPowerPurchaseAddress: { type: "string" } },
+        },
+    })
+    public getVotingPowerPurchaseAddress(): object {
+        return {
+            votingPowerPurchaseAddress: config.VOTING_POWER_PURCHASE_ADDRESS,
+        };
+    }
 }
