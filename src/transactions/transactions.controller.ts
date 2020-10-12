@@ -11,7 +11,7 @@ import { RequiresAdmin } from "../jwt-auth/RequiresAdmin";
 import { Transaction } from "./entities/Transaction";
 import { TransactionsPerformerCronService } from "./transactions-performer-cron.service";
 import { VotingPowerPurchaseCronService } from "../memezator/voting-power-purchase-cron.service";
-import { RefreshTransactionsRequest } from "./types/requests/RefreshTransactionsRequest";
+
 
 @Controller("api/v1")
 export class TransactionsController {
@@ -47,13 +47,4 @@ export class TransactionsController {
   ) {
     return this.transactionsPerformerCron.performNotStartedRewardTransactions({ receiversLimit })
   }
-
-  /*
-  @UseGuards(AuthGuard("jwt"))
-  @ApiOkResponse({ type: () => TransactionResponse, isArray: true })
-  @Get('accounts/current/transactions/sync')
-  public refreshTransactions(@Param() param: RefreshTransactionsRequest){
-    return this.transactionsService.refreshTransactions(param);
-  }
-  */
 }
