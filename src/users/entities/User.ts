@@ -66,6 +66,7 @@ export class User {
     @JoinColumn({name: "signUpReferenceId"})
     signUpReference?: SignUpReference;
 
+    @Index()
     @Column({default: false})
     isCommunity?: boolean
 }
