@@ -14,7 +14,7 @@ export class UsersRepository extends Repository<User> {
     public searchByUsernameLike(searchOption: string, take: number, skip: number): Promise<User[]> {
         return this.find({
             where: {
-                username: Like(searchOption+`%`)
+                username: Like(searchOption + `%`)
             },
             skip,
             take
@@ -38,7 +38,7 @@ export class UsersRepository extends Repository<User> {
     public countByUsernameLike(searchOption): Promise<number> {
         return this.count({
             where: {
-                username: Like(searchOption+`%`)
+                username: Like(searchOption + `%`)
             }
         })
     }
@@ -101,6 +101,15 @@ export class UsersRepository extends Repository<User> {
                 ethereumAddress
             }
         })
+    }
+
+    public findByEthereumAddressIgnoreCase(ethereumAddress: string): Promise<User> {
+        return this.createQueryBuilder("user")
+            .leftJoinAndSelect(`user.preferences`, "preferences")
+            .leftJoinAndSelect(`user.statistics`, "statistics")
+            .leftJoinAndSelect(`user.avatar`, "avatar")
+            .where(`LOWER("user"."ethereumAddress") = LOWER(:ethereumAddress)`, {ethereumAddress})
+            .getOne();
     }
 
     public findByEthereumAddressIn(addresses: string[]): Promise<User[]> {

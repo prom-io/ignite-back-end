@@ -30,16 +30,24 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
                 txnDate: MoreThanOrEqual(memezatorContestStartTime),
             },
         });
+
         if (!transactions) {
             this.logger.log(`No transactions`);
         } else {
             this.logger.log(`Found ${transactions.length} transactions`);
         }
+
         for (const transaction of transactions) {
             this.logger.log(`${transaction.id}`);
-            const user = await this.usersRepository.findByEthereumAddress(
+            const user = await this.usersRepository.findByEthereumAddressIgnoreCase(
                 transaction.txnFrom,
             );
+
+            if (!user) {
+                this.logger.warn(`getVotingPowerPurchaseTransactions: user for transaction ${JSON.stringify(transaction)} not found. Skipping`)
+                continue
+            }
+
             const votingPowerPurchaseExist = await this.votingPowerPurchaseRepository.findOne(
                 {
                     where: {
@@ -51,6 +59,7 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
                     },
                 },
             );
+
             if (!votingPowerPurchaseExist) {
                 const newVotingPowerPurchase = this.votingPowerPurchaseRepository.create(
                     {

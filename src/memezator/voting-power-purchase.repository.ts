@@ -4,12 +4,11 @@ import { getCurrentMemezatorContestStartTime } from "./utils";
 
 @EntityRepository(VotingPowerPurchase)
 export class VotingPowerPurchaseRepository extends Repository<VotingPowerPurchase> {
-
-public async calculateVotingPowerForUser(userId: string): Promise<number>{
-    const memezatorContestStartTime = getCurrentMemezatorContestStartTime();
-    const purchasesForLastDay = await this.find({where: {createdAt: MoreThanOrEqual(memezatorContestStartTime), userId}})
-    const reducer = (accumulator, currentValue) => accumulator + currentValue;
-    const userVotingPowerForLastDay = purchasesForLastDay.map(purchase => purchase.votingPower).reduce(reducer);
-    return userVotingPowerForLastDay;
+    public async calculateVotingPowerForUser(userId: string): Promise<number> {
+        const memezatorContestStartTime = getCurrentMemezatorContestStartTime();
+        const purchasesForLastDay = await this.find({where: {createdAt: MoreThanOrEqual(memezatorContestStartTime), userId}})
+        const reducer = (accumulator, currentValue) => accumulator + currentValue;
+        const userVotingPowerForLastDay = purchasesForLastDay.map(purchase => purchase.votingPower).reduce(reducer);
+        return userVotingPowerForLastDay;
     }
 }
