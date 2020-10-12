@@ -21,6 +21,24 @@ export class UsersRepository extends Repository<User> {
         })
     }
 
+    public findAllByIsCommunityOrderBySubscribersCountInCommunitiesDesc(): Promise<User[]> {
+        return this.createQueryBuilder("user")
+            .leftJoinAndSelect("user.avatar", "avatar")
+            .leftJoinAndSelect("user.preferences", "preferences")
+            .leftJoinAndSelect("user.statistics", "statistics")
+            .addSelect( subquery =>
+                subquery
+                .select("count(id)", "subscribers_count")
+                .from(UserSubscription, "user_subscription")
+                .where(`user_subscription."subscribedUserId"=user.id`)
+                .andWhere(`"isSubscribedToCommunity"=true`)
+                .groupBy(`user.id`)
+            )
+            .where(`"isCommunity"=true`)
+            .orderBy(`subscribers_count`, "DESC")
+            .getMany()  
+    }
+
     public searchByDisplayedNameLikeNotInUsername(searchOption: string, take: number, skip: number | undefined): Promise<User[]> {
         const qb = this.createQueryBuilder("user")
             .leftJoinAndSelect("user.avatar", "avatar")

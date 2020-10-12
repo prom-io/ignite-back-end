@@ -51,9 +51,15 @@ export class UsersController {
     }
 
     @UseGuards(AuthGuard("jwt"))
-    @Post("user-subscribed-communities")
+    @Get("subscribed-communities-of-user")
     public getUserSubscriptionCommunities(@Req() request: Request) {
         return this.userSubscriptionsService.getUserSubscriptionCommunities(request.user as User)
+    }
+
+    @UseGuards(AuthGuard("jwt"))
+    @Get("communities")
+    public getAllCommunities() {
+        return this.usersService.getAllCommunities()
     }
 
     @UseGuards(AuthGuard("jwt"))

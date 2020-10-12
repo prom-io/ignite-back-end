@@ -93,6 +93,10 @@ export class UsersService {
         return asyncMap(users, async user => await this.usersMapper.toUserResponseAsync(user, currentUser))
     }
 
+    public async getAllCommunities(): Promise<User[]> {
+        return await this.userRepository.findAllByIsCommunityOrderBySubscribersCountInCommunitiesDesc()
+    }
+
     public async getMemesActionsRights(user: User): Promise<MemezatorActionsRightsResponse> {
         const memeCreationRight = await this.getMemeCreationRightForUser(user)
         const memeVotingRight = await this.getMemeVotingRightForUser(user)
