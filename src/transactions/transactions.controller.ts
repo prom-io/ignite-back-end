@@ -1,4 +1,16 @@
-import { Controller, Get, Query, UseInterceptors, ClassSerializerInterceptor, UseGuards, Req, Body, Post, ParseIntPipe, Param } from "@nestjs/common";
+import {
+    Controller,
+    Get,
+    Query,
+    UseInterceptors,
+    ClassSerializerInterceptor,
+    UseGuards,
+    Req,
+    Body,
+    Post,
+    ParseIntPipe,
+    Param,
+} from "@nestjs/common";
 import { GetTransactionsFilters } from "./types/requests/GetTransactionsFilters";
 import { TransactionResponse } from "./types/responses/TransactionResponse";
 import { TransactionsService } from "./transactions.service";
@@ -11,40 +23,58 @@ import { RequiresAdmin } from "../jwt-auth/RequiresAdmin";
 import { Transaction } from "./entities/Transaction";
 import { TransactionsPerformerCronService } from "./transactions-performer-cron.service";
 import { VotingPowerPurchaseCronService } from "../memezator/voting-power-purchase-cron.service";
-
+import { NotStartedRewardTxnsIdsAndReceiverAndRewardsSum } from "./types/NotStartedRewardTxnsIdsAndReceiverAndRewardsSum.interface";
 
 @Controller("api/v1")
 export class TransactionsController {
-  constructor(
-    private readonly transactionsService: TransactionsService,
-    private readonly transactionsPerformerCron: TransactionsPerformerCronService,
-    private readonly transactionsSyncCronService: VotingPowerPurchaseCronService
-  ) {}
+    constructor(
+        private readonly transactionsService: TransactionsService,
+        private readonly transactionsPerformerCron: TransactionsPerformerCronService,
+        private readonly transactionsSyncCronService: VotingPowerPurchaseCronService,
+    ) {}
 
-  @UseInterceptors(ClassSerializerInterceptor)
-  @UseGuards(AuthGuard("jwt"))
-  @ApiOkResponse({ type: () => TransactionResponse, isArray: true })
-  @Get("accounts/current/transactions")
-  public getTransactions(
-    @Req() request: Request,
-    @Query() filters: GetTransactionsFilters
-  ): Promise<TransactionResponse[]> {
-    return this.transactionsService.getTransactions(request.user as User, filters)
-  }
+    @UseInterceptors(ClassSerializerInterceptor)
+    @UseGuards(AuthGuard("jwt"))
+    @ApiOkResponse({ type: () => TransactionResponse, isArray: true })
+    @Get("accounts/current/transactions")
+    public getTransactions(
+        @Req() request: Request,
+        @Query() filters: GetTransactionsFilters,
+    ): Promise<TransactionResponse[]> {
+        return this.transactionsService.getTransactions(
+            request.user as User,
+            filters,
+        );
+    }
 
-  @Post("perform-transactions-by-ids")
-  @UseGuards(AuthGuard("jwt"), AdminGuard)
-  @RequiresAdmin()
-  public performTransactionsByIds(@Body("ids") ids: string[]): Promise<Transaction[]> {
-    return this.transactionsService.performTransactionsByIds(ids);
-  }
+    @Post("perform-transactions-by-ids")
+    @UseGuards(AuthGuard("jwt"), AdminGuard)
+    @RequiresAdmin()
+    public performTransactionsByIds(
+        @Body("ids") ids: string[],
+    ): Promise<Transaction[]> {
+        return this.transactionsService.performTransactionsByIds(ids);
+    }
 
-  @Post("perform-not-started-reward-transactions-in-batch-mode")
-  @UseGuards(AuthGuard("jwt"), AdminGuard)
-  @RequiresAdmin()
-  public performNotStartedRewardTransactionsInBatchMode(
-    @Body("receiversLimit", new ParseIntPipe()) receiversLimit: number,
-  ) {
-    return this.transactionsPerformerCron.performNotStartedRewardTransactions({ receiversLimit })
-  }
+    @Post("perform-not-started-reward-transactions-in-batch-mode")
+    @UseGuards(AuthGuard("jwt"), AdminGuard)
+    @RequiresAdmin()
+    public performNotStartedRewardTransactionsInBatchMode(
+        @Body("receiversLimit", new ParseIntPipe()) receiversLimit: number,
+    ) {
+        return this.transactionsPerformerCron.performNotStartedRewardTransactions(
+            { receiversLimit },
+        );
+    }
+
+    @Post("perform-specified-not-started-reward-transactions-in-batch-mode")
+    @UseGuards(AuthGuard("jwt"), AdminGuard)
+    @RequiresAdmin()
+    async performSpecifiedNotStartedRewardTransactionsInBatchMode(
+        @Body() data: NotStartedRewardTxnsIdsAndReceiverAndRewardsSum[],
+    ) {
+        return this.transactionsPerformerCron.performSpecifiedNotStartedRewardTransactions(
+            data,
+        );
+    }
 }

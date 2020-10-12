@@ -57,6 +57,14 @@ export class TokenExchangeService {
       throw new Error(`TokenExchangeService: Error occurred: ${JSON.stringify(response.data)}`)
     }
 
+    if (!response.data.result) {
+        throw new Error(
+            `TokenExchangeService: Invalid response ${JSON.stringify(
+                response.data,
+            )}`,
+        );
+    }
+
     return response.data.result
   }
 }
