@@ -20,8 +20,9 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
         super();
     }
 
-    @Cron("0 * * * * *")
+    @Cron("* * * * *", { waiting: true, immediate: true })
     public async getVotingPowerPurchaseTransactions() {
+        this.logger.log("Cron tick", "getVotingPowerPurchaseTransactions");
         const memezatorContestStartTime = getCurrentMemezatorContestStartTime();
         const transactions = await this.transactionsRep.find({
             where: {
