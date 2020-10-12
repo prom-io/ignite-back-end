@@ -1,4 +1,5 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
+import { LoggerService } from "nest-logger";
 import { NestSchedule, Cron } from "nest-schedule";
 import { config } from "../config";
 import { VotingPowerPurchaseRepository } from "./voting-power-purchase.repository";
@@ -14,7 +15,7 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
         private readonly transactionsRep: TransactionsRepository,
         private readonly votingPowerPurchaseRepository: VotingPowerPurchaseRepository,
         private readonly usersRepository: UsersRepository,
-        private readonly logger: Logger,
+        private readonly logger: LoggerService,
     ) {
         super();
     }

@@ -10,6 +10,7 @@ import { VotingPowerPurchaseRepository } from "../memezator/voting-power-purchas
 import { UsersRepository } from "../users";
 import { BscApiModule } from "../bsc-api/bsc-api.module";
 import { TransactionsWithBlockchainSync } from "./transactions-with-blockchain-sync.service";
+import { VotingPowerPurchaseCronService } from "../memezator/voting-power-purchase-cron.service";
 
 @Module({
     imports: [
@@ -26,6 +27,7 @@ import { TransactionsWithBlockchainSync } from "./transactions-with-blockchain-s
         TransactionMapper,
         TransactionsPerformerCronService,
         TransactionsWithBlockchainSync,
+        VotingPowerPurchaseCronService,
     ],
     exports: [TransactionsService],
     controllers: [TransactionsController],
