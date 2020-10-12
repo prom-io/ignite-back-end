@@ -30,6 +30,11 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
                 txnDate: MoreThanOrEqual(memezatorContestStartTime),
             },
         });
+        if (!transactions) {
+            this.logger.log(`No transactions`);
+        } else {
+            this.logger.log(`Found ${transactions.length} transactions`);
+        }
         for (const transaction of transactions) {
             this.logger.log(`${transaction.id}`);
             const user = await this.usersRepository.findByEthereumAddress(
