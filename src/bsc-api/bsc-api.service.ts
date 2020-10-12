@@ -96,7 +96,7 @@ export class BscApiService {
 
             nextPageCursor = tokenTransfersResult.nextPageCursor;
 
-            await sleep(10000);
+            await sleep(1000 * 30);
         }
     }
 
@@ -144,7 +144,7 @@ export class BscApiService {
             .text()
             .trim();
 
-        const amount = amountWithSymbolText.split(" ")[0].replace(",", "");
+        const amount = amountWithSymbolText.split(" ")[0].replace(/,/g, "");
         const tokenSymbol = amountWithSymbolText.split(" ")[1];
 
         const date = new Date(
