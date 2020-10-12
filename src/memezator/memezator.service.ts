@@ -239,9 +239,6 @@ export class MemezatorService extends NestSchedule {
                     ) + purchasedVotingPower;
 
                 if (votingPower > 1) {
-                    const votingPower = this.calculateVotingPower(
-                        ethereumBalance,
-                    );
                     likesWithVotingPowersAndRewards.push({
                         like,
                         votingPower,
