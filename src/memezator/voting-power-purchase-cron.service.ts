@@ -22,7 +22,13 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
       const transactions = await this.transactionsRep.find({where: {txnTo:config.VOTING_POWER_PURCHASE_ADDRESS}});
       for (const transaction of transactions){
         const user = await this.usersRepository.findByEthereumAddress(transaction.txnFrom);
-        const votingPowerPurchaseExist = await this.votingPowerPurchaseRepository.findOne({where: {txnHash: transaction.txnHash}})
+        const votingPowerPurchaseExist = await this.votingPowerPurchaseRepository.findOne({where: {
+          txnHash: transaction.txnHash, 
+          txnDate: transaction.txnDate, 
+          txnFrom: transaction.txnFrom,
+          txnSum: transaction.txnSum,
+          txnId: transaction.id
+        }})
         if (!votingPowerPurchaseExist) {
         const newVotingPowerPurchase = this.votingPowerPurchaseRepository.create({
           id: uuid(),

@@ -11,6 +11,9 @@ export class VotingPowerPurchase {
   @Column({type: 'varchar'})
   userId: string
 
+  @Column()
+  txnFrom: string;
+
   @Column({ type: "uuid" })
   txnId: string
 
