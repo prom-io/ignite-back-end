@@ -1,35 +1,35 @@
 import { CheckSubscriptionToCommunity } from './types/request/CheckSubscriptionToCommunityREquest';
-import {HttpException, HttpStatus, Injectable} from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import uuid from "uuid";
-import {UserSubscription} from "./entities";
-import {UserSubscriptionsRepository} from "./UserSubscriptionsRepository";
-import {UserSubscriptionsMapper} from "./UserSubscriptionsMapper";
-import {RelationshipsResponse, UserSubscriptionResponse} from "./types/response";
-import {UsersRepository} from "../users/UsersRepository";
-import {UserStatisticsRepository} from "../users/UserStatisticsRepository";
-import {User} from "../users/entities";
-import {PaginationRequest} from "../utils/pagination";
-import {UserResponse} from "../users/types/response";
-import {UsersMapper} from "../users/UsersMapper";
-import {asyncMap} from "../utils/async-map";
+import { UserSubscription } from "./entities";
+import { UserSubscriptionsRepository } from "./UserSubscriptionsRepository";
+import { UserSubscriptionsMapper } from "./UserSubscriptionsMapper";
+import { RelationshipsResponse, UserSubscriptionResponse } from "./types/response";
+import { UsersRepository } from "../users/UsersRepository";
+import { UserStatisticsRepository } from "../users/UserStatisticsRepository";
+import { User } from "../users/entities";
+import { PaginationRequest } from "../utils/pagination";
+import { UserResponse } from "../users/types/response";
+import { UsersMapper } from "../users/UsersMapper";
+import { asyncMap } from "../utils/async-map";
 import _ from "lodash";
 
 @Injectable()
 export class UserSubscriptionsService {
     constructor(private readonly userSubscriptionsRepository: UserSubscriptionsRepository,
-                private readonly usersRepository: UsersRepository,
-                private readonly userStatisticsRepository: UserStatisticsRepository,
-                private readonly userSubscriptionsMapper: UserSubscriptionsMapper,
-                private readonly usersMapper: UsersMapper) {
+        private readonly usersRepository: UsersRepository,
+        private readonly userStatisticsRepository: UserStatisticsRepository,
+        private readonly userSubscriptionsMapper: UserSubscriptionsMapper,
+        private readonly usersMapper: UsersMapper) {
     }
 
-    public async getUserSubscriptionCommunities(currentUser: User): Promise<UserSubscription[]> {
+    public async getSubscibedCommunitiesOfUser(currentUser: User): Promise<UserSubscription[]> {
         return await this.userSubscriptionsRepository.findBySubscribedUserAndIsSubscribedToCommunity(currentUser)
     }
 
     public async followUser(address: string,
-                            currentUser: User,
-                            checkSubscriptionToCommunity: CheckSubscriptionToCommunity): Promise<UserResponse> {
+        currentUser: User,
+        checkSubscriptionToCommunity: CheckSubscriptionToCommunity): Promise<UserResponse> {
         let targetUser = await this.usersRepository.findByEthereumAddress(address);
 
         if (!targetUser) {
