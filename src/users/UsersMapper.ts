@@ -74,7 +74,8 @@ export class UsersMapper {
             externalUrl: user.externalUrl,
             userBalance: Big(userBalance).toFixed(2),
             votingPower: userStatistics ? userStatistics.votingPower : 1,
-            passwordHash: includePasswordHash ? user.privateKey : undefined
+            passwordHash: includePasswordHash ? user.privateKey : undefined,
+            isCommunity: user.isCommunity
         })
     }
 
@@ -87,7 +88,8 @@ export class UsersMapper {
             displayedName: createUserRequest.displayedName ? createUserRequest.displayedName : createUserRequest.address,
             createdAt: new Date(),
             privateKey: this.bCryptPasswordEncoder.encode(createUserRequest.privateKey, 12),
-            username: createUserRequest.username
+            username: createUserRequest.username,
+            isCommunity: createUserRequest.isCommunity
         }
     }
 }

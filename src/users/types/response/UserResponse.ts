@@ -77,6 +77,10 @@ export class UserResponse {
     @Expose({name: "voting_power"})
     votingPower: number;
 
+    @ApiProperty({name: "is_community"})
+    @Expose({name: "is_communtiy"})
+    isCommunity: boolean
+
     constructor(object: UserResponse) {
         Object.assign(this, object);
     }

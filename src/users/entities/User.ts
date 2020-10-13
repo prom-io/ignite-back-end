@@ -65,4 +65,8 @@ export class User {
     @ManyToOne(() => SignUpReference, {nullable: true, eager: false})
     @JoinColumn({name: "signUpReferenceId"})
     signUpReference?: SignUpReference;
+
+    @Index()
+    @Column({default: false})
+    isCommunity?: boolean
 }

@@ -14,31 +14,51 @@ export class UsersRepository extends Repository<User> {
     public searchByUsernameLike(searchOption: string, take: number, skip: number): Promise<User[]> {
         return this.find({
             where: {
-                username: Like(searchOption+`%`)
+                username: Like(searchOption+`%`),
+                isCommunity: false
             },
             skip,
             take
         })
     }
 
-    public searchByDisplayedNameLikeNotInUsername(searchOption: string, take: number, skip: number | undefined): Promise<User[]> {
-        const qb = this.createQueryBuilder("user")
+    public findAllByIsCommunityOrderBySubscribersCountInCommunitiesDesc(): Promise<User[]> {
+        return this.createQueryBuilder("user")
             .leftJoinAndSelect("user.avatar", "avatar")
             .leftJoinAndSelect("user.preferences", "preferences")
             .leftJoinAndSelect("user.statistics", "statistics")
-        .andWhere(`user.username NOT LIKE :matchPattern`)
-        qb.andWhere(`user.displayedName LIKE :matchPattern`)
+            .addSelect( subquery =>
+                subquery
+                .select("count(id)", "subscribers_count")
+                .from(UserSubscription, "user_subscription")
+                .where(`user_subscription."subscribedUserId"=user.id`)
+                .andWhere(`"isSubscribedToCommunity"=true`)
+                .groupBy(`user.id`)
+            )
+            .where(`"isCommunity"=true`)
+            .orderBy(`subscribers_count`, "DESC")
+            .getMany()  
+    }
+
+    public searchByDisplayedNameLikeNotInUsername(searchOption: string, take: number, skip: number | undefined): Promise<User[]> {
+        return this.createQueryBuilder("user")
+            .leftJoinAndSelect("user.avatar", "avatar")
+            .leftJoinAndSelect("user.preferences", "preferences")
+            .leftJoinAndSelect("user.statistics", "statistics")
+        .andWhere(`user.username NOT LIKE :matchPattern`, {matchPattern: `${searchOption}%`})
+        .andWhere(`user.displayedName LIKE :matchPattern`, {matchPattern: `${searchOption}%`})
+        .andWhere(`user.isCommunity=false`)
+        .orderBy(`user.displayedName`, "ASC")
         .skip(skip)
         .take(take)
-        .orderBy(`user."displayedName"`, "ASC")
-        .setParameter("matchPattern", `${searchOption}%`)
-        return qb.getMany()  
+        .getMany()  
     }
 
     public countByUsernameLike(searchOption): Promise<number> {
         return this.count({
             where: {
-                username: Like(searchOption+`%`)
+                username: Like(searchOption+`%`),
+                isCommunity: false
             }
         })
     }

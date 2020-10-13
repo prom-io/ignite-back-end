@@ -9,15 +9,15 @@ import {
     CannotVoteMemeReasonCode,
 } from "./types/response/MemezatorActionsRightsResponse";
 import { asyncForEach } from "./../utils/async-foreach";
-import {HttpException, HttpStatus, Injectable, Logger} from "@nestjs/common";
-import {MailerService} from "@nestjs-modules/mailer";
-import {LoggerService} from "nest-logger";
+import { HttpException, HttpStatus, Injectable, Logger } from "@nestjs/common";
+import { MailerService } from "@nestjs-modules/mailer";
+import { LoggerService } from "nest-logger";
 import uuid from "uuid/v4";
-import {getLanguageFromString, Language, SignUpReference, User, UserPreferences, UserStatistics} from "./entities";
-import {UsersRepository} from "./UsersRepository";
-import {UserStatisticsRepository} from "./UserStatisticsRepository";
-import {UserPreferencesRepository} from "./UserPreferencesRepository";
-import {UsersMapper} from "./UsersMapper";
+import { getLanguageFromString, Language, SignUpReference, User, UserPreferences, UserStatistics } from "./entities";
+import { UsersRepository } from "./UsersRepository";
+import { UserStatisticsRepository } from "./UserStatisticsRepository";
+import { UserPreferencesRepository } from "./UserPreferencesRepository";
+import { UsersMapper } from "./UsersMapper";
 import {
     CreateUserRequest,
     FollowRecommendationFilters,
@@ -29,20 +29,20 @@ import {
     UsernameAvailabilityResponse,
     UsersSubscribersInfoRequest
 } from "./types/request";
-import {UserPreferencesResponse, UserResponse, UsersSubscribersInfoResponse} from "./types/response";
-import {SignUpReferencesRepository} from "./SignUpReferencesRepository";
-import {InvalidBCryptHashException} from "./exceptions";
-import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
-import {config} from "../config";
-import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
-import {MediaAttachment} from "../media-attachments/entities";
-import {BCryptPasswordEncoder} from "../bcrypt";
-import {asyncMap} from "../utils/async-map";
-import {PasswordHashApiClient} from "../password-hash-api";
-import {UserSubscription} from "../user-subscriptions/entities";
-import {UsersSearchFilters} from "./types/request/UsersSearchFilters";
-import {Big} from "big.js";
-import {TokenExchangeService} from "../token-exchange";
+import { UserPreferencesResponse, UserResponse, UsersSubscribersInfoResponse } from "./types/response";
+import { SignUpReferencesRepository } from "./SignUpReferencesRepository";
+import { InvalidBCryptHashException } from "./exceptions";
+import { UserSubscriptionsRepository } from "../user-subscriptions/UserSubscriptionsRepository";
+import { config } from "../config";
+import { MediaAttachmentsRepository } from "../media-attachments/MediaAttachmentsRepository";
+import { MediaAttachment } from "../media-attachments/entities";
+import { BCryptPasswordEncoder } from "../bcrypt";
+import { asyncMap } from "../utils/async-map";
+import { PasswordHashApiClient } from "../password-hash-api";
+import { UserSubscription } from "../user-subscriptions/entities";
+import { UsersSearchFilters } from "./types/request/UsersSearchFilters";
+import { Big } from "big.js";
+import { TokenExchangeService } from "../token-exchange";
 
 @Injectable()
 export class UsersService {
@@ -60,32 +60,31 @@ export class UsersService {
         private readonly passwordEncoder: BCryptPasswordEncoder,
         private readonly passwordHashApiClient: PasswordHashApiClient,
         private readonly tokenExchangeService: TokenExchangeService,
-        private readonly userRepository: UsersRepository,
         private readonly log: LoggerService
-    ) {}
+    ) { }
 
     public async searchUsers(searchFilters: UsersSearchFilters, currentUser?: User): Promise<UserResponse[]> {
         const formattedQuery = searchFilters.q && searchFilters.q.trim()
-        const skip = searchFilters.skip;
-        const take = searchFilters.take;
+        const skip = searchFilters.skip || 0;
+        const take = searchFilters.take || 0;
 
-        const countByUsername: number = await this.userRepository.countByUsernameLike(formattedQuery)
+        const countByUsername: number = await this.usersRepository.countByUsernameLike(formattedQuery)
         let selectedUsersByUsername: User[] = [];
         let selectedUsersByDisplayname: User[] = [];
 
-        if(countByUsername >= take + skip) {
-            selectedUsersByUsername = await this.userRepository.searchByUsernameLike(formattedQuery, take, skip)
+        if (countByUsername >= take + skip) {
+            selectedUsersByUsername = await this.usersRepository.searchByUsernameLike(formattedQuery, take, skip)
         }
 
-        if(countByUsername < take + skip && skip < countByUsername) {
-            selectedUsersByUsername = await this.userRepository.searchByUsernameLike(formattedQuery, undefined, skip)
+        if (countByUsername < take + skip && skip < countByUsername) {
+            selectedUsersByUsername = await this.usersRepository.searchByUsernameLike(formattedQuery, undefined, skip)
             let numberOfItemsByDisplayname = take - selectedUsersByUsername.length;
-            selectedUsersByDisplayname = await this.userRepository.searchByDisplayedNameLikeNotInUsername(formattedQuery, numberOfItemsByDisplayname, undefined)
+            selectedUsersByDisplayname = await this.usersRepository.searchByDisplayedNameLikeNotInUsername(formattedQuery, numberOfItemsByDisplayname, undefined)
         }
 
-        if(countByUsername < (take + skip) && skip >= countByUsername) {
+        if (countByUsername < (take + skip) && skip >= countByUsername) {
             const skipUserByDisplayName = skip - countByUsername;
-            selectedUsersByDisplayname = await this.userRepository.searchByDisplayedNameLikeNotInUsername(formattedQuery, take, skipUserByDisplayName)
+            selectedUsersByDisplayname = await this.usersRepository.searchByDisplayedNameLikeNotInUsername(formattedQuery, take, skipUserByDisplayName)
         }
 
         const users = selectedUsersByUsername.concat(selectedUsersByDisplayname)
@@ -93,14 +92,18 @@ export class UsersService {
         return asyncMap(users, async user => await this.usersMapper.toUserResponseAsync(user, currentUser))
     }
 
+    public async getAllCommunities(): Promise<User[]> {
+        return await this.usersRepository.findAllByIsCommunityOrderBySubscribersCountInCommunitiesDesc()
+    }
+
     public async getMemesActionsRights(user: User): Promise<MemezatorActionsRightsResponse> {
         const memeCreationRight = await this.getMemeCreationRightForUser(user)
         const memeVotingRight = await this.getMemeVotingRightForUser(user)
-        
+
         const userMemeActionsRights = new MemezatorActionsRightsResponse({
             canCreate: memeCreationRight.canCreate,
             cannotCreateReasonCode: memeCreationRight.cannotCreateReasonCode,
-            canVote: memeVotingRight.canVote, 
+            canVote: memeVotingRight.canVote,
             cannotVoteReasonCode: memeVotingRight.cannotVoteReasonCode,
             votingPower: null,
             ethPromTokens: null
@@ -110,16 +113,16 @@ export class UsersService {
         userMemeActionsRights.ethPromTokens = new Big(balance).toFixed(2)
         userMemeActionsRights.votingPower = this.calculateVotingPower(balance)
 
-        return userMemeActionsRights; 
+        return userMemeActionsRights;
     }
 
     public async getMemeCreationRightForUser(
         user: User,
-    ): Promise<{canCreate: boolean, cannotCreateReasonCode?: CannotCreateMemeReasonCode}> {
+    ): Promise<{ canCreate: boolean, cannotCreateReasonCode?: CannotCreateMemeReasonCode }> {
         const memeCreatedTodayByUser = await this.statusesRepository.findOneMemeByAuthorCreatedToday(user)
 
         if (memeCreatedTodayByUser) {
-            return {canCreate: false, cannotCreateReasonCode: CannotCreateMemeReasonCode.LIMIT_EXCEEDED}
+            return { canCreate: false, cannotCreateReasonCode: CannotCreateMemeReasonCode.LIMIT_EXCEEDED }
         }
 
         const {
@@ -128,28 +131,28 @@ export class UsersService {
         } = await this.getCommonInfoForMemezatorActionsRightsForUser(user)
 
         if (user.statistics.statusesCount < 3 || !countOfStatusesCreatedTodayByUser) {
-            return {canCreate: false, cannotCreateReasonCode: CannotCreateMemeReasonCode.DOESNT_HAVE_ENOUGH_POSTS}
+            return { canCreate: false, cannotCreateReasonCode: CannotCreateMemeReasonCode.DOESNT_HAVE_ENOUGH_POSTS }
         }
 
         if (missingAvatarOrUsernameOrBio) {
-            return {canCreate: false, cannotCreateReasonCode: CannotCreateMemeReasonCode.MISSING_AVATAR_OR_USERNAME_OR_BIO}
+            return { canCreate: false, cannotCreateReasonCode: CannotCreateMemeReasonCode.MISSING_AVATAR_OR_USERNAME_OR_BIO }
         }
 
         const countOfMemesCreatedInCurrentContest = await this.statusesRepository.countMemesCreatedToday()
 
         if (countOfMemesCreatedInCurrentContest >= 100) {
-            return {canCreate: false, cannotCreateReasonCode: CannotCreateMemeReasonCode.MEMES_LIMIT_EXCEEDED_FOR_CURRENT_CONTEST}
+            return { canCreate: false, cannotCreateReasonCode: CannotCreateMemeReasonCode.MEMES_LIMIT_EXCEEDED_FOR_CURRENT_CONTEST }
         }
 
-        return {canCreate: true, cannotCreateReasonCode: null}
+        return { canCreate: true, cannotCreateReasonCode: null }
     }
 
     public async getMemeVotingRightForUser(
         user: User,
-    ): Promise<{canVote: boolean, cannotVoteReasonCode?: CannotVoteMemeReasonCode}>  {
+    ): Promise<{ canVote: boolean, cannotVoteReasonCode?: CannotVoteMemeReasonCode }> {
         const amountOfLikedMemes = await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(user)
         if (amountOfLikedMemes >= 1) {
-            return {canVote: false, cannotVoteReasonCode: CannotVoteMemeReasonCode.LIMIT_EXCEEDED}
+            return { canVote: false, cannotVoteReasonCode: CannotVoteMemeReasonCode.LIMIT_EXCEEDED }
         }
 
         const {
@@ -158,11 +161,11 @@ export class UsersService {
         } = await this.getCommonInfoForMemezatorActionsRightsForUser(user)
 
         if (user.statistics.statusesCount < 3 || !countOfStatusesCreatedTodayByUser) {
-            return {canVote: false, cannotVoteReasonCode: CannotVoteMemeReasonCode.DOESNT_HAVE_ENOUGH_POSTS}
+            return { canVote: false, cannotVoteReasonCode: CannotVoteMemeReasonCode.DOESNT_HAVE_ENOUGH_POSTS }
         }
 
         if (missingAvatarOrUsernameOrBio) {
-            return {canVote: false, cannotVoteReasonCode: CannotVoteMemeReasonCode.MISSING_AVATAR_OR_USERNAME_OR_BIO}
+            return { canVote: false, cannotVoteReasonCode: CannotVoteMemeReasonCode.MISSING_AVATAR_OR_USERNAME_OR_BIO }
         }
 
         return { canVote: true, cannotVoteReasonCode: null }
@@ -174,7 +177,7 @@ export class UsersService {
      */
     private async getCommonInfoForMemezatorActionsRightsForUser(
         user: User,
-    ): Promise<{countOfStatusesCreatedTodayByUser: number, missingAvatarOrUsernameOrBio: boolean}> {
+    ): Promise<{ countOfStatusesCreatedTodayByUser: number, missingAvatarOrUsernameOrBio: boolean }> {
         const countOfStatusesCreatedTodayByUser = await this.statusesRepository.countStatusesCreatedTodayByAuthor(user)
 
         const missingAvatarOrUsernameOrBio = !!(
@@ -229,15 +232,16 @@ export class UsersService {
 
         let user: User;
         if (!signUpRequest.transactionId) {
-            user =  await this.registerUserWithGeneratedWallet(
+            user = await this.registerUserWithGeneratedWallet(
                 signUpRequest.walletAddress!,
                 signUpRequest.privateKey!,
                 signUpRequest.password!,
+                signUpRequest.isCommunty,
                 signUpRequest.language,
-                signUpReference
+                signUpReference,
             )
         } else {
-            user = await this.registerUserByTransactionId(signUpRequest.transactionId!, signUpRequest.language, signUpReference);
+            user = await this.registerUserByTransactionId(signUpRequest.transactionId!, signUpRequest.isCommunty, signUpRequest.language, signUpReference);
         }
 
         if (config.ENABLE_ACCOUNTS_SUBSCRIPTION_UPON_SIGN_UP && config.additionalConfig.accountsToSubscribe) {
@@ -294,6 +298,7 @@ export class UsersService {
         ethereumAddress: string,
         privateKey: string,
         password: string,
+        isCommunity: boolean,
         language?: Language,
         signUpReference?: SignUpReference,
     ): Promise<User> {
@@ -326,7 +331,8 @@ export class UsersService {
                 privateKey: passwordHash,
                 remote: false,
                 createdAt: new Date(),
-                signUpReference
+                signUpReference,
+                isCommunity: isCommunity
             };
             await this.usersRepository.save(user);
 
@@ -348,9 +354,9 @@ export class UsersService {
             let isResolved = false;
             setTimeout(() => {
                 if (!isResolved) {
-                     isResolved = true
-                     resolve()
-                     this.log.log("setPasswordHashInBlockchain Timeout of 40s exceeded")
+                    isResolved = true
+                    resolve()
+                    this.log.log("setPasswordHashInBlockchain Timeout of 40s exceeded")
                 }
             }, 40000)
             try {
@@ -359,9 +365,9 @@ export class UsersService {
                     passwordHash,
                     privateKey
                 });
-            }   catch (error) {
+            } catch (error) {
                 this.log.log(error);
-            } 
+            }
 
             try {
                 await this.passwordHashApiClient.setBinancePasswordHash({
@@ -370,20 +376,20 @@ export class UsersService {
                     privateKey
                 });
             } catch (error) {
-                 this.log.log(error);
+                this.log.log(error);
             } finally {
                 if (!isResolved) {
                     isResolved = true
                     resolve()
                 }
             }
-      })
-     }
+        })
+    }
 
-    private async registerUserByTransactionId(transactionId: string, language?: Language, signUpReference?: SignUpReference): Promise<User> {
+    private async registerUserByTransactionId(transactionId: string, isCommunity: boolean, language?: Language, signUpReference?: SignUpReference): Promise<User> {
         try {
             const passwordHashResponse = await this.passwordHashApiClient.getPasswordHashByTransaction(transactionId);
-            const {hash, address: ethereumAddress} = passwordHashResponse;
+            const { hash, address: ethereumAddress } = passwordHashResponse;
 
             let user = await this.usersRepository.findByEthereumAddress(ethereumAddress);
 
@@ -415,7 +421,8 @@ export class UsersService {
                     privateKey: hash,
                     remote: false,
                     createdAt: new Date(),
-                    signUpReference
+                    signUpReference,
+                    isCommunity: isCommunity
                 };
                 await this.usersRepository.save(user);
 
@@ -446,7 +453,8 @@ export class UsersService {
                     subscribedTo,
                     reverted: false,
                     saveUnsubscriptionToBtfs: true,
-                    createdAt: new Date()
+                    createdAt: new Date(),
+                    isSubscribedToCommunity: false
                 };
                 return await this.subscriptionsRepository.save(userSubscription);
             });
@@ -480,6 +488,8 @@ export class UsersService {
 
         if (existingUser) {
             if (existingUser.username !== createUserRequest.username) {
+                existingUser.displayedName = createUserRequest.displayedName
+                existingUser.isCommunity = createUserRequest.isCommunity
                 existingUser.username = createUserRequest.username && createUserRequest.username.length !== 0
                     ? createUserRequest.username
                     : createUserRequest.address;
@@ -494,16 +504,16 @@ export class UsersService {
 
         return this.usersMapper.toUserResponse(
             user, {
-                followsCount: 0,
-                followersCount: 0,
-                statusesCount: 0,
-                user,
-                id: "",
-                userBalance: "0",
-                // TODO: calculate the real vote weight taking the real balance in main net
-                // or remove this UsersService#saveUser() method, as it is useless
-                votingPower: 1
-            }
+            followsCount: 0,
+            followersCount: 0,
+            statusesCount: 0,
+            user,
+            id: "",
+            userBalance: "0",
+            // TODO: calculate the real vote weight taking the real balance in main net
+            // or remove this UsersService#saveUser() method, as it is useless
+            votingPower: 1
+        }
         );
     }
 
@@ -511,16 +521,16 @@ export class UsersService {
         const existsByUsername = await this.usersRepository.existsByUsername(username);
 
         if (existsByUsername) {
-            return {available: false};
+            return { available: false };
         }
 
         const existsByEthereumAddress = await this.usersRepository.existsByEthereumAddress(username);
 
         if (existsByEthereumAddress) {
-            return {available: false};
+            return { available: false };
         }
 
-        return {available: true};
+        return { available: true };
     }
 
     public async getCurrentUser(user: User): Promise<UserResponse> {
@@ -528,7 +538,7 @@ export class UsersService {
     }
 
     public async updateUser(ethereumAddress: string, updateUserRequest: UpdateUserRequest, currentUser: User): Promise<UserResponse> {
-        this.log.info(`updateUser: ${JSON.stringify({updateUserRequest, currentUser: { username: currentUser.username, ethereumAddress: currentUser.ethereumAddress }})}`)
+        this.log.info(`updateUser: ${JSON.stringify({ updateUserRequest, currentUser: { username: currentUser.username, ethereumAddress: currentUser.ethereumAddress } })}`)
 
         let user = await this.findUserEntityByEthereumAddress(ethereumAddress);
 
@@ -626,7 +636,7 @@ export class UsersService {
         }
 
         preferences = await this.userPreferencesRepository.save(preferences);
-        return new UserPreferencesResponse({language: preferences.language});
+        return new UserPreferencesResponse({ language: preferences.language });
     }
 
     public async findUserByEthereumAddress(address: string, currentUser?: User): Promise<UserResponse> {
@@ -683,7 +693,7 @@ export class UsersService {
         usersToExcludeFromRecommendations.push(currentUser);
 
         const signUpReference = currentUser.signUpReferenceId && await this.signUpReferencesRepository.findOne(currentUser.signUpReferenceId);
-        const recommendedUsersToFollowInSignUpReference =  
+        const recommendedUsersToFollowInSignUpReference =
             await this.usersRepository.findByEthereumAddressIn(signUpReference ? signUpReference.config.accountsToRecommend : []);
 
         usersToExcludeFromRecommendations.push(...recommendedUsersToFollowInSignUpReference);

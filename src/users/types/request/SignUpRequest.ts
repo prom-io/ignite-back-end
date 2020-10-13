@@ -1,5 +1,5 @@
 import {Expose, Transform, Type} from "class-transformer";
-import {IsIn, IsNotEmpty, IsString, Matches, MinLength, ValidateIf} from "class-validator";
+import {IsIn, IsNotEmpty, IsString, Matches, MinLength, ValidateIf, IsBoolean, IsOptional} from "class-validator";
 import {
     IsStrongPassword,
     IsValidEthereumAddress,
@@ -54,4 +54,9 @@ export class SignUpRequest {
     @IsString()
     @Expose({name: "reference_id"})
     referenceId?: string;
+
+    @IsOptional()
+    @IsBoolean()
+    @Expose({name: "is_community"})
+    isCommunty: boolean
 }
