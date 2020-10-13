@@ -1,14 +1,26 @@
-import { Repository, EntityRepository, MoreThan, MoreThanOrEqual } from "typeorm";
+import { Repository, EntityRepository, MoreThanOrEqual } from "typeorm";
 import { VotingPowerPurchase } from "./entities/VotingPowerPurchase";
 import { getCurrentMemezatorContestStartTime } from "./utils";
 
 @EntityRepository(VotingPowerPurchase)
-export class VotingPowerPurchaseRepository extends Repository<VotingPowerPurchase> {
-    public async calculateVotingPowerForUser(userId: string): Promise<number> {
+export class VotingPowerPurchaseRepository extends Repository<
+    VotingPowerPurchase
+> {
+    public async calculateCurrentVotingPowerPurchaseForUser(
+        userId: string,
+    ): Promise<number> {
         const memezatorContestStartTime = getCurrentMemezatorContestStartTime();
-        const purchasesForLastDay = await this.find({where: {createdAt: MoreThanOrEqual(memezatorContestStartTime), userId}})
-        const reducer = (accumulator, currentValue) => accumulator + currentValue;
-        const userVotingPowerForLastDay = purchasesForLastDay.map(purchase => purchase.votingPower).reduce(reducer);
+        const userVotingPowerForLastDay = await this.createQueryBuilder(
+            "voting_power_purchase",
+        )
+            .select(`SUM(voting_power_purchase."votingPower")`, "sum")
+            .where(
+                'voting_power_purchase."txnDate" >= :memezatorContestStartTime',
+                { memezatorContestStartTime },
+            )
+            .andWhere(`voting_power_purchase."userId" = :userId`, { userId })
+            .getRawOne();
+
         return userVotingPowerForLastDay;
     }
 }

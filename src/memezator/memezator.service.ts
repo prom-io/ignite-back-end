@@ -222,7 +222,9 @@ export class MemezatorService extends NestSchedule {
             let votes = 0;
 
             for (const like of likes) {
-                const votingPower: number = await this.calcVotingPowerForUser(like.user);
+                const votingPower: number = await this.calcVotingPowerForUser(
+                    like.user,
+                );
 
                 if (votingPower > 1) {
                     likesWithVotingPowersAndRewards.push({
@@ -300,20 +302,19 @@ export class MemezatorService extends NestSchedule {
 
     private async calcVotingPowerForUser(user: User): Promise<number> {
         const ethereumBalance = await this.tokenExchangeService.getBalanceInProms(
-            user.ethereumAddress
+            user.ethereumAddress,
         );
         const binanceBalance = await this.transactionsRepository.getBalanceByAddress(
-            user.ethereumAddress
+            user.ethereumAddress,
         );
-        const purchasedVotingPower = await this.votingPowerPurchaseRepository.calculateVotingPowerForUser(
-            user.id
+        const purchasedVotingPower = await this.votingPowerPurchaseRepository.calculateCurrentVotingPowerPurchaseForUser(
+            user.id,
         );
 
-        const votingPower: number = this.calculateVotingPower(
-            new Big(ethereumBalance)
-                .plus(binanceBalance)
-                .toString()
-        ) + purchasedVotingPower;
+        const votingPower: number =
+            this.calculateVotingPower(
+                new Big(ethereumBalance).plus(binanceBalance).toString(),
+            ) + purchasedVotingPower;
 
         return votingPower;
     }

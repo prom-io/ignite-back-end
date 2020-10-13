@@ -33,9 +33,15 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
         });
 
         if (!transactions) {
-            this.logger.log(`No transactions`);
+            this.logger.log(
+                `No transactions found`,
+                "getVotingPowerPurchaseTransactions",
+            );
         } else {
-            this.logger.log(`Found ${transactions.length} transactions`);
+            this.logger.log(
+                `Found ${transactions.length} transactions`,
+                "getVotingPowerPurchaseTransactions",
+            );
         }
 
         for (const transaction of transactions) {
@@ -45,8 +51,12 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
             );
 
             if (!user) {
-                this.logger.warn(`getVotingPowerPurchaseTransactions: user for transaction ${JSON.stringify(transaction)} not found. Skipping`)
-                continue
+                this.logger.warn(
+                    `getVotingPowerPurchaseTransactions: user for transaction ${JSON.stringify(
+                        transaction,
+                    )} not found. Skipping`,
+                );
+                continue;
             }
 
             const votingPowerPurchaseExist = await this.votingPowerPurchaseRepository.findOne(
@@ -78,10 +88,12 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
                 );
                 this.logger.log(
                     `New voting power purchase: ${newVotingPowerPurchase.id}`,
+                    "getVotingPowerPurchaseTransactions",
                 );
             } else {
                 this.logger.warn(
                     `Record for transaction ${transaction.id} already exists.`,
+                    "getVotingPowerPurchaseTransactions",
                 );
             }
         }
