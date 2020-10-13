@@ -29,7 +29,6 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
             where: {
                 txnTo: config.VOTING_POWER_PURCHASE_ADDRESS.toLowerCase(),
                 txnDate: MoreThanOrEqual(memezatorContestStartTime),
-                txnSubj: TransactionSubject.TRANSFER,
             },
         });
 
