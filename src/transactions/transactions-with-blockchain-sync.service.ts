@@ -109,7 +109,9 @@ export class TransactionsWithBlockchainSync extends NestSchedule {
                     txnTo: tt.to.toLowerCase(),
                     txnSum: tt.amount,
                     txnStatus: TransactionStatus.PERFORMED,
-                    txnSubj: TransactionSubject.TRANSFER,
+                    txnSubj: tt.to.toLowerCase() === config.VOTING_POWER_PURCHASE_ADDRESS.toLowerCase()
+                        ? TransactionSubject.VOTING_POWER_PURCHASE
+                        : TransactionSubject.TRANSFER,
                     txnHash: tt.hash,
                     txnDate: tt.date,
                     txnDetails: {
