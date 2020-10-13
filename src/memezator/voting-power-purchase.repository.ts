@@ -21,6 +21,6 @@ export class VotingPowerPurchaseRepository extends Repository<
             .andWhere(`voting_power_purchase."userId" = :userId`, { userId })
             .getRawOne();
 
-        return userVotingPowerForLastDay;
+        return userVotingPowerForLastDay.sum;
     }
 }

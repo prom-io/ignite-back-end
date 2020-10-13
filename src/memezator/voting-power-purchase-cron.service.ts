@@ -31,7 +31,6 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
                 txnDate: MoreThanOrEqual(memezatorContestStartTime),
             },
         });
-
         if (!transactions) {
             this.logger.log(
                 `No transactions found`,
