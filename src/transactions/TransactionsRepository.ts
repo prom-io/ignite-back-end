@@ -5,6 +5,7 @@ import {
     Equal,
     IsNull,
     Not,
+    SelectQueryBuilder,
 } from "typeorm";
 import { Transaction } from "./entities/Transaction";
 import { User } from "../users/entities";
@@ -39,15 +40,24 @@ export class TransactionsRepository extends Repository<Transaction> {
             commonConditions.txnStatus = filters.txnStatus;
         }
 
-        return this.find({
-            where: [
-                { txnTo: user.ethereumAddress, ...commonConditions },
-                { txnFrom: user.ethereumAddress, ...commonConditions },
-            ],
-            take: filters.take,
-            skip: filters.skip,
-            order: { createdAt: "DESC" },
-        });
+        const qb = this.createQueryBuilder("transaction")
+            .where(commonConditions)
+            .andWhere(
+                `(LOWER(transaction."txnFrom") = LOWER(:ethereumAddress) OR LOWER(transaction."txnTo") = LOWER(:ethereumAddress))`,
+                {ethereumAddress: user.ethereumAddress}
+            )
+
+        if (filters.skip) {
+            qb.skip(filters.skip)
+        }
+
+        if (filters.take) {
+            qb.take(filters.take)
+        }
+
+        qb.orderBy("transaction.txnDate", "DESC")
+
+        return qb.getMany()
     }
 
     async getNotStartedRewardTxnsIdsAndReceiversAndRewardsSums(options: {

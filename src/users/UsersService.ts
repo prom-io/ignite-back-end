@@ -1,6 +1,6 @@
-import { MEMEZATOR_HASHTAG } from '../common/constants';
-import { StatusLikesService } from './../statuses/StatusLikesService';
-import { StatusesService } from './../statuses/StatusesService';
+import { MEMEZATOR_HASHTAG } from "../common/constants";
+import { StatusLikesService } from "./../statuses/StatusLikesService";
+import { StatusesService } from "./../statuses/StatusesService";
 import { StatusLikesRepository } from "../statuses/StatusLikesRepository";
 import { StatusesRepository } from "../statuses/StatusesRepository";
 import {
@@ -9,15 +9,22 @@ import {
     CannotVoteMemeReasonCode,
 } from "./types/response/MemezatorActionsRightsResponse";
 import { asyncForEach } from "./../utils/async-foreach";
-import {HttpException, HttpStatus, Injectable, Logger} from "@nestjs/common";
-import {MailerService} from "@nestjs-modules/mailer";
-import {LoggerService} from "nest-logger";
+import { HttpException, HttpStatus, Injectable, Logger } from "@nestjs/common";
+import { MailerService } from "@nestjs-modules/mailer";
+import { LoggerService } from "nest-logger";
 import uuid from "uuid/v4";
-import {getLanguageFromString, Language, SignUpReference, User, UserPreferences, UserStatistics} from "./entities";
-import {UsersRepository} from "./UsersRepository";
-import {UserStatisticsRepository} from "./UserStatisticsRepository";
-import {UserPreferencesRepository} from "./UserPreferencesRepository";
-import {UsersMapper} from "./UsersMapper";
+import {
+    getLanguageFromString,
+    Language,
+    SignUpReference,
+    User,
+    UserPreferences,
+    UserStatistics,
+} from "./entities";
+import { UsersRepository } from "./UsersRepository";
+import { UserStatisticsRepository } from "./UserStatisticsRepository";
+import { UserPreferencesRepository } from "./UserPreferencesRepository";
+import { UsersMapper } from "./UsersMapper";
 import {
     CreateUserRequest,
     FollowRecommendationFilters,
@@ -27,22 +34,28 @@ import {
     UpdatePreferencesRequest,
     UpdateUserRequest,
     UsernameAvailabilityResponse,
-    UsersSubscribersInfoRequest
+    UsersSubscribersInfoRequest,
 } from "./types/request";
-import {UserPreferencesResponse, UserResponse, UsersSubscribersInfoResponse} from "./types/response";
-import {SignUpReferencesRepository} from "./SignUpReferencesRepository";
-import {InvalidBCryptHashException} from "./exceptions";
-import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
-import {config} from "../config";
-import {MediaAttachmentsRepository} from "../media-attachments/MediaAttachmentsRepository";
-import {MediaAttachment} from "../media-attachments/entities";
-import {BCryptPasswordEncoder} from "../bcrypt";
-import {asyncMap} from "../utils/async-map";
-import {PasswordHashApiClient} from "../password-hash-api";
-import {UserSubscription} from "../user-subscriptions/entities";
-import {UsersSearchFilters} from "./types/request/UsersSearchFilters";
-import {Big} from "big.js";
-import {TokenExchangeService} from "../token-exchange";
+import {
+    UserPreferencesResponse,
+    UserResponse,
+    UsersSubscribersInfoResponse,
+} from "./types/response";
+import { SignUpReferencesRepository } from "./SignUpReferencesRepository";
+import { InvalidBCryptHashException } from "./exceptions";
+import { UserSubscriptionsRepository } from "../user-subscriptions/UserSubscriptionsRepository";
+import { config } from "../config";
+import { MediaAttachmentsRepository } from "../media-attachments/MediaAttachmentsRepository";
+import { MediaAttachment } from "../media-attachments/entities";
+import { BCryptPasswordEncoder } from "../bcrypt";
+import { asyncMap } from "../utils/async-map";
+import { PasswordHashApiClient } from "../password-hash-api";
+import { UserSubscription } from "../user-subscriptions/entities";
+import { UsersSearchFilters } from "./types/request/UsersSearchFilters";
+import { Big } from "big.js";
+import { TokenExchangeService } from "../token-exchange";
+import { TransactionsRepository } from "../transactions/TransactionsRepository";
+import { VotingPowerPurchaseRepository } from "../memezator/voting-power-purchase.repository";
 
 @Injectable()
 export class UsersService {
@@ -61,111 +74,190 @@ export class UsersService {
         private readonly passwordHashApiClient: PasswordHashApiClient,
         private readonly tokenExchangeService: TokenExchangeService,
         private readonly userRepository: UsersRepository,
-        private readonly log: LoggerService
+        private readonly log: LoggerService,
+        private readonly transactionsRepository: TransactionsRepository,
+        private readonly votingPowerPurchaseRepository: VotingPowerPurchaseRepository,
     ) {}
 
-    public async searchUsers(searchFilters: UsersSearchFilters, currentUser?: User): Promise<UserResponse[]> {
-        const formattedQuery = searchFilters.q && searchFilters.q.trim()
+    public async searchUsers(
+        searchFilters: UsersSearchFilters,
+        currentUser?: User,
+    ): Promise<UserResponse[]> {
+        const formattedQuery = searchFilters.q && searchFilters.q.trim();
         const skip = searchFilters.skip;
         const take = searchFilters.take;
 
-        const countByUsername: number = await this.userRepository.countByUsernameLike(formattedQuery)
+        const countByUsername: number = await this.userRepository.countByUsernameLike(
+            formattedQuery,
+        );
         let selectedUsersByUsername: User[] = [];
         let selectedUsersByDisplayname: User[] = [];
 
-        if(countByUsername >= take + skip) {
-            selectedUsersByUsername = await this.userRepository.searchByUsernameLike(formattedQuery, take, skip)
+        if (countByUsername >= take + skip) {
+            selectedUsersByUsername = await this.userRepository.searchByUsernameLike(
+                formattedQuery,
+                take,
+                skip,
+            );
         }
 
-        if(countByUsername < take + skip && skip < countByUsername) {
-            selectedUsersByUsername = await this.userRepository.searchByUsernameLike(formattedQuery, undefined, skip)
-            let numberOfItemsByDisplayname = take - selectedUsersByUsername.length;
-            selectedUsersByDisplayname = await this.userRepository.searchByDisplayedNameLikeNotInUsername(formattedQuery, numberOfItemsByDisplayname, undefined)
+        if (countByUsername < take + skip && skip < countByUsername) {
+            selectedUsersByUsername = await this.userRepository.searchByUsernameLike(
+                formattedQuery,
+                undefined,
+                skip,
+            );
+            const numberOfItemsByDisplayname =
+                take - selectedUsersByUsername.length;
+            selectedUsersByDisplayname = await this.userRepository.searchByDisplayedNameLikeNotInUsername(
+                formattedQuery,
+                numberOfItemsByDisplayname,
+                undefined,
+            );
         }
 
-        if(countByUsername < (take + skip) && skip >= countByUsername) {
+        if (countByUsername < take + skip && skip >= countByUsername) {
             const skipUserByDisplayName = skip - countByUsername;
-            selectedUsersByDisplayname = await this.userRepository.searchByDisplayedNameLikeNotInUsername(formattedQuery, take, skipUserByDisplayName)
+            selectedUsersByDisplayname = await this.userRepository.searchByDisplayedNameLikeNotInUsername(
+                formattedQuery,
+                take,
+                skipUserByDisplayName,
+            );
         }
 
-        const users = selectedUsersByUsername.concat(selectedUsersByDisplayname)
+        const users = selectedUsersByUsername.concat(
+            selectedUsersByDisplayname,
+        );
 
-        return asyncMap(users, async user => await this.usersMapper.toUserResponseAsync(user, currentUser))
+        return asyncMap(
+            users,
+            async user =>
+                await this.usersMapper.toUserResponseAsync(user, currentUser),
+        );
     }
 
-    public async getMemesActionsRights(user: User): Promise<MemezatorActionsRightsResponse> {
-        const memeCreationRight = await this.getMemeCreationRightForUser(user)
-        const memeVotingRight = await this.getMemeVotingRightForUser(user)
-        
+    public async getMemesActionsRights(
+        user: User,
+    ): Promise<MemezatorActionsRightsResponse> {
+        const memeCreationRight = await this.getMemeCreationRightForUser(user);
+        const memeVotingRight = await this.getMemeVotingRightForUser(user);
+
         const userMemeActionsRights = new MemezatorActionsRightsResponse({
             canCreate: memeCreationRight.canCreate,
             cannotCreateReasonCode: memeCreationRight.cannotCreateReasonCode,
-            canVote: memeVotingRight.canVote, 
+            canVote: memeVotingRight.canVote,
             cannotVoteReasonCode: memeVotingRight.cannotVoteReasonCode,
             votingPower: null,
-            ethPromTokens: null
-        })
+            ethPromTokens: null,
+        });
 
-        const balance = await this.tokenExchangeService.getBalanceInProms(user.ethereumAddress)
-        userMemeActionsRights.ethPromTokens = new Big(balance).toFixed(2)
-        userMemeActionsRights.votingPower = this.calculateVotingPower(balance)
+        const balance = await this.tokenExchangeService.getBalanceInProms(
+            user.ethereumAddress,
+        );
+        userMemeActionsRights.ethPromTokens = new Big(balance).toFixed(2);
+        userMemeActionsRights.votingPower = await this.calcVotingPowerForUser(
+            user,
+        );
 
-        return userMemeActionsRights; 
+        return userMemeActionsRights;
     }
 
     public async getMemeCreationRightForUser(
         user: User,
-    ): Promise<{canCreate: boolean, cannotCreateReasonCode?: CannotCreateMemeReasonCode}> {
-        const memeCreatedTodayByUser = await this.statusesRepository.findOneMemeByAuthorCreatedToday(user)
+    ): Promise<{
+        canCreate: boolean;
+        cannotCreateReasonCode?: CannotCreateMemeReasonCode;
+    }> {
+        const memeCreatedTodayByUser = await this.statusesRepository.findOneMemeByAuthorCreatedToday(
+            user,
+        );
 
         if (memeCreatedTodayByUser) {
-            return {canCreate: false, cannotCreateReasonCode: CannotCreateMemeReasonCode.LIMIT_EXCEEDED}
+            return {
+                canCreate: false,
+                cannotCreateReasonCode:
+                    CannotCreateMemeReasonCode.LIMIT_EXCEEDED,
+            };
         }
 
         const {
             countOfStatusesCreatedTodayByUser,
-            missingAvatarOrUsernameOrBio
-        } = await this.getCommonInfoForMemezatorActionsRightsForUser(user)
+            missingAvatarOrUsernameOrBio,
+        } = await this.getCommonInfoForMemezatorActionsRightsForUser(user);
 
-        if (user.statistics.statusesCount < 3 || !countOfStatusesCreatedTodayByUser) {
-            return {canCreate: false, cannotCreateReasonCode: CannotCreateMemeReasonCode.DOESNT_HAVE_ENOUGH_POSTS}
+        if (
+            user.statistics.statusesCount < 3 ||
+            !countOfStatusesCreatedTodayByUser
+        ) {
+            return {
+                canCreate: false,
+                cannotCreateReasonCode:
+                    CannotCreateMemeReasonCode.DOESNT_HAVE_ENOUGH_POSTS,
+            };
         }
 
         if (missingAvatarOrUsernameOrBio) {
-            return {canCreate: false, cannotCreateReasonCode: CannotCreateMemeReasonCode.MISSING_AVATAR_OR_USERNAME_OR_BIO}
+            return {
+                canCreate: false,
+                cannotCreateReasonCode:
+                    CannotCreateMemeReasonCode.MISSING_AVATAR_OR_USERNAME_OR_BIO,
+            };
         }
 
-        const countOfMemesCreatedInCurrentContest = await this.statusesRepository.countMemesCreatedToday()
+        const countOfMemesCreatedInCurrentContest = await this.statusesRepository.countMemesCreatedToday();
 
         if (countOfMemesCreatedInCurrentContest >= 100) {
-            return {canCreate: false, cannotCreateReasonCode: CannotCreateMemeReasonCode.MEMES_LIMIT_EXCEEDED_FOR_CURRENT_CONTEST}
+            return {
+                canCreate: false,
+                cannotCreateReasonCode:
+                    CannotCreateMemeReasonCode.MEMES_LIMIT_EXCEEDED_FOR_CURRENT_CONTEST,
+            };
         }
 
-        return {canCreate: true, cannotCreateReasonCode: null}
+        return { canCreate: true, cannotCreateReasonCode: null };
     }
 
     public async getMemeVotingRightForUser(
         user: User,
-    ): Promise<{canVote: boolean, cannotVoteReasonCode?: CannotVoteMemeReasonCode}>  {
-        const amountOfLikedMemes = await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(user)
+    ): Promise<{
+        canVote: boolean;
+        cannotVoteReasonCode?: CannotVoteMemeReasonCode;
+    }> {
+        const amountOfLikedMemes = await this.statusLikesRepository.getAmountOfLikedMemesCreatedTodayByUser(
+            user,
+        );
         if (amountOfLikedMemes >= 1) {
-            return {canVote: false, cannotVoteReasonCode: CannotVoteMemeReasonCode.LIMIT_EXCEEDED}
+            return {
+                canVote: false,
+                cannotVoteReasonCode: CannotVoteMemeReasonCode.LIMIT_EXCEEDED,
+            };
         }
 
         const {
             countOfStatusesCreatedTodayByUser,
-            missingAvatarOrUsernameOrBio
-        } = await this.getCommonInfoForMemezatorActionsRightsForUser(user)
+            missingAvatarOrUsernameOrBio,
+        } = await this.getCommonInfoForMemezatorActionsRightsForUser(user);
 
-        if (user.statistics.statusesCount < 3 || !countOfStatusesCreatedTodayByUser) {
-            return {canVote: false, cannotVoteReasonCode: CannotVoteMemeReasonCode.DOESNT_HAVE_ENOUGH_POSTS}
+        if (
+            user.statistics.statusesCount < 3 ||
+            !countOfStatusesCreatedTodayByUser
+        ) {
+            return {
+                canVote: false,
+                cannotVoteReasonCode:
+                    CannotVoteMemeReasonCode.DOESNT_HAVE_ENOUGH_POSTS,
+            };
         }
 
         if (missingAvatarOrUsernameOrBio) {
-            return {canVote: false, cannotVoteReasonCode: CannotVoteMemeReasonCode.MISSING_AVATAR_OR_USERNAME_OR_BIO}
+            return {
+                canVote: false,
+                cannotVoteReasonCode:
+                    CannotVoteMemeReasonCode.MISSING_AVATAR_OR_USERNAME_OR_BIO,
+            };
         }
 
-        return { canVote: true, cannotVoteReasonCode: null }
+        return { canVote: true, cannotVoteReasonCode: null };
     }
 
     /**
@@ -174,8 +266,13 @@ export class UsersService {
      */
     private async getCommonInfoForMemezatorActionsRightsForUser(
         user: User,
-    ): Promise<{countOfStatusesCreatedTodayByUser: number, missingAvatarOrUsernameOrBio: boolean}> {
-        const countOfStatusesCreatedTodayByUser = await this.statusesRepository.countStatusesCreatedTodayByAuthor(user)
+    ): Promise<{
+        countOfStatusesCreatedTodayByUser: number;
+        missingAvatarOrUsernameOrBio: boolean;
+    }> {
+        const countOfStatusesCreatedTodayByUser = await this.statusesRepository.countStatusesCreatedTodayByAuthor(
+            user,
+        );
 
         const missingAvatarOrUsernameOrBio = !!(
             !user.avatar ||
@@ -184,64 +281,83 @@ export class UsersService {
             /0x[\d\w]+/.test(user.username) ||
             !user.displayedName ||
             /0x[\d\w]+/.test(user.displayedName)
-        )
+        );
 
         return {
             countOfStatusesCreatedTodayByUser,
             missingAvatarOrUsernameOrBio,
-        }
+        };
     }
 
     /**
-     * Copied from MemezatorService because of circular dep issue 
+     * Copied from MemezatorService because of circular dep issue
      * TODO: Fix that issue and use MemezatorService
      */
     calculateVotingPower(balance: string): number {
-        const promTokens = new Big(balance)
+        const promTokens = new Big(balance);
         if (promTokens.lt(2)) {
-            return 1
+            return 1;
         } else if (promTokens.lt(5)) {
-            return 40
+            return 40;
         } else {
-            return 80
+            return 80;
         }
     }
 
-    public async signUpForPrivateBeta(signUpForPrivateBetaTestRequest: SignUpForPrivateBetaTestRequest): Promise<void> {
-        this.mailerService.sendMail({
-            from: config.EMAIL_USERNAME,
-            to: config.EMAIL_ADDRESS_TO_SEND,
-            text: signUpForPrivateBetaTestRequest.email
-        })
-            .then(() => this.log.info(`Email address ${signUpForPrivateBetaTestRequest.email} has been sent`))
-            .catch(error => {
-                this.log.error(`Error occurred when tried send address ${signUpForPrivateBetaTestRequest.email}`);
-                console.log(error);
+    public async signUpForPrivateBeta(
+        signUpForPrivateBetaTestRequest: SignUpForPrivateBetaTestRequest,
+    ): Promise<void> {
+        this.mailerService
+            .sendMail({
+                from: config.EMAIL_USERNAME,
+                to: config.EMAIL_ADDRESS_TO_SEND,
+                text: signUpForPrivateBetaTestRequest.email,
             })
+            .then(() =>
+                this.log.info(
+                    `Email address ${signUpForPrivateBetaTestRequest.email} has been sent`,
+                ),
+            )
+            .catch(error => {
+                this.log.error(
+                    `Error occurred when tried send address ${signUpForPrivateBetaTestRequest.email}`,
+                );
+                console.log(error);
+            });
     }
 
     public async signUp(signUpRequest: SignUpRequest): Promise<UserResponse> {
         let signUpReference: SignUpReference | undefined;
 
         if (signUpRequest.referenceId) {
-            signUpReference = await this.signUpReferencesRepository.findById(signUpRequest.referenceId);
+            signUpReference = await this.signUpReferencesRepository.findById(
+                signUpRequest.referenceId,
+            );
         }
 
         let user: User;
         if (!signUpRequest.transactionId) {
-            user =  await this.registerUserWithGeneratedWallet(
+            user = await this.registerUserWithGeneratedWallet(
                 signUpRequest.walletAddress!,
                 signUpRequest.privateKey!,
                 signUpRequest.password!,
                 signUpRequest.language,
-                signUpReference
-            )
+                signUpReference,
+            );
         } else {
-            user = await this.registerUserByTransactionId(signUpRequest.transactionId!, signUpRequest.language, signUpReference);
+            user = await this.registerUserByTransactionId(
+                signUpRequest.transactionId!,
+                signUpRequest.language,
+                signUpReference,
+            );
         }
 
-        if (config.ENABLE_ACCOUNTS_SUBSCRIPTION_UPON_SIGN_UP && config.additionalConfig.accountsToSubscribe) {
-            const accountsToSubscribe = config.additionalConfig.accountsToSubscribe;
+        if (
+            config.ENABLE_ACCOUNTS_SUBSCRIPTION_UPON_SIGN_UP &&
+            config.additionalConfig.accountsToSubscribe
+        ) {
+            const accountsToSubscribe =
+                config.additionalConfig.accountsToSubscribe;
             let addresses: string[];
 
             if (signUpRequest.language === Language.ENGLISH) {
@@ -250,20 +366,32 @@ export class UsersService {
                 addresses = accountsToSubscribe.korean;
             }
 
-            const usersToSubscribe = await this.usersRepository.findByEthereumAddressIn(addresses);
+            const usersToSubscribe = await this.usersRepository.findByEthereumAddressIn(
+                addresses,
+            );
             // setTimeout(() => this.subscribeToUsers(user, usersToSubscribe), 2000);
         }
 
         if (signUpReference) {
-            this.log.debug(`Found sign up reference ${signUpRequest.referenceId}`);
+            this.log.debug(
+                `Found sign up reference ${signUpRequest.referenceId}`,
+            );
             if (signUpReference.config.accountsToSubscribe.length !== 0) {
-                this.log.debug(`Subscribing registered users to ${JSON.stringify(signUpReference.config.accountsToSubscribe)}`);
-                const usersToSubscribe = await this.usersRepository.findAllByAddresses(signUpReference.config.accountsToSubscribe);
+                this.log.debug(
+                    `Subscribing registered users to ${JSON.stringify(
+                        signUpReference.config.accountsToSubscribe,
+                    )}`,
+                );
+                const usersToSubscribe = await this.usersRepository.findAllByAddresses(
+                    signUpReference.config.accountsToSubscribe,
+                );
                 // setTimeout(() => this.subscribeToUsers(user, usersToSubscribe), 2000);
             }
         }
 
-        let userStatistics: UserStatistics | undefined = await this.userStatisticsRepository.findByUser(user);
+        let userStatistics:
+            | UserStatistics
+            | undefined = await this.userStatisticsRepository.findByUser(user);
         if (!userStatistics) {
             userStatistics = {
                 id: uuid(),
@@ -273,19 +401,28 @@ export class UsersService {
                 followersCount: 0,
                 userBalance: "0",
                 // TODO: calculate the real vote weight taking the real balance in main net
-                votingPower: 1
+                votingPower: 1,
             };
         }
         await this.userStatisticsRepository.save(userStatistics);
 
         // setTimeout(() => this.forceRecalculateUserFollowsCount(user), 3000);
 
-        return this.usersMapper.toUserResponse(user, userStatistics, false, false);
+        return this.usersMapper.toUserResponse(
+            user,
+            userStatistics,
+            false,
+            false,
+        );
     }
 
     private async forceRecalculateUserFollowsCount(user: User): Promise<void> {
-        const userStatistics = await this.userStatisticsRepository.findByUser(user);
-        userStatistics.followsCount = await this.subscriptionsRepository.countBySubscribedUserAndNotReverted(user);
+        const userStatistics = await this.userStatisticsRepository.findByUser(
+            user,
+        );
+        userStatistics.followsCount = await this.subscriptionsRepository.countBySubscribedUserAndNotReverted(
+            user,
+        );
 
         await this.userStatisticsRepository.save(userStatistics);
     }
@@ -299,7 +436,9 @@ export class UsersService {
     ): Promise<User> {
         const passwordHash = this.passwordEncoder.encode(password, 12);
 
-        let user = await this.usersRepository.findByEthereumAddress(ethereumAddress);
+        let user = await this.usersRepository.findByEthereumAddress(
+            ethereumAddress,
+        );
         if (user) {
             user.privateKey = this.passwordEncoder.encode(password, 12);
 
@@ -313,9 +452,9 @@ export class UsersService {
                 const userPreferences: UserPreferences = {
                     id: uuid(),
                     language: language || Language.ENGLISH,
-                    user
+                    user,
                 };
-                await this.userPreferencesRepository.save(userPreferences)
+                await this.userPreferencesRepository.save(userPreferences);
             }
         } else {
             user = {
@@ -326,69 +465,87 @@ export class UsersService {
                 privateKey: passwordHash,
                 remote: false,
                 createdAt: new Date(),
-                signUpReference
+                signUpReference,
             };
             await this.usersRepository.save(user);
 
             const userPreferences: UserPreferences = {
                 id: uuid(),
                 user,
-                language: language || Language.ENGLISH
+                language: language || Language.ENGLISH,
             };
             await this.userPreferencesRepository.save(userPreferences);
         }
 
-        await this.setPasswordHashInBlockchain(ethereumAddress, passwordHash, privateKey);
+        await this.setPasswordHashInBlockchain(
+            ethereumAddress,
+            passwordHash,
+            privateKey,
+        );
 
         return user;
     }
 
-    private async setPasswordHashInBlockchain(address: string, passwordHash: string, privateKey: string): Promise<void> {
-        return new Promise(async (resolve) => {
+    private async setPasswordHashInBlockchain(
+        address: string,
+        passwordHash: string,
+        privateKey: string,
+    ): Promise<void> {
+        return new Promise(async resolve => {
             let isResolved = false;
             setTimeout(() => {
                 if (!isResolved) {
-                     isResolved = true
-                     resolve()
-                     this.log.log("setPasswordHashInBlockchain Timeout of 40s exceeded")
+                    isResolved = true;
+                    resolve();
+                    this.log.log(
+                        "setPasswordHashInBlockchain Timeout of 40s exceeded",
+                    );
                 }
-            }, 40000)
+            }, 40000);
             try {
                 await this.passwordHashApiClient.setEthereumPasswordHash({
                     address,
                     passwordHash,
-                    privateKey
+                    privateKey,
                 });
-            }   catch (error) {
+            } catch (error) {
                 this.log.log(error);
-            } 
+            }
 
             try {
                 await this.passwordHashApiClient.setBinancePasswordHash({
                     address,
                     passwordHash,
-                    privateKey
+                    privateKey,
                 });
             } catch (error) {
-                 this.log.log(error);
+                this.log.log(error);
             } finally {
                 if (!isResolved) {
-                    isResolved = true
-                    resolve()
+                    isResolved = true;
+                    resolve();
                 }
             }
-      })
-     }
+        });
+    }
 
-    private async registerUserByTransactionId(transactionId: string, language?: Language, signUpReference?: SignUpReference): Promise<User> {
+    private async registerUserByTransactionId(
+        transactionId: string,
+        language?: Language,
+        signUpReference?: SignUpReference,
+    ): Promise<User> {
         try {
-            const passwordHashResponse = await this.passwordHashApiClient.getPasswordHashByTransaction(transactionId);
-            const {hash, address: ethereumAddress} = passwordHashResponse;
+            const passwordHashResponse = await this.passwordHashApiClient.getPasswordHashByTransaction(
+                transactionId,
+            );
+            const { hash, address: ethereumAddress } = passwordHashResponse;
 
-            let user = await this.usersRepository.findByEthereumAddress(ethereumAddress);
+            let user = await this.usersRepository.findByEthereumAddress(
+                ethereumAddress,
+            );
 
             if (!this.passwordEncoder.isHashValid(hash)) {
-                throw new InvalidBCryptHashException(hash, ethereumAddress)
+                throw new InvalidBCryptHashException(hash, ethereumAddress);
             }
 
             if (user) {
@@ -402,9 +559,9 @@ export class UsersService {
                     const userPreferences: UserPreferences = {
                         id: uuid(),
                         language: language || Language.ENGLISH,
-                        user
+                        user,
                     };
-                    await this.userPreferencesRepository.save(userPreferences)
+                    await this.userPreferencesRepository.save(userPreferences);
                 }
             } else {
                 user = {
@@ -415,14 +572,14 @@ export class UsersService {
                     privateKey: hash,
                     remote: false,
                     createdAt: new Date(),
-                    signUpReference
+                    signUpReference,
                 };
                 await this.usersRepository.save(user);
 
                 const userPreferences: UserPreferences = {
                     id: uuid(),
                     user,
-                    language: language || Language.ENGLISH
+                    language: language || Language.ENGLISH,
                 };
                 await this.userPreferencesRepository.save(userPreferences);
             }
@@ -437,7 +594,10 @@ export class UsersService {
         }
     }
 
-    private async subscribeToUsers(subscribedUser: User, usersToSubscribe: User[]): Promise<UserSubscription[]> {
+    private async subscribeToUsers(
+        subscribedUser: User,
+        usersToSubscribe: User[],
+    ): Promise<UserSubscription[]> {
         if (usersToSubscribe.length !== 0) {
             return await asyncMap(usersToSubscribe, async subscribedTo => {
                 const userSubscription: UserSubscription = {
@@ -446,43 +606,62 @@ export class UsersService {
                     subscribedTo,
                     reverted: false,
                     saveUnsubscriptionToBtfs: true,
-                    createdAt: new Date()
+                    createdAt: new Date(),
                 };
-                return await this.subscriptionsRepository.save(userSubscription);
+                return await this.subscriptionsRepository.save(
+                    userSubscription,
+                );
             });
         } else {
             return [];
         }
     }
 
-    public async getPreferencesOfCurrentUser(currentUser: User): Promise<UserPreferencesResponse> {
-        const preferences = await this.userPreferencesRepository.findByUser(currentUser);
+    public async getPreferencesOfCurrentUser(
+        currentUser: User,
+    ): Promise<UserPreferencesResponse> {
+        const preferences = await this.userPreferencesRepository.findByUser(
+            currentUser,
+        );
         return new UserPreferencesResponse({
-            language: preferences ? preferences.language : Language.ENGLISH
+            language: preferences ? preferences.language : Language.ENGLISH,
         });
     }
 
-    public async saveUser(createUserRequest: CreateUserRequest): Promise<UserResponse> {
+    public async saveUser(
+        createUserRequest: CreateUserRequest,
+    ): Promise<UserResponse> {
         if (!createUserRequest.privateKey.startsWith("0x")) {
             createUserRequest.privateKey = `0x${createUserRequest.privateKey}`;
         }
 
-        const existingUser = await this.usersRepository.findByEthereumAddress(createUserRequest.address);
+        const existingUser = await this.usersRepository.findByEthereumAddress(
+            createUserRequest.address,
+        );
 
-        if (createUserRequest.username && createUserRequest.username !== createUserRequest.address) {
-            if (await this.usersRepository.existsByUsername(createUserRequest.username)) {
+        if (
+            createUserRequest.username &&
+            createUserRequest.username !== createUserRequest.address
+        ) {
+            if (
+                await this.usersRepository.existsByUsername(
+                    createUserRequest.username,
+                )
+            ) {
                 throw new HttpException(
                     `User with ${createUserRequest.username} has already been registered`,
-                    HttpStatus.CONFLICT
-                )
+                    HttpStatus.CONFLICT,
+                );
             }
         }
 
         if (existingUser) {
             if (existingUser.username !== createUserRequest.username) {
-                existingUser.username = createUserRequest.username && createUserRequest.username.length !== 0
-                    ? createUserRequest.username
-                    : createUserRequest.address;
+                existingUser.username =
+                    createUserRequest.username &&
+                    createUserRequest.username.length !== 0
+                        ? createUserRequest.username
+                        : createUserRequest.address;
                 await this.usersRepository.save(existingUser);
                 return this.usersMapper.toUserResponse(existingUser);
             }
@@ -490,70 +669,99 @@ export class UsersService {
             return this.usersMapper.toUserResponse(existingUser);
         }
 
-        const user = await this.usersRepository.save(this.usersMapper.fromCreateUserRequest(createUserRequest));
-
-        return this.usersMapper.toUserResponse(
-            user, {
-                followsCount: 0,
-                followersCount: 0,
-                statusesCount: 0,
-                user,
-                id: "",
-                userBalance: "0",
-                // TODO: calculate the real vote weight taking the real balance in main net
-                // or remove this UsersService#saveUser() method, as it is useless
-                votingPower: 1
-            }
+        const user = await this.usersRepository.save(
+            this.usersMapper.fromCreateUserRequest(createUserRequest),
         );
+
+        return this.usersMapper.toUserResponse(user, {
+            followsCount: 0,
+            followersCount: 0,
+            statusesCount: 0,
+            user,
+            id: "",
+            userBalance: "0",
+            // TODO: calculate the real vote weight taking the real balance in main net
+            // or remove this UsersService#saveUser() method, as it is useless
+            votingPower: 1,
+        });
     }
 
-    public async isUsernameAvailable(username: string): Promise<UsernameAvailabilityResponse> {
-        const existsByUsername = await this.usersRepository.existsByUsername(username);
+    public async isUsernameAvailable(
+        username: string,
+    ): Promise<UsernameAvailabilityResponse> {
+        const existsByUsername = await this.usersRepository.existsByUsername(
+            username,
+        );
 
         if (existsByUsername) {
-            return {available: false};
+            return { available: false };
         }
 
-        const existsByEthereumAddress = await this.usersRepository.existsByEthereumAddress(username);
+        const existsByEthereumAddress = await this.usersRepository.existsByEthereumAddress(
+            username,
+        );
 
         if (existsByEthereumAddress) {
-            return {available: false};
+            return { available: false };
         }
 
-        return {available: true};
+        return { available: true };
     }
 
     public async getCurrentUser(user: User): Promise<UserResponse> {
-        return this.usersMapper.toUserResponseAsync(user, user, false)
+        return this.usersMapper.toUserResponseAsync(user, user, false);
     }
 
-    public async updateUser(ethereumAddress: string, updateUserRequest: UpdateUserRequest, currentUser: User): Promise<UserResponse> {
-        this.log.info(`updateUser: ${JSON.stringify({updateUserRequest, currentUser: { username: currentUser.username, ethereumAddress: currentUser.ethereumAddress }})}`)
+    public async updateUser(
+        ethereumAddress: string,
+        updateUserRequest: UpdateUserRequest,
+        currentUser: User,
+    ): Promise<UserResponse> {
+        this.log.info(
+            `updateUser: ${JSON.stringify({
+                updateUserRequest,
+                currentUser: {
+                    username: currentUser.username,
+                    ethereumAddress: currentUser.ethereumAddress,
+                },
+            })}`,
+        );
 
         let user = await this.findUserEntityByEthereumAddress(ethereumAddress);
 
         if (user.id !== currentUser.id) {
             throw new HttpException(
                 `Users can only update themselves`,
-                HttpStatus.FORBIDDEN
-            )
+                HttpStatus.FORBIDDEN,
+            );
         }
 
         if (
             updateUserRequest.username &&
-            (!user.username || user.username.toLowerCase() !== updateUserRequest.username.toLowerCase()) &&
-            user.ethereumAddress.toLowerCase() !== updateUserRequest.username.toLowerCase()
+            (!user.username ||
+                user.username.toLowerCase() !==
+                    updateUserRequest.username.toLowerCase()) &&
+            user.ethereumAddress.toLowerCase() !==
+                updateUserRequest.username.toLowerCase()
         ) {
-            if (await this.usersRepository.existsByUsername(updateUserRequest.username)
-                || await this.usersRepository.existsByEthereumAddress(updateUserRequest.username)) {
+            if (
+                (await this.usersRepository.existsByUsername(
+                    updateUserRequest.username,
+                )) ||
+                (await this.usersRepository.existsByEthereumAddress(
+                    updateUserRequest.username,
+                ))
+            ) {
                 throw new HttpException(
                     `Username ${updateUserRequest.username} has already been taken`,
-                    HttpStatus.CONFLICT
-                )
+                    HttpStatus.CONFLICT,
+                );
             }
         }
 
-        const avatar = updateUserRequest.avatarId && await this.findMediaAttachmentById(updateUserRequest.avatarId);
+        const avatar =
+            updateUserRequest.avatarId &&
+            (await this.findMediaAttachmentById(updateUserRequest.avatarId));
 
         user.username = updateUserRequest.username;
         user.bio = updateUserRequest.bio;
@@ -571,14 +779,18 @@ export class UsersService {
             if (user.preferences) {
                 preferences = user.preferences;
                 preferences.language = updateUserRequest.preferences.language;
-                preferences = await this.userPreferencesRepository.save(preferences);
+                preferences = await this.userPreferencesRepository.save(
+                    preferences,
+                );
             } else {
                 preferences = {
                     id: uuid(),
                     language: updateUserRequest.preferences.language,
-                    user
+                    user,
                 };
-                preferences = await this.userPreferencesRepository.save(preferences);
+                preferences = await this.userPreferencesRepository.save(
+                    preferences,
+                );
             }
 
             user.preferences = preferences;
@@ -586,33 +798,51 @@ export class UsersService {
 
         user = await this.usersRepository.save(user);
 
-        const userStatistics = await this.userStatisticsRepository.findByUser(user);
-        const following = currentUser && await this.subscriptionsRepository.existsBySubscribedUserAndSubscribedToNotReverted(
-            currentUser,
-            user
-        );
-        const followed = currentUser && await this.subscriptionsRepository.existsBySubscribedUserAndSubscribedToNotReverted(
+        const userStatistics = await this.userStatisticsRepository.findByUser(
             user,
-            currentUser
         );
+        const following =
+            currentUser &&
+            (await this.subscriptionsRepository.existsBySubscribedUserAndSubscribedToNotReverted(
+                currentUser,
+                user,
+            ));
+        const followed =
+            currentUser &&
+            (await this.subscriptionsRepository.existsBySubscribedUserAndSubscribedToNotReverted(
+                user,
+                currentUser,
+            ));
 
-        return this.usersMapper.toUserResponse(user, userStatistics, following, followed);
+        return this.usersMapper.toUserResponse(
+            user,
+            userStatistics,
+            following,
+            followed,
+        );
     }
 
-    private async findMediaAttachmentById(id: string): Promise<MediaAttachment> {
-        const mediaAttachment = await this.mediaAttachmentsRepository.findById(id);
+    private async findMediaAttachmentById(
+        id: string,
+    ): Promise<MediaAttachment> {
+        const mediaAttachment = await this.mediaAttachmentsRepository.findById(
+            id,
+        );
 
         if (!mediaAttachment) {
             throw new HttpException(
                 `Could not find media attachment with id ${id}`,
-                HttpStatus.NOT_FOUND
-            )
+                HttpStatus.NOT_FOUND,
+            );
         }
 
         return mediaAttachment;
     }
 
-    public async updateUserPreferences(updatePreferencesRequest: UpdatePreferencesRequest, currentUser: User): Promise<UserPreferencesResponse> {
+    public async updateUserPreferences(
+        updatePreferencesRequest: UpdatePreferencesRequest,
+        currentUser: User,
+    ): Promise<UserPreferencesResponse> {
         let preferences = currentUser.preferences;
 
         if (preferences) {
@@ -621,31 +851,42 @@ export class UsersService {
             preferences = {
                 id: uuid(),
                 user: currentUser,
-                language: updatePreferencesRequest.language
+                language: updatePreferencesRequest.language,
             };
         }
 
         preferences = await this.userPreferencesRepository.save(preferences);
-        return new UserPreferencesResponse({language: preferences.language});
+        return new UserPreferencesResponse({ language: preferences.language });
     }
 
-    public async findUserByEthereumAddress(address: string, currentUser?: User): Promise<UserResponse> {
+    public async findUserByEthereumAddress(
+        address: string,
+        currentUser?: User,
+    ): Promise<UserResponse> {
         const user = await this.findUserEntityByEthereumAddress(address);
 
         return this.usersMapper.toUserResponseAsync(user, currentUser);
     }
 
-    public async findUserEntityByEthereumAddress(address: string): Promise<User> {
+    public async findUserEntityByEthereumAddress(
+        address: string,
+    ): Promise<User> {
         const user = await this.usersRepository.findByEthereumAddress(address);
 
         if (user === undefined) {
-            throw new HttpException(`Could not find user with address ${address}`, HttpStatus.NOT_FOUND);
+            throw new HttpException(
+                `Could not find user with address ${address}`,
+                HttpStatus.NOT_FOUND,
+            );
         }
 
         return user;
     }
 
-    public async getUserProfile(address: string, currentUser?: User): Promise<UserResponse> {
+    public async getUserProfile(
+        address: string,
+        currentUser?: User,
+    ): Promise<UserResponse> {
         let user = await this.usersRepository.findByUsername(address);
 
         if (!user) {
@@ -653,27 +894,44 @@ export class UsersService {
         }
 
         if (!user) {
-            throw new HttpException(`Could not find user with address or username ${address}`, HttpStatus.NOT_FOUND);
+            throw new HttpException(
+                `Could not find user with address or username ${address}`,
+                HttpStatus.NOT_FOUND,
+            );
         }
 
         return await this.usersMapper.toUserResponseAsync(user, currentUser);
     }
 
-    public async getCurrentUserProfile(currentUser: User): Promise<UserResponse> {
-        const userStatistics = await this.userStatisticsRepository.findByUser(currentUser);
+    public async getCurrentUserProfile(
+        currentUser: User,
+    ): Promise<UserResponse> {
+        const userStatistics = await this.userStatisticsRepository.findByUser(
+            currentUser,
+        );
         return this.usersMapper.toUserResponse(currentUser, userStatistics);
     }
 
-    public async getFollowRecommendations(filters: FollowRecommendationFilters, currentUser: User): Promise<UserResponse[]> {
-        const subscriptions = await this.subscriptionsRepository.findAllBySubscribedUserNotReverted(currentUser);
-        const usersToExcludeFromRecommendations = subscriptions.map(subscription => subscription.subscribedTo);
+    public async getFollowRecommendations(
+        filters: FollowRecommendationFilters,
+        currentUser: User,
+    ): Promise<UserResponse[]> {
+        const subscriptions = await this.subscriptionsRepository.findAllBySubscribedUserNotReverted(
+            currentUser,
+        );
+        const usersToExcludeFromRecommendations = subscriptions.map(
+            subscription => subscription.subscribedTo,
+        );
 
         let filteringLanguage: Language;
 
         if (filters.language) {
             filteringLanguage = getLanguageFromString(filters.language);
-        } else if (currentUser.preferences && currentUser.preferences.language) {
-            filteringLanguage = currentUser.preferences.language
+        } else if (
+            currentUser.preferences &&
+            currentUser.preferences.language
+        ) {
+            filteringLanguage = currentUser.preferences.language;
         } else {
             filteringLanguage = Language.ENGLISH;
         }
@@ -682,60 +940,102 @@ export class UsersService {
 
         usersToExcludeFromRecommendations.push(currentUser);
 
-        const signUpReference = currentUser.signUpReferenceId && await this.signUpReferencesRepository.findOne(currentUser.signUpReferenceId);
-        const recommendedUsersToFollowInSignUpReference =  
-            await this.usersRepository.findByEthereumAddressIn(signUpReference ? signUpReference.config.accountsToRecommend : []);
+        const signUpReference =
+            currentUser.signUpReferenceId &&
+            (await this.signUpReferencesRepository.findOne(
+                currentUser.signUpReferenceId,
+            ));
+        const recommendedUsersToFollowInSignUpReference = await this.usersRepository.findByEthereumAddressIn(
+            signUpReference ? signUpReference.config.accountsToRecommend : [],
+        );
 
-        usersToExcludeFromRecommendations.push(...recommendedUsersToFollowInSignUpReference);
+        usersToExcludeFromRecommendations.push(
+            ...recommendedUsersToFollowInSignUpReference,
+        );
 
-        const mostPopularUsersToFollow = await this.usersRepository.findMostPopularNotIn(usersToExcludeFromRecommendations, filters);
+        const mostPopularUsersToFollow = await this.usersRepository.findMostPopularNotIn(
+            usersToExcludeFromRecommendations,
+            filters,
+        );
 
-        const whoToFollow = [...recommendedUsersToFollowInSignUpReference, ...mostPopularUsersToFollow];
+        const whoToFollow = [
+            ...recommendedUsersToFollowInSignUpReference,
+            ...mostPopularUsersToFollow,
+        ];
 
-        return asyncMap(whoToFollow, async user => await this.usersMapper.toUserResponseAsync(user, currentUser));
+        return asyncMap(
+            whoToFollow,
+            async user =>
+                await this.usersMapper.toUserResponseAsync(user, currentUser),
+        );
     }
 
-    public async recoverPassword(updatePasswordRequest: RecoverPasswordRequest): Promise<UserResponse> {
+    public async recoverPassword(
+        updatePasswordRequest: RecoverPasswordRequest,
+    ): Promise<UserResponse> {
         if (updatePasswordRequest.transactionId) {
-            return await this.updatePasswordWithTransactionId(updatePasswordRequest);
+            return await this.updatePasswordWithTransactionId(
+                updatePasswordRequest,
+            );
         } else {
-            return await this.updatePasswordWithPrivateKey(updatePasswordRequest);
+            return await this.updatePasswordWithPrivateKey(
+                updatePasswordRequest,
+            );
         }
     }
 
-    private async updatePasswordWithPrivateKey(updatePasswordRequest: RecoverPasswordRequest): Promise<UserResponse> {
-        const user = await this.usersRepository.findByEthereumAddress(updatePasswordRequest.walletAddress!);
+    private async updatePasswordWithPrivateKey(
+        updatePasswordRequest: RecoverPasswordRequest,
+    ): Promise<UserResponse> {
+        const user = await this.usersRepository.findByEthereumAddress(
+            updatePasswordRequest.walletAddress!,
+        );
 
         if (!user) {
             throw new HttpException(
                 `Could not find user with address ${updatePasswordRequest.walletAddress!}`,
-                HttpStatus.NOT_FOUND
-            )
+                HttpStatus.NOT_FOUND,
+            );
         }
 
-        user.privateKey = this.passwordEncoder.encode(updatePasswordRequest.password!);
+        user.privateKey = this.passwordEncoder.encode(
+            updatePasswordRequest.password!,
+        );
 
-        await this.setPasswordHashInBlockchain(user.ethereumAddress, user.privateKey, updatePasswordRequest.privateKey);
+        await this.setPasswordHashInBlockchain(
+            user.ethereumAddress,
+            user.privateKey,
+            updatePasswordRequest.privateKey,
+        );
 
         await this.usersRepository.save(user);
 
         return await this.usersMapper.toUserResponseAsync(user);
     }
 
-    private async updatePasswordWithTransactionId(updatePasswordRequest: RecoverPasswordRequest): Promise<UserResponse> {
+    private async updatePasswordWithTransactionId(
+        updatePasswordRequest: RecoverPasswordRequest,
+    ): Promise<UserResponse> {
         const transactionId = updatePasswordRequest.transactionId!;
-        const getHashResponse = await this.passwordHashApiClient.getPasswordHashByTransaction(transactionId);
+        const getHashResponse = await this.passwordHashApiClient.getPasswordHashByTransaction(
+            transactionId,
+        );
 
         if (!this.passwordEncoder.isHashValid(getHashResponse.hash)) {
-            throw new InvalidBCryptHashException(getHashResponse.hash, getHashResponse.address);
+            throw new InvalidBCryptHashException(
+                getHashResponse.hash,
+                getHashResponse.address,
+            );
         }
 
-        const user = await this.usersRepository.findByEthereumAddress(getHashResponse.address);
+        const user = await this.usersRepository.findByEthereumAddress(
+            getHashResponse.address,
+        );
 
         if (!user) {
             throw new HttpException(
                 `Could not find user with ${getHashResponse.address} address`,
-                HttpStatus.NOT_FOUND
+                HttpStatus.NOT_FOUND,
             );
         }
 
@@ -746,15 +1046,46 @@ export class UsersService {
         return await this.usersMapper.toUserResponseAsync(user);
     }
 
-    public async getUsersSubscribers(usersSubscribersInfoRequest: UsersSubscribersInfoRequest): Promise<UsersSubscribersInfoResponse> {
-        const users = await this.usersRepository.findAllByAddresses(usersSubscribersInfoRequest.addresses);
+    public async getUsersSubscribers(
+        usersSubscribersInfoRequest: UsersSubscribersInfoRequest,
+    ): Promise<UsersSubscribersInfoResponse> {
+        const users = await this.usersRepository.findAllByAddresses(
+            usersSubscribersInfoRequest.addresses,
+        );
         const result: UsersSubscribersInfoResponse = {};
 
         await asyncForEach(users, async user => {
-            const subscriptions = await this.subscriptionsRepository.findAllBySubscribedToNotReverted(user);
-            result[user.ethereumAddress] = subscriptions.map(subscription => subscription.subscribedUser.ethereumAddress);
+            const subscriptions = await this.subscriptionsRepository.findAllBySubscribedToNotReverted(
+                user,
+            );
+            result[user.ethereumAddress] = subscriptions.map(
+                subscription => subscription.subscribedUser.ethereumAddress,
+            );
         });
 
         return result;
+    }
+
+    /**
+     * Copied from MemezatorService because of circular dep issue
+     * TODO: Fix that issue and use MemezatorService
+     */
+    private async calcVotingPowerForUser(user: User): Promise<number> {
+        const ethereumBalance = await this.tokenExchangeService.getBalanceInProms(
+            user.ethereumAddress,
+        );
+        const binanceBalance = await this.transactionsRepository.getBalanceByAddress(
+            user.ethereumAddress,
+        );
+        const purchasedVotingPower = await this.votingPowerPurchaseRepository.calculateCurrentVotingPowerPurchaseForUser(
+            user.id,
+        );
+
+        const votingPower: number =
+            this.calculateVotingPower(
+                new Big(ethereumBalance).plus(binanceBalance).toString(),
+            ) + purchasedVotingPower;
+
+        return votingPower;
     }
 }

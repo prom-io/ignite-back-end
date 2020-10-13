@@ -28,6 +28,7 @@ import { StatusesRepository } from "../statuses/StatusesRepository";
 import { TransactionsRepository } from "../transactions/TransactionsRepository";
 import { TokenExchangeModule } from "../token-exchange";
 import expressRateLimit from "express-rate-limit";
+import { VotingPowerPurchaseRepository } from "../memezator/voting-power-purchase.repository";
 
 @Module({
     controllers: [UsersController, UserByAddressController, SignUpController, SignUpReferencesController],
@@ -50,7 +51,7 @@ import expressRateLimit from "express-rate-limit";
             UserPreferencesRepository,
             SignUpReferencesRepository,
             TransactionsRepository,
-            
+            VotingPowerPurchaseRepository,
         ]),
         TokenExchangeModule,
         forwardRef(() => StatusesModule),

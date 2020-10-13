@@ -142,6 +142,12 @@ export class EnvConfig {
     @Env({ type: "string", required: true })
     MEMEZATOR_PRIZE_FUND_ACCOUNT_PRIVATE_KEY: string;
 
+    @Env({ type: "string", required: true })
+    VOTING_POWER_PURCHASE_ADDRESS: string;
+
+    @Env({ type: "number", required: true })
+    PROM_TO_VOTING_POWER_RATIO: number;
+
     @Env({ type: "boolean", required: false })
     DISABLE_NEW_TOKEN_TRANSFERS_SYNC: boolean;
 
