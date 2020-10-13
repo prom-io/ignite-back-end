@@ -5,6 +5,7 @@ import {
     Equal,
     IsNull,
     Not,
+    SelectQueryBuilder,
 } from "typeorm";
 import { Transaction } from "./entities/Transaction";
 import { User } from "../users/entities";
@@ -40,10 +41,14 @@ export class TransactionsRepository extends Repository<Transaction> {
         }
 
         return this.find({
-            where: [
-                { txnTo: user.ethereumAddress, ...commonConditions },
-                { txnFrom: user.ethereumAddress, ...commonConditions },
-            ],
+            where: (qb: SelectQueryBuilder<Transaction>) => {
+                qb
+                    .where(commonConditions)
+                    .andWhere(
+                        `(LOWER(${qb.alias}."txnFrom") = LOWER(:ethereumAddress) OR LOWER(${qb.alias}."txnTo") = LOWER(:ethereumAddress))`,
+                        {ethereumAddress: user.ethereumAddress}
+                    )
+            },
             take: filters.take,
             skip: filters.skip,
             order: { createdAt: "DESC" },
