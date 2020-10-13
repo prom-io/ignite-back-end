@@ -23,7 +23,7 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
 
     @Cron("* * * * *", { waiting: true, immediate: true })
     public async getVotingPowerPurchaseTransactions() {
-        this.logger.log("Cron tick", "getVotingPowerPurchaseTransactions");
+        this.logger.log("getVotingPowerPurchaseTransactions: Cron tick");
         const memezatorContestStartTime = getCurrentMemezatorContestStartTime();
         const transactions = await this.transactionsRep.find({
             where: {
@@ -33,18 +33,18 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
         });
         if (!transactions) {
             this.logger.log(
-                `No transactions found`,
-                "getVotingPowerPurchaseTransactions",
+                `getVotingPowerPurchaseTransactions: No transactions found`,
             );
         } else {
             this.logger.log(
-                `Found ${transactions.length} transactions`,
-                "getVotingPowerPurchaseTransactions",
+                `getVotingPowerPurchaseTransactions: Found ${transactions.length} transactions`,
             );
         }
 
         for (const transaction of transactions) {
-            this.logger.log(`${transaction.id}`);
+            this.logger.log(
+                `getVotingPowerPurchaseTransactions: Transaction: ${transaction.id}`,
+            );
             const user = await this.usersRepository.findByEthereumAddressIgnoreCase(
                 transaction.txnFrom,
             );
@@ -86,13 +86,11 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
                     newVotingPowerPurchase,
                 );
                 this.logger.log(
-                    `New voting power purchase: ${newVotingPowerPurchase.id}`,
-                    "getVotingPowerPurchaseTransactions",
+                    `getVotingPowerPurchaseTransactions: New voting power purchase: ${newVotingPowerPurchase.id}`,
                 );
             } else {
                 this.logger.warn(
-                    `Record for transaction ${transaction.id} already exists.`,
-                    "getVotingPowerPurchaseTransactions",
+                    `getVotingPowerPurchaseTransactions: Record for transaction ${transaction.id} already exists.`,
                 );
             }
         }

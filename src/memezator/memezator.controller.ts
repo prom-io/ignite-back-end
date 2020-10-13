@@ -43,8 +43,8 @@ export class MemezatorController {
 
     @Get("voting-power-purchase-address")
     @ApiOkResponse({
-        type: "object",
         schema: {
+            type: "object",
             properties: { votingPowerPurchaseAddress: { type: "string" } },
         },
     })
