@@ -1,3 +1,4 @@
+import { CheckSubscriptionToCommunity } from './../user-subscriptions/types/request/CheckSubscriptionToCommunityREquest';
 import { MemezatorActionsRightsResponse } from "./types/response/MemezatorActionsRightsResponse";
 import {
     Body,
@@ -47,6 +48,18 @@ export class UsersController {
     @Post("private-beta")
     public async signUpForPrivateBeta(@Body() signUpForPrivateBetaTestRequest: SignUpForPrivateBetaTestRequest) {
         await this.usersService.signUpForPrivateBeta(signUpForPrivateBetaTestRequest);
+    }
+
+    @UseGuards(AuthGuard("jwt"))
+    @Get("subscribed-communities-of-user")
+    public getUserSubscriptionCommunities(@Req() request: Request) {
+        return this.userSubscriptionsService.getUserSubscriptionCommunities(request.user as User)
+    }
+
+    @UseGuards(AuthGuard("jwt"))
+    @Get("communities")
+    public getAllCommunities() {
+        return this.usersService.getAllCommunities()
     }
 
     @UseGuards(AuthGuard("jwt"))
@@ -179,8 +192,9 @@ export class UsersController {
     @UseGuards(AuthGuard("jwt"))
     @Post(":address/follow")
     public followUser(@Param("address") address: string,
-                      @Req() request: Request): Promise<UserResponse> {
-        return this.userSubscriptionsService.followUser(address, request.user as User)
+                      @Req() request: Request,
+                      @Body() checkSubscriptionToCommunity: CheckSubscriptionToCommunity): Promise<UserResponse> {
+        return this.userSubscriptionsService.followUser(address, request.user as User, checkSubscriptionToCommunity)
     }
 
     @UseInterceptors(ClassSerializerInterceptor)

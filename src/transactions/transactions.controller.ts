@@ -10,6 +10,7 @@ import { AdminGuard } from "../jwt-auth/AdminGuard";
 import { RequiresAdmin } from "../jwt-auth/RequiresAdmin";
 import { Transaction } from "./entities/Transaction";
 import { TransactionsPerformerCronService } from "./transactions-performer-cron.service";
+import { NotStartedRewardTxnsIdsAndReceiverAndRewardsSum } from "./types/NotStartedRewardTxnsIdsAndReceiverAndRewardsSum.interface";
 
 @Controller("api/v1")
 export class TransactionsController {
@@ -43,5 +44,14 @@ export class TransactionsController {
     @Body("receiversLimit", new ParseIntPipe()) receiversLimit: number,
   ) {
     return this.transactionsPerformerCron.performNotStartedRewardTransactions({ receiversLimit })
+  }
+
+  @Post("perform-specified-not-started-reward-transactions-in-batch-mode")
+  @UseGuards(AuthGuard("jwt"), AdminGuard)
+  @RequiresAdmin()
+  async performSpecifiedNotStartedRewardTransactionsInBatchMode(
+    @Body() data: NotStartedRewardTxnsIdsAndReceiverAndRewardsSum[]
+  ) {
+    return this.transactionsPerformerCron.performSpecifiedNotStartedRewardTransactions(data)
   }
 }

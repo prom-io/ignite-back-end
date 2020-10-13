@@ -6,6 +6,7 @@ import { TokenExchangeService } from "../token-exchange";
 import { TransactionsRepository } from "./TransactionsRepository";
 import { TransactionStatus } from "./types/TransactionStatus.enum";
 import _ from "lodash";
+import { NotStartedRewardTxnsIdsAndReceiverAndRewardsSum } from "./types/NotStartedRewardTxnsIdsAndReceiverAndRewardsSum.interface";
 
 @Injectable()
 export class TransactionsPerformerCronService extends NestSchedule {
@@ -34,6 +35,12 @@ export class TransactionsPerformerCronService extends NestSchedule {
       receiversLimit: options.receiversLimit
     })
 
+    await this.performSpecifiedNotStartedRewardTransactions(rewardReceiversWithRewardsSumsAndTxnIds)
+  }
+
+  public async performSpecifiedNotStartedRewardTransactions(
+    rewardReceiversWithRewardsSumsAndTxnIds: NotStartedRewardTxnsIdsAndReceiverAndRewardsSum[]
+  ) {
     this.logger.info(`performNotStartedRewardTransactions: found ${rewardReceiversWithRewardsSumsAndTxnIds.length} reward receivers`)
 
     for (const rewardReceiverWithRewardsSumAndTxnIds of rewardReceiversWithRewardsSumsAndTxnIds) {

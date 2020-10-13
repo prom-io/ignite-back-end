@@ -1,3 +1,5 @@
+import { TransactionsRepository } from './../transactions/TransactionsRepository';
+import { TokenExchangeService } from './../token-exchange/token-exchange.service';
 import {HttpException, HttpStatus, Injectable, ForbiddenException} from "@nestjs/common";
 import uuid from "uuid/v4";
 import {StatusLike} from "./entities";
@@ -19,6 +21,8 @@ export class StatusLikesService {
         private readonly statusesRepository: StatusesRepository,
         private readonly statusesMapper: StatusesMapper,
         private readonly usersService: UsersService,
+        private readonly tokenExchangeService: TokenExchangeService,
+        private readonly transactionsRepository: TransactionsRepository,
     ) {}
 
     public async createStatusLike(statusId: string, currentUser: User): Promise<StatusResponse> {
@@ -39,6 +43,18 @@ export class StatusLikesService {
                 "These are old memes. Please vote for newer ones",
                 HttpStatus.FORBIDDEN,
                 ErrorCode.CANNOT_VOTE_FOR_OLD_MEMES,
+            )
+        }
+
+        const ethereumBalance = await this.tokenExchangeService.getBalanceInProms(currentUser.ethereumAddress)
+        const binanceBalance = await this.transactionsRepository.getBalanceByAddress(currentUser.ethereumAddress)
+        const userTotalBalance = Number(binanceBalance) + Number(ethereumBalance)
+
+        if(isMeme && userTotalBalance < 2) {
+            throw new HttpExceptionWithCode(
+                "Your balance amount is not enough for voting.",
+                HttpStatus.FORBIDDEN,
+                ErrorCode.BALANCE_IS_NOT_ENOUGH_TO_VOTE
             )
         }
 

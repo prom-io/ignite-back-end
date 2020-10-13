@@ -92,6 +92,10 @@ export class UsersService {
         return asyncMap(users, async user => await this.usersMapper.toUserResponseAsync(user, currentUser))
     }
 
+    public async getAllCommunities(): Promise<User[]> {
+        return await this.userRepository.findAllByIsCommunityOrderBySubscribersCountInCommunitiesDesc()
+    }
+
     public async getMemesActionsRights(user: User): Promise<MemezatorActionsRightsResponse> {
         const memeCreationRight = await this.getMemeCreationRightForUser(user)
         const memeVotingRight = await this.getMemeVotingRightForUser(user)
@@ -449,7 +453,8 @@ export class UsersService {
                     subscribedTo,
                     reverted: false,
                     saveUnsubscriptionToBtfs: true,
-                    createdAt: new Date()
+                    createdAt: new Date(),
+                    isSubscribedToCommunity: false
                 };
                 return await this.subscriptionsRepository.save(userSubscription);
             });

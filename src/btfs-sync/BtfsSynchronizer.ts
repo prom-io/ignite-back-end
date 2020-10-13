@@ -463,7 +463,8 @@ export class BtfsSynchronizer extends NestSchedule {
                 peerWallet: btfsEntityInfo.peerWallet,
                 peerIp: btfsEntityInfo.peerIp,
                 reverted: false,
-                revertedAt: null
+                revertedAt: null,
+                isSubscribedToCommunity: false
             };
 
             const existingSubscription = await this.userSubscriptionsRepository.findBySubscribedUserAndSubscribedToNotReverted(

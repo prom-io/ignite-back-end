@@ -13,6 +13,15 @@ export class UserSubscriptionsRepository extends Repository<UserSubscription> {
         });
     }
 
+    public findBySubscribedUserAndIsSubscribedToCommunity(subscribedUser: User): Promise<UserSubscription[]> {
+        return this.find({
+            where: {
+                subscribedUser,
+                isSubscribedToCommunity: true
+            }
+        })
+    }
+
     public findAllByCreatedAtAfter(createdAtAfter: Date): Promise<UserSubscription[]> {
         return this.find({
             where: {
