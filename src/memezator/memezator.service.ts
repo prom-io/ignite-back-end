@@ -20,7 +20,7 @@ import { UsersRepository } from "../users";
 import { StatusesService } from "../statuses";
 import { User } from "../users/entities";
 import { Big } from "big.js";
-import { StatusReferenceType } from "../statuses/entities";
+import { StatusLike, StatusReferenceType } from "../statuses/entities";
 import { MemezatorContestResultRepository } from "./memezator-contest-result.repository";
 import uuid from "uuid";
 import { Transaction } from "../transactions/entities/Transaction";
@@ -222,21 +222,7 @@ export class MemezatorService extends NestSchedule {
             let votes = 0;
 
             for (const like of likes) {
-                const ethereumBalance = await this.tokenExchangeService.getBalanceInProms(
-                    like.user.ethereumAddress,
-                );
-                const binanceBalance = await this.transactionsRepository.getBalanceByAddress(
-                    like.user.ethereumAddress,
-                );
-                const purchasedVotingPower = await this.votingPowerPurchaseRepository.calculateVotingPowerForUser(
-                    like.user.id,
-                );
-                const votingPower: number =
-                    this.calculateVotingPower(
-                        new Big(ethereumBalance)
-                            .plus(binanceBalance)
-                            .toString(),
-                    ) + purchasedVotingPower;
+                const votingPower: number = await this.calcVotingPowerForUser(like.user);
 
                 if (votingPower > 1) {
                     likesWithVotingPowersAndRewards.push({
@@ -310,6 +296,26 @@ export class MemezatorService extends NestSchedule {
             secondPlace,
             thirdPlace,
         };
+    }
+
+    private async calcVotingPowerForUser(user: User): Promise<number> {
+        const ethereumBalance = await this.tokenExchangeService.getBalanceInProms(
+            user.ethereumAddress
+        );
+        const binanceBalance = await this.transactionsRepository.getBalanceByAddress(
+            user.ethereumAddress
+        );
+        const purchasedVotingPower = await this.votingPowerPurchaseRepository.calculateVotingPowerForUser(
+            user.id
+        );
+
+        const votingPower: number = this.calculateVotingPower(
+            new Big(ethereumBalance)
+                .plus(binanceBalance)
+                .toString()
+        ) + purchasedVotingPower;
+
+        return votingPower;
     }
 
     calculateVotingPower(balance: string): number {

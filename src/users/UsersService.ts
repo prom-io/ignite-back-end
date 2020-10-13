@@ -1,6 +1,6 @@
-import { MEMEZATOR_HASHTAG } from '../common/constants';
-import { StatusLikesService } from './../statuses/StatusLikesService';
-import { StatusesService } from './../statuses/StatusesService';
+import { MEMEZATOR_HASHTAG } from "../common/constants";
+import { StatusLikesService } from "./../statuses/StatusLikesService";
+import { StatusesService } from "./../statuses/StatusesService";
 import { StatusLikesRepository } from "../statuses/StatusLikesRepository";
 import { StatusesRepository } from "../statuses/StatusesRepository";
 import {
@@ -43,6 +43,8 @@ import {UserSubscription} from "../user-subscriptions/entities";
 import {UsersSearchFilters} from "./types/request/UsersSearchFilters";
 import {Big} from "big.js";
 import {TokenExchangeService} from "../token-exchange";
+import { TransactionsRepository } from "../transactions/TransactionsRepository";
+import { VotingPowerPurchaseRepository } from "../memezator/voting-power-purchase.repository";
 
 @Injectable()
 export class UsersService {
@@ -61,7 +63,9 @@ export class UsersService {
         private readonly passwordHashApiClient: PasswordHashApiClient,
         private readonly tokenExchangeService: TokenExchangeService,
         private readonly userRepository: UsersRepository,
-        private readonly log: LoggerService
+        private readonly log: LoggerService,
+        private readonly transactionsRepository: TransactionsRepository,
+        private readonly votingPowerPurchaseRepository: VotingPowerPurchaseRepository,
     ) {}
 
     public async searchUsers(searchFilters: UsersSearchFilters, currentUser?: User): Promise<UserResponse[]> {
@@ -73,17 +77,18 @@ export class UsersService {
         let selectedUsersByUsername: User[] = [];
         let selectedUsersByDisplayname: User[] = [];
 
-        if(countByUsername >= take + skip) {
+        if (countByUsername >= take + skip) {
             selectedUsersByUsername = await this.userRepository.searchByUsernameLike(formattedQuery, take, skip)
         }
 
-        if(countByUsername < take + skip && skip < countByUsername) {
+        if (countByUsername < take + skip && skip < countByUsername) {
             selectedUsersByUsername = await this.userRepository.searchByUsernameLike(formattedQuery, undefined, skip)
-            let numberOfItemsByDisplayname = take - selectedUsersByUsername.length;
-            selectedUsersByDisplayname = await this.userRepository.searchByDisplayedNameLikeNotInUsername(formattedQuery, numberOfItemsByDisplayname, undefined)
+            const numberOfItemsByDisplayname = take - selectedUsersByUsername.length;
+            selectedUsersByDisplayname =
+                await this.userRepository.searchByDisplayedNameLikeNotInUsername(formattedQuery, numberOfItemsByDisplayname, undefined)
         }
 
-        if(countByUsername < (take + skip) && skip >= countByUsername) {
+        if (countByUsername < (take + skip) && skip >= countByUsername) {
             const skipUserByDisplayName = skip - countByUsername;
             selectedUsersByDisplayname = await this.userRepository.searchByDisplayedNameLikeNotInUsername(formattedQuery, take, skipUserByDisplayName)
         }
@@ -108,9 +113,9 @@ export class UsersService {
 
         const balance = await this.tokenExchangeService.getBalanceInProms(user.ethereumAddress)
         userMemeActionsRights.ethPromTokens = new Big(balance).toFixed(2)
-        userMemeActionsRights.votingPower = this.calculateVotingPower(balance)
+        userMemeActionsRights.votingPower = await this.calcVotingPowerForUser(user)
 
-        return userMemeActionsRights; 
+        return userMemeActionsRights;
     }
 
     public async getMemeCreationRightForUser(
@@ -756,5 +761,29 @@ export class UsersService {
         });
 
         return result;
+    }
+
+    /**
+     * Copied from MemezatorService because of circular dep issue 
+     * TODO: Fix that issue and use MemezatorService
+     */
+    private async calcVotingPowerForUser(user: User): Promise<number> {
+        const ethereumBalance = await this.tokenExchangeService.getBalanceInProms(
+            user.ethereumAddress
+        );
+        const binanceBalance = await this.transactionsRepository.getBalanceByAddress(
+            user.ethereumAddress
+        );
+        const purchasedVotingPower = await this.votingPowerPurchaseRepository.calculateVotingPowerForUser(
+            user.id
+        );
+
+        const votingPower: number = this.calculateVotingPower(
+            new Big(ethereumBalance)
+                .plus(binanceBalance)
+                .toString()
+        ) + purchasedVotingPower;
+
+        return votingPower;
     }
 }
