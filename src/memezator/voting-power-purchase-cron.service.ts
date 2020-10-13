@@ -8,6 +8,7 @@ import uuid from "uuid";
 import { TransactionsRepository } from "../transactions/TransactionsRepository";
 import { getCurrentMemezatorContestStartTime } from "./utils";
 import { MoreThanOrEqual } from "typeorm";
+import { TransactionSubject } from "../transactions/types/TransactionSubject.enum";
 
 @Injectable()
 export class VotingPowerPurchaseCronService extends NestSchedule {
@@ -28,6 +29,7 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
             where: {
                 txnTo: config.VOTING_POWER_PURCHASE_ADDRESS.toLowerCase(),
                 txnDate: MoreThanOrEqual(memezatorContestStartTime),
+                txnSubj: TransactionSubject.TRANSFER,
             },
         });
 
@@ -51,10 +53,6 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
             const votingPowerPurchaseExist = await this.votingPowerPurchaseRepository.findOne(
                 {
                     where: {
-                        txnHash: transaction.txnHash,
-                        txnDate: transaction.txnDate,
-                        txnFrom: transaction.txnFrom.toLowerCase(),
-                        txnSum: transaction.txnSum,
                         txnId: transaction.id,
                     },
                 },
@@ -70,6 +68,7 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
                         userId: user.id,
                         txnSum: transaction.txnSum,
                         txnFrom: transaction.txnFrom.toLowerCase(),
+                        txnId: transaction.txnTo,
                         votingPower:
                             parseFloat(transaction.txnSum) *
                             config.PROM_TO_VOTING_POWER_RATIO,
