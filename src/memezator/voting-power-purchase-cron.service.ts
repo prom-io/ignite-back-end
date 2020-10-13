@@ -68,7 +68,7 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
                         userId: user.id,
                         txnSum: transaction.txnSum,
                         txnFrom: transaction.txnFrom.toLowerCase(),
-                        txnId: transaction.txnTo,
+                        txnId: transaction.id,
                         votingPower:
                             parseFloat(transaction.txnSum) *
                             config.PROM_TO_VOTING_POWER_RATIO,
