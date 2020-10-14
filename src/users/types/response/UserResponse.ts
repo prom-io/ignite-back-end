@@ -80,7 +80,7 @@ export class UserResponse {
     @Expose({name: "blockchain_balance"})
     blockchainBalance?: string;
 
-    @ApiPropertyOptional({ name: "pending_rewards", example: "100", description: `The sum of pending rewards` })
+    @ApiPropertyOptional({ name: "pending_rewards_sum", example: "100", description: `The sum of pending rewards` })
     @Expose({name: "pending_rewards_sum"})
     pendingRewardsSum?: string;
 
