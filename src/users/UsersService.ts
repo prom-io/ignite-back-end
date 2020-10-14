@@ -1096,6 +1096,8 @@ export class UsersService {
                 new Big(ethereumBalance).plus(binanceBalance).toString(),
             ) + purchasedVotingPower;
 
+        this.log.info(`calcVotingPowerForUser: ${user.ethereumAddress} ${JSON.stringify({ethereumBalance, binanceBalance, purchasedVotingPower, votingPower})}`)
+
         return votingPower;
     }
 }
