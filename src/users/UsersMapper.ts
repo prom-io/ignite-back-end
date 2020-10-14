@@ -21,7 +21,7 @@ export class UsersMapper {
 
     public async toUserResponseAsync(user: User, currentUser?: User, includePasswordHash: boolean = false): Promise<UserResponse> {
         const userStatistics = await this.userStatisticsRepository.findOrCreateByUser(user);
-        const userBalance = await this.transactionsRepository.getBalanceByAddress(user.ethereumAddress);
+        const userBalance = await this.transactionsRepository.getActualBalanceByAddress(user.ethereumAddress);
         const following = currentUser && await this.userSubscriptionsRepository.existsBySubscribedUserAndSubscribedToNotReverted(
             currentUser,
             user
