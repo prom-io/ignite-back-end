@@ -136,6 +136,16 @@ export class UsersService {
         );
     }
 
+    public async getMemesActionsRightsByAddress(address: string): Promise<MemezatorActionsRightsResponse> {
+        let user = await this.usersRepository.findByUsername(address);
+
+        if (!user) {
+            user = await this.usersRepository.findByEthereumAddressIgnoreCase(address);
+        }
+
+        return this.getMemesActionsRights(user)
+    }
+
     public async getMemesActionsRights(
         user: User,
     ): Promise<MemezatorActionsRightsResponse> {

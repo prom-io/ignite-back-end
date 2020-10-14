@@ -36,6 +36,8 @@ import {RelationshipsResponse, UserSubscriptionResponse} from "../user-subscript
 import {RequestBodyCurrentUserWritingInterceptor} from "../utils/validation";
 import {UsersSearchFilters} from "./types/request/UsersSearchFilters";
 import {ApiBearerAuth, ApiOkResponse} from "@nestjs/swagger";
+import { RequiresAdmin } from "../jwt-auth/RequiresAdmin";
+import { AdminGuard } from "../jwt-auth/AdminGuard";
 
 @Controller("api/v1/accounts")
 export class UsersController {
@@ -166,6 +168,18 @@ export class UsersController {
     @Get("current/memezator-actions-rights")
     public getMemezatorActionsRights(@Req() req: Request): Promise<MemezatorActionsRightsResponse> {
         return this.usersService.getMemesActionsRights(req.user as User)
+    }
+
+    @UseGuards(AuthGuard("jwt"), AdminGuard)
+    @RequiresAdmin()
+    @UseInterceptors(ClassSerializerInterceptor)
+    @ApiBearerAuth()
+    @ApiOkResponse({type: () => MemezatorActionsRightsResponse})
+    @Get(":address/memezator-actions-rights")
+    public getMemezatorActionsRightsForUser(
+        @Param("address") address: string,
+    ): Promise<MemezatorActionsRightsResponse> {
+        return this.usersService.getMemesActionsRightsByAddress(address)
     }
 
     @UseGuards(OptionalJwtAuthGuard)
