@@ -14,9 +14,16 @@ import _ from "lodash";
 import { TransactionStatus } from "./types/TransactionStatus.enum";
 import { TransactionSubject } from "./types/TransactionSubject.enum";
 import { NotStartedRewardTxnsIdsAndReceiverAndRewardsSum } from "./types/NotStartedRewardTxnsIdsAndReceiverAndRewardsSum.interface";
+import Big from "big.js";
 
 @EntityRepository(Transaction)
 export class TransactionsRepository extends Repository<Transaction> {
+    /**
+     * Этот метод возвращает баланс учитывая только incoming трансферы.
+     * А еще, так как здесь производится поиск с учетом регистра "txnTo",
+     * то в подсчеты участвуют только выигрыши мемезатора. Этот метод
+     * нужно убрать 
+     */
     async getBalanceByAddress(address: string): Promise<string> {
         const rawResult = await this.createQueryBuilder("transaction")
             .select(`SUM(transaction."txnSum") as balance`)
@@ -24,6 +31,20 @@ export class TransactionsRepository extends Repository<Transaction> {
             .getRawOne();
 
         return (rawResult.balance || "0") as string;
+    }
+
+    async getActualBalanceByAddress(address: string): Promise<string> {
+        const { incomingTokensSum } = await this.createQueryBuilder("transaction")
+            .select(`SUM(transaction."txnSum") as "incomingTokensSum"`)
+            .where(`LOWER(transaction."txnTo") = LOWER(:address)`, { address })
+            .getRawOne();
+
+        const { outgoingTokensSum } = await this.createQueryBuilder("transaction")
+            .select(`SUM(transaction."txnSum") as "outgoingTokensSum"`)
+            .where(`LOWER(transaction."txnFrom") = LOWER(:address)`, { address })
+            .getRawOne();
+
+        return new Big(incomingTokensSum).minus(outgoingTokensSum).toString();
     }
 
     async findByUser(

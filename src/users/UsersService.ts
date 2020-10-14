@@ -1084,9 +1084,10 @@ export class UsersService {
         const ethereumBalance = await this.tokenExchangeService.getBalanceInProms(
             user.ethereumAddress,
         );
-        const binanceBalance = await this.transactionsRepository.getBalanceByAddress(
+        const binanceBalance = await this.transactionsRepository.getActualBalanceByAddress(
             user.ethereumAddress,
         );
+
         const purchasedVotingPower = await this.votingPowerPurchaseRepository.calculateCurrentVotingPowerPurchaseForUser(
             user.id,
         );
