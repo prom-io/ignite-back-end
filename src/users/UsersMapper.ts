@@ -1,4 +1,4 @@
-import {Injectable} from "@nestjs/common";
+import {forwardRef, Inject, Injectable} from "@nestjs/common";
 import uuid from "uuid";
 import {UserResponse} from "./types/response";
 import {CreateUserRequest} from "./types/request";
@@ -9,6 +9,8 @@ import {UserStatisticsRepository} from "./UserStatisticsRepository";
 import {UserSubscriptionsRepository} from "../user-subscriptions/UserSubscriptionsRepository";
 import { TransactionsRepository } from "../transactions/TransactionsRepository";
 import { Big } from "big.js";
+import { UserBalanceInformation } from "./types/UserBalanceInformation";
+import { UsersService } from "./UsersService";
 
 @Injectable()
 export class UsersMapper {
@@ -16,12 +18,23 @@ export class UsersMapper {
         private readonly bCryptPasswordEncoder: BCryptPasswordEncoder,
         private readonly userStatisticsRepository: UserStatisticsRepository,
         private readonly userSubscriptionsRepository: UserSubscriptionsRepository,
-        private readonly transactionsRepository: TransactionsRepository,
+        @Inject(forwardRef(() => UsersService))
+        private readonly usersService: UsersService,
     ) {}
 
     public async toUserResponseAsync(user: User, currentUser?: User, includePasswordHash: boolean = false): Promise<UserResponse> {
         const userStatistics = await this.userStatisticsRepository.findOrCreateByUser(user);
-        const userBalance = await this.transactionsRepository.getActualBalanceByAddress(user.ethereumAddress);
+
+        /**
+         * Баланс пользователя в параметре user.
+         * Каждый пользователь может видеть только свой баланс.
+         * В случае, если это не текущий пользователь в этой переменной будет null
+         */
+        const balanceInformation: UserBalanceInformation | null =
+            currentUser && currentUser.ethereumAddress.toLowerCase() === user.ethereumAddress.toLowerCase()
+            ? await this.usersService.getBalanceInformationOfUser(user)
+            : null;
+
         const following = currentUser && await this.userSubscriptionsRepository.existsBySubscribedUserAndSubscribedToNotReverted(
             currentUser,
             user
@@ -30,7 +43,7 @@ export class UsersMapper {
             user,
             currentUser
         );
-        return this.toUserResponse(user, userStatistics, following, followed, includePasswordHash, userBalance);
+        return this.toUserResponse(user, userStatistics, following, followed, includePasswordHash, balanceInformation);
     }
 
     public toUserResponse(
@@ -39,7 +52,7 @@ export class UsersMapper {
         following: boolean = false,
         followedBy: boolean = false,
         includePasswordHash: boolean = false,
-        userBalance: string = "0",
+        balanceInformation?: UserBalanceInformation,
     ): UserResponse {
         let avatar: string;
 
@@ -72,7 +85,10 @@ export class UsersMapper {
             followedBy,
             bio: user.bio,
             externalUrl: user.externalUrl,
-            userBalance: Big(userBalance).toFixed(2),
+            userBalance: Big(balanceInformation ? balanceInformation.blockchainBalance : "0").toFixed(2),
+            blockchainBalance: balanceInformation ? Big(balanceInformation.blockchainBalance).toFixed(2) : null,
+            pendingRewardsSum: balanceInformation ? Big(balanceInformation.pendingRewardsSum).toFixed(2) : null,
+            overallBalance: balanceInformation ? Big(balanceInformation.overallBalance).toFixed(2) : null,
             votingPower: userStatistics ? userStatistics.votingPower : 1,
             passwordHash: includePasswordHash ? user.privateKey : undefined
         })

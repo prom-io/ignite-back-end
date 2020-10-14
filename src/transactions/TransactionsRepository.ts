@@ -33,18 +33,42 @@ export class TransactionsRepository extends Repository<Transaction> {
         return (rawResult.balance || "0") as string;
     }
 
+    /**
+     * Баланс пользователя в блокчейне.
+     * Работает следующим образом:
+     * баланс = (сумма всех входящих трансферов в статусе "ВЫПОЛНЕН") - (сумма всех выходящих трансферов "ВЫПОЛНЕН")
+     */
     async getActualBalanceByAddress(address: string): Promise<string> {
         const { incomingTokensSum } = await this.createQueryBuilder("transaction")
             .select(`SUM(transaction."txnSum") as "incomingTokensSum"`)
             .where(`LOWER(transaction."txnTo") = LOWER(:address)`, { address })
+            .andWhere(`transaction.txnStatus = :status`, { status: TransactionStatus.PERFORMED })
             .getRawOne();
 
         const { outgoingTokensSum } = await this.createQueryBuilder("transaction")
             .select(`SUM(transaction."txnSum") as "outgoingTokensSum"`)
             .where(`LOWER(transaction."txnFrom") = LOWER(:address)`, { address })
+            .andWhere(`transaction.txnStatus = :status`, { status: TransactionStatus.PERFORMED })
             .getRawOne();
 
         return new Big(incomingTokensSum || "0").minus(outgoingTokensSum || "0").toString();
+    }
+
+    /**
+     * Возвращает сумму выигрышей, которые не отправлены, но будут отправлены позже
+     */
+    async getPendingRewardsSum(address: string): Promise<string> {
+        const {pendingRewardsSum} =  await this.createQueryBuilder("transaction")
+            .select(`SUM(transaction."txnSum") as "pendingRewardsSum"`)
+            .where(`LOWER(transaction."txnTo") = LOWER(:address)`, { address })
+            .andWhere(`transaction.txnSubj = :subject`, { subject: TransactionSubject.REWARD })
+            .andWhere(
+                `transaction.txnStatus IN (:...statuses)`,
+                { statuses: [TransactionStatus.PERFORMING, TransactionStatus.NOT_STARTED, TransactionStatus.PROBLEM] },
+            )
+            .getRawOne();
+
+        return pendingRewardsSum || "0";
     }
 
     async findByUser(

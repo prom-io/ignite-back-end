@@ -1,6 +1,3 @@
-import { MEMEZATOR_HASHTAG } from "../common/constants";
-import { StatusLikesService } from "./../statuses/StatusLikesService";
-import { StatusesService } from "./../statuses/StatusesService";
 import { StatusLikesRepository } from "../statuses/StatusLikesRepository";
 import { StatusesRepository } from "../statuses/StatusesRepository";
 import {
@@ -9,7 +6,7 @@ import {
     CannotVoteMemeReasonCode,
 } from "./types/response/MemezatorActionsRightsResponse";
 import { asyncForEach } from "./../utils/async-foreach";
-import { HttpException, HttpStatus, Injectable, Logger } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { MailerService } from "@nestjs-modules/mailer";
 import { LoggerService } from "nest-logger";
 import uuid from "uuid/v4";
@@ -56,6 +53,7 @@ import { Big } from "big.js";
 import { TokenExchangeService } from "../token-exchange";
 import { TransactionsRepository } from "../transactions/TransactionsRepository";
 import { VotingPowerPurchaseRepository } from "../memezator/voting-power-purchase.repository";
+import { UserBalanceInformation } from "./types/UserBalanceInformation";
 
 @Injectable()
 export class UsersService {
@@ -1100,5 +1098,16 @@ export class UsersService {
         this.log.info(`calcVotingPowerForUser: ${user.ethereumAddress} ${JSON.stringify({ethereumBalance, binanceBalance, purchasedVotingPower, votingPower})}`)
 
         return votingPower;
+    }
+
+    public async getBalanceInformationOfUser(user: User): Promise<UserBalanceInformation> {
+        return await Promise.all([
+            this.transactionsRepository.getActualBalanceByAddress(user.ethereumAddress),
+            this.transactionsRepository.getPendingRewardsSum(user.ethereumAddress),
+        ]).then(([actualBalance, pendingRewardsSum]) => ({
+            blockchainBalance: actualBalance,
+            pendingRewardsSum,
+            overallBalance: Big(actualBalance).plus(pendingRewardsSum).toString(),
+        }))
     }
 }

@@ -69,9 +69,24 @@ export class UserResponse {
     @Expose({name: "external_url"})
     externalUrl?: string;
 
+    /**
+     * @todo убрать, после того как фронт избавится от его использования
+     */
     @ApiProperty({ name: "user_balance", example: "100" })
     @Expose({name: "user_balance"})
     userBalance: string;
+
+    @ApiPropertyOptional({ name: "blockchain_balance", example: "100", description: `User's balance in Binance` })
+    @Expose({name: "blockchain_balance"})
+    blockchainBalance?: string;
+
+    @ApiPropertyOptional({ name: "pending_rewards", example: "100" })
+    @Expose({name: "pending_rewards_sum"})
+    pendingRewardsSum?: string;
+
+    @ApiPropertyOptional({ name: "overall_balance", example: "100" })
+    @Expose({name: "overall_balance"})
+    overallBalance?: string;
 
     @ApiProperty({ name: "voting_power", description: "Вес голоса в Memezator" })
     @Expose({name: "voting_power"})
