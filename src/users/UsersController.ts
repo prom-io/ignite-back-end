@@ -96,6 +96,7 @@ export class UsersController {
 
     @UseInterceptors(ClassSerializerInterceptor)
     @UseGuards(AuthGuard("jwt"))
+    @ApiOkResponse({ type: () => UserResponse })
     @Get("current")
     public getCurrentUser(@Req() request: Request): Promise<UserResponse> {
         return this.usersService.getCurrentUser(request.user as User);
@@ -111,6 +112,7 @@ export class UsersController {
 
     @UseGuards(OptionalJwtAuthGuard)
     @UseInterceptors(ClassSerializerInterceptor)
+    @ApiOkResponse({ type: () => UserResponse })
     @Get(":address")
     public findByAddress(@Param("address") address: string,
                          @Req() request: Request): Promise<UserResponse> {

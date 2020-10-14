@@ -72,7 +72,7 @@ export class UserResponse {
     /**
      * @todo убрать, после того как фронт избавится от его использования
      */
-    @ApiProperty({ name: "user_balance", example: "100" })
+    @ApiProperty({ name: "user_balance", example: "100", deprecated: true })
     @Expose({name: "user_balance"})
     userBalance: string;
 
@@ -80,11 +80,11 @@ export class UserResponse {
     @Expose({name: "blockchain_balance"})
     blockchainBalance?: string;
 
-    @ApiPropertyOptional({ name: "pending_rewards", example: "100" })
+    @ApiPropertyOptional({ name: "pending_rewards", example: "100", description: `The sum of pending rewards` })
     @Expose({name: "pending_rewards_sum"})
     pendingRewardsSum?: string;
 
-    @ApiPropertyOptional({ name: "overall_balance", example: "100" })
+    @ApiPropertyOptional({ name: "overall_balance", example: "100", description: `The overall balance. The sum of the balance in Binance and pending rewards` })
     @Expose({name: "overall_balance"})
     overallBalance?: string;
 
