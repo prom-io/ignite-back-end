@@ -44,7 +44,7 @@ export class TransactionsRepository extends Repository<Transaction> {
             .where(`LOWER(transaction."txnFrom") = LOWER(:address)`, { address })
             .getRawOne();
 
-        return new Big(incomingTokensSum).minus(outgoingTokensSum).toString();
+        return new Big(incomingTokensSum || "0").minus(outgoingTokensSum || "0").toString();
     }
 
     async findByUser(
