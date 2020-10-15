@@ -63,7 +63,7 @@ export class MemezatorService extends NestSchedule {
     }
   }
 
-  async getWinnersByLikes(competitionStartDate?: Date): Promise<LikeAndVotingPowerAndReward> {
+  async getWinnersByLikes(competitionStartDate?: string): Promise<LikeAndVotingPowerAndReward> {
 
     let top10WinnersByLikes
     if(competitionStartDate) {

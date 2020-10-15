@@ -34,7 +34,7 @@ export class MemezatorController {
 
   @Get("top-10-winners")
   public getWinnersByLIkes(
-    @Query() date: Date
+    @Query("date") date: string
   ) {
     return this.memezatorService.getWinnersByLikes(date)
   }
