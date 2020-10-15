@@ -13,8 +13,7 @@ export class TransactionMapper {
   public toTransactionResponse(transaction: Transaction, currentUser: User): TransactionResponse {
     return new TransactionResponse({
       ...transaction,
-      txnDirection: currentUser.ethereumAddress === transaction.txnTo ? transactionDirection.OUT : transactionDirection.IN,
-      ethereumAddress: currentUser.ethereumAddress
+      txnDirection: currentUser.ethereumAddress.toLowerCase() === transaction.txnTo.toLowerCase() ? transactionDirection.OUT : transactionDirection.IN
     })
   }
 }
