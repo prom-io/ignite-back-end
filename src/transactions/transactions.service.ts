@@ -18,7 +18,7 @@ export class TransactionsService {
     private readonly tokenExchangeService: TokenExchangeService,
     private readonly transactionsMapper: TransactionMapper,
     private readonly logger: LoggerService,
-  ) {}
+  ) { }
 
   public async performTransactionsByIds(transactionsIds: string[]): Promise<Transaction[]> {
     this.logger.info(`performTransactionsByIds: Performing transactions with ${transactionsIds.length} transaction ids: ${JSON.stringify(transactionsIds)}`);
@@ -69,6 +69,6 @@ export class TransactionsService {
 
   public async getTransactions(user: User, filters: GetTransactionsFilters): Promise<TransactionResponse[]> {
     const transactions = await this.transactionsRepository.findByUser(user, filters)
-    return this.transactionsMapper.toTransactionResponses(transactions)
+    return this.transactionsMapper.toTransactionResponses(transactions, user)
   }
 }
