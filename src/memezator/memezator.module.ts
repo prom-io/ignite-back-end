@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { forwardRef, Module } from "@nestjs/common";
 import { MemezatorService } from "./memezator.service";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { StatusesRepository } from "../statuses/StatusesRepository";
@@ -15,7 +15,7 @@ import { VotingPowerPurchaseRepository } from "./voting-power-purchase.repositor
 
 @Module({
   imports: [
-    StatusesModule,
+    forwardRef(() => StatusesModule),
     ScheduleModule.register(),
     TokenExchangeModule,
     TransactionsModule,
@@ -30,5 +30,6 @@ import { VotingPowerPurchaseRepository } from "./voting-power-purchase.repositor
   ],
   providers: [MemezatorService],
   controllers: [MemezatorController],
+  exports: [MemezatorService],
 })
 export class MemezatorModule {}

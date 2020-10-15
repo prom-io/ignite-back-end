@@ -1,6 +1,6 @@
-import { TransactionsRepository } from './../transactions/TransactionsRepository';
-import { TransactionsModule } from './../transactions/transactions.module';
-import { TokenExchangeModule } from './../token-exchange/token-exchange.module';
+import { TransactionsRepository } from "./../transactions/TransactionsRepository";
+import { TransactionsModule } from "./../transactions/transactions.module";
+import { TokenExchangeModule } from "./../token-exchange/token-exchange.module";
 import {forwardRef, Module } from "@nestjs/common";
 import {TypeOrmModule} from "@nestjs/typeorm";
 import {TimelineController} from "./TimelineController";
@@ -30,6 +30,7 @@ import {TopicsController} from "./TopicsController";
 import {TopicsService} from "./TopicsService";
 import {HashTagsMapper} from "./HashTagsMapper";
 import {HashTagSubscriptionsRepository} from "./HashTagSubscriptionsRepository";
+import { MemezatorModule } from "../memezator";
 
 @Module({
     controllers: [StatusesController, TimelineController, TopicsController],
@@ -64,8 +65,9 @@ import {HashTagSubscriptionsRepository} from "./HashTagSubscriptionsRepository";
         MicrobloggingBlockchainApiModule,
         MediaAttachmentsModule,
         DefaultAccountProviderModule,
+        forwardRef(() => MemezatorModule),
         forwardRef(() => UsersModule),
-        forwardRef(() => PushNotificationsModule)
+        forwardRef(() => PushNotificationsModule),        
     ],
     exports: [StatusesService, StatusesMapper, HashTagsRetriever, StatusLikesService]
 })

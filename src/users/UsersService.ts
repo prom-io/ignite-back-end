@@ -301,7 +301,7 @@ export class UsersService {
      * Copied from MemezatorService because of circular dep issue
      * TODO: Fix that issue and use MemezatorService
      */
-    calculateVotingPower(balance: string): number {
+    calculateVotingPowerFromBalance(balance: string): number {
         const promTokens = new Big(balance);
         if (promTokens.lt(2)) {
             return 1;
@@ -1078,7 +1078,7 @@ export class UsersService {
      * Copied from MemezatorService because of circular dep issue
      * TODO: Fix that issue and use MemezatorService
      */
-    private async calcVotingPowerForUser(user: User): Promise<number> {
+    public async calcVotingPowerForUser(user: User): Promise<number> {
         const ethereumBalance = await this.tokenExchangeService.getBalanceInProms(
             user.ethereumAddress,
         );
@@ -1091,7 +1091,7 @@ export class UsersService {
         );
 
         const votingPower: number =
-            this.calculateVotingPower(
+            this.calculateVotingPowerFromBalance(
                 new Big(ethereumBalance).plus(binanceBalance).toString(),
             ) + purchasedVotingPower;
 

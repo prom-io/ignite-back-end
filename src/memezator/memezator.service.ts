@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from "@nestjs/common";
+import { forwardRef, Inject, Injectable, InternalServerErrorException } from "@nestjs/common";
 import { Cron, NestSchedule } from "nest-schedule";
 import {
     getCronExpressionForMemezatorCompetitionSumminUpCron,
@@ -51,6 +51,7 @@ export class MemezatorService extends NestSchedule {
         private readonly statusLikeRepository: StatusLikesRepository,
         private readonly logger: LoggerService,
         private readonly usersRepository: UsersRepository,
+        @Inject(forwardRef(() => StatusesService))
         private readonly statusesService: StatusesService,
         private readonly memezatorContestResultRepository: MemezatorContestResultRepository,
         private readonly transactionsRepository: TransactionsRepository,
@@ -300,7 +301,7 @@ export class MemezatorService extends NestSchedule {
         };
     }
 
-    private async calcVotingPowerForUser(user: User): Promise<number> {
+    public async calcVotingPowerForUser(user: User): Promise<number> {
         const ethereumBalance = await this.tokenExchangeService.getBalanceInProms(
             user.ethereumAddress,
         );
@@ -312,14 +313,14 @@ export class MemezatorService extends NestSchedule {
         );
 
         const votingPower: number =
-            this.calculateVotingPower(
+            this.calculateVotingPowerFromBalance(
                 new Big(ethereumBalance).plus(binanceBalance).toString(),
             ) + purchasedVotingPower;
 
         return votingPower;
     }
 
-    calculateVotingPower(balance: string): number {
+    public calculateVotingPowerFromBalance(balance: string): number {
         const promTokens = new Big(balance);
         if (promTokens.lt(2)) {
             return 1;

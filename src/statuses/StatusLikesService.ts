@@ -1,6 +1,4 @@
-import { TransactionsRepository } from './../transactions/TransactionsRepository';
-import { TokenExchangeService } from './../token-exchange/token-exchange.service';
-import {HttpException, HttpStatus, Injectable, ForbiddenException} from "@nestjs/common";
+import {forwardRef, HttpStatus, Inject, Injectable} from "@nestjs/common";
 import uuid from "uuid/v4";
 import {StatusLike} from "./entities";
 import {StatusLikesRepository} from "./StatusLikesRepository";
@@ -13,6 +11,7 @@ import { UsersService } from "../users";
 import { HttpExceptionWithCode } from "../common/http-exception-with-code";
 import { ErrorCode } from "../common/error-code";
 import { getCurrentMemezatorContestStartTime } from "../memezator/utils";
+import { MemezatorService } from "../memezator";
 
 @Injectable()
 export class StatusLikesService {
@@ -21,8 +20,8 @@ export class StatusLikesService {
         private readonly statusesRepository: StatusesRepository,
         private readonly statusesMapper: StatusesMapper,
         private readonly usersService: UsersService,
-        private readonly tokenExchangeService: TokenExchangeService,
-        private readonly transactionsRepository: TransactionsRepository,
+        @Inject(forwardRef(() => MemezatorService))
+        private readonly memezatorService: MemezatorService,
     ) {}
 
     public async createStatusLike(statusId: string, currentUser: User): Promise<StatusResponse> {
@@ -46,16 +45,15 @@ export class StatusLikesService {
             )
         }
 
-        const ethereumBalance = await this.tokenExchangeService.getBalanceInProms(currentUser.ethereumAddress)
-        const binanceBalance = await this.transactionsRepository.getBalanceByAddress(currentUser.ethereumAddress)
-        const userTotalBalance = Number(binanceBalance) + Number(ethereumBalance)
-
-        if(isMeme && userTotalBalance < 2) {
-            throw new HttpExceptionWithCode(
-                "Your balance amount is not enough for voting.",
-                HttpStatus.FORBIDDEN,
-                ErrorCode.BALANCE_IS_NOT_ENOUGH_TO_VOTE
-            )
+        if (isMeme) {
+            const votingPower = await this.memezatorService.calcVotingPowerForUser(currentUser)
+            if (votingPower <= 1) {
+                throw new HttpExceptionWithCode(
+                    "Your balance amount is not enough for voting.",
+                    HttpStatus.FORBIDDEN,
+                    ErrorCode.BALANCE_IS_NOT_ENOUGH_TO_VOTE
+                )
+            }
         }
 
         if (isMeme && status.author.id === currentUser.id) {
