@@ -8,7 +8,7 @@ import uuid from "uuid";
 import { TransactionsRepository } from "../transactions/TransactionsRepository";
 import { getCurrentMemezatorContestStartTime } from "./utils";
 import { MoreThanOrEqual } from "typeorm";
-import { TransactionSubject } from "../transactions/types/TransactionSubject.enum";
+import Big from "big.js";
 
 @Injectable()
 export class VotingPowerPurchaseCronService extends NestSchedule {
@@ -25,6 +25,7 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
     public async getVotingPowerPurchaseTransactions() {
         this.logger.log("getVotingPowerPurchaseTransactions: Cron tick");
         const memezatorContestStartTime = getCurrentMemezatorContestStartTime();
+        console.log(memezatorContestStartTime);
         const transactions = await this.transactionsRep.find({
             where: {
                 txnTo: config.VOTING_POWER_PURCHASE_ADDRESS.toLowerCase(),
@@ -77,9 +78,11 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
                         txnSum: transaction.txnSum,
                         txnFrom: transaction.txnFrom.toLowerCase(),
                         txnId: transaction.id,
-                        votingPower:
-                            parseFloat(transaction.txnSum) *
-                            config.PROM_TO_VOTING_POWER_RATIO,
+                        votingPower: Number(
+                            new Big(transaction.txnSum).mul(
+                                config.PROM_TO_VOTING_POWER_RATIO,
+                            ),
+                        ),
                     },
                 );
                 await this.votingPowerPurchaseRepository.save(
