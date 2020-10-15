@@ -6,7 +6,10 @@ import { VotingPowerPurchaseRepository } from "./voting-power-purchase.repositor
 import { UsersRepository } from "../users";
 import uuid from "uuid";
 import { TransactionsRepository } from "../transactions/TransactionsRepository";
-import { getCurrentMemezatorContestStartTime } from "./utils";
+import {
+    getCurrentMemezatorContestStartTime,
+    getVotingPowerTransactionsConditionDate,
+} from "./utils";
 import { MoreThanOrEqual } from "typeorm";
 import Big from "big.js";
 
@@ -21,15 +24,15 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
         super();
     }
 
-    @Cron("* * * * *", { waiting: true, immediate: true })
+    @Cron("*/10 * * * *", { waiting: true, immediate: true })
     public async getVotingPowerPurchaseTransactions() {
         this.logger.log("getVotingPowerPurchaseTransactions: Cron tick");
-        const memezatorContestStartTime = getCurrentMemezatorContestStartTime();
-        console.log(memezatorContestStartTime);
         const transactions = await this.transactionsRep.find({
             where: {
                 txnTo: config.VOTING_POWER_PURCHASE_ADDRESS.toLowerCase(),
-                txnDate: MoreThanOrEqual(memezatorContestStartTime),
+                txnDate: MoreThanOrEqual(
+                    getVotingPowerTransactionsConditionDate(),
+                ),
             },
         });
         if (!transactions) {
