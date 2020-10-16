@@ -25,7 +25,7 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
         super();
     }
 
-    @Cron("*/10 * * * *", { waiting: true, immediate: true })
+    @Cron("* * * * *", { waiting: true, immediate: true })
     public async getVotingPowerPurchaseTransactions() {
         this.logger.log("getVotingPowerPurchaseTransactions: Cron tick");
 
@@ -71,13 +71,13 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
             );
 
             const transactionDate = momentTZ(transaction.txnDate)
-            const transactionDateInCET = transactionDate.tz("Europe/Berlin")
+            const transactionDateInCET = transactionDate.clone().tz("Europe/Berlin")
             const transactionHours = transactionDateInCET.hours()
-            const transactionDateLocal = transactionDate.clone().local()
+            const transactionDateLocal = transactionDateInCET.clone().local()
             const transactionDateLocalFormatted = transactionDateLocal.format("YYYY.MM.DD")
 
             const currentDate = momentTZ()
-            const currentDateLocal = currentDate.local()
+            const currentDateLocal = currentDate.clone().local()
             const currentDateLocalFormatted = currentDateLocal.format("YYYY.MM.DD")
 
             this.logger.info(`getVotingPowerPurchaseTransactions: ${JSON.stringify({
