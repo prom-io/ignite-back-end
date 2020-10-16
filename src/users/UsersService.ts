@@ -300,12 +300,24 @@ export class UsersService {
     /**
      * Copied from MemezatorService because of circular dep issue
      * TODO: Fix that issue and use MemezatorService
+     * 
+     * Раньше границы были такие:
+     * от 0 до 2 - 1 вотинг павер
+     * от 2 до 5 - 40 вотинг павер
+     * от 5 - 80 вотинг павер
+     * 
+     * Но баланс считается по транзакциям в нашей базе данных, а там проблемы с плавающей точкой.
+     * То есть, например, когда у пользователя баланс 2, то у нас по БД показывает 1.99999999999999986,
+     * поэтому было принято решение временно поменять условия, пока не пофиксим плавающие точки:
+     * от 0 до 1.99 - 1 вотинг павер
+     * от 1.99 до 4.99 - 40 вотинг павер
+     * от 4.99 - 80 вотинг павер
      */
-    calculateVotingPowerFromBalance(balance: string): number {
+    public calculateVotingPowerFromBalance(balance: string): number {
         const promTokens = new Big(balance);
-        if (promTokens.lt(2)) {
+        if (promTokens.lt("1.99")) {
             return 1;
-        } else if (promTokens.lt(5)) {
+        } else if (promTokens.lt("4.99")) {
             return 40;
         } else {
             return 80;
