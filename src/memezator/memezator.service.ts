@@ -136,9 +136,10 @@ export class MemezatorService extends NestSchedule {
             competitionEndDateHours: competitionEndDate.hours(),
     
             // НЕ учитываем покупки, сделанные за последний час до окончания текущего конкурса.
-            // Такая проверка с .hours() === 23 нужна для корректной работы при принудительном вызове метода подсчета итогов
+            // Такая проверка с .hours() === 23 (в коде 21 из-за временной зоны CET)
+            // нужна для корректной работы при принудительном вызове метода подсчета итогов
             competitionEndDate:
-                competitionEndDate.hours() === 23
+                competitionEndDate.hours() === 21
                     ? competitionEndDate.clone().minutes(0).seconds(0).millisecond(0).toDate() 
                     : competitionEndDate.toDate(),
         }
