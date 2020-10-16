@@ -1,4 +1,9 @@
-import { forwardRef, Inject, Injectable, InternalServerErrorException } from "@nestjs/common";
+import {
+    forwardRef,
+    Inject,
+    Injectable,
+    InternalServerErrorException,
+} from "@nestjs/common";
 import { Cron, NestSchedule } from "nest-schedule";
 import {
     getCronExpressionForMemezatorCompetitionSumminUpCron,
@@ -166,7 +171,7 @@ export class MemezatorService extends NestSchedule {
                 );
                 await this.transactionsService
                     .performTransactions(transactions)
-                    .catch(err => {
+                    .catch((err) => {
                         this.logger.error(err);
                     });
                 this.logger.info(
@@ -201,7 +206,7 @@ export class MemezatorService extends NestSchedule {
         );
         this.logger.info(
             `calculateWinnersWithLikesAndRewards: IDs of memes: ${JSON.stringify(
-                memes.map(meme => meme.id),
+                memes.map((meme) => meme.id),
             )}`,
         );
 
@@ -215,7 +220,7 @@ export class MemezatorService extends NestSchedule {
                 `calculateWinnersWithLikesAndRewards: for meme ${
                     meme.id
                 } found those likes: ${JSON.stringify(
-                    likes.map(like => like.id),
+                    likes.map((like) => like.id),
                 )}`,
             );
 
@@ -225,6 +230,7 @@ export class MemezatorService extends NestSchedule {
             for (const like of likes) {
                 const votingPower: number = await this.calcVotingPowerForUser(
                     like.user,
+                    competitionStartDate,
                 );
 
                 if (votingPower > 1) {
@@ -301,15 +307,19 @@ export class MemezatorService extends NestSchedule {
         };
     }
 
-    public async calcVotingPowerForUser(user: User): Promise<number> {
+    public async calcVotingPowerForUser(
+        user: User,
+        competitionStartDate: Date,
+    ): Promise<number> {
         const ethereumBalance = await this.tokenExchangeService.getBalanceInProms(
             user.ethereumAddress,
         );
         const binanceBalance = await this.transactionsRepository.getActualBalanceByAddress(
             user.ethereumAddress,
         );
-        const purchasedVotingPower = await this.votingPowerPurchaseRepository.calculateCurrentVotingPowerPurchaseForUser(
-            user.id,
+        const purchasedVotingPower = await this.votingPowerPurchaseRepository.calculatePurchasedVotingPowerForSpecifiedMemezatorContest(
+            user,
+            competitionStartDate,
         );
 
         const votingPower: number =
@@ -356,7 +366,7 @@ export class MemezatorService extends NestSchedule {
                 rewardFractions.rewardFractionToEqualyShareBetweenEveryVoter) /
             _.sumBy(
                 memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards,
-                likesWithVotingPowersAndRewards =>
+                (likesWithVotingPowersAndRewards) =>
                     likesWithVotingPowersAndRewards.votingPower,
             );
 
@@ -512,7 +522,7 @@ export class MemezatorService extends NestSchedule {
             memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards,
         )
             .sortBy(
-                likeWithVotingPowerAndReward =>
+                (likeWithVotingPowerAndReward) =>
                     likeWithVotingPowerAndReward.reward,
             )
             .takeRight(3)
@@ -723,7 +733,7 @@ export class MemezatorService extends NestSchedule {
                         .toString(),
                 },
                 ...winners.firstPlace.likesWithVotingPowersAndRewards.map(
-                    likeWithVotingPowerAndReward => ({
+                    (likeWithVotingPowerAndReward) => ({
                         txnTo:
                             likeWithVotingPowerAndReward.like.user
                                 .ethereumAddress,
@@ -744,7 +754,7 @@ export class MemezatorService extends NestSchedule {
                         .toString(),
                 },
                 ...winners.secondPlace.likesWithVotingPowersAndRewards.map(
-                    likeWithVotingPowerAndReward => ({
+                    (likeWithVotingPowerAndReward) => ({
                         txnTo:
                             likeWithVotingPowerAndReward.like.user
                                 .ethereumAddress,
@@ -765,7 +775,7 @@ export class MemezatorService extends NestSchedule {
                         .toString(),
                 },
                 ...winners.thirdPlace.likesWithVotingPowersAndRewards.map(
-                    likeWithVotingPowerAndReward => ({
+                    (likeWithVotingPowerAndReward) => ({
                         txnTo:
                             likeWithVotingPowerAndReward.like.user
                                 .ethereumAddress,
@@ -778,7 +788,7 @@ export class MemezatorService extends NestSchedule {
         }
 
         const transactions: Transaction[] = inputsForTransactionsCreation.map(
-            inputForTransactionsCreation =>
+            (inputForTransactionsCreation) =>
                 new Transaction({
                     id: uuid(),
                     createdAt: new Date(),
@@ -797,7 +807,8 @@ export class MemezatorService extends NestSchedule {
     }
 
     private getMarkdownLinkForUser(user: User): string {
-        return `[${user.displayedName}](${user.username ||
-            user.ethereumAddress})`;
+        return `[${user.displayedName}](${
+            user.username || user.ethereumAddress
+        })`;
     }
 }
