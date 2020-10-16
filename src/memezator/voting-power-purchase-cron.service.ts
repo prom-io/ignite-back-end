@@ -29,7 +29,7 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
     public async getVotingPowerPurchaseTransactions() {
         this.logger.log("getVotingPowerPurchaseTransactions: Cron tick");
 
-        // const currentDate = momentTZ().tz("Europe/Berlin")
+        // const currentDate = momentTZ().tz(config.MEMEZATOR_TIMEZONE)
         // const x23h = getVotingPowerTransactionsConditionDate().add(1, "day")
         // const x00h = getCurrentMemezatorContestStartTime().add(1, "day")
 
@@ -74,7 +74,7 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
             );
 
             const transactionDate = momentTZ(transaction.txnDate)
-            const transactionDateInCET = transactionDate.clone().tz("Europe/Berlin")
+            const transactionDateInCET = transactionDate.clone().tz(config.MEMEZATOR_TIMEZONE)
             const transactionHours = transactionDateInCET.hours()
             const transactionDateLocal = transactionDateInCET.clone().local()
             const transactionDateLocalFormatted = transactionDateLocal.format("YYYY.MM.DD")

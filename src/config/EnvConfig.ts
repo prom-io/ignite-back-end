@@ -151,5 +151,8 @@ export class EnvConfig {
     @Env({ type: "boolean", required: false })
     DISABLE_NEW_TOKEN_TRANSFERS_SYNC: boolean;
 
+    @Env({ type: "string", required: true })
+    MEMEZATOR_TIMEZONE: string = "Europe/Berlin";
+
     additionalConfig: AdditionalJsonConfig = additionalJsonConfig;
 }
