@@ -131,14 +131,16 @@ export class MemezatorService extends NestSchedule {
 
         const getAllUsedPromsByTodayOptions = {
             // учитываем покупки, сделанные за час, до начала конкурса
-            competitionStartDate: competitionStartDate.subtract(1, "hour").toDate(),
+            competitionStartDate: competitionStartDate.clone().subtract(1, "hour").toDate(),
 
             competitionEndDateHours: competitionEndDate.hours(),
     
             // НЕ учитываем покупки, сделанные за последний час до окончания текущего конкурса.
             // Такая проверка с .hours() === 23 нужна для корректной работы при принудительном вызове метода подсчета итогов
             competitionEndDate:
-                competitionEndDate.hours() === 23 ? competitionEndDate.minutes(0).seconds(0).millisecond(0).toDate() : competitionEndDate.toDate(),
+                competitionEndDate.hours() === 23
+                    ? competitionEndDate.clone().minutes(0).seconds(0).millisecond(0).toDate() 
+                    : competitionEndDate.toDate(),
         }
 
         this.logger.info(`startMemezatorCompetitionSummingUp: getAllUsedPromsByTodayOptions: ${JSON.stringify(getAllUsedPromsByTodayOptions)}`)
