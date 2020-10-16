@@ -133,13 +133,13 @@ export class MemezatorService extends NestSchedule {
             // учитываем покупки, сделанные за час, до начала конкурса
             competitionStartDate: competitionStartDate.clone().subtract(1, "hour").toDate(),
 
-            competitionEndDateHours: competitionEndDate.hours(),
+            competitionEndDateHours: competitionEndDate.clone().tz("Europe/Berlin").hours(),
     
             // НЕ учитываем покупки, сделанные за последний час до окончания текущего конкурса.
-            // Такая проверка с .hours() === 23 (в коде 21 из-за временной зоны CET)
+            // Такая проверка с .hours() === 23
             // нужна для корректной работы при принудительном вызове метода подсчета итогов
             competitionEndDate:
-                competitionEndDate.hours() === 21
+                competitionEndDate.clone().tz("Europe/Berlin").hours() === 23
                     ? competitionEndDate.clone().minutes(0).seconds(0).millisecond(0).toDate() 
                     : competitionEndDate.toDate(),
         }
