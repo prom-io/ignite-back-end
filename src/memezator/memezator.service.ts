@@ -129,13 +129,27 @@ export class MemezatorService extends NestSchedule {
             );
         }
 
+        const getAllUsedPromsByTodayOptions = {
+            // учитываем покупки, сделанные за час, до начала конкурса
+            competitionStartDate: competitionStartDate.subtract(1, "hour").toDate(),
+
+            competitionEndDateHours: competitionEndDate.hours(),
+    
+            // НЕ учитываем покупки, сделанные за последний час до окончания текущего конкурса.
+            // Такая проверка с .hours() === 23 нужна для корректной работы при принудительном вызове метода подсчета итогов
+            competitionEndDate:
+                competitionEndDate.hours() === 23 ? competitionEndDate.minutes(0).seconds(0).millisecond(0).toDate() : competitionEndDate.toDate(),
+        }
+
+        this.logger.info(`startMemezatorCompetitionSummingUp: getAllUsedPromsByTodayOptions: ${JSON.stringify(getAllUsedPromsByTodayOptions)}`)
+
         const promosCountUsedByUsersToday = await this.votingPowerPurchaseRepository.getAllUsedPromsByToday(
-            competitionStartDate.toDate(),
-            competitionEndDate.toDate(),
+            getAllUsedPromsByTodayOptions.competitionStartDate,
+            getAllUsedPromsByTodayOptions.competitionEndDate,
         )
 
         this.logger.info(
-            `Initial reward pool: ${fixedRewardPool} PurchasedPromosByUsers: ${promosCountUsedByUsersToday}`,
+            `startMemezatorCompetitionSummingUp: Initial reward pool: ${fixedRewardPool} PurchasedPromosByUsers: ${promosCountUsedByUsersToday}`,
         );
 
         const rewardPool = fixedRewardPool + parseFloat(promosCountUsedByUsersToday)
