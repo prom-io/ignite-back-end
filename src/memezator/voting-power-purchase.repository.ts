@@ -43,7 +43,7 @@ export class VotingPowerPurchaseRepository extends Repository<
                 { memezatorContestStartDateTime },
             )
             .andWhere(
-                'voting_power_purchase."txnDate" <= :memezatorContestEndDateTime',
+                'voting_power_purchase."txnDate" < :memezatorContestEndDateTime',
                 { memezatorContestEndDateTime },
             )
             .andWhere(`voting_power_purchase."userId" = :userId`, {
