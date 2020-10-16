@@ -47,14 +47,17 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
         //     return;
         // }
 
-        const transactions = await this.transactionsRep.find({
-            where: {
-                txnTo: config.VOTING_POWER_PURCHASE_ADDRESS.toLowerCase(),
-                txnDate: MoreThanOrEqual(
-                    getVotingPowerTransactionsConditionDate(),
-                ),
-            },
-        });
+        const transactions = await this.transactionsRep.createQueryBuilder("transactions")
+            .where(
+                `LOWER(transactions."txnTo") = LOWER(:votingPowerPurchaseAddress)`,
+                { votingPowerPurchaseAddress: config.VOTING_POWER_PURCHASE_ADDRESS },
+            )
+            .andWhere(
+                `transactions."txnDate" >= :votingPowerTransactionsConditionDate`,
+                {votingPowerTransactionsConditionDate: getVotingPowerTransactionsConditionDate().toISOString()}
+            )
+            .getMany()
+
         if (!transactions) {
             this.logger.log(
                 `getVotingPowerPurchaseTransactions: No transactions found`,
