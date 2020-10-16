@@ -6,9 +6,13 @@ import { VotingPowerPurchaseRepository } from "./voting-power-purchase.repositor
 import { UsersRepository } from "../users";
 import uuid from "uuid";
 import { TransactionsRepository } from "../transactions/TransactionsRepository";
-import { getCurrentMemezatorContestStartTime } from "./utils";
+import {
+    getCurrentMemezatorContestStartTime,
+    getVotingPowerTransactionsConditionDate,
+} from "./utils";
 import { MoreThanOrEqual } from "typeorm";
 import Big from "big.js";
+import momentTZ from "moment-timezone";
 
 @Injectable()
 export class VotingPowerPurchaseCronService extends NestSchedule {
@@ -21,15 +25,34 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
         super();
     }
 
-    @Cron("* * * * *", { waiting: true, immediate: true })
+    @Cron("*/10 * * * *", { waiting: true, immediate: true })
     public async getVotingPowerPurchaseTransactions() {
         this.logger.log("getVotingPowerPurchaseTransactions: Cron tick");
-        const memezatorContestStartTime = getCurrentMemezatorContestStartTime();
-        console.log(memezatorContestStartTime);
+
+        const currentDate = momentTZ().tz("Europe/Berlin")
+        const x23h = getVotingPowerTransactionsConditionDate().add(1, "day")
+        const x00h = getCurrentMemezatorContestStartTime().add(1, "day")
+
+        this.logger.info(`getVotingPowerPurchaseTransactions: ${JSON.stringify({
+            currentDate,
+            x23h,
+            x00h,
+        })}`)
+
+        if (
+            currentDate.isSameOrAfter(x23h) &&
+            currentDate.isBefore(x00h)
+        ) {
+            this.logger.warn(`getVotingPowerPurchaseTransactions: the time is >= 23:00 and < 00:00. Skipping`);
+            return;
+        }
+
         const transactions = await this.transactionsRep.find({
             where: {
                 txnTo: config.VOTING_POWER_PURCHASE_ADDRESS.toLowerCase(),
-                txnDate: MoreThanOrEqual(memezatorContestStartTime),
+                txnDate: MoreThanOrEqual(
+                    getVotingPowerTransactionsConditionDate(),
+                ),
             },
         });
         if (!transactions) {
