@@ -32,6 +32,7 @@ export class VotingPowerPurchaseRepository extends Repository<
     async calculatePurchasedVotingPowerForSpecifiedMemezatorContest(
         user: User,
         memezatorContestStartDateTime: Date,
+        memezatorContestEndDateTime: Date,
     ): Promise<number> {
         const votingPower = await this.createQueryBuilder(
             "voting_power_purchase",
@@ -40,6 +41,10 @@ export class VotingPowerPurchaseRepository extends Repository<
             .where(
                 'voting_power_purchase."txnDate" >= :memezatorContestStartDateTime',
                 { memezatorContestStartDateTime },
+            )
+            .andWhere(
+                'voting_power_purchase."txnDate" <= :memezatorContestEndDateTime',
+                { memezatorContestEndDateTime },
             )
             .andWhere(`voting_power_purchase."userId" = :userId`, {
                 userId: user.id,
