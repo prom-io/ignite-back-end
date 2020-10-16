@@ -29,23 +29,23 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
     public async getVotingPowerPurchaseTransactions() {
         this.logger.log("getVotingPowerPurchaseTransactions: Cron tick");
 
-        const currentDate = momentTZ().tz("Europe/Berlin")
-        const x23h = getVotingPowerTransactionsConditionDate().add(1, "day")
-        const x00h = getCurrentMemezatorContestStartTime().add(1, "day")
+        // const currentDate = momentTZ().tz("Europe/Berlin")
+        // const x23h = getVotingPowerTransactionsConditionDate().add(1, "day")
+        // const x00h = getCurrentMemezatorContestStartTime().add(1, "day")
 
-        this.logger.info(`getVotingPowerPurchaseTransactions: ${JSON.stringify({
-            currentDate,
-            x23h,
-            x00h,
-        })}`)
+        // this.logger.info(`getVotingPowerPurchaseTransactions: ${JSON.stringify({
+        //     currentDate,
+        //     x23h,
+        //     x00h,
+        // })}`)
 
-        if (
-            currentDate.isSameOrAfter(x23h) &&
-            currentDate.isBefore(x00h)
-        ) {
-            this.logger.warn(`getVotingPowerPurchaseTransactions: the time is >= 23:00 and < 00:00. Skipping`);
-            return;
-        }
+        // if (
+        //     currentDate.isSameOrAfter(x23h) &&
+        //     currentDate.isBefore(x00h)
+        // ) {
+        //     this.logger.warn(`getVotingPowerPurchaseTransactions: the time is >= 23:00 and < 00:00. Skipping`);
+        //     return;
+        // }
 
         const transactions = await this.transactionsRep.find({
             where: {
@@ -67,8 +67,17 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
 
         for (const transaction of transactions) {
             this.logger.log(
-                `getVotingPowerPurchaseTransactions: Transaction: ${transaction.id}`,
+                `getVotingPowerPurchaseTransactions: Transaction: ${transaction.id} ${transaction.txnHash}`,
             );
+
+            if (
+                momentTZ(transaction.txnDate).hours() === 23 &&
+                momentTZ(transaction.txnDate).local().format("YYYY.MM.DD") === momentTZ().local().format("YYYY.MM.DD")
+            ) {
+                this.logger.warn(`getVotingPowerPurchaseTransactions: ${transaction.id} ${transaction.txnHash} has been made in 23:xx hours in the same date. Skipping`)
+                continue;
+            }
+
             const user = await this.usersRepository.findByEthereumAddressIgnoreCase(
                 transaction.txnFrom,
             );
