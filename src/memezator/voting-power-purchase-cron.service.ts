@@ -70,9 +70,30 @@ export class VotingPowerPurchaseCronService extends NestSchedule {
                 `getVotingPowerPurchaseTransactions: Transaction: ${transaction.id} ${transaction.txnHash}`,
             );
 
+            const transactionDate = momentTZ(transaction.txnDate)
+            const transactionDateInCET = transactionDate.tz("Europe/Berlin")
+            const transactionHours = transactionDateInCET.hours()
+            const transactionDateLocal = transactionDate.clone().local()
+            const transactionDateLocalFormatted = transactionDateLocal.format("YYYY.MM.DD")
+
+            const currentDate = momentTZ()
+            const currentDateLocal = currentDate.local()
+            const currentDateLocalFormatted = currentDateLocal.format("YYYY.MM.DD")
+
+            this.logger.info(`getVotingPowerPurchaseTransactions: ${JSON.stringify({
+                transactionDate: transactionDate.format(),
+                transactionDateInCET: transactionDateInCET.format(),
+                transactionHours,
+                transactionDateLocal: transactionDateLocal.format(),
+                transactionDateLocalFormatted,
+                currentDate: currentDate.format(),
+                currentDateLocal: currentDateLocal.format(),
+                currentDateLocalFormatted,
+            })}`)
+
             if (
-                momentTZ(transaction.txnDate).hours() === 23 &&
-                momentTZ(transaction.txnDate).local().format("YYYY.MM.DD") === momentTZ().local().format("YYYY.MM.DD")
+                transactionHours === 23 &&
+                transactionDateLocalFormatted === currentDateLocalFormatted
             ) {
                 this.logger.warn(`getVotingPowerPurchaseTransactions: ${transaction.id} ${transaction.txnHash} has been made in 23:xx hours in the same date. Skipping`)
                 continue;
