@@ -330,6 +330,13 @@ export class MemezatorService extends NestSchedule {
                 new Big(ethereumBalance).plus(binanceBalance).toString(),
             ) + purchasedVotingPower;
 
+        this.logger.info(`calcVotingPowerForUserAtSpecifiedMemezatorContest: for user ${user.ethereumAddress}: ${JSON.stringify({
+                ethereumBalance,
+                binanceBalance,
+                purchasedVotingPower,
+                votingPower,
+            })}`)
+
         return votingPower;
     }
 
