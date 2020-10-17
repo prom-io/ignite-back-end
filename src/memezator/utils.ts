@@ -37,9 +37,9 @@ export function getCurrentMemezatorContestStartTime(): momentTZ.Moment {
     return lastMidnightInCet;
 }
 
-export function getVotingPowerTransactionsConditionDate(): Date {
-    const memezatorContestStartTime = getCurrentMemezatorContestStartTime()
+export function getVotingPowerTransactionsConditionDate(): momentTZ.Moment {
+    const votingPowerTransactionsConditionDate = getCurrentMemezatorContestStartTime()
         .subtract(1, "hours")
-        .toString();
-    return new Date(memezatorContestStartTime);
+
+    return votingPowerTransactionsConditionDate;
 }
