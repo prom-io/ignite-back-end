@@ -113,24 +113,29 @@ export class MemezatorService extends NestSchedule {
             "YYYY.MM.DD",
         );
 
-        const rewardPool =
+        const fixedRewardPool =
             config.additionalConfig.memezator.rewardPoolsByDate[
             formattedCompetitionStartDate
             ];
 
-        if (!rewardPool) {
+        if (!fixedRewardPool) {
             throw new InternalServerErrorException(
                 `Not found memezator reward for ${formattedCompetitionStartDate}`,
             );
         }
 
-        const promosCountUsedByUsersToday = await this.votingPowerPurchaseRepository.getAllUsedPromosesByToday()
+        const promosCountUsedByUsersToday = await this.votingPowerPurchaseRepository.getAllUsedPromsByToday(
+            competitionStartDate.toDate(),
+            competitionEndDate.toDate(),
+        )
 
         this.logger.info(
-            `Initial reward pool: ${rewardPool} PurchasedPromosByUsers: ${promosCountUsedByUsersToday}`,
+            `Initial reward pool: ${fixedRewardPool} PurchasedPromosByUsers: ${promosCountUsedByUsersToday}`,
         );
 
-        this.logger.info(`Total reward pool for ${formattedCompetitionStartDate} (${competitionStartDate.format()}) is ${promosCountUsedByUsersToday + rewardPool}`)
+        const rewardPool = fixedRewardPool + parseFloat(promosCountUsedByUsersToday)
+
+        this.logger.info(`Total reward pool for ${formattedCompetitionStartDate} (${competitionStartDate.format()}) is ${rewardPool}`)
 
         const winners = await this.calculateWinnersWithLikesAndRewards(
             rewardPool,

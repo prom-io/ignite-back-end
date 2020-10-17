@@ -1,8 +1,6 @@
-import { User } from './../users/entities/User';
-import { Repository, EntityRepository, MoreThanOrEqual } from "typeorm";
+import { Repository, EntityRepository } from "typeorm";
 import { VotingPowerPurchase } from "./entities/VotingPowerPurchase";
 import { getCurrentMemezatorContestStartTime } from "./utils";
-import { Moment } from 'moment';
 
 @EntityRepository(VotingPowerPurchase)
 export class VotingPowerPurchaseRepository extends Repository<
@@ -17,7 +15,7 @@ VotingPowerPurchase
         )
             .select(`SUM(voting_power_purchase."votingPower")`, "sum")
             .where(
-                'voting_power_purchase."txnDate" >= :memezatorContestStartTime',
+                "voting_power_purchase.\"txnDate\" >= :memezatorContestStartTime",
                 { memezatorContestStartTime },
             )
             .andWhere(`voting_power_purchase."userId" = :userId`, { userId })
@@ -30,18 +28,22 @@ VotingPowerPurchase
         }
     }
 
-    public async getAllUsedPromosesByToday(): Promise<number> {
-        const memezatorContestStartTime = getCurrentMemezatorContestStartTime();
-        const totalPromos = await this.createQueryBuilder("voting_power_purchase")
+    public async getAllUsedPromsByToday(
+        memezatorContestStartDateTime: Date,
+        memezatorContestEndDateTime: Date,
+    ): Promise<string> {
+        const totalProms: { sum?: string | null } = await this.createQueryBuilder("voting_power_purchase")
             .select(`SUM(voting_power_purchase."txnSum")`, "sum")
             .where(
-                'voting_power_purchase."txnDate" >= :memezatorContestStartTime',
-                { memezatorContestStartTime },
+                "voting_power_purchase.\"createdAt\" >= :memezatorContestStartDateTime",
+                { memezatorContestStartDateTime },
+            )
+            .andWhere(
+                "voting_power_purchase.\"createdAt\" < :memezatorContestEndDateTime",
+                { memezatorContestEndDateTime },
             )
             .getRawOne()
-        if (!totalPromos.sum) {
-            return 0;
-        }
-        return totalPromos.sum;
+
+        return totalProms.sum || "0";
     }
 }
