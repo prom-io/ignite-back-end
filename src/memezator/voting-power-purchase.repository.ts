@@ -16,7 +16,7 @@ export class VotingPowerPurchaseRepository extends Repository<
         )
             .select(`SUM(voting_power_purchase."votingPower")`, "sum")
             .where(
-                'voting_power_purchase."txnDate" >= :memezatorContestStartTime',
+                "voting_power_purchase.\"createdAt\" >= :memezatorContestStartTime",
                 { memezatorContestStartTime },
             )
             .andWhere(`voting_power_purchase."userId" = :userId`, { userId })
@@ -39,11 +39,11 @@ export class VotingPowerPurchaseRepository extends Repository<
         )
             .select(`SUM(voting_power_purchase."votingPower")`, "sum")
             .where(
-                'voting_power_purchase."txnDate" >= :memezatorContestStartDateTime',
+                "voting_power_purchase.\"createdAt\" >= :memezatorContestStartDateTime",
                 { memezatorContestStartDateTime },
             )
             .andWhere(
-                'voting_power_purchase."txnDate" < :memezatorContestEndDateTime',
+                "voting_power_purchase.\"createdAt\" < :memezatorContestEndDateTime",
                 { memezatorContestEndDateTime },
             )
             .andWhere(`voting_power_purchase."userId" = :userId`, {
