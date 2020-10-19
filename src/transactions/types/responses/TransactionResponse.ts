@@ -1,4 +1,4 @@
-import { transactionDirection } from './../../TransactionDirection';
+import { TransactionDirection } from './../../TransactionDirection';
 import { TransactionStatus } from "../TransactionStatus.enum"
 import { TransactionSubject } from "../TransactionSubject.enum"
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
@@ -45,11 +45,11 @@ export class TransactionResponse {
   txnDetails: object;
 
   @ApiPropertyOptional({
-    name: "txn_direction", enum: transactionDirection, enumName: "transactionDirection",
+    name: "txn_direction", enum: TransactionDirection, enumName: "TransactionDirection",
     description: "Показывает направление перевода. Возможные значения: OUT/IN"
   })
   @Expose({ name: "txn_direction" })
-  txnDirection?: transactionDirection
+  txnDirection?: TransactionDirection
 
   @ApiPropertyOptional()
   @Expose()

@@ -1,4 +1,4 @@
-import { transactionDirection } from './TransactionDirection';
+import { TransactionDirection } from './TransactionDirection';
 import { User } from './../users/entities/User';
 import { Transaction } from "./entities/Transaction";
 import { TransactionResponse } from "./types/responses/TransactionResponse";
@@ -13,7 +13,7 @@ export class TransactionMapper {
   public toTransactionResponse(transaction: Transaction, currentUser: User): TransactionResponse {
     return new TransactionResponse({
       ...transaction,
-      txnDirection: currentUser.ethereumAddress.toLowerCase() === transaction.txnTo.toLowerCase() ? transactionDirection.OUT : transactionDirection.IN
+      txnDirection: currentUser.ethereumAddress.toLowerCase() === transaction.txnTo.toLowerCase() ? TransactionDirection.IN : TransactionDirection.OUT
     })
   }
 }

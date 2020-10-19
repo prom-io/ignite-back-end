@@ -1,5 +1,5 @@
 
-export enum transactionDirection {
+export enum TransactionDirection {
     IN = "IN",
     OUT = "OUT"
 }
