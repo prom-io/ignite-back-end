@@ -51,10 +51,6 @@ export class TransactionResponse {
   @Expose({ name: "txn_direction" })
   txnDirection?: TransactionDirection
 
-  @ApiPropertyOptional()
-  @Expose()
-  ethereumAddress?: string
-
   constructor(data: TransactionResponse) {
     Object.assign(this, data)
   }
