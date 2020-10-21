@@ -611,6 +611,8 @@ export class MemezatorService extends NestSchedule {
         let threeRandomTicketsIndexesProcessedCount = 0;
         let passedTicketsCount = 0;
 
+        this.logger.info(`calculateAndAssignRewardsTo3RandomTickets: threeRandomTicketsIndexes: ${JSON.stringify(threeRandomTicketsIndexes)}`)
+
         for (const likeWithVotingPowerAndRewards of memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards) {
             await setImmediatePromise();
 
