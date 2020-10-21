@@ -100,7 +100,7 @@ export class TransactionsRepository extends Repository<Transaction> {
             qb.take(filters.take)
         }
 
-        qb.orderBy("transaction.txnDate", "DESC")
+        qb.orderBy("COALESCE(transaction.txnDate, transaction.createdAt)", "DESC")
 
         return qb.getMany()
     }
