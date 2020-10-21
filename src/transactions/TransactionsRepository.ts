@@ -139,6 +139,8 @@ export class TransactionsRepository extends Repository<Transaction> {
             qb.take(filters.take)
         }
 
+        qb.orderBy("COALESCE(transaction.txnDate, transaction.createdAt)", "DESC").getMany()
+
         const tansactions = await qb.orderBy("transaction.txnDate", "DESC").getMany()
 
         return [...userRewardsTransactions, ...tansactions]

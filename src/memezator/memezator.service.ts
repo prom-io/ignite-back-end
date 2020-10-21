@@ -1,5 +1,10 @@
 import { NotStartedRewardsTransactionsRepository } from './../transactions/NotStartedRewardsTransactionsRepository';
-import { forwardRef, Inject, Injectable, InternalServerErrorException } from "@nestjs/common";
+import {
+    forwardRef,
+    Inject,
+    Injectable,
+    InternalServerErrorException,
+} from "@nestjs/common";
 import { Cron, NestSchedule } from "nest-schedule";
 import {
     getCronExpressionForMemezatorCompetitionSumminUpCron,
@@ -115,20 +120,46 @@ export class MemezatorService extends NestSchedule {
             "YYYY.MM.DD",
         );
 
-        const rewardPool =
+        const fixedRewardPool =
             config.additionalConfig.memezator.rewardPoolsByDate[
             formattedCompetitionStartDate
             ];
 
-        if (!rewardPool) {
+        if (!fixedRewardPool) {
             throw new InternalServerErrorException(
                 `Not found memezator reward for ${formattedCompetitionStartDate}`,
             );
         }
 
+        const getAllUsedPromsByTodayOptions = {
+            // учитываем покупки, сделанные за час, до начала конкурса
+            competitionStartDate: competitionStartDate.clone().subtract(1, "hour").toDate(),
+
+            competitionEndDateHours: competitionEndDate.clone().tz(config.MEMEZATOR_TIMEZONE).hours(),
+
+            // НЕ учитываем покупки, сделанные за последний час до окончания текущего конкурса.
+            // Такая проверка с .hours() === 23
+            // нужна для корректной работы при принудительном вызове метода подсчета итогов
+            competitionEndDate:
+                competitionEndDate.clone().tz(config.MEMEZATOR_TIMEZONE).hours() === 23
+                    ? competitionEndDate.clone().minutes(0).seconds(0).millisecond(0).toDate()
+                    : competitionEndDate.toDate(),
+        }
+
+        this.logger.info(`startMemezatorCompetitionSummingUp: getAllUsedPromsByTodayOptions: ${JSON.stringify(getAllUsedPromsByTodayOptions)}`)
+
+        const promosCountUsedByUsersToday = await this.votingPowerPurchaseRepository.getAllUsedPromsByToday(
+            getAllUsedPromsByTodayOptions.competitionStartDate,
+            getAllUsedPromsByTodayOptions.competitionEndDate,
+        )
+
         this.logger.info(
-            `Reward pool for ${formattedCompetitionStartDate} (${competitionStartDate.format()}) is ${rewardPool}`,
+            `startMemezatorCompetitionSummingUp: Initial reward pool: ${fixedRewardPool} PurchasedPromosByUsers: ${promosCountUsedByUsersToday}`,
         );
+
+        const rewardPool = fixedRewardPool + parseFloat(promosCountUsedByUsersToday)
+
+        this.logger.info(`Total reward pool for ${formattedCompetitionStartDate} (${competitionStartDate.format()}) is ${rewardPool}`)
 
         const winners = await this.calculateWinnersWithLikesAndRewards(
             rewardPool,
@@ -168,7 +199,7 @@ export class MemezatorService extends NestSchedule {
                 );
                 await this.transactionsService
                     .performTransactions(transactions)
-                    .catch(err => {
+                    .catch((err) => {
                         this.logger.error(err);
                     });
                 this.logger.info(
@@ -203,7 +234,7 @@ export class MemezatorService extends NestSchedule {
         );
         this.logger.info(
             `calculateWinnersWithLikesAndRewards: IDs of memes: ${JSON.stringify(
-                memes.map(meme => meme.id),
+                memes.map((meme) => meme.id),
             )}`,
         );
 
@@ -217,7 +248,7 @@ export class MemezatorService extends NestSchedule {
                 `calculateWinnersWithLikesAndRewards: for meme ${
                 meme.id
                 } found those likes: ${JSON.stringify(
-                    likes.map(like => like.id),
+                    likes.map((like) => like.id),
                 )}`,
             );
 
@@ -225,8 +256,10 @@ export class MemezatorService extends NestSchedule {
             let votes = 0;
 
             for (const like of likes) {
-                const votingPower: number = await this.calcVotingPowerForUser(
+                const votingPower: number = await this.calcVotingPowerForUserAtSpecifiedMemezatorContest(
                     like.user,
+                    competitionStartDate,
+                    competitionEndDate,
                 );
 
                 if (votingPower > 1) {
@@ -303,15 +336,21 @@ export class MemezatorService extends NestSchedule {
         };
     }
 
-    public async calcVotingPowerForUser(user: User): Promise<number> {
+    public async calcVotingPowerForUserAtSpecifiedMemezatorContest(
+        user: User,
+        competitionStartDate: Date,
+        competitionEndDate: Date,
+    ): Promise<number> {
         const ethereumBalance = await this.tokenExchangeService.getBalanceInProms(
             user.ethereumAddress,
         );
         const binanceBalance = await this.transactionsRepository.getActualBalanceByAddress(
             user.ethereumAddress,
         );
-        const purchasedVotingPower = await this.votingPowerPurchaseRepository.calculateCurrentVotingPowerPurchaseForUser(
-            user.id,
+        const purchasedVotingPower = await this.votingPowerPurchaseRepository.calculatePurchasedVotingPowerForSpecifiedMemezatorContest(
+            user,
+            competitionStartDate,
+            competitionEndDate,
         );
 
         const votingPower: number =
@@ -319,14 +358,40 @@ export class MemezatorService extends NestSchedule {
                 new Big(ethereumBalance).plus(binanceBalance).toString(),
             ) + purchasedVotingPower;
 
+        this.logger.info(`calcVotingPowerForUserAtSpecifiedMemezatorContest: for user ${user.ethereumAddress}: ${JSON.stringify({
+            ethereumBalance,
+            binanceBalance,
+            purchasedVotingPower,
+            votingPower,
+        })}`)
+
         return votingPower;
     }
 
+    /**
+     * WARNING!!!!
+     * Есть копия этого метода в сервисе UsersService. Она полностью идентична этому.
+     * Копию пришлось сделать из-за проблем с circular dependency (Не смог использовать MemezatorService в UsersService).
+     * Поэтому, пока не пофиксим проблему с цикличными зависимостями, нкжн поддерживать идентичность этих 2 одинаковых методов,
+     * иными словами - при изменении одного метода, нужно изменять и другого.
+     * 
+     * Раньше границы были такие:
+     * от 0 до 2 - 1 вотинг павер
+     * от 2 до 5 - 40 вотинг павер
+     * от 5 - 80 вотинг павер
+     * 
+     * Но баланс считается по транзакциям в нашей базе данных, а там проблемы с плавающей точкой.
+     * То есть, например, когда у пользователя баланс 2, то у нас по БД показывает 1.99999999999999986,
+     * поэтому было принято решение временно поменять условия, пока не пофиксим плавающие точки:
+     * от 0 до 1.99 - 1 вотинг павер
+     * от 1.99 до 4.99 - 40 вотинг павер
+     * от 4.99 - 80 вотинг павер
+     */
     public calculateVotingPowerFromBalance(balance: string): number {
         const promTokens = new Big(balance);
-        if (promTokens.lt(2)) {
+        if (promTokens.lt("1.99")) {
             return 1;
-        } else if (promTokens.lt(5)) {
+        } else if (promTokens.lt("4.99")) {
             return 40;
         } else {
             return 80;
@@ -358,7 +423,7 @@ export class MemezatorService extends NestSchedule {
                 rewardFractions.rewardFractionToEqualyShareBetweenEveryVoter) /
             _.sumBy(
                 memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards,
-                likesWithVotingPowersAndRewards =>
+                (likesWithVotingPowersAndRewards) =>
                     likesWithVotingPowersAndRewards.votingPower,
             );
 
@@ -514,7 +579,7 @@ export class MemezatorService extends NestSchedule {
             memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards,
         )
             .sortBy(
-                likeWithVotingPowerAndReward =>
+                (likeWithVotingPowerAndReward) =>
                     likeWithVotingPowerAndReward.reward,
             )
             .takeRight(3)
@@ -725,7 +790,7 @@ export class MemezatorService extends NestSchedule {
                         .toString(),
                 },
                 ...winners.firstPlace.likesWithVotingPowersAndRewards.map(
-                    likeWithVotingPowerAndReward => ({
+                    (likeWithVotingPowerAndReward) => ({
                         txnTo:
                             likeWithVotingPowerAndReward.like.user
                                 .ethereumAddress,
@@ -746,7 +811,7 @@ export class MemezatorService extends NestSchedule {
                         .toString(),
                 },
                 ...winners.secondPlace.likesWithVotingPowersAndRewards.map(
-                    likeWithVotingPowerAndReward => ({
+                    (likeWithVotingPowerAndReward) => ({
                         txnTo:
                             likeWithVotingPowerAndReward.like.user
                                 .ethereumAddress,
@@ -767,7 +832,7 @@ export class MemezatorService extends NestSchedule {
                         .toString(),
                 },
                 ...winners.thirdPlace.likesWithVotingPowersAndRewards.map(
-                    likeWithVotingPowerAndReward => ({
+                    (likeWithVotingPowerAndReward) => ({
                         txnTo:
                             likeWithVotingPowerAndReward.like.user
                                 .ethereumAddress,
@@ -780,7 +845,7 @@ export class MemezatorService extends NestSchedule {
         }
 
         const transactions: Transaction[] = inputsForTransactionsCreation.map(
-            inputForTransactionsCreation =>
+            (inputForTransactionsCreation) =>
                 new Transaction({
                     id: uuid(),
                     createdAt: new Date(),
@@ -799,7 +864,8 @@ export class MemezatorService extends NestSchedule {
     }
 
     private getMarkdownLinkForUser(user: User): string {
-        return `[${user.displayedName}](${user.username ||
-            user.ethereumAddress})`;
+        return `[${user.displayedName}](${
+            user.username || user.ethereumAddress
+            })`;
     }
 }
