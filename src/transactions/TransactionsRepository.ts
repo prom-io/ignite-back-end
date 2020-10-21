@@ -1,3 +1,5 @@
+import { NotStartedRewardsTransactions } from './entities/NotStartedRewardTransactions';
+import { NotStartedRewardsTransactionsRepository } from './NotStartedRewardsTransactionsRepository';
 import {
     Repository,
     EntityRepository,
@@ -58,7 +60,7 @@ export class TransactionsRepository extends Repository<Transaction> {
      * Возвращает сумму выигрышей, которые не отправлены, но будут отправлены позже
      */
     async getPendingRewardsSum(address: string): Promise<string> {
-        const {pendingRewardsSum} =  await this.createQueryBuilder("transaction")
+        const { pendingRewardsSum } = await this.createQueryBuilder("transaction")
             .select(`SUM(transaction."txnSum") as "pendingRewardsSum"`)
             .where(`LOWER(transaction."txnTo") = LOWER(:address)`, { address })
             .andWhere(`transaction.txnSubj = :subject`, { subject: TransactionSubject.REWARD })
@@ -71,10 +73,47 @@ export class TransactionsRepository extends Repository<Transaction> {
         return pendingRewardsSum || "0";
     }
 
+    public async getRewardsTransactionsByUser(
+        user: User,
+        filters: GetTransactionsFilters): Promise<NotStartedRewardsTransactions[]> {
+
+        const commonConditions: FindConditions<NotStartedRewardsTransactions> = {};
+
+        if (filters.txnHash) {
+            commonConditions.txnHash = filters.txnHash;
+        }
+
+        if (filters.txnStatus) {
+            commonConditions.txnStatus = filters.txnStatus;
+        }
+
+        const qb = this.createQueryBuilder("notStartedRewardsTransactions")
+            .where(commonConditions)
+            .andWhere(
+                `LOWER("notStartedRewardsTransactions"."txnTo") = LOWER(:ethereumAddress)`,
+                { ethereumAddress: user.ethereumAddress }
+            )
+
+        if (filters.skip) {
+            qb.skip(filters.skip)
+        }
+
+        if (filters.take) {
+            qb.take(filters.take)
+        }
+
+        qb.orderBy("notStartedRewardsTransactions.txnDate", "DESC")
+
+        return qb.getMany()
+    }
+
     async findByUser(
         user: User,
         filters: GetTransactionsFilters,
     ): Promise<Transaction[]> {
+
+        const userRewardsTransactions = await this.getRewardsTransactionsByUser(user, filters)
+
         const commonConditions: FindConditions<Transaction> = {};
 
         if (filters.txnHash) {
@@ -89,7 +128,7 @@ export class TransactionsRepository extends Repository<Transaction> {
             .where(commonConditions)
             .andWhere(
                 `(LOWER(transaction."txnFrom") = LOWER(:ethereumAddress) OR LOWER(transaction."txnTo") = LOWER(:ethereumAddress))`,
-                {ethereumAddress: user.ethereumAddress}
+                { ethereumAddress: user.ethereumAddress }
             )
 
         if (filters.skip) {
@@ -100,9 +139,9 @@ export class TransactionsRepository extends Repository<Transaction> {
             qb.take(filters.take)
         }
 
-        qb.orderBy("transaction.txnDate", "DESC")
+        const tansactions = await qb.orderBy("transaction.txnDate", "DESC").getMany()
 
-        return qb.getMany()
+        return [...userRewardsTransactions, ...tansactions]
     }
 
     async getNotStartedRewardTxnsIdsAndReceiversAndRewardsSums(options: {

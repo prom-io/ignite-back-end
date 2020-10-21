@@ -1,3 +1,4 @@
+import { NotStartedRewardsTransactionsRepository } from './NotStartedRewardsTransactionsRepository';
 import { Injectable } from "@nestjs/common";
 import { LoggerService } from "nest-logger";
 import { NestSchedule, Cron } from "nest-schedule";
@@ -13,6 +14,7 @@ export class TransactionsPerformerCronService extends NestSchedule {
   constructor(
     private readonly logger: LoggerService,
     private readonly transactionsRep: TransactionsRepository,
+    private readonly notStartedRewardsTransactionsRep: NotStartedRewardsTransactionsRepository,
     private readonly tokenExchangeService: TokenExchangeService,
   ) {
     super()
@@ -23,7 +25,7 @@ export class TransactionsPerformerCronService extends NestSchedule {
    * 
    * @todo implement
    */
-  @Cron("0 12 * * 1", {waiting: true})
+  @Cron("0 12 * * 1", { waiting: true })
   public async performNotStartedRewardTransactionsCron(): Promise<void> {
     this.logger.info("performNotStartedRewardTransactionsCron: cron tick")
   }
@@ -31,9 +33,11 @@ export class TransactionsPerformerCronService extends NestSchedule {
   public async performNotStartedRewardTransactions(options: { receiversLimit?: number }): Promise<void> {
     this.logger.info(`performNotStartedRewardTransactions: called with options: ${JSON.stringify(options)}`)
 
-    const rewardReceiversWithRewardsSumsAndTxnIds = await this.transactionsRep.getNotStartedRewardTxnsIdsAndReceiversAndRewardsSums({
-      receiversLimit: options.receiversLimit
-    })
+    const rewardReceiversWithRewardsSumsAndTxnIds = await this.transactionsRep.getNotStartedRewardTxnsIdsAndReceiversAndRewardsSums(
+      {
+        receiversLimit: options.receiversLimit
+      }
+    )
 
     await this.performSpecifiedNotStartedRewardTransactions(rewardReceiversWithRewardsSumsAndTxnIds)
   }
@@ -52,14 +56,14 @@ export class TransactionsPerformerCronService extends NestSchedule {
         if (!result.allSpecifiedTransactionsAreNotStarted) {
           this.logger.error(
             `performNotStartedRewardTransactions: Transactions of ${JSON.stringify(rewardReceiverWithRewardsSumAndTxnIds)} have been changed since aggregation. ` +
-            `Current transactions in NOT_STARTED status are: ${JSON.stringify(result.currentNotStartedTransactionsIds)}. ` + 
+            `Current transactions in NOT_STARTED status are: ${JSON.stringify(result.currentNotStartedTransactionsIds)}. ` +
             `Following statuses are not with NOT_STARTED status anymore: ${JSON.stringify(result.idsOfStatusesNotInNotStartedStatus)}`
           )
 
           continue;
         }
 
-        await this.transactionsRep.update(
+        await this.notStartedRewardsTransactionsRep.update(
           {
             id: In(rewardReceiverWithRewardsSumAndTxnIds.txnIds),
           },
@@ -76,7 +80,7 @@ export class TransactionsPerformerCronService extends NestSchedule {
 
         this.logger.info(`performNotStartedRewardTransactions: transaction performed for ${JSON.stringify(rewardReceiverWithRewardsSumAndTxnIds)} with hash: ${txnHash}`)
 
-        await this.transactionsRep.update(
+        await this.notStartedRewardsTransactionsRep.update(
           {
             id: In(rewardReceiverWithRewardsSumAndTxnIds.txnIds),
           },
@@ -90,7 +94,7 @@ export class TransactionsPerformerCronService extends NestSchedule {
         this.logger.info(`performNotStartedRewardTransactions: transaction hash ${txnHash} recorded to DB for receiver ${rewardReceiverWithRewardsSumAndTxnIds.txnTo}`)
       } catch (error) {
         this.logger.error(`performNotStartedRewardTransactions: error occurred ${error}`)
-        await this.transactionsRep.update(
+        await this.notStartedRewardsTransactionsRep.update(
           {
             id: In(rewardReceiverWithRewardsSumAndTxnIds.txnIds),
           },
@@ -105,7 +109,7 @@ export class TransactionsPerformerCronService extends NestSchedule {
   }
 
   private async checkIfTransactionsAreStillInNotStartedStatus(transactionIds: string[]) {
-    const currentNotStartedTransactionsIds: string[] = await this.transactionsRep.find({
+    const currentNotStartedTransactionsIds: string[] = await this.notStartedRewardsTransactionsRep.find({
       select: ["id"],
       where: {
         id: In(transactionIds),

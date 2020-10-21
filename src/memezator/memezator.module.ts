@@ -1,3 +1,4 @@
+import { NotStartedRewardsTransactions } from './../transactions/entities/NotStartedRewardTransactions';
 import { forwardRef, Module } from "@nestjs/common";
 import { MemezatorService } from "./memezator.service";
 import { TypeOrmModule } from "@nestjs/typeorm";
@@ -20,6 +21,7 @@ import { VotingPowerPurchaseRepository } from "./voting-power-purchase.repositor
     TokenExchangeModule,
     TransactionsModule,
     TypeOrmModule.forFeature([
+      NotStartedRewardsTransactions,
       TransactionsRepository,
       MemezatorContestResultRepository,
       StatusesRepository,
@@ -32,4 +34,4 @@ import { VotingPowerPurchaseRepository } from "./voting-power-purchase.repositor
   controllers: [MemezatorController],
   exports: [MemezatorService],
 })
-export class MemezatorModule {}
+export class MemezatorModule { }

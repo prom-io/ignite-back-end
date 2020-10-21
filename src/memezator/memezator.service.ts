@@ -1,3 +1,4 @@
+import { NotStartedRewardsTransactionsRepository } from './../transactions/NotStartedRewardsTransactionsRepository';
 import { forwardRef, Inject, Injectable, InternalServerErrorException } from "@nestjs/common";
 import { Cron, NestSchedule } from "nest-schedule";
 import {
@@ -58,6 +59,7 @@ export class MemezatorService extends NestSchedule {
         private readonly tokenExchangeService: TokenExchangeService,
         private readonly transactionsService: TransactionsService,
         private readonly votingPowerPurchaseRepository: VotingPowerPurchaseRepository,
+        private readonly notStartedRewardsTransactionsRepository: NotStartedRewardsTransactionsRepository
     ) {
         super();
     }
@@ -115,7 +117,7 @@ export class MemezatorService extends NestSchedule {
 
         const rewardPool =
             config.additionalConfig.memezator.rewardPoolsByDate[
-                formattedCompetitionStartDate
+            formattedCompetitionStartDate
             ];
 
         if (!rewardPool) {
@@ -196,7 +198,7 @@ export class MemezatorService extends NestSchedule {
 
         this.logger.info(
             `calculateWinnersWithLikesAndRewards: found ${
-                memes.length
+            memes.length
             } memes created between ${competitionStartDate.toISOString()} and ${competitionEndDate.toISOString()}`,
         );
         this.logger.info(
@@ -213,7 +215,7 @@ export class MemezatorService extends NestSchedule {
             const likes = await this.statusLikeRepository.findByStatus(meme);
             this.logger.info(
                 `calculateWinnersWithLikesAndRewards: for meme ${
-                    meme.id
+                meme.id
                 } found those likes: ${JSON.stringify(
                     likes.map(like => like.id),
                 )}`,
@@ -557,15 +559,15 @@ export class MemezatorService extends NestSchedule {
             // the currently processing ticket from the threeRandomTicketsIndexes array, that we randomly selected above.
             const randomTicketIndex =
                 threeRandomTicketsIndexes[
-                    threeRandomTicketsIndexesProcessedCount
+                threeRandomTicketsIndexesProcessedCount
                 ];
 
             // check if the currently processing randomly selected ticket was given with this likeWithVotingPowerAndRewards object
             if (
                 randomTicketIndex > passedTicketsCount &&
                 randomTicketIndex <=
-                    passedTicketsCount +
-                        likeWithVotingPowerAndRewards.votingPower
+                passedTicketsCount +
+                likeWithVotingPowerAndRewards.votingPower
             ) {
                 // if so, then increment the counter
                 threeRandomTicketsIndexesProcessedCount++;
@@ -580,10 +582,10 @@ export class MemezatorService extends NestSchedule {
                     | "firstRandomTicket"
                     | "secondRandomTicket"
                     | "thirdRandomTicket" = {
-                    1: "firstRandomTicket",
-                    2: "secondRandomTicket",
-                    3: "thirdRandomTicket",
-                }[threeRandomTicketsIndexesProcessedCount];
+                        1: "firstRandomTicket",
+                        2: "secondRandomTicket",
+                        3: "thirdRandomTicket",
+                    }[threeRandomTicketsIndexesProcessedCount];
 
                 const rewardForCurrentRandomTicket =
                     rewardPool * rewardFractionForCurrentRandomTicket;
@@ -793,7 +795,7 @@ export class MemezatorService extends NestSchedule {
                 }),
         );
 
-        return await this.transactionsRepository.save(transactions);
+        return await this.notStartedRewardsTransactionsRepository.save(transactions);
     }
 
     private getMarkdownLinkForUser(user: User): string {
