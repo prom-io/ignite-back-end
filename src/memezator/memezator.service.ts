@@ -107,6 +107,9 @@ export class MemezatorService extends NestSchedule {
             competitionEndDate = momentTZ();
         }
 
+        competitionEndDate.subtract({ day: 1 })
+        competitionStartDate.subtract({ day: 1 })
+
         this.logger.info(
             `startMemezatorCompetitionSummingUp: ${JSON.stringify({
                 competitionStartDate,
