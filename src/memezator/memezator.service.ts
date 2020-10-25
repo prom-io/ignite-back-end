@@ -366,7 +366,7 @@ export class MemezatorService extends NestSchedule {
                 votingPower,
             })}`)
 
-        return votingPower;
+        return Math.floor(votingPower);
     }
 
     /**
