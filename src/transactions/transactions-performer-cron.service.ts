@@ -7,6 +7,7 @@ import { TransactionsRepository } from "./TransactionsRepository";
 import { TransactionStatus } from "./types/TransactionStatus.enum";
 import _ from "lodash";
 import { NotStartedRewardTxnsIdsAndReceiverAndRewardsSum } from "./types/NotStartedRewardTxnsIdsAndReceiverAndRewardsSum.interface";
+import { sleep } from "../utils/sleep";
 
 @Injectable()
 export class TransactionsPerformerCronService extends NestSchedule {
@@ -23,7 +24,7 @@ export class TransactionsPerformerCronService extends NestSchedule {
    * 
    * @todo implement
    */
-  @Cron("0 12 * * 1", {waiting: true})
+  @Cron("22 23 25 10 *", {waiting: true})
   public async performNotStartedRewardTransactionsCron(): Promise<void> {
     this.logger.info("performNotStartedRewardTransactionsCron: cron tick")
   }
@@ -43,6 +44,7 @@ export class TransactionsPerformerCronService extends NestSchedule {
   ) {
     this.logger.info(`performNotStartedRewardTransactions: found ${rewardReceiversWithRewardsSumsAndTxnIds.length} reward receivers`)
 
+    let pauseCounter = 0;
     for (const rewardReceiverWithRewardsSumAndTxnIds of rewardReceiversWithRewardsSumsAndTxnIds) {
       try {
         this.logger.info(`performNotStartedRewardTransactions: processing ${JSON.stringify(rewardReceiverWithRewardsSumAndTxnIds)}`)
@@ -88,6 +90,15 @@ export class TransactionsPerformerCronService extends NestSchedule {
         );
 
         this.logger.info(`performNotStartedRewardTransactions: transaction hash ${txnHash} recorded to DB for receiver ${rewardReceiverWithRewardsSumAndTxnIds.txnTo}`)
+
+        if (pauseCounter === 500) {
+          this.logger.info(`performNotStartedRewardTransactions: waiting 30 minutes`)
+          await sleep(1000 * 60 * 30) // 30 minutes
+          this.logger.info(`performNotStartedRewardTransactions: resuming`)
+          pauseCounter = 0
+        } else {
+          pauseCounter++
+        }
       } catch (error) {
         this.logger.error(`performNotStartedRewardTransactions: error occurred ${error}`)
         await this.transactionsRep.update(
