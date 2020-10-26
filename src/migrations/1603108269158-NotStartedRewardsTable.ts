@@ -1,11 +1,10 @@
-import { lowerCase } from 'lodash';
 import { MigrationInterface, QueryRunner, Table } from "typeorm";
 
 export class NotStartedRewardsTable1603108269158 implements MigrationInterface {
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.createTable(new Table({
-            name: "Reward",
+            name: "rewards",
             indices: [{ columnNames: ["createdAt", "txnHash", "txnStatus"] }],
             columns: [
                 {
@@ -53,6 +52,6 @@ export class NotStartedRewardsTable1603108269158 implements MigrationInterface {
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.dropTable("Reward")
+        await queryRunner.dropTable("rewards")
     }
 }

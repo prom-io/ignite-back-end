@@ -3,7 +3,7 @@ import { TransactionStatus } from '../types/TransactionStatus.enum';
 import { Column, PrimaryColumn, Entity } from "typeorm";
 
 
-@Entity()
+@Entity({ name: "rewards" })
 export class Reward {
 
     @PrimaryColumn()

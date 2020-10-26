@@ -72,40 +72,6 @@ export class TransactionsRepository extends Repository<Transaction> {
         return pendingRewardsSum || "0";
     }
 
-    // public async getRewardsTransactionsByUser(
-    //     user: User,
-    //     filters: GetTransactionsFilters): Promise<Reward[]> {
-
-    //     const commonConditions: FindConditions<Reward> = {};
-
-    //     if (filters.txnHash) {
-    //         commonConditions.txnHash = filters.txnHash;
-    //     }
-
-    //     if (filters.txnStatus) {
-    //         commonConditions.txnStatus = filters.txnStatus;
-    //     }
-
-    //     const qb = this.createQueryBuilder("reward")
-    //         .where(commonConditions)
-    //         .andWhere(
-    //             `LOWER("reward"."txnTo") = LOWER(:ethereumAddress)`,
-    //             { ethereumAddress: user.ethereumAddress }
-    //         )
-
-    //     if (filters.skip) {
-    //         qb.skip(filters.skip)
-    //     }
-
-    //     if (filters.take) {
-    //         qb.take(filters.take)
-    //     }
-
-    //     qb.orderBy("reward.txnDate", "DESC")
-
-    //     return qb.getMany()
-    // }
-
     async findByUser(
         user: User,
         filters: GetTransactionsFilters,
