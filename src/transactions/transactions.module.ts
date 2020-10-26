@@ -1,4 +1,4 @@
-import { NotStartedRewardsTransactions } from './entities/NotStartedRewardTransactions';
+import { Reward } from './entities/Reward';
 import { Module } from "@nestjs/common";
 import { TransactionsService } from "./transactions.service";
 import { TypeOrmModule } from "@nestjs/typeorm";
@@ -20,7 +20,7 @@ import { VotingPowerPurchaseCronService } from "../memezator/voting-power-purcha
             TransactionsRepository,
             VotingPowerPurchaseRepository,
             UsersRepository,
-            NotStartedRewardsTransactions
+            Reward
         ]),
         TokenExchangeModule,
     ],

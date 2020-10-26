@@ -1,11 +1,10 @@
-import { TokenTransfer } from './../../bsc-api/types';
-import { TransactionSubject } from './../types/TransactionSubject.enum';
-import { TransactionStatus } from './../types/TransactionStatus.enum';
+import { TokenTransfer } from '../../bsc-api/types';
+import { TransactionStatus } from '../types/TransactionStatus.enum';
 import { Column, PrimaryColumn, Entity } from "typeorm";
 
 
 @Entity()
-export class NotStartedRewardsTransactions {
+export class Reward {
 
     @PrimaryColumn()
     id: string;
@@ -23,16 +22,13 @@ export class NotStartedRewardsTransactions {
     txnStatus: TransactionStatus;
 
     @Column()
-    txnFrom: string;
-
-    @Column()
     txnTo: string;
 
     @Column({ type: "numeric" })
     txnSum: string;
 
     @Column({ type: "varchar" })
-    txnSubj: TransactionSubject;
+    txnId: string;
 
     @Column({ type: "jsonb" })
     txnDetails: {
@@ -40,7 +36,7 @@ export class NotStartedRewardsTransactions {
         memezatorContestResultId?: string,
     };
 
-    constructor(fields: NotStartedRewardsTransactions) {
+    constructor(fields: Reward) {
         Object.assign(this, fields)
     }
 }

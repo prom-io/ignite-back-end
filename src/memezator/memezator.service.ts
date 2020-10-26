@@ -1,4 +1,4 @@
-import { NotStartedRewardsTransactionsRepository } from './../transactions/NotStartedRewardsTransactionsRepository';
+import { RewardRepository } from '../transactions/RewardRepository';
 import {
     forwardRef,
     Inject,
@@ -64,7 +64,7 @@ export class MemezatorService extends NestSchedule {
         private readonly tokenExchangeService: TokenExchangeService,
         private readonly transactionsService: TransactionsService,
         private readonly votingPowerPurchaseRepository: VotingPowerPurchaseRepository,
-        private readonly notStartedRewardsTransactionsRepository: NotStartedRewardsTransactionsRepository
+        private readonly rewardsTransactionsRep: RewardRepository
     ) {
         super();
     }
@@ -108,6 +108,9 @@ export class MemezatorService extends NestSchedule {
             competitionStartDate = getCurrentMemezatorContestStartTime();
             competitionEndDate = momentTZ();
         }
+
+        competitionStartDate = momentTZ("2020-10-24T22:00:00.000Z").tz(config.MEMEZATOR_TIMEZONE)
+        competitionEndDate = momentTZ("2020-10-25T23:00:00.000Z").tz(config.MEMEZATOR_TIMEZONE)
 
         this.logger.info(
             `startMemezatorCompetitionSummingUp: ${JSON.stringify({
@@ -365,7 +368,7 @@ export class MemezatorService extends NestSchedule {
             votingPower,
         })}`)
 
-        return votingPower;
+        return Math.floor(votingPower);
     }
 
     /**
@@ -612,6 +615,8 @@ export class MemezatorService extends NestSchedule {
         );
         let threeRandomTicketsIndexesProcessedCount = 0;
         let passedTicketsCount = 0;
+
+        this.logger.info(`calculateAndAssignRewardsTo3RandomTickets: threeRandomTicketsIndexes: ${JSON.stringify(threeRandomTicketsIndexes)}`)
 
         for (const likeWithVotingPowerAndRewards of memeWithLikesAndVotingPowers.likesWithVotingPowersAndRewards) {
             await setImmediatePromise();
@@ -860,7 +865,9 @@ export class MemezatorService extends NestSchedule {
                 }),
         );
 
-        return await this.notStartedRewardsTransactionsRepository.save(transactions);
+        await this.transactionsRepository.save(transactions)
+
+        return await this.rewardsTransactionsRep.save(transactions);
     }
 
     private getMarkdownLinkForUser(user: User): string {

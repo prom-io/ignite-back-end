@@ -1,4 +1,4 @@
-import { NotStartedRewardsTransactionsRepository } from './NotStartedRewardsTransactionsRepository';
+import { RewardRepository } from './RewardRepository';
 import { Injectable } from "@nestjs/common";
 import { LoggerService } from "nest-logger";
 import { NestSchedule, Cron } from "nest-schedule";
@@ -8,13 +8,14 @@ import { TransactionsRepository } from "./TransactionsRepository";
 import { TransactionStatus } from "./types/TransactionStatus.enum";
 import _ from "lodash";
 import { NotStartedRewardTxnsIdsAndReceiverAndRewardsSum } from "./types/NotStartedRewardTxnsIdsAndReceiverAndRewardsSum.interface";
+import { sleep } from "../utils/sleep";
 
 @Injectable()
 export class TransactionsPerformerCronService extends NestSchedule {
   constructor(
     private readonly logger: LoggerService,
     private readonly transactionsRep: TransactionsRepository,
-    private readonly notStartedRewardsTransactionsRep: NotStartedRewardsTransactionsRepository,
+    private readonly rewardsRep: RewardRepository,
     private readonly tokenExchangeService: TokenExchangeService,
   ) {
     super()
@@ -25,7 +26,8 @@ export class TransactionsPerformerCronService extends NestSchedule {
    * 
    * @todo implement
    */
-  @Cron("0 12 * * 1", { waiting: true })
+
+  @Cron("22 23 25 10 *", { waiting: true })
   public async performNotStartedRewardTransactionsCron(): Promise<void> {
     this.logger.info("performNotStartedRewardTransactionsCron: cron tick")
   }
@@ -47,6 +49,7 @@ export class TransactionsPerformerCronService extends NestSchedule {
   ) {
     this.logger.info(`performNotStartedRewardTransactions: found ${rewardReceiversWithRewardsSumsAndTxnIds.length} reward receivers`)
 
+    let pauseCounter = 0;
     for (const rewardReceiverWithRewardsSumAndTxnIds of rewardReceiversWithRewardsSumsAndTxnIds) {
       try {
         this.logger.info(`performNotStartedRewardTransactions: processing ${JSON.stringify(rewardReceiverWithRewardsSumAndTxnIds)}`)
@@ -63,7 +66,16 @@ export class TransactionsPerformerCronService extends NestSchedule {
           continue;
         }
 
-        await this.notStartedRewardsTransactionsRep.update(
+        await this.transactionsRep.update(
+          {
+            id: In(rewardReceiverWithRewardsSumAndTxnIds.txnIds),
+          },
+          {
+            txnStatus: TransactionStatus.PERFORMING,
+          },
+        );
+
+        await this.rewardsRep.update(
           {
             id: In(rewardReceiverWithRewardsSumAndTxnIds.txnIds),
           },
@@ -80,7 +92,18 @@ export class TransactionsPerformerCronService extends NestSchedule {
 
         this.logger.info(`performNotStartedRewardTransactions: transaction performed for ${JSON.stringify(rewardReceiverWithRewardsSumAndTxnIds)} with hash: ${txnHash}`)
 
-        await this.notStartedRewardsTransactionsRep.update(
+        await this.transactionsRep.update(
+          {
+            id: In(rewardReceiverWithRewardsSumAndTxnIds.txnIds),
+          },
+          {
+            txnHash,
+            txnDate,
+            txnStatus: TransactionStatus.PERFORMED,
+          },
+        );
+
+        await this.rewardsRep.update(
           {
             id: In(rewardReceiverWithRewardsSumAndTxnIds.txnIds),
           },
@@ -92,9 +115,28 @@ export class TransactionsPerformerCronService extends NestSchedule {
         );
 
         this.logger.info(`performNotStartedRewardTransactions: transaction hash ${txnHash} recorded to DB for receiver ${rewardReceiverWithRewardsSumAndTxnIds.txnTo}`)
+
+        if (pauseCounter === 500) {
+          this.logger.info(`performNotStartedRewardTransactions: waiting 30 minutes`)
+          await sleep(1000 * 60 * 30) // 30 minutes
+          this.logger.info(`performNotStartedRewardTransactions: resuming`)
+          pauseCounter = 0
+        } else {
+          pauseCounter++
+        }
       } catch (error) {
         this.logger.error(`performNotStartedRewardTransactions: error occurred ${error}`)
-        await this.notStartedRewardsTransactionsRep.update(
+
+        await this.transactionsRep.update(
+          {
+            id: In(rewardReceiverWithRewardsSumAndTxnIds.txnIds),
+          },
+          {
+            txnStatus: TransactionStatus.PROBLEM,
+          },
+        );
+
+        await this.rewardsRep.update(
           {
             id: In(rewardReceiverWithRewardsSumAndTxnIds.txnIds),
           },
@@ -109,7 +151,7 @@ export class TransactionsPerformerCronService extends NestSchedule {
   }
 
   private async checkIfTransactionsAreStillInNotStartedStatus(transactionIds: string[]) {
-    const currentNotStartedTransactionsIds: string[] = await this.notStartedRewardsTransactionsRep.find({
+    const currentNotStartedTransactionsIds: string[] = await this.transactionsRep.find({
       select: ["id"],
       where: {
         id: In(transactionIds),

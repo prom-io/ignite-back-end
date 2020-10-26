@@ -1,4 +1,3 @@
-import { NotStartedRewardsTransactions } from './../transactions/entities/NotStartedRewardTransactions';
 import { forwardRef, Module } from "@nestjs/common";
 import { MemezatorService } from "./memezator.service";
 import { TypeOrmModule } from "@nestjs/typeorm";
@@ -13,6 +12,7 @@ import { ScheduleModule } from "nest-schedule";
 import { TokenExchangeModule } from "../token-exchange";
 import { TransactionsModule } from "../transactions/transactions.module";
 import { VotingPowerPurchaseRepository } from "./voting-power-purchase.repository";
+import { Reward } from "../transactions/entities/Reward";
 
 @Module({
   imports: [
@@ -21,7 +21,7 @@ import { VotingPowerPurchaseRepository } from "./voting-power-purchase.repositor
     TokenExchangeModule,
     TransactionsModule,
     TypeOrmModule.forFeature([
-      NotStartedRewardsTransactions,
+      Reward,
       TransactionsRepository,
       MemezatorContestResultRepository,
       StatusesRepository,

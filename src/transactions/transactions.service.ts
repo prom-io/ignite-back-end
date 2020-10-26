@@ -1,4 +1,4 @@
-import { NotStartedRewardsTransactionsRepository } from './NotStartedRewardsTransactionsRepository';
+import { RewardRepository } from './RewardRepository';
 import { Injectable } from "@nestjs/common";
 import { TransactionsRepository } from "./TransactionsRepository";
 import { Transaction } from "./entities/Transaction";
@@ -19,7 +19,7 @@ export class TransactionsService {
     private readonly tokenExchangeService: TokenExchangeService,
     private readonly transactionsMapper: TransactionMapper,
     private readonly logger: LoggerService,
-    private readonly notStartedRewardsTransactionsRepository: NotStartedRewardsTransactionsRepository
+    private readonly rewardsTransactionsRep: RewardRepository
   ) { }
 
   public async performTransactionsByIds(transactionsIds: string[]): Promise<Transaction[]> {
@@ -64,7 +64,9 @@ export class TransactionsService {
     transaction.txnDate = new Date()
     transaction.txnStatus = TransactionStatus.PERFORMED
 
-    await this.notStartedRewardsTransactionsRepository.save(transaction)
+    await this.transactionsRepository.save(transaction)
+
+    await this.rewardsTransactionsRep.save(transaction)
 
     return transaction
   }

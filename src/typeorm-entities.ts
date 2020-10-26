@@ -1,4 +1,4 @@
-import { NotStartedRewardsTransactions } from './transactions/entities/NotStartedRewardTransactions';
+import { Reward } from './transactions/entities/Reward';
 import { User, UserPreferences, UserStatistics, SignUpReference } from "./users/entities";
 import { UserSubscription } from "./user-subscriptions/entities";
 import { HashTag, HashTagSubscription, Status, StatusLike } from "./statuses/entities";
@@ -26,5 +26,5 @@ export const entities = [
     MemezatorContestResult,
     Transaction,
     VotingPowerPurchase,
-    NotStartedRewardsTransactions
+    Reward
 ];
