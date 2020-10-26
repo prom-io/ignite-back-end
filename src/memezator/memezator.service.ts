@@ -107,9 +107,6 @@ export class MemezatorService extends NestSchedule {
             competitionEndDate = momentTZ();
         }
 
-        competitionStartDate = momentTZ("2020-10-24T22:00:00.000Z").tz(config.MEMEZATOR_TIMEZONE)
-        competitionEndDate = momentTZ("2020-10-25T23:00:00.000Z").tz(config.MEMEZATOR_TIMEZONE)
-
         this.logger.info(
             `startMemezatorCompetitionSummingUp: ${JSON.stringify({
                 competitionStartDate,
