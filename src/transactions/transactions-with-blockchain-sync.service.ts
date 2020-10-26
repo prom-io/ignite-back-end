@@ -21,11 +21,11 @@ export class TransactionsWithBlockchainSync extends NestSchedule {
         super();
     }
 
-    // @Cron("*/10 * * * *", {
-    //     waiting: true,
-    //     enable: !config.DISABLE_NEW_TOKEN_TRANSFERS_SYNC,
-    //     immediate: true,
-    // })
+    @Cron("*/10 * * * *", {
+        waiting: true,
+        enable: !config.DISABLE_NEW_TOKEN_TRANSFERS_SYNC,
+        immediate: true,
+    })
     async newTransactionsSynchronizerCron() {
         await this.synchronizeNewTransactions();
     }
