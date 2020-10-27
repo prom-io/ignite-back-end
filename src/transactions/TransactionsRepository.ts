@@ -15,7 +15,6 @@ import { TransactionStatus } from "./types/TransactionStatus.enum";
 import { TransactionSubject } from "./types/TransactionSubject.enum";
 import { NotStartedRewardTxnsIdsAndReceiverAndRewardsSum } from "./types/NotStartedRewardTxnsIdsAndReceiverAndRewardsSum.interface";
 import Big from "big.js";
-import { Reward } from "./entities/Reward";
 
 @EntityRepository(Transaction)
 export class TransactionsRepository extends Repository<Transaction> {

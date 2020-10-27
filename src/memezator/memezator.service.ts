@@ -1,3 +1,4 @@
+import { Reward } from './../transactions/entities/Reward';
 import { RewardRepository } from '../transactions/RewardRepository';
 import {
     forwardRef,
@@ -865,9 +866,25 @@ export class MemezatorService extends NestSchedule {
                 }),
         );
 
-        await this.transactionsRepository.save(transactions)
+        const rewardsTransactions: Reward[] = inputsForTransactionsCreation.map(
+            inputForTransactionsCreation =>
+                new Reward({
+                    id: uuid(),
+                    createdAt: new Date(),
+                    txnTo: inputForTransactionsCreation.txnTo,
+                    txnSum: inputForTransactionsCreation.txnSum,
+                    txnStatus: TransactionStatus.NOT_STARTED,
+                    txnId: inputForTransactionsCreation.txnTo,
+                    txnDetails: {
+                        memezatorContestResultId
+                    }
+                })
+        )
 
-        return await this.rewardsTransactionsRep.save(transactions);
+        await this.rewardsTransactionsRep.save(rewardsTransactions);
+
+        return await this.transactionsRepository.save(transactions)
+
     }
 
     private getMarkdownLinkForUser(user: User): string {

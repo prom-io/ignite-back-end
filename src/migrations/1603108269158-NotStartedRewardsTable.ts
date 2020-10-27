@@ -39,7 +39,12 @@ export class NotStartedRewardsTable1603108269158 implements MigrationInterface {
                 },
                 {
                     name: "txnSum",
-                    type: "numeric",
+                    type: "numeric(128, 18)",
+                    isNullable: false,
+                },
+                {
+                    name: "txnId",
+                    type: "varchar",
                     isNullable: false,
                 },
                 {
