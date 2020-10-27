@@ -149,7 +149,7 @@ export class StatusesMapper {
             repostsCount,
             referredStatusId,
             btfsInfo: btfsHash && this.btfsHashesMapper.toBtfsHashResponse(btfsHash),
-            commentsCount,
+            commentsCount: status.commentsCount,
             statusReferenceType: status.statusReferenceType,
             referredStatusReferenceType,
             canBeReposted,

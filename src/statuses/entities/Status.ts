@@ -51,6 +51,9 @@ export class Status {
     @Index()
     referredStatus?: Status;
 
+    @Column({nullable: true, default: 0})
+    commentsCount?: number;
+
     @Column({nullable: true, type: "varchar", enum: StatusReferenceType})
     @Index()
     statusReferenceType?: StatusReferenceType;

@@ -70,6 +70,11 @@ export class StatusesService {
             );
         }
 
+        if(referredStatus && createStatusRequest.statusReferenceType === StatusReferenceType.COMMENT) {
+            await this.statusesRepository.increment({id: referredStatus.id}, "commentsCount", 1)
+            referredStatus.commentsCount += 1;
+        }
+
         const hashTags = await this.hashTagsRetriever.getHashTagsEntitiesFromText(
             createStatusRequest.status,
             (currentUser.preferences && currentUser.preferences.language) ? currentUser.preferences.language : Language.ENGLISH
@@ -199,7 +204,6 @@ export class StatusesService {
         }
 
         const statusInfoMap = await this.statusesRepository.getStatusesAdditionalInfoMap(statuses, currentUser);
-
         return asyncMap(
             statuses,
             comment => this.statusesMapper.toStatusResponseByStatusInfo(
