@@ -24,7 +24,7 @@ export class PasswordHashApiClient {
         return this.axios.get(`/password/hash/${address}`);
     }
 
-    public async getPasswordHashByTransaction(transactionHash: string): Promise<GetPasswordHashResponse> {
+    public getPasswordHashByTransaction(transactionHash: string): AxiosPromise<GetPasswordHashResponse> {
         return this.axios.get(`/password/by-tx/${transactionHash}`);
     }
 
