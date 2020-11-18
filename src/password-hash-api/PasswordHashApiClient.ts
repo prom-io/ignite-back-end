@@ -25,18 +25,7 @@ export class PasswordHashApiClient {
     }
 
     public async getPasswordHashByTransaction(transactionHash: string): Promise<GetPasswordHashResponse> {
-        try {
-            const data = (await this.getPasswordHashByEthereumMainNetTransaction(transactionHash)).data;
-
-            if (data.hash && data.hash.length) {
-                return data;
-            } else {
-                throw new Error("Empty transaction data, trying to request data from Binance Chain");
-            }
-        } catch (error) {
-            console.log(error);
-            return (await this.getPasswordHashByBinanceChainTransaction(transactionHash)).data;
-        }
+        return this.axios.get(`/password/by-tx/${transactionHash}`);
     }
 
     public getPasswordHashByBinanceChainTransaction(transactionHash: string): AxiosPromise<GetPasswordHashResponse> {
@@ -47,3 +36,4 @@ export class PasswordHashApiClient {
         return this.axios.get(`/password/mainnet/${transactionHash}`);
     }
 }
+
