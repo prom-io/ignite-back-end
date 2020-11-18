@@ -555,9 +555,9 @@ export class UsersService {
         signUpReference?: SignUpReference,
     ): Promise<User> {
         try {
-            const passwordHashResponse = await this.passwordHashApiClient.getPasswordHashByTransaction(
+            const passwordHashResponse = (await this.passwordHashApiClient.getPasswordHashByTransaction(
                 transactionId,
-            );
+            )).data;
             const { hash, address: ethereumAddress } = passwordHashResponse;
 
             let user = await this.usersRepository.findByEthereumAddress(
@@ -1037,9 +1037,9 @@ export class UsersService {
         updatePasswordRequest: RecoverPasswordRequest,
     ): Promise<UserResponse> {
         const transactionId = updatePasswordRequest.transactionId!;
-        const getHashResponse = await this.passwordHashApiClient.getPasswordHashByTransaction(
+        const getHashResponse = (await this.passwordHashApiClient.getPasswordHashByTransaction(
             transactionId,
-        );
+        )).data;
 
         if (!this.passwordEncoder.isHashValid(getHashResponse.hash)) {
             throw new InvalidBCryptHashException(
