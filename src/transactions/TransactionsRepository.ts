@@ -1,3 +1,4 @@
+
 import {
     Repository,
     EntityRepository,
@@ -5,7 +6,6 @@ import {
     Equal,
     IsNull,
     Not,
-    SelectQueryBuilder,
 } from "typeorm";
 import { Transaction } from "./entities/Transaction";
 import { User } from "../users/entities";
@@ -58,7 +58,7 @@ export class TransactionsRepository extends Repository<Transaction> {
      * Возвращает сумму выигрышей, которые не отправлены, но будут отправлены позже
      */
     async getPendingRewardsSum(address: string): Promise<string> {
-        const {pendingRewardsSum} =  await this.createQueryBuilder("transaction")
+        const { pendingRewardsSum } = await this.createQueryBuilder("transaction")
             .select(`SUM(transaction."txnSum") as "pendingRewardsSum"`)
             .where(`LOWER(transaction."txnTo") = LOWER(:address)`, { address })
             .andWhere(`transaction.txnSubj = :subject`, { subject: TransactionSubject.REWARD })
@@ -75,6 +75,7 @@ export class TransactionsRepository extends Repository<Transaction> {
         user: User,
         filters: GetTransactionsFilters,
     ): Promise<Transaction[]> {
+
         const commonConditions: FindConditions<Transaction> = {};
 
         if (filters.txnHash) {
@@ -89,7 +90,7 @@ export class TransactionsRepository extends Repository<Transaction> {
             .where(commonConditions)
             .andWhere(
                 `(LOWER(transaction."txnFrom") = LOWER(:ethereumAddress) OR LOWER(transaction."txnTo") = LOWER(:ethereumAddress))`,
-                {ethereumAddress: user.ethereumAddress}
+                { ethereumAddress: user.ethereumAddress }
             )
 
         if (filters.skip) {

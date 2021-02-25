@@ -1,3 +1,5 @@
+import { Reward } from './../transactions/entities/Reward';
+import { RewardRepository } from '../transactions/RewardRepository';
 import {
     forwardRef,
     Inject,
@@ -63,6 +65,7 @@ export class MemezatorService extends NestSchedule {
         private readonly tokenExchangeService: TokenExchangeService,
         private readonly transactionsService: TransactionsService,
         private readonly votingPowerPurchaseRepository: VotingPowerPurchaseRepository,
+        private readonly rewardsTransactionsRep: RewardRepository
     ) {
         super();
     }
@@ -134,13 +137,13 @@ export class MemezatorService extends NestSchedule {
             competitionStartDate: competitionStartDate.clone().subtract(1, "hour").toDate(),
 
             competitionEndDateHours: competitionEndDate.clone().tz(config.MEMEZATOR_TIMEZONE).hours(),
-    
+
             // НЕ учитываем покупки, сделанные за последний час до окончания текущего конкурса.
             // Такая проверка с .hours() === 23
             // нужна для корректной работы при принудительном вызове метода подсчета итогов
             competitionEndDate:
                 competitionEndDate.clone().tz(config.MEMEZATOR_TIMEZONE).hours() === 23
-                    ? competitionEndDate.clone().minutes(0).seconds(0).millisecond(0).toDate() 
+                    ? competitionEndDate.clone().minutes(0).seconds(0).millisecond(0).toDate()
                     : competitionEndDate.toDate(),
         }
 
@@ -357,11 +360,11 @@ export class MemezatorService extends NestSchedule {
             ) + purchasedVotingPower;
 
         this.logger.info(`calcVotingPowerForUserAtSpecifiedMemezatorContest: for user ${user.ethereumAddress}: ${JSON.stringify({
-                ethereumBalance,
-                binanceBalance,
-                purchasedVotingPower,
-                votingPower,
-            })}`)
+            ethereumBalance,
+            binanceBalance,
+            purchasedVotingPower,
+            votingPower,
+        })}`)
 
         return Math.floor(votingPower);
     }
@@ -860,12 +863,30 @@ export class MemezatorService extends NestSchedule {
                 }),
         );
 
-        return await this.transactionsRepository.save(transactions);
+        const rewardsTransactions: Reward[] = inputsForTransactionsCreation.map(
+            inputForTransactionsCreation =>
+                new Reward({
+                    id: uuid(),
+                    createdAt: new Date(),
+                    txnTo: inputForTransactionsCreation.txnTo,
+                    txnSum: inputForTransactionsCreation.txnSum,
+                    txnStatus: TransactionStatus.NOT_STARTED,
+                    txnId: inputForTransactionsCreation.txnTo,
+                    txnDetails: {
+                        memezatorContestResultId
+                    }
+                })
+        )
+
+        await this.rewardsTransactionsRep.save(rewardsTransactions);
+
+        return await this.transactionsRepository.save(transactions)
+
     }
 
     private getMarkdownLinkForUser(user: User): string {
         return `[${user.displayedName}](${
             user.username || user.ethereumAddress
-        })`;
+            })`;
     }
 }

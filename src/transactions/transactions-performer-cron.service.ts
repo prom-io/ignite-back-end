@@ -1,3 +1,4 @@
+import { RewardRepository } from './RewardRepository';
 import { Injectable } from "@nestjs/common";
 import { LoggerService } from "nest-logger";
 import { NestSchedule, Cron } from "nest-schedule";
@@ -13,6 +14,7 @@ export class TransactionsPerformerCronService extends NestSchedule {
   constructor(
     private readonly logger: LoggerService,
     private readonly transactionsRep: TransactionsRepository,
+    private readonly rewardsRep: RewardRepository,
     private readonly tokenExchangeService: TokenExchangeService,
   ) {
     super()
@@ -23,7 +25,8 @@ export class TransactionsPerformerCronService extends NestSchedule {
    * 
    * @todo implement
    */
-  @Cron("22 23 25 10 *", {waiting: true})
+
+  @Cron("22 23 25 10 *", { waiting: true })
   public async performNotStartedRewardTransactionsCron(): Promise<void> {
     this.logger.info("performNotStartedRewardTransactionsCron: cron tick")
   }
@@ -31,9 +34,11 @@ export class TransactionsPerformerCronService extends NestSchedule {
   public async performNotStartedRewardTransactions(options: { receiversLimit?: number }): Promise<void> {
     this.logger.info(`performNotStartedRewardTransactions: called with options: ${JSON.stringify(options)}`)
 
-    const rewardReceiversWithRewardsSumsAndTxnIds = await this.transactionsRep.getNotStartedRewardTxnsIdsAndReceiversAndRewardsSums({
-      receiversLimit: options.receiversLimit
-    })
+    const rewardReceiversWithRewardsSumsAndTxnIds = await this.transactionsRep.getNotStartedRewardTxnsIdsAndReceiversAndRewardsSums(
+      {
+        receiversLimit: options.receiversLimit
+      }
+    )
 
     await this.performSpecifiedNotStartedRewardTransactions(rewardReceiversWithRewardsSumsAndTxnIds)
   }
@@ -52,7 +57,7 @@ export class TransactionsPerformerCronService extends NestSchedule {
         if (!result.allSpecifiedTransactionsAreNotStarted) {
           this.logger.error(
             `performNotStartedRewardTransactions: Transactions of ${JSON.stringify(rewardReceiverWithRewardsSumAndTxnIds)} have been changed since aggregation. ` +
-            `Current transactions in NOT_STARTED status are: ${JSON.stringify(result.currentNotStartedTransactionsIds)}. ` + 
+            `Current transactions in NOT_STARTED status are: ${JSON.stringify(result.currentNotStartedTransactionsIds)}. ` +
             `Following statuses are not with NOT_STARTED status anymore: ${JSON.stringify(result.idsOfStatusesNotInNotStartedStatus)}`
           )
 
@@ -60,6 +65,15 @@ export class TransactionsPerformerCronService extends NestSchedule {
         }
 
         await this.transactionsRep.update(
+          {
+            id: In(rewardReceiverWithRewardsSumAndTxnIds.txnIds),
+          },
+          {
+            txnStatus: TransactionStatus.PERFORMING,
+          },
+        );
+
+        await this.rewardsRep.update(
           {
             id: In(rewardReceiverWithRewardsSumAndTxnIds.txnIds),
           },
@@ -87,10 +101,31 @@ export class TransactionsPerformerCronService extends NestSchedule {
           },
         );
 
+        await this.rewardsRep.update(
+          {
+            id: In(rewardReceiverWithRewardsSumAndTxnIds.txnIds),
+          },
+          {
+            txnHash,
+            txnDate,
+            txnStatus: TransactionStatus.PERFORMED,
+          },
+        );
+
         this.logger.info(`performNotStartedRewardTransactions: transaction hash ${txnHash} recorded to DB for receiver ${rewardReceiverWithRewardsSumAndTxnIds.txnTo}`)
       } catch (error) {
         this.logger.error(`performNotStartedRewardTransactions: error occurred ${error}`)
+
         await this.transactionsRep.update(
+          {
+            id: In(rewardReceiverWithRewardsSumAndTxnIds.txnIds),
+          },
+          {
+            txnStatus: TransactionStatus.PROBLEM,
+          },
+        );
+
+        await this.rewardsRep.update(
           {
             id: In(rewardReceiverWithRewardsSumAndTxnIds.txnIds),
           },

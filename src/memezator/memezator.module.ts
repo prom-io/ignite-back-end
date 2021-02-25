@@ -12,6 +12,7 @@ import { ScheduleModule } from "nest-schedule";
 import { TokenExchangeModule } from "../token-exchange";
 import { TransactionsModule } from "../transactions/transactions.module";
 import { VotingPowerPurchaseRepository } from "./voting-power-purchase.repository";
+import { Reward } from "../transactions/entities/Reward";
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { VotingPowerPurchaseRepository } from "./voting-power-purchase.repositor
     TokenExchangeModule,
     TransactionsModule,
     TypeOrmModule.forFeature([
+      Reward,
       TransactionsRepository,
       MemezatorContestResultRepository,
       StatusesRepository,
@@ -32,4 +34,4 @@ import { VotingPowerPurchaseRepository } from "./voting-power-purchase.repositor
   controllers: [MemezatorController],
   exports: [MemezatorService],
 })
-export class MemezatorModule {}
+export class MemezatorModule { }
